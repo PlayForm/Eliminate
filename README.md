@@ -5,14 +5,27 @@ variables that are defined but only used once and are not exported. It then
 eliminates these variable definitions and replaces their usage with their
 initializers, optimizing your code for better readability and performance.
 
-| Before          | After                |
-| --------------- | -------------------- |
-|                 |                      |
-| let a = 5;      | console.log(5 + 10); |
-| let b = 10;     |                      |
-| let c = a + b;  |                      |
-| console.log(c); |                      |
-|                 |                      |
+<table>
+	<tr>
+		<th>Before</th>
+    	<th>After</th>
+    </tr>
+    <tr>
+    	<td>
+    		<pre>
+let a = 5;
+let b = 10;
+let c = a + b;
+console.log(c);
+			</pre>
+		</td>
+		<td>
+			<pre>
+console.log(5 + 10);
+			</pre>
+		</td>
+	</tr>
+</table>
 
 ## 📦 Features
 
