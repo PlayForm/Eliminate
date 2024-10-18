@@ -20,6 +20,3 @@ export default (async (...[File]: Parameters<Interface>) => {
 }) satisfies Interface as Interface;
 
 export const Pipe: string[] = [];
-
-export const { extname, basename, relative, dirname, normalize, sep } =
-	await import("path");

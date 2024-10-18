@@ -5,6 +5,7 @@
 	"description": "↘️ Eliminate —",
 	"keywords": [
 		"eliminate",
+		"single-use-variables",
 		"performance",
 		"typescript",
 		"playform"
