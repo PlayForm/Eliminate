@@ -5,14 +5,14 @@ variables that are defined but only used once and are not exported. It then
 eliminates these variable definitions and replaces their usage with their
 initializers, optimizing your code for better readability and performance.
 
-| Before          | After                |
-| --------------- | -------------------- |
-| ```typescript   | ```typescript        |
-| let a = 5;      | console.log(5 + 10); |
-| let b = 10;     |                      |
-| let c = a + b;  |                      |
-| console.log(c); |                      |
-| ```             | ```                  |
+| Before          | After                         |
+| --------------- | ----------------------------- |
+| ```typescript   | `typescript  console.log(5) ` |
+| let a = 5;      | console.log(5 + 10);          |
+| let b = 10;     |                               |
+| let c = a + b;  |                               |
+| console.log(c); |                               |
+| ```             | ```                           |
 
 ## 📦 Features
 
