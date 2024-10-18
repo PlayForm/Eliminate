@@ -16,13 +16,11 @@ initializers, optimizing your code for better readability and performance.
 let a = 5;
 let b = 10;
 let c = a + b;
-console.log(c);
-			</pre>
+console.log(c);</pre>
 		</td>
 		<td>
 			<pre>
-console.log(5 + 10);
-			</pre>
+console.log(5 + 10);</pre>
 		</td>
 	</tr>
 </table>
