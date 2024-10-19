@@ -10,6 +10,7 @@ function eliminateSingleUseVariables(sourceCode: string): string {
 
 	const variableUsageCount: Record<string, number> = {};
 	const variableInitializers: Record<string, ts.Expression> = {};
+	const exportedVariables = new Set<string>();
 
 	function visit(node: ts.Node) {
 		if (ts.isVariableDeclaration(node) && node.initializer) {
@@ -21,6 +22,9 @@ function eliminateSingleUseVariables(sourceCode: string): string {
 			if (variableUsageCount.hasOwnProperty(name)) {
 				variableUsageCount[name]++;
 			}
+		} else if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
+			const name = node.name.getText();
+			exportedVariables.add(name);
 		}
 		ts.forEachChild(node, visit);
 	}
@@ -37,7 +41,7 @@ function eliminateSingleUseVariables(sourceCode: string): string {
 								const name = declaration.name.getText();
 								return (
 									variableUsageCount[name] !== 1 ||
-									ts.isExportAssignment(declaration)
+									exportedVariables.has(name)
 								);
 							},
 						);
@@ -46,10 +50,10 @@ function eliminateSingleUseVariables(sourceCode: string): string {
 						return ts.createEmptyStatement();
 					}
 
-					return ts.updateVariableStatement(
+					return ts.factory.updateVariableStatement(
 						node,
 						node.modifiers,
-						ts.updateVariableDeclarationList(
+						ts.factory.updateVariableDeclarationList(
 							node.declarationList,
 							declarations,
 						),
@@ -58,7 +62,8 @@ function eliminateSingleUseVariables(sourceCode: string): string {
 					const name = node.getText();
 					if (
 						variableUsageCount[name] === 1 &&
-						variableInitializers[name]
+						variableInitializers[name] &&
+						!exportedVariables.has(name)
 					) {
 						return variableInitializers[name];
 					}
