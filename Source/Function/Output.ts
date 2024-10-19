@@ -47,7 +47,7 @@ function eliminateSingleUseVariables(sourceCode: string): string {
 						);
 
 					if (declarations.length === 0) {
-						return ts.createEmptyStatement();
+						return ts.factory.createEmptyStatement();
 					}
 
 					return ts.factory.updateVariableStatement(
