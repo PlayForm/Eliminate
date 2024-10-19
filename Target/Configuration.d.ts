@@ -7,7 +7,7 @@ declare const _default: {
         Search: string;
         Folder: string;
     };
-    Path: string;
+    Path: Map<string, string>;
     Logger: 2;
     Action: {
         Read: (On: import("@playform/pipe/Target/Interface/File.js").default) => Promise<import("@playform/pipe/Target/Type/Buffer.js").Type>;
