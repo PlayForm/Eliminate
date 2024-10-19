@@ -1,0 +1,1 @@
+var a=async(...[e])=>{let t=o((await import("../Variable/Eliminate.js")).default,{});t=e?o(t,await(await import("../Function/File.js")).default(e)):t,console.log("Eliminate:"),console.log(e),console.log("Configuration:"),console.log(t)};const{default:o}=await import("../Function/Merge.js"),r=[];export{o as Merge,r as Pipe,a as default};

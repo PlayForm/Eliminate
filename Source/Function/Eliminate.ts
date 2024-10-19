@@ -1,22 +1,30 @@
 import type Interface from "../Interface/Eliminate.js";
+import type Option from "../Interface/Option.js";
 
 /**
  * @module Eliminate
  *
  */
-export default (async (...[File]: Parameters<Interface>) => {
-	for (const _File of File) {
-		for (const __File of await (
-			await import("fast-glob")
-		).default(_File.replaceAll("'", "").replaceAll('"', ""))) {
-			Pipe.push(__File);
-		}
-	}
+export default (async (...[Eliminate]: Parameters<Interface>) => {
+	let Configuration: Option = Merge(
+		(await import("../Variable/Eliminate.js")).default,
+		{},
+	);
 
-	Pipe.reverse();
+	Configuration = Eliminate
+		? Merge(
+				Configuration,
+				await (await import("../Function/File.js")).default(Eliminate),
+			)
+		: Configuration;
 
-	console.log(Pipe);
-	console.log(File);
+	console.log("Eliminate:");
+	console.log(Eliminate);
+
+	console.log("Configuration:");
+	console.log(Configuration);
 }) satisfies Interface as Interface;
+
+export const { default: Merge } = await import("../Function/Merge.js");
 
 export const Pipe: string[] = [];
