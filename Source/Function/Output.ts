@@ -3,6 +3,7 @@ import type {
 	Node,
 	SourceFile,
 	TransformationContext,
+	TransformerFactory,
 } from "typescript";
 
 export default (sourceCode: string) => {
@@ -29,13 +30,13 @@ export default (sourceCode: string) => {
 		} else if (ts.isIdentifier(node)) {
 			const name = node.getText();
 
-			if (variableUsageCount.hasOwnProperty(name)) {
-				if (typeof variableUsageCount[name] !== "undefined") {
-					variableUsageCount[name]++;
-				}
+			if (name in variableUsageCount) {
+				variableUsageCount[name]++;
 			}
 		} else if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
-			exportedVariables.add(node.name?.getText() ?? "");
+			if (node.name) {
+				exportedVariables.add(node.name.getText());
+			}
 		}
 
 		ts.forEachChild(node, visit);
@@ -43,15 +44,14 @@ export default (sourceCode: string) => {
 
 	visit(sourceFile);
 
-	const transformer = <T extends Node>(context: TransformationContext) => {
-		return (rootNode: T) => {
-			const visitAndTransform = (node: Node): Node => {
+	const transformer: TransformerFactory<SourceFile> = (context) => {
+		return (rootNode) => {
+			function visitAndTransform(node: Node): Node {
 				if (ts.isVariableStatement(node)) {
 					const declarations =
 						node.declarationList.declarations.filter(
 							(declaration) => {
 								const name = declaration.name.getText();
-
 								return (
 									variableUsageCount[name] !== 1 ||
 									exportedVariables.has(name)
@@ -73,7 +73,6 @@ export default (sourceCode: string) => {
 					);
 				} else if (ts.isIdentifier(node)) {
 					const name = node.getText();
-
 					if (
 						variableUsageCount[name] === 1 &&
 						variableInitializers[name] &&
@@ -84,7 +83,7 @@ export default (sourceCode: string) => {
 				}
 
 				return ts.visitEachChild(node, visitAndTransform, context);
-			};
+			}
 
 			return ts.visitNode(rootNode, visitAndTransform);
 		};
