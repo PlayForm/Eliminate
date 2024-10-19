@@ -2,7 +2,6 @@ import type {
 	Expression,
 	Node,
 	SourceFile,
-	TransformationContext,
 	TransformerFactory,
 } from "typescript";
 
