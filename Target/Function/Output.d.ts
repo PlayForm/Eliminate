@@ -1,4 +1,4 @@
-import type { Expression, Node, SourceFile, TransformationContext, TransformerFactory } from "typescript";
+import type { Expression, Node, SourceFile, TransformationContext } from "typescript";
 declare const _default: (sourceCode: string) => string;
 export default _default;
 export declare const ts: {
@@ -524,7 +524,7 @@ export declare const ts: {
     updateLanguageServiceSourceFile(sourceFile: SourceFile, scriptSnapshot: import("typescript").IScriptSnapshot, version: string, textChangeRange: import("typescript").TextChangeRange | undefined, aggressiveChecks?: boolean): SourceFile;
     createLanguageService(host: import("typescript").LanguageServiceHost, documentRegistry?: import("typescript").DocumentRegistry, syntaxOnlyOrLanguageServiceMode?: boolean | import("typescript").LanguageServiceMode): import("typescript").LanguageService;
     getDefaultLibFilePath(options: import("typescript").CompilerOptions): string;
-    transform<T extends Node>(source: T | T[], transformers: TransformerFactory<T>[], compilerOptions?: import("typescript").CompilerOptions): import("typescript").TransformationResult<T>;
+    transform<T extends Node>(source: T | T[], transformers: import("typescript").TransformerFactory<T>[], compilerOptions?: import("typescript").CompilerOptions): import("typescript").TransformationResult<T>;
     server: typeof import("typescript").server;
     versionMajorMinor: "5.6";
     version: string;

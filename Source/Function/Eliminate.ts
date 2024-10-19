@@ -33,7 +33,7 @@ export default (async (...[Eliminate]: Parameters<Interface>) => {
 			Paths.add(Path);
 		}
 	}
-
+	
 	for (const Path of Paths) {
 		if (
 			typeof File !== "undefined" &&
