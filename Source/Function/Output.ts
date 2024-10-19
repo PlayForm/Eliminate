@@ -1,6 +1,11 @@
-import * as ts from "typescript";
+import type {
+	Expression,
+	Node,
+	SourceFile,
+	TransformationContext,
+} from "typescript";
 
-function eliminateSingleUseVariables(sourceCode: string): string {
+export default (sourceCode: string) => {
 	const sourceFile = ts.createSourceFile(
 		"temp.ts",
 		sourceCode,
@@ -10,11 +15,11 @@ function eliminateSingleUseVariables(sourceCode: string): string {
 
 	const variableUsageCount: Record<string, number> = {};
 
-	const variableInitializers: Record<string, ts.Expression> = {};
+	const variableInitializers: Record<string, Expression> = {};
 
 	const exportedVariables = new Set<string>();
 
-	function visit(node: ts.Node) {
+	const visit = (node: Node) => {
 		if (ts.isVariableDeclaration(node) && node.initializer) {
 			const name = node.name.getText();
 
@@ -30,19 +35,17 @@ function eliminateSingleUseVariables(sourceCode: string): string {
 				}
 			}
 		} else if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
-			const name = node.name.getText();
-
-			exportedVariables.add(name);
+			exportedVariables.add(node.name?.getText() ?? "");
 		}
 
 		ts.forEachChild(node, visit);
-	}
+	};
 
 	visit(sourceFile);
 
-	function transformer<T extends ts.Node>(context: ts.TransformationContext) {
+	const transformer = <T extends Node>(context: TransformationContext) => {
 		return (rootNode: T) => {
-			function visitAndTransform(node: ts.Node): ts.Node {
+			const visitAndTransform = (node: Node): Node => {
 				if (ts.isVariableStatement(node)) {
 					const declarations =
 						node.declarationList.declarations.filter(
@@ -81,31 +84,18 @@ function eliminateSingleUseVariables(sourceCode: string): string {
 				}
 
 				return ts.visitEachChild(node, visitAndTransform, context);
-			}
+			};
 
 			return ts.visitNode(rootNode, visitAndTransform);
 		};
-	}
+	};
 
-	const result = ts.transform(sourceFile, [transformer]);
+	return ts
+		.createPrinter()
+		.printFile(
+			ts.transform(sourceFile, [transformer])
+				.transformed[0] as SourceFile,
+		);
+};
 
-	const printer = ts.createPrinter();
-
-	const transformedSourceFile = result.transformed[0];
-
-	const transformedCode = printer.printFile(
-		transformedSourceFile as ts.SourceFile,
-	);
-
-	return transformedCode;
-}
-
-// Example usage:
-const tsCode = `
-let a = 5;
-let b = 10;
-let c = a + b;
-console.log(c);
-`;
-
-console.log(eliminateSingleUseVariables(tsCode));
+export const ts = await import("typescript");
