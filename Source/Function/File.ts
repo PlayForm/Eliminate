@@ -4,7 +4,7 @@ import type Interface from "../Interface/File.js";
  * @module File
  *
  */
-export default (async (...[Path]: Parameters<Interface>) => {
+export default (async (...[Path]) => {
 	if (Path.split(".").pop() === "ts") {
 		const projectRoot = (await import("path")).resolve(
 			(await import("path")).dirname(

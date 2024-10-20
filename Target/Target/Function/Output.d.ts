@@ -1,4 +1,4 @@
-declare function x(u: any): string;
+declare function g(u: any): string;
 declare const t: {
     default: typeof import("typescript");
     tokenToString(t: import("typescript").SyntaxKind): string | undefined;
@@ -593,4 +593,4 @@ declare const t: {
     ClassificationType: typeof import("typescript").ClassificationType;
     servicesVersion: "0.8";
 };
-export { x as default, t as ts };
+export { g as default, t as ts };
