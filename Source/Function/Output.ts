@@ -13,6 +13,7 @@ export default (sourceCode: string) => {
 		true,
 	);
 
+
 	const variableUsageCount: Record<string, number> = {};
 
 	const variableInitializers: Record<string, Expression> = {};

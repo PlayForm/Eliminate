@@ -31,8 +31,8 @@
 		"Eliminate": "Target/Class/Eliminate.js"
 	},
 	"scripts": {
-		"Run": "Build 'Source/**/*.ts' --Watch",
-		"prepublishOnly": "Build 'Source/**/*.ts'"
+		"Run": "Build 'Source/**/*.ts' --Watch --ESBuild Configuration/ESBuild.ts",
+		"prepublishOnly": "Build 'Source/**/*.ts' --ESBuild Configuration/ESBuild.ts"
 	},
 	"dependencies": {
 		"@playform/pipe": "0.1.1",
