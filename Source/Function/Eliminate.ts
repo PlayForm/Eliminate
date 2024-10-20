@@ -12,7 +12,7 @@ export default (async (...[Eliminate]: Parameters<Interface>) => {
 		(await import("../Variable/Eliminate.js")).default,
 		{},
 	);
-	
+
 	Configuration = Eliminate
 		? Merge(
 				Configuration,
@@ -23,7 +23,7 @@ export default (async (...[Eliminate]: Parameters<Interface>) => {
 	const { Path, File, Action } = Configuration;
 
 	const Paths = new Set<Path>();
-	
+
 	if (typeof Path !== "undefined") {
 		if (Array.isArray(Path) || Path instanceof Set) {
 			Path.forEach((Path) => Paths.add(Path));
@@ -33,7 +33,7 @@ export default (async (...[Eliminate]: Parameters<Interface>) => {
 			Paths.add(Path);
 		}
 	}
-	
+
 	for (const Path of Paths) {
 		if (
 			typeof File !== "undefined" &&
