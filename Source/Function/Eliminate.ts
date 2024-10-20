@@ -23,7 +23,6 @@ export default (async (...[Eliminate]: Parameters<Interface>) => {
 	const { Path, File, Action } = Configuration;
 
 	const Paths = new Set<Path>();
-
 	
 	if (typeof Path !== "undefined") {
 		if (Array.isArray(Path) || Path instanceof Set) {
