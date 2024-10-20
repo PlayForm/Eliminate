@@ -49,16 +49,18 @@ npm install -D -E @playform/eliminate
 Run the build tool from the command line:
 
 ```sh
-npx @playform/eliminate 'Source/**/*.ts'
+npx @playform/eliminate Configuration.ts
 ```
+
+See an example of a configuration file in: [`Configuration.ts`](./Configuration.ts)
 
 ### CLI Options
 
 ```
-Usage: Eliminate [options] <File...>
+Usage: Eliminate Eliminate
 
 Arguments:
-  File                      📝 File patterns to build
+  Eliminate                 ↘️ Eliminate configuration file
 
 Options:
   -V, --version             Output the version number
@@ -72,7 +74,7 @@ Add `Eliminate` to your `package.json` scripts:
 ```json
 {
 	"scripts": {
-		"Eliminate": "Eliminate 'Source/**/*.ts'"
+		"Eliminate": "Eliminate Configuration.ts"
 	}
 }
 ```

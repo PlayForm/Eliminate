@@ -1,3 +1,4 @@
+export const On = process.env["NODE_ENV"] === "development";
 /**
  * @module ESBuild
  *
@@ -14,30 +15,30 @@ export default {
     tsconfig: "tsconfig.json",
     write: true,
     plugins: [
-        // {
-        // 	name: "Target",
-        // 	setup({ onStart, initialOptions: { outdir } }) {
-        // 		onStart(async () => {
-        // 			try {
-        // 				outdir
-        // 					? await (
-        // 							await import("fs/promises")
-        // 						).rm(outdir, {
-        // 							recursive: true,
-        // 						})
-        // 					: {};
-        // 			} catch (_Error) {
-        // 				console.log(_Error);
-        // 			}
-        // 		});
-        // 	},
-        // },
+        {
+            name: "Target",
+            setup({ onStart, initialOptions: { outdir } }) {
+                onStart(async () => {
+                    try {
+                        outdir
+                            ? await (await import("fs/promises")).rm(outdir, {
+                                recursive: true,
+                            })
+                            : {};
+                    }
+                    catch (_Error) {
+                        console.log(_Error);
+                    }
+                });
+            },
+        },
         {
             name: "Example",
             setup({ onEnd }) {
-                onEnd(async () => {
-                    await Exec("ls");
-                });
+                On &&
+                    onEnd(async () => {
+                        await Exec("Eliminate Configuration.ts");
+                    });
             },
         },
     ],
