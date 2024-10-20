@@ -38,7 +38,7 @@ export default {
 			name: "Example",
 			setup({ onEnd }) {
 				onEnd(async () => {
-					await Exec("pwd");
+					await Exec("Eliminate Configuration.ts");
 				});
 			},
 		},
