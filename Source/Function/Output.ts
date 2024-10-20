@@ -20,23 +20,30 @@ export default (sourceCode: string) => {
 	const exportedVariables = new Set<string>();
 
 	const visit = (node: Node) => {
+		ts.forEachChild(node, visit);
+
+		if (!ts.isBindingName(node)) {
+			return;
+		}
+
 		if (ts.isVariableDeclaration(node) && node.initializer) {
 			const name = node.name.getText();
 
 			variableUsageCount[name] = 0;
 
 			variableInitializers[name] = node.initializer;
-		} else if (ts.isIdentifier(node)) {
+		} else if (ts.isIdentifier(node) && ts.isBindingName(node)) {
 			const name = node.getText();
 
 			if (typeof variableUsageCount[name] !== "undefined") {
 				variableUsageCount[name]++;
 			}
-		} else if (ts.isExportAssignment(node) || ts.isExportSpecifier(node)) {
+		} else if (
+			(ts.isExportAssignment(node) || ts.isExportSpecifier(node)) &&
+			ts.isBindingName(node)
+		) {
 			exportedVariables.add(node.name?.getText() ?? "");
 		}
-
-		ts.forEachChild(node, visit);
 	};
 
 	visit(sourceFile);
@@ -44,16 +51,25 @@ export default (sourceCode: string) => {
 	const transformer = <T extends Node>(context: TransformationContext) => {
 		return (rootNode: T) => {
 			const visitAndTransform = (node: Node): Node => {
+				node = ts.visitEachChild(node, visitAndTransform, context);
+
 				if (ts.isVariableStatement(node)) {
 					const declarations =
 						node.declarationList.declarations.filter(
 							(declaration) => {
 								const name = declaration.name.getText();
 
-								return (
-									variableUsageCount[name] !== 1 ||
-									exportedVariables.has(name)
-								);
+								if (
+									typeof variableUsageCount[name] !==
+									"undefined"
+								) {
+									return (
+										variableUsageCount[name] > 1 ||
+										exportedVariables.has(name)
+									);
+								} else {
+									return true;
+								}
 							},
 						);
 
@@ -69,19 +85,21 @@ export default (sourceCode: string) => {
 							declarations,
 						),
 					);
-				} else if (ts.isIdentifier(node)) {
+				} else if (ts.isIdentifier(node) && ts.isBindingName(node)) {
 					const name = node.getText();
 
-					if (
-						variableUsageCount[name] === 1 &&
-						variableInitializers[name] &&
-						!exportedVariables.has(name)
-					) {
-						return variableInitializers[name];
+					if (typeof variableUsageCount[name] !== "undefined") {
+						if (
+							variableUsageCount[name] === 1 &&
+							variableInitializers[name] &&
+							!exportedVariables.has(name)
+						) {
+							return variableInitializers[name];
+						}
 					}
 				}
 
-				return ts.visitEachChild(node, visitAndTransform, context);
+				return node;
 			};
 
 			return ts.visitNode(rootNode, visitAndTransform);
