@@ -12,7 +12,7 @@ export default (async (...[Eliminate]) => {
 		(await import("../Variable/Eliminate.js")).default,
 		{},
 	);
-
+	
 	Configuration = Eliminate
 		? Merge(
 				Configuration,

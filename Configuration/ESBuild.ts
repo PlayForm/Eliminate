@@ -18,7 +18,7 @@ export default {
 	tsconfig: "tsconfig.json",
 	write: true,
 	plugins: [
-		{
+		!On ? ({
 			name: "Target",
 			setup({ onStart, initialOptions: { outdir } }) {
 				onStart(async () => {
@@ -35,7 +35,7 @@ export default {
 					}
 				});
 			},
-		},
+		}) : {},
 		{
 			name: "Example",
 			setup({ onEnd }) {
