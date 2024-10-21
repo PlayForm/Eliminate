@@ -15,35 +15,37 @@ export default {
     tsconfig: "tsconfig.json",
     write: true,
     plugins: [
-        !On
-            ? {
-                name: "Target",
-                setup({ onStart, initialOptions: { outdir } }) {
-                    onStart(async () => {
-                        try {
-                            outdir
-                                ? await (await import("fs/promises")).rm(outdir, {
-                                    recursive: true,
-                                })
-                                : {};
-                        }
-                        catch (_Error) {
-                            console.log(_Error);
-                        }
-                    });
-                },
-            }
-            : undefined,
-        On
-            ? {
-                name: "Example",
-                setup({ onEnd }) {
-                    onEnd(async () => {
-                        await Exec("Eliminate Configuration.ts");
-                    });
-                },
-            }
-            : undefined,
+        ...[
+            !On
+                ? {
+                    name: "Target",
+                    setup({ onStart, initialOptions: { outdir } }) {
+                        onStart(async () => {
+                            try {
+                                outdir
+                                    ? await (await import("fs/promises")).rm(outdir, {
+                                        recursive: true,
+                                    })
+                                    : {};
+                            }
+                            catch (_Error) {
+                                console.log(_Error);
+                            }
+                        });
+                    },
+                }
+                : null,
+            On
+                ? {
+                    name: "Example",
+                    setup({ onEnd }) {
+                        onEnd(async () => {
+                            await Exec("Eliminate Configuration.ts");
+                        });
+                    },
+                }
+                : null,
+        ].filter(Boolean),
     ],
     define: {
         "process.env.VERSION_PACKAGE": `'${(await (await import("@playform/build/Target/Function/JSON.js")).default("package.json"))?.version}'`,
