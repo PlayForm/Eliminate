@@ -15,13 +15,13 @@ export default (async (...[Source]) => {
 
 	const Usage: Record<string, number> = {};
 
-	
+
 	const Initializer: Record<string, Expression> = {};
 
 	const Export = new Set<string>();
 
 	(await import("@Function/Output/Visit.js")).default(Node);
-
+	
 	return ts
 		.createPrinter()
 		.printFile(
