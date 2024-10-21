@@ -15,7 +15,6 @@ export default (async (...[Source]) => {
 
 	const Usage: Record<string, number> = {};
 
-
 	const Initializer: Record<string, Expression> = {};
 
 	const Export = new Set<string>();
