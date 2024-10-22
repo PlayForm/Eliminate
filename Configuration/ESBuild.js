@@ -38,7 +38,7 @@ export default {
             On
                 ? {
                     name: "Example",
-                    setup({ onEnd, onStart, initialOptions: { entryPoints }, }) {
+                    setup({ onEnd }) {
                         onEnd(async () => {
                             await Exec("Eliminate Configuration.ts");
                         });

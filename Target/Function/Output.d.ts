@@ -1,5 +1,5 @@
 import type Interface from "@Interface/Output.js";
-import type { Expression, SourceFile } from "typescript";
+import type { SourceFile } from "typescript";
 /**
  * @module Output
  *
@@ -75,7 +75,7 @@ export declare const ts: {
     identifierToKeywordKind(node: import("typescript").Identifier): import("typescript").KeywordSyntaxKind | undefined;
     symbolName(symbol: import("typescript").Symbol): string;
     getNameOfJSDocTypedef(declaration: import("typescript").JSDocTypedefTag): import("typescript").Identifier | import("typescript").PrivateIdentifier | undefined;
-    getNameOfDeclaration(declaration: import("typescript").Declaration | Expression | undefined): import("typescript").DeclarationName | undefined;
+    getNameOfDeclaration(declaration: import("typescript").Declaration | import("typescript").Expression | undefined): import("typescript").DeclarationName | undefined;
     getDecorators(node: import("typescript").HasDecorators): readonly import("typescript").Decorator[] | undefined;
     getModifiers(node: import("typescript").HasModifiers): readonly import("typescript").Modifier[] | undefined;
     getJSDocParameterTags(param: import("typescript").ParameterDeclaration): readonly import("typescript").JSDocParameterTag[];
@@ -111,7 +111,7 @@ export declare const ts: {
     isOptionalChain(node: import("typescript").Node): node is import("typescript").PropertyAccessChain | import("typescript").ElementAccessChain | import("typescript").CallChain | import("typescript").NonNullChain;
     isNullishCoalesce(node: import("typescript").Node): boolean;
     isConstTypeReference(node: import("typescript").Node): boolean;
-    skipPartiallyEmittedExpressions(node: Expression): Expression;
+    skipPartiallyEmittedExpressions(node: import("typescript").Expression): import("typescript").Expression;
     skipPartiallyEmittedExpressions(node: import("typescript").Node): import("typescript").Node;
     isNonNullChain(node: import("typescript").Node): node is import("typescript").NonNullChain;
     isBreakOrContinueStatement(node: import("typescript").Node): node is import("typescript").BreakOrContinueStatement;
@@ -150,7 +150,7 @@ export declare const ts: {
     isTemplateLiteral(node: import("typescript").Node): node is import("typescript").TemplateLiteral;
     isLeftHandSideExpression(node: import("typescript").Node): node is import("typescript").LeftHandSideExpression;
     isLiteralTypeLiteral(node: import("typescript").Node): node is import("typescript").NullLiteral | import("typescript").BooleanLiteral | import("typescript").LiteralExpression | import("typescript").PrefixUnaryExpression;
-    isExpression(node: import("typescript").Node): node is Expression;
+    isExpression(node: import("typescript").Node): node is import("typescript").Expression;
     isAssertionExpression(node: import("typescript").Node): node is import("typescript").AssertionExpression;
     isIterationStatement(node: import("typescript").Node, lookInLabeledStatements: false): node is import("typescript").IterationStatement;
     isIterationStatement(node: import("typescript").Node, lookInLabeledStatements: boolean): node is import("typescript").IterationStatement | import("typescript").LabeledStatement;
@@ -474,7 +474,7 @@ export declare const ts: {
     visitFunctionBody(node: import("typescript").FunctionBody | undefined, visitor: import("typescript").Visitor, context: import("typescript").TransformationContext): import("typescript").FunctionBody | undefined;
     visitFunctionBody(node: import("typescript").ConciseBody, visitor: import("typescript").Visitor, context: import("typescript").TransformationContext): import("typescript").ConciseBody;
     visitIterationBody(body: import("typescript").Statement, visitor: import("typescript").Visitor, context: import("typescript").TransformationContext): import("typescript").Statement;
-    visitCommaListElements(elements: import("typescript").NodeArray<Expression>, visitor: import("typescript").Visitor, discardVisitor?: import("typescript").Visitor): import("typescript").NodeArray<Expression>;
+    visitCommaListElements(elements: import("typescript").NodeArray<import("typescript").Expression>, visitor: import("typescript").Visitor, discardVisitor?: import("typescript").Visitor): import("typescript").NodeArray<import("typescript").Expression>;
     visitEachChild<T extends import("typescript").Node>(node: T, visitor: import("typescript").Visitor, context: import("typescript").TransformationContext | undefined): T;
     visitEachChild<T extends import("typescript").Node>(node: T | undefined, visitor: import("typescript").Visitor, context: import("typescript").TransformationContext | undefined, nodesVisitor?: typeof import("typescript").visitNodes, tokenVisitor?: import("typescript").Visitor): T | undefined;
     getTsBuildInfoEmitOutputFilePath(options: import("typescript").CompilerOptions): string | undefined;

@@ -1,5 +1,6 @@
 import type Interface from "@Interface/Output.js";
-import type { Expression, SourceFile } from "typescript";
+import type Initializer from "@Type/Output/Visit/Initializer.js";
+import type { SourceFile } from "typescript";
 
 /**
  * @module Output
@@ -13,14 +14,14 @@ export default (async (...[Source]) => {
 		true,
 	);
 
-	const Usage: Record<string, number> = {};
+	// const Usage: Record<string, number> = {};
 
-	const Initializer: Record<string, Expression> = {};
+	const Initializer: Initializer = new Map([]);
 
-	const Export = new Set<string>();
+	// const Export = new Set<string>();
 
-	(await import("@Function/Output/Visit.js")).default(Node);
-	
+	(await import("@Function/Output/Visit.js")).default(Initializer);
+
 	return ts
 		.createPrinter()
 		.printFile(

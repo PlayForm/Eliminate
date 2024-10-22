@@ -1,8 +1,9 @@
+import type Initializer from "@Type/Output/Visit/Initializer.js";
 import type { Node } from "typescript";
 /**
  * @module Output
  *
  */
 export default interface Interface {
-    (Node: Node): void;
+    (Initializer: Initializer): (Node: Node) => void;
 }
