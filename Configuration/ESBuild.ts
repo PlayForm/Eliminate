@@ -40,29 +40,14 @@ export default {
 					}
 				: null,
 			On
-				? ({
+				? {
 						name: "Example",
-						setup({
-							onEnd,
-							onStart,
-							initialOptions: { entryPoints },
-						}) {
-							// onStart(() => {
-							// 	if (
-							// 		Array.isArray(entryPoints) &&
-							// 		entryPoints instanceof Array
-							// 	) {
-							// 		entryPoints?.push(
-							// 			"Example/Input/Predefined.ts",
-							// 		);
-							// 	}
-							// });
-
+						setup({ onEnd }) {
 							onEnd(async () => {
 								await Exec("Eliminate Configuration.ts");
 							});
 						},
-					} as Plugin)
+					}
 				: null,
 		].filter(Boolean) as Plugin[]),
 	],

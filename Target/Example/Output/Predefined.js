@@ -1,0 +1,1 @@
+import*as r from"fs";import*as o from"path";const n=o.dirname(o.dirname(__dirname)),t=o.join(n,"remote",".npmrc"),c=r.readFileSync(t,"utf8"),s=/^target="(.*)"$/m.exec(c)[1],e=process.platform,a=process.arch,m=e==="win32"?"node.exe":"node",i=o.join(n,".build","node",`v${s}`,`${e}-${a}`,m);console.log(i);
