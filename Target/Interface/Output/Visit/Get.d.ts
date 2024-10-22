@@ -5,5 +5,5 @@ import type Name from "@Type/Output/Visit/Initializer/Name.js";
  *
  */
 export default interface Interface {
-    (Search: Name): Initializer;
+    (Search: Name, Map: Map<Initializer, Name>): Initializer;
 }
