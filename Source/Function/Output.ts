@@ -20,7 +20,7 @@ export default (async (...[Source]) => {
 
 	// const Export = new Set<string>();
 
-	(await import("@Function/Output/Visit.js")).default(Initializer);
+	(await import("@Function/Output/Visit.js")).default(Initializer)(Node);
 
 	return ts
 		.createPrinter()

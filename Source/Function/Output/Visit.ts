@@ -9,8 +9,10 @@ export const Fn = ((...[Initializer]) =>
 		ts.forEachChild(Node, Fn(Initializer));
 
 		if (ts.isVariableDeclaration(Node) && Node.initializer) {
-			// Initializer.set(Node.name.getText(), Node.initializer.getText());
+			Initializer.set(Node.initializer.getText(), Node.name.getText());
 		}
+
+		console.log(Initializer);
 
 		if (ts.isIdentifier(Node)) {
 			// console.log(Initializer);

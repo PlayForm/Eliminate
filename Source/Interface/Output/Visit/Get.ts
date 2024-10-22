@@ -5,6 +5,6 @@ import type Name from "@Type/Output/Visit/Initializer/Name.js";
  * @module Output
  *
  */
-export type Type = Map<Initializer, Name>;
-
-export type { Type as default };
+export default interface Interface {
+	(Search: Name): Initializer;
+}

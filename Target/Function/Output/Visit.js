@@ -1,1 +1,1 @@
-const e=(...[a])=>(...[t])=>{i.forEachChild(t,e(a)),i.isVariableDeclaration(t)&&t.initializer,i.isIdentifier(t)},{default:i}=await import("typescript");var r=e;export{e as Fn,r as default,i as ts};
+const a=(...[e])=>(...[t])=>{i.forEachChild(t,a(e)),i.isVariableDeclaration(t)&&t.initializer&&e.set(t.initializer.getText(),t.name.getText()),console.log(e),i.isIdentifier(t)},{default:i}=await import("typescript");var r=a;export{a as Fn,r as default,i as ts};
