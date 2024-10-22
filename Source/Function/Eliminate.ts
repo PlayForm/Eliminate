@@ -12,7 +12,7 @@ export default (async (...[Eliminate]) => {
 		(await import("../Variable/Eliminate.js")).default,
 		{},
 	);
-	
+
 	Configuration = Eliminate
 		? Merge(
 				Configuration,
@@ -21,7 +21,7 @@ export default (async (...[Eliminate]) => {
 		: Configuration;
 
 	const { Path, File, Action } = Configuration;
-	
+
 	const Paths = new Set<Path>();
 
 	if (typeof Path !== "undefined") {

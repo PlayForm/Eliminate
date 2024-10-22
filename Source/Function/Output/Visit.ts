@@ -4,7 +4,7 @@ import type Interface from "@Interface/Output/Visit.js";
  * @module Output
  *
  */
-export const Fn = ((Initializer) =>
+export const Fn = ((...[Initializer]) =>
 	(...[Node]) => {
 		ts.forEachChild(Node, Fn(Initializer));
 
