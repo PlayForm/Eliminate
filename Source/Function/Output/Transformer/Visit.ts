@@ -8,6 +8,8 @@ export const Fn = ((...[Context]) =>
 	(...[Node]) => {
 		Node = ts.visitEachChild(Node, Fn(Context), Context);
 
+		console.log("test 2");
+
 		// if (ts.isVariableStatement(node)) {
 		// 	const declarations =
 		// 		node.declarationList.declarations.filter(

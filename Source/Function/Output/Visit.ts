@@ -7,6 +7,8 @@ import type Interface from "@Interface/Output/Visit.js";
 export const Fn = ((...[Node]) => {
 	ts.forEachChild(Node, Fn);
 
+	console.log("test");
+	
 	// if (ts.isVariableDeclaration(node) && node.initializer) {
 	// 	const name = node.name.getText();
 
