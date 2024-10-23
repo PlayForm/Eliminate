@@ -7,7 +7,7 @@ import type Interface from "@Interface/Output/Visit.js";
 export const Fn = ((...[Initializer]) =>
 	(...[Node]) => {
 		ts.forEachChild(Node, Fn(Initializer));
-
+		
 		if (ts.isVariableDeclaration(Node) && Node.initializer) {
 			Initializer.set(Node.initializer.getText(), Node.name.getText());
 		}
