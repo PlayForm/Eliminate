@@ -4,9 +4,13 @@ import type Interface from "@Interface/Output/Transformer.js";
  * @module Output
  *
  */
-export default ((...[Context]) =>
+export default ((Usage, Initializer) =>
+	(...[Context]) =>
 	(Node) =>
-		ts.visitNode(Node, Visit(Context))) satisfies Interface as Interface;
+		ts.visitNode(
+			Node,
+			Visit(Usage, Initializer)(Context),
+		)) satisfies Interface as Interface;
 
 export const { default: ts } = await import("typescript");
 

@@ -13,6 +13,10 @@ export default (await import("./Target/Function/Merge.js")).default((await impor
                 return On.Buffer;
             }
         },
+        Failed: async (Input, _Error) => {
+            console.log(_Error);
+            return "";
+        },
     },
     Path: new Map([["./Source/Example/Input", "./Source/Example/Output"]]),
     File: "**/*.ts",

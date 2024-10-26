@@ -1,5 +1,6 @@
 import type Interface from "@Interface/Output.js";
 import type Initializer from "@Type/Output/Visit/Initializer.js";
+import type Usage from "@Type/Output/Visit/Usage.js";
 import type { SourceFile } from "typescript";
 
 /**
@@ -14,19 +15,23 @@ export default (async (...[Source]) => {
 		true,
 	);
 
-	// const Usage: Record<string, number> = {};
+	const Usage: Usage = new Map([]);
 
 	const Initializer: Initializer = new Map([]);
 
-	// const Export = new Set<string>();
-
-	(await import("@Function/Output/Visit.js")).default(Initializer)(Node);
+	(await import("@Function/Output/Visit.js")).default(
+		Usage,
+		Initializer,
+	)(Node);
 
 	return ts
 		.createPrinter()
 		.printFile(
 			ts.transform(Node, [
-				(await import("@Function/Output/Transformer.js")).default,
+				(await import("@Function/Output/Transformer.js")).default(
+					Usage,
+					Initializer,
+				),
 			]).transformed[0] as SourceFile,
 		);
 }) satisfies Interface as Interface;
