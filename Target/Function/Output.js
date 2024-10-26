@@ -1,0 +1,1 @@
+var p=async(...[a])=>{const e=t.createSourceFile("temp.ts",a,t.ScriptTarget.Latest,!0),r=new Map([]),i=new Map([]);return(await import("./Output/Visit.js")).default(r,i)(e),t.createPrinter().printFile(t.transform(e,[(await import("./Output/Transformer.js")).default(r,i)]).transformed[0])};const t=await import("typescript");export{p as default,t as ts};
