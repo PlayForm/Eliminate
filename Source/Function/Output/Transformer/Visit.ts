@@ -7,13 +7,25 @@ import type Interface from "@Interface/Output/Transformer/Visit.js";
 export const Fn = ((Usage, Initializer) =>
 	(...[Context]) =>
 	(...[Node]) => {
-		Node = ts.visitEachChild(
-			Node,
-			Fn(Usage, Initializer)(Context),
-			Context,
-		);
+		// Node = ;
 
 		if (ts.isVariableStatement(Node)) {
+			// 	// const declarations = Node.declarationList.declarations.filter(
+			// 	// 	(Declaration) => {
+			// 	// 		return (Usage.get(Declaration.name.getText()) ?? 0) > 1;
+			// 	// 	},
+			// 	// );
+			// 	// if (declarations.length === 0) {
+			// 	// 	return ts.factory.createEmptyStatement();
+			// 	// }
+			// 	// return ts.factory.updateVariableStatement(
+			// 	// 	Node,
+			// 	// 	Node.modifiers,
+			// 	// 	ts.factory.updateVariableDeclarationList(
+			// 	// 		Node.declarationList,
+			// 	// 		declarations,
+			// 	// 	),
+			// 	// );
 			console.log(Node.getText());
 		}
 
@@ -32,20 +44,13 @@ export const Fn = ((Usage, Initializer) =>
 					);
 				}
 			}
-
-			// if (NameNode === "nodePath") {
-			// 	console.log("----------");
-			// 	console.log(NameNode);
-			// 	console.log(UsageNode);
-			// 	console.log(Node.getFullText());
-			// 	console.log(Node.parent.getFullText());
-			// 	console.log(ts.isDeclarationStatement(Node));
-			// 	console.log(ts.isVariableDeclaration(Node));
-			// 	console.log(ts.isVariableStatement(Node));
-			// }
 		}
 
-		return Node;
+		return ts.visitEachChild(
+			Node,
+			Fn(Usage, Initializer)(Context),
+			Context,
+		);
 	}) satisfies Interface as Interface;
 
 export const { default: ts } = await import("typescript");
