@@ -13,7 +13,7 @@ export const Fn = ((...[Usage, Initializer]) =>
 			Usage.set(Node.name.getText(), 0);
 
 			// Set the initializer
-			Initializer.set(Node.initializer.getText(), Node.name.getText());
+			Initializer.set(Node.initializer, Node.name.getText());
 		} else if (ts.isIdentifier(Node)) {
 			// Increment if usage is found
 			Usage.set(Node.getText(), Usage.get(Node.getText()) ?? 0 + 1);
