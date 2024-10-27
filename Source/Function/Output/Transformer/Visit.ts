@@ -13,18 +13,36 @@ export const Fn = ((Usage, Initializer) =>
 			Context,
 		);
 
+		if (ts.isVariableStatement(Node)) {
+			console.log(Node.getText());
+		}
+
 		if (ts.isIdentifier(Node)) {
 			const NameNode = Node.getText();
 			const UsageNode = Usage.get(NameNode);
 			const InitializerNode = Get(NameNode, Initializer);
 
 			if (
-				typeof UsageNode !== "undefined" &&
 				typeof InitializerNode !== "undefined" &&
-				UsageNode === 0
+				typeof UsageNode !== "undefined"
 			) {
-				return ts.factory.createIdentifier(InitializerNode.getText());
+				if (ts.isCallExpression(Node.parent) && UsageNode === 1) {
+					return ts.factory.createIdentifier(
+						InitializerNode.getText(),
+					);
+				}
 			}
+
+			// if (NameNode === "nodePath") {
+			// 	console.log("----------");
+			// 	console.log(NameNode);
+			// 	console.log(UsageNode);
+			// 	console.log(Node.getFullText());
+			// 	console.log(Node.parent.getFullText());
+			// 	console.log(ts.isDeclarationStatement(Node));
+			// 	console.log(ts.isVariableDeclaration(Node));
+			// 	console.log(ts.isVariableStatement(Node));
+			// }
 		}
 
 		return Node;

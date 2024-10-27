@@ -21,7 +21,9 @@ export const Fn = ((...[Usage, Initializer]) =>
 			const UsageNode = Usage.get(NameNode);
 
 			// Increment if usage is found
-			Usage.set(NameNode, (UsageNode ?? 0) + 1);
+			if (!ts.isVariableDeclaration(Node.parent)) {
+				Usage.set(NameNode, (UsageNode ?? 0) + 1);
+			}
 		}
 	}) satisfies Interface as Interface;
 
