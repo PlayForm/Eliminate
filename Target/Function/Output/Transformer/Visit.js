@@ -1,1 +1,1 @@
-const a=(i,s)=>(...[e])=>(...[t])=>(t=p.visitEachChild(t,a(i,s)(e),e,r=>Array.isArray(r)?r.reverse():r),t),{default:p}=await import("typescript"),{default:f}=await import("../../Output/Visit/Get.js");var o=a;export{a as Fn,f as Get,o as default,p as ts};
+const a=(i,o)=>(...[e])=>(...[r])=>(r=s.visitEachChild(r,a(i,o)(e),e,t=>Array.isArray(t)?t.reverse():t),r),{default:s}=await import("typescript"),{default:p}=await import("../../Output/Visit/Get.js");var f=a;export{a as Fn,p as Get,f as default,s as ts};

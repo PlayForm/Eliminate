@@ -1,5 +1,5 @@
 import type Interface from "@Interface/Output/Transformer/Visit.js";
-import type { Node } from "typescript";
+import type { Node, NodeArray } from "typescript";
 
 /**
  * @module Output
@@ -12,15 +12,8 @@ export const Fn = ((Usage, Initializer) =>
 			Node,
 			Fn(Usage, Initializer)(Context),
 			Context,
-			// @ts-expect-error
-			(nodes) => {
-				return Array.isArray(nodes) ? nodes.reverse() : nodes;
-			},
-			// (nodes: NodeArray<Node> | undefined) => {
-			// 	console.log(nodes instanceof Array);
-
-			// 	return nodes;
-			// },
+			(nodes: NodeArray<Node>) =>
+				Array.isArray(nodes) ? nodes.reverse() : nodes,
 		) as Node;
 
 		// if (ts.isVariableStatement(Node)) {
