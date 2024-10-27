@@ -1,5 +1,4 @@
 import type Interface from "@Interface/Output/Transformer/Visit.js";
-import type { Node, NodeArray } from "typescript";
 
 /**
  * @module Output
@@ -12,47 +11,21 @@ export const Fn = ((Usage, Initializer) =>
 			Node,
 			Fn(Usage, Initializer)(Context),
 			Context,
-			(nodes: NodeArray<Node>) =>
-				Array.isArray(nodes) ? nodes.reverse() : nodes,
-		) as Node;
+		);
 
-		// if (ts.isVariableStatement(Node)) {
-		// 	// const declarations = Node.declarationList.declarations.filter(
-		// 	// 	(Declaration) => {
-		// 	// 		return (Usage.get(Declaration.name.getText()) ?? 0) > 1;
-		// 	// 	},
-		// 	// );
-		// 	// if (declarations.length === 0) {
-		// 	// 	return ts.factory.createEmptyStatement();
-		// 	// }
-		// 	// return ts.factory.updateVariableStatement(
-		// 	// 	Node,
-		// 	// 	Node.modifiers,
-		// 	// 	ts.factory.updateVariableDeclarationList(
-		// 	// 		Node.declarationList,
-		// 	// 		declarations,
-		// 	// 	),
-		// 	// );
-		// } else if (ts.isIdentifier(Node)) {
-		// 	// const Name = Node.getText();
-		// 	// if (
-		// 	// 	typeof Usage.get(Name) !== "undefined" &&
-		// 	// 	typeof Get(Name, Initializer) !== "undefined"
-		// 	// ) {
-		// 	// 	if (Usage.get(Name) === 1) {
-		// 	// 		return Get(Name, Initializer);
-		// 	// 	}
-		// 	// }
-		// }
+		if (ts.isIdentifier(Node)) {
+			const NameNode = Node.getText();
+			const UsageNode = Usage.get(NameNode);
+			const InitializerNode = Get(NameNode, Initializer);
 
-		// if (ts.isIdentifier(Node)) {
-		// 	const InitializerNode = Get(Node.getText(), Initializer);
-
-		// 	if (InitializerNode && Usage.get(Node.getText()) === 0) {
-		// 		// return InitializerNode;
-		// 		// console.log(Node.escapedText);
-		// 	}
-		// }
+			if (
+				typeof UsageNode !== "undefined" &&
+				typeof InitializerNode !== "undefined" &&
+				UsageNode === 0
+			) {
+				return ts.factory.createIdentifier(InitializerNode.getText());
+			}
+		}
 
 		return Node;
 	}) satisfies Interface as Interface;

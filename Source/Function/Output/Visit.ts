@@ -9,14 +9,19 @@ export const Fn = ((...[Usage, Initializer]) =>
 		ts.forEachChild(Node, Fn(Usage, Initializer));
 
 		if (ts.isVariableDeclaration(Node) && Node.initializer) {
+			const NameNode = Node.name.getText();
+
 			// Reset the usage, because of found initializer
-			Usage.set(Node.name.getText(), 0);
+			Usage.set(NameNode, 0);
 
 			// Set the initializer
-			Initializer.set(Node.initializer, Node.name.getText());
+			Initializer.set(Node.initializer, NameNode);
 		} else if (ts.isIdentifier(Node)) {
+			const NameNode = Node.getText();
+			const UsageNode = Usage.get(NameNode);
+
 			// Increment if usage is found
-			Usage.set(Node.getText(), Usage.get(Node.getText()) ?? 0 + 1);
+			Usage.set(NameNode, (UsageNode ?? 0) + 1);
 		}
 	}) satisfies Interface as Interface;
 
