@@ -7,27 +7,11 @@ import type Interface from "@Interface/Output/Transformer/Visit.js";
 export const Fn = ((Usage, Initializer) =>
 	(...[Context]) =>
 	(...[Node]) => {
-		// Node = ;
-
-		if (ts.isVariableStatement(Node)) {
-			// 	// const declarations = Node.declarationList.declarations.filter(
-			// 	// 	(Declaration) => {
-			// 	// 		return (Usage.get(Declaration.name.getText()) ?? 0) > 1;
-			// 	// 	},
-			// 	// );
-			// 	// if (declarations.length === 0) {
-			// 	// 	return ts.factory.createEmptyStatement();
-			// 	// }
-			// 	// return ts.factory.updateVariableStatement(
-			// 	// 	Node,
-			// 	// 	Node.modifiers,
-			// 	// 	ts.factory.updateVariableDeclarationList(
-			// 	// 		Node.declarationList,
-			// 	// 		declarations,
-			// 	// 	),
-			// 	// );
-			console.log(Node.getText());
-		}
+		Node = ts.visitEachChild(
+			Node,
+			Fn(Usage, Initializer)(Context),
+			Context,
+		);
 
 		if (ts.isIdentifier(Node)) {
 			const NameNode = Node.getText();
@@ -46,11 +30,7 @@ export const Fn = ((Usage, Initializer) =>
 			}
 		}
 
-		return ts.visitEachChild(
-			Node,
-			Fn(Usage, Initializer)(Context),
-			Context,
-		);
+		return Node;
 	}) satisfies Interface as Interface;
 
 export const { default: ts } = await import("typescript");
