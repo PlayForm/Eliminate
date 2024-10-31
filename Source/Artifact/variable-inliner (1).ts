@@ -401,20 +401,16 @@ class VariableInliner {
 				if (ts.isIdentifier(name)) {
 					if (this.isVariableExcluded(name.text)) {
 						this.statistics.skippedVariables.excluded++;
-
 						return true;
 					}
 
 					const symbol = typeChecker.getSymbolAtLocation(name);
-
 					if (!symbol) return true;
 
 					// Check usage count
 					const references = this.findReferences(symbol, typeChecker);
-
 					if (references.length !== 1) {
 						this.statistics.skippedVariables.multiple++;
-
 						return true;
 					}
 
@@ -424,18 +420,51 @@ class VariableInliner {
 						this.shouldInlineExpression(decl.initializer)
 					) {
 						this.statistics.inlinedVariables++;
-
 						return false;
 					}
 				} else if (
-					// ts.isBindingPattern(name) &&
-					(ts.isEmptyBindingPattern(name) ||
-						ts.isArrayBindingPattern(name) ||
-						ts.isObjectBindingPattern(node)) &&
+					ts.isBindingPattern(name) &&
 					this.options.inlineDestructuring
 				) {
-					// Handle destructuring patterns
-					return !this.canInlineDestructuring(name, decl.initializer);
+					if (!decl.initializer) return true;
+
+					// Check if we can inline the destructuring pattern
+					if (this.canInlineDestructuring(name, decl.initializer)) {
+						try {
+							// Transform the destructuring pattern
+							const transformedExpression =
+								this.handleDestructuring(
+									name,
+									decl.initializer,
+								);
+
+							// Check if the transformed expression is safe to inline
+							if (
+								this.shouldInlineExpression(
+									transformedExpression,
+								)
+							) {
+								this.statistics.inlinedVariables++;
+
+								// Replace the original declaration with the transformed expression
+								const statement =
+									ts.factory.createExpressionStatement(
+										transformedExpression,
+									);
+								return false; // Remove this declaration from the list
+							}
+						} catch (error) {
+							// If transformation fails, keep the original declaration
+							console.warn(
+								"Failed to transform destructuring pattern:",
+								error,
+							);
+							return true;
+						}
+					}
+
+					this.statistics.skippedVariables.complexity++;
+					return true;
 				}
 
 				return true;
@@ -456,11 +485,42 @@ class VariableInliner {
 		);
 	}
 
+	// Helper method to check if pattern matches initializer structure
+	private validateDestructuringPattern(
+		pattern: ts.BindingPattern,
+		initializer: ts.Expression,
+	): boolean {
+		if (ts.isObjectBindingPattern(pattern)) {
+			// For object patterns, check if initializer is an object literal
+			// or has a type that matches the pattern
+			return (
+				ts.isObjectLiteralExpression(initializer) ||
+				ts.isIdentifier(initializer) ||
+				ts.isPropertyAccessExpression(initializer)
+			);
+		} else if (ts.isArrayBindingPattern(pattern)) {
+			// For array patterns, check if initializer is an array literal
+			// or has array-like type
+			return (
+				ts.isArrayLiteralExpression(initializer) ||
+				ts.isIdentifier(initializer) ||
+				ts.isPropertyAccessExpression(initializer) ||
+				ts.isCallExpression(initializer)
+			);
+		}
+		return false;
+	}
+
 	private canInlineDestructuring(
 		pattern: ts.BindingPattern,
 		initializer: ts.Expression | undefined,
 	): boolean {
 		if (!initializer) return false;
+
+		// Validate basic pattern structure
+		if (!this.validateDestructuringPattern(pattern, initializer)) {
+			return false;
+		}
 
 		// Check if the initializer is safe to inline
 		if (!this.shouldInlineExpression(initializer)) {
@@ -472,10 +532,32 @@ class VariableInliner {
 			for (const element of pattern.elements) {
 				if (!ts.isBindingElement(element)) continue;
 
+				// Check default values in destructuring
 				if (
 					element.initializer &&
 					!this.shouldInlineExpression(element.initializer)
 				) {
+					return false;
+				}
+
+				// Check property access is safe
+				const propName = element.propertyName || element.name;
+				if (
+					ts.isIdentifier(propName) &&
+					ts.isIdentifier(initializer) &&
+					!this.isPropertyAccessSafe(initializer, propName.text)
+				) {
+					return false;
+				}
+			}
+		}
+
+		// For array patterns, check spread operators and nested patterns
+		if (ts.isArrayBindingPattern(pattern)) {
+			for (const element of pattern.elements) {
+				if (ts.isOmittedExpression(element)) continue;
+				if (element.dotDotDotToken) {
+					// Spread operators make inlining more complex
 					return false;
 				}
 			}
@@ -515,6 +597,13 @@ class VariableInliner {
 			return !this.options.includeVariables.includes(name);
 		}
 		return this.options.excludeVariables.includes(name);
+	}
+
+	// Helper to check if property access is safe
+	private isPropertyAccessSafe(obj: ts.Expression, prop: string): boolean {
+		// This could be expanded to do more thorough analysis
+		// Currently just ensures basic safety
+		return !this.expressionAnalyzer.analyzeSideEffects(obj);
 	}
 }
 
