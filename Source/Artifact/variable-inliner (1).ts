@@ -428,7 +428,10 @@ class VariableInliner {
 						return false;
 					}
 				} else if (
-					ts.isBindingPattern(name) &&
+					// ts.isBindingPattern(name) &&
+					(ts.isEmptyBindingPattern(name) ||
+						ts.isArrayBindingPattern(name) ||
+						ts.isObjectBindingPattern(node)) &&
 					this.options.inlineDestructuring
 				) {
 					// Handle destructuring patterns
@@ -539,9 +542,9 @@ async function optimizeTypeScriptFile(
 export {
 	VariableInliner,
 	optimizeTypeScriptFile,
-	InlinerOptions,
-	TransformationResult,
-	TransformationStatistics,
+	type InlinerOptions,
+	type TransformationResult,
+	type TransformationStatistics,
 	ExpressionAnalyzer,
 	ScopeAnalyzer,
 };
