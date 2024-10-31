@@ -2,34 +2,52 @@ import ts from "typescript";
 
 interface InlinerOptions {
 	allowComplexExpressions?: boolean;
+
 	maxInlineDepth?: number;
+
 	inlineInFunctions?: boolean;
+
 	excludeVariables?: string[];
+
 	includeVariables?: string[];
+
 	// New options
 	preserveComments?: boolean;
+
 	generateSourceMaps?: boolean;
+
 	inlineDestructuring?: boolean;
+
 	optimizationLevel?: "conservative" | "aggressive";
+
 	maxExpressionSize?: number; // Limit size of inlined expressions
 }
 
 interface TransformationResult {
 	code: string;
+
 	sourceMap?: string;
+
 	statistics: TransformationStatistics;
 }
 
 interface TransformationStatistics {
 	totalVariables: number;
+
 	inlinedVariables: number;
+
 	skippedVariables: {
 		scope: number;
+
 		complexity: number;
+
 		size: number;
+
 		excluded: number;
+
 		multiple: number;
 	};
+
 	optimizationTime: number;
 }
 
@@ -43,11 +61,15 @@ class ExpressionAnalyzer {
 
 	getExpressionSize(node: ts.Expression): number {
 		let size = 0;
+
 		const visit = (node: ts.Node) => {
 			size++;
+
 			ts.forEachChild(node, visit);
 		};
+
 		visit(node);
+
 		return size;
 	}
 
@@ -63,6 +85,7 @@ class ExpressionAnalyzer {
 			}
 
 			let result = false;
+
 			ts.forEachChild(node, (child) => {
 				if (hasSideEffects(child)) {
 					result = true;
@@ -77,6 +100,7 @@ class ExpressionAnalyzer {
 
 	analyzeComplexity(node: ts.Expression): {
 		safe: boolean;
+
 		reason?: string;
 	} {
 		if (this.getExpressionSize(node) > this.maxSize) {
@@ -99,6 +123,7 @@ class ExpressionAnalyzer {
 
 			if (ts.isBinaryExpression(node)) {
 				const op = node.operatorToken.kind;
+
 				// Division could throw
 				if (op === ts.SyntaxKind.SlashToken) {
 					return true;
@@ -106,6 +131,7 @@ class ExpressionAnalyzer {
 			}
 
 			let result = false;
+
 			ts.forEachChild(node, (child) => {
 				if (hasRuntimeRisks(child)) {
 					result = true;
@@ -126,6 +152,7 @@ class ExpressionAnalyzer {
 // Scope analyzer for handling destructuring and complex patterns
 class ScopeAnalyzer {
 	private readonly typeChecker: ts.TypeChecker;
+
 	private readonly scopeMap = new Map<ts.Node, Set<ts.Symbol>>();
 
 	constructor(typeChecker: ts.TypeChecker) {
@@ -139,6 +166,7 @@ class ScopeAnalyzer {
 			ts.isFunctionLike(node)
 		) {
 			const scope = new Set<ts.Symbol>();
+
 			this.scopeMap.set(node, scope);
 
 			// Collect declarations in this scope
@@ -156,6 +184,7 @@ class ScopeAnalyzer {
 	private collectBindings(name: ts.BindingName, scope: Set<ts.Symbol>) {
 		if (ts.isIdentifier(name)) {
 			const symbol = this.typeChecker.getSymbolAtLocation(name);
+
 			if (symbol) {
 				scope.add(symbol);
 			}
@@ -173,8 +202,10 @@ class ScopeAnalyzer {
 
 	isInScope(symbol: ts.Symbol, node: ts.Node): boolean {
 		let current: ts.Node | undefined = node;
+
 		while (current) {
 			const scope = this.scopeMap.get(current);
+
 			if (scope?.has(symbol)) {
 				return true;
 			}
@@ -186,8 +217,11 @@ class ScopeAnalyzer {
 
 class VariableInliner {
 	private readonly options: Required<InlinerOptions>;
+
 	private readonly expressionAnalyzer: ExpressionAnalyzer;
+
 	private readonly statistics: TransformationStatistics;
+
 	private scopeAnalyzer!: ScopeAnalyzer;
 
 	constructor(options: InlinerOptions = {}) {
@@ -208,6 +242,7 @@ class VariableInliner {
 		this.expressionAnalyzer = new ExpressionAnalyzer(
 			this.options.maxExpressionSize,
 		);
+
 		this.statistics = {
 			totalVariables: 0,
 			inlinedVariables: 0,
@@ -232,6 +267,7 @@ class VariableInliner {
 			for (const element of pattern.elements) {
 				if (ts.isBindingElement(element)) {
 					const propName = element.propertyName || element.name;
+
 					if (ts.isIdentifier(propName)) {
 						properties.push(
 							ts.factory.createPropertyAssignment(
@@ -268,14 +304,18 @@ class VariableInliner {
 
 	private shouldInlineExpression(node: ts.Expression): boolean {
 		const analysis = this.expressionAnalyzer.analyzeComplexity(node);
+
 		if (!analysis.safe) {
 			this.statistics.skippedVariables.complexity++;
+
 			return false;
 		}
 
 		const size = this.expressionAnalyzer.getExpressionSize(node);
+
 		if (size > this.options.maxExpressionSize) {
 			this.statistics.skippedVariables.size++;
+
 			return false;
 		}
 
@@ -287,14 +327,18 @@ class VariableInliner {
 		program: ts.Program,
 	): TransformationResult {
 		const startTime = Date.now();
+
 		const typeChecker = program.getTypeChecker();
+
 		this.scopeAnalyzer = new ScopeAnalyzer(typeChecker);
 
 		// First pass: analyze scopes
 		const analyzeNode = (node: ts.Node) => {
 			this.scopeAnalyzer.analyzeScope(node);
+
 			ts.forEachChild(node, analyzeNode);
 		};
+
 		analyzeNode(sourceFile);
 
 		// Second pass: perform transformation
@@ -313,6 +357,7 @@ class VariableInliner {
 
 				return ts.visitEachChild(node, visit, context);
 			};
+
 			return visit;
 		};
 
@@ -356,16 +401,20 @@ class VariableInliner {
 				if (ts.isIdentifier(name)) {
 					if (this.isVariableExcluded(name.text)) {
 						this.statistics.skippedVariables.excluded++;
+
 						return true;
 					}
 
 					const symbol = typeChecker.getSymbolAtLocation(name);
+
 					if (!symbol) return true;
 
 					// Check usage count
 					const references = this.findReferences(symbol, typeChecker);
+
 					if (references.length !== 1) {
 						this.statistics.skippedVariables.multiple++;
+
 						return true;
 					}
 
@@ -375,6 +424,7 @@ class VariableInliner {
 						this.shouldInlineExpression(decl.initializer)
 					) {
 						this.statistics.inlinedVariables++;
+
 						return false;
 					}
 				} else if (
@@ -436,6 +486,7 @@ class VariableInliner {
 		typeChecker: ts.TypeChecker,
 	): ts.Identifier[] {
 		const references: ts.Identifier[] = [];
+
 		const root = symbol.declarations?.[0]?.getSourceFile();
 
 		if (!root) return references;
@@ -443,6 +494,7 @@ class VariableInliner {
 		const visit = (node: ts.Node) => {
 			if (ts.isIdentifier(node)) {
 				const nodeSymbol = typeChecker.getSymbolAtLocation(node);
+
 				if (nodeSymbol === symbol) {
 					references.push(node);
 				}
@@ -451,6 +503,7 @@ class VariableInliner {
 		};
 
 		visit(root);
+
 		return references;
 	}
 
@@ -473,11 +526,13 @@ async function optimizeTypeScriptFile(
 	});
 
 	const sourceFile = program.getSourceFile(filePath);
+
 	if (!sourceFile) {
 		throw new Error(`Source file '${filePath}' not found`);
 	}
 
 	const inliner = new VariableInliner(options);
+
 	return inliner.transform(sourceFile, program);
 }
 
