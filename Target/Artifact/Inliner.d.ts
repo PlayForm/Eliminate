@@ -6,7 +6,6 @@ interface InlinerOptions {
     excludeVariables?: string[];
     includeVariables?: string[];
     preserveComments?: boolean;
-    generateSourceMaps?: boolean;
     inlineDestructuring?: boolean;
     optimizationLevel?: "conservative" | "aggressive";
     maxExpressionSize?: number;

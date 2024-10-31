@@ -40,14 +40,17 @@ export default {
 					}
 				: null,
 			On
-				? {
+				? ({
 						name: "Example",
 						setup({ onEnd }) {
 							onEnd(async () => {
 								await Exec("Eliminate Configuration.ts");
+								await Exec(
+									"node Target/Artifact/Inliner/Test.js",
+								);
 							});
 						},
-					}
+					} as Plugin)
 				: null,
 		].filter(Boolean) as Plugin[]),
 	],

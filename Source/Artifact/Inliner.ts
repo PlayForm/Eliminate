@@ -14,8 +14,6 @@ interface InlinerOptions {
 	// New options
 	preserveComments?: boolean;
 
-	generateSourceMaps?: boolean;
-
 	inlineDestructuring?: boolean;
 
 	optimizationLevel?: "conservative" | "aggressive";
@@ -229,7 +227,6 @@ class VariableInliner {
 			excludeVariables: [],
 			includeVariables: [],
 			preserveComments: true,
-			generateSourceMaps: false,
 			inlineDestructuring: true,
 			optimizationLevel: "conservative",
 			maxExpressionSize: 100,
@@ -366,11 +363,6 @@ class VariableInliner {
 				),
 			statistics: this.statistics,
 		};
-
-		if (this.options.generateSourceMaps) {
-			// Source map generation would go here
-			result.sourceMap = ""; // TODO: Implement source map generation
-		}
 
 		return result;
 	}
