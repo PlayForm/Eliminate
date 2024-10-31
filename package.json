@@ -41,6 +41,7 @@
 	},
 	"devDependencies": {
 		"@playform/build": "0.1.8",
+		"@types/chai": "5.0.1",
 		"chai": "5.1.2"
 	},
 	"publishConfig": {

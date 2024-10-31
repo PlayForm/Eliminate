@@ -1,4 +1,3 @@
-// test-utils.ts
 import { expect } from "chai";
 import ts, {
 	ModuleKind,
@@ -66,8 +65,6 @@ class TestRunner {
 			this.compiler,
 		);
 
-		const inliner = new VariableInliner(testCase.options);
-
 		const sourceFile = program.getSourceFile(fileName);
 
 		if (!sourceFile) {
@@ -76,16 +73,13 @@ class TestRunner {
 			);
 		}
 
-		const result = inliner.transform(sourceFile, program);
-
 		// Normalize whitespace for comparison
-		const normalizedResult = result.code.replace(/\s+/g, " ").trim();
-
-		const normalizedExpected = testCase.expected
-			.replace(/\s+/g, " ")
-			.trim();
-
-		expect(normalizedResult).to.equal(normalizedExpected);
+		expect(
+			new VariableInliner(testCase.options)
+				.transform(sourceFile, program)
+				.code.replace(/\s+/g, " ")
+				.trim(),
+		).to.equal(testCase.expected.replace(/\s+/g, " ").trim());
 	}
 }
 
@@ -98,11 +92,15 @@ class TypeScriptFeatureHandler {
 	}
 
 	handleDecorators(node: Node): Node {
-		if (!ts.canHaveDecorators(node)) return node;
+		if (!ts.canHaveDecorators(node)) {
+			return node;
+		}
 
 		const decorators = ts.getDecorators(node);
 
-		if (!decorators) return node;
+		if (!decorators) {
+			return node;
+		}
 
 		// Analyze decorator impact
 		for (const decorator of decorators) {
@@ -123,50 +121,51 @@ class TypeScriptFeatureHandler {
 
 	private isInliningAffectingDecorator(symbol: Symbol): boolean {
 		// Check for known decorators that affect variable behavior
-		const name = symbol.getName();
-
-		return ["observable", "computed", "action"].includes(name);
+		return ["observable", "computed", "action"].includes(symbol.getName());
 	}
 
 	handleNamespaces(node: Node): Node {
 		if (ts.isModuleDeclaration(node)) {
 			// Handle namespace-specific transformations
-			const transformer = (context: TransformationContext) => {
-				const visit = (node: Node): Node => {
-					if (ts.isVariableStatement(node)) {
-						// Special handling for namespace variables
-						return this.transformNamespaceVariable(node);
-					}
-					return ts.visitEachChild(node, visit, context);
-				};
+			return ts.transform(node, [
+				(context: TransformationContext) => {
+					const visit = (node: Node): Node => {
+						if (ts.isVariableStatement(node)) {
+							// Special handling for namespace variables
+							return this.transformNamespaceVariable(node);
+						}
 
-				return visit;
-			};
+						return ts.visitEachChild(node, visit, context);
+					};
 
-			return ts.transform(node, [transformer]).transformed[0] as Node;
+					return visit;
+				},
+			]).transformed[0] as Node;
 		}
+
 		return node;
 	}
 
 	private transformNamespaceVariable(node: VariableStatement): Node {
 		// Special handling for namespace variables
-		const declarations = node.declarationList.declarations.map((decl) => {
-			if (ts.isIdentifier(decl.name)) {
-				const symbol = this.typeChecker.getSymbolAtLocation(decl.name);
-
-				if (symbol && this.isExported(symbol)) {
-					// Don't inline exported namespace variables
-					return decl;
-				}
-			}
-			return decl;
-		});
-
 		return ts.factory.updateVariableStatement(
 			node,
 			node.modifiers,
 			ts.factory.createVariableDeclarationList(
-				declarations,
+				node.declarationList.declarations.map((decl) => {
+					if (ts.isIdentifier(decl.name)) {
+						const symbol = this.typeChecker.getSymbolAtLocation(
+							decl.name,
+						);
+
+						if (symbol && this.isExported(symbol)) {
+							// Don't inline exported namespace variables
+							return decl;
+						}
+					}
+
+					return decl;
+				}),
 				node.declarationList.flags,
 			),
 		);
@@ -182,66 +181,66 @@ const testCases: TestCase[] = [
 	{
 		name: "basic-inlining",
 		input: `
-      const x = 5;
-      const y = x + 3;
-      console.log(y);
+        const x = 5;
+        const y = x + 3;
+        console.log(y);
     `,
 		expected: `
-      console.log(5 + 3);
+        console.log(5 + 3);
     `,
 	},
 	{
 		name: "destructuring",
 		input: `
-      const obj = { a: 1, b: 2 };
-      const { a, b } = obj;
-      console.log(a + b);
+        const obj = { a: 1, b: 2 };
+        const { a, b } = obj;
+        console.log(a + b);
     `,
 		expected: `
-      const obj = { a: 1, b: 2 };
-      console.log(obj.a + obj.b);
+        const obj = { a: 1, b: 2 };
+        console.log(obj.a + obj.b);
     `,
 		options: { inlineDestructuring: true },
 	},
 	{
 		name: "decorator-preservation",
 		input: `
-      class Example {
-        @observable
-        x = 5;
-        
-        @computed
-        get doubled() {
-          return this.x * 2;
+        class Example {
+            @observable
+            x = 5;
+            
+            @computed
+            get doubled() {
+               return this.x * 2;
+            }
         }
-      }
     `,
 		expected: `
-      class Example {
-        @observable
-        x = 5;
-        
-        @computed
-        get doubled() {
-          return this.x * 2;
+        class Example {
+            @observable
+            x = 5;
+            
+            @computed
+            get doubled() {
+               return this.x * 2;
+            }
         }
-      }
     `,
 	},
 	{
 		name: "namespace-handling",
 		input: `
-      namespace MyNamespace {
-        export const x = 5;
-        const y = x + 3;
-        export const z = y * 2;
-      }
+        namespace MyNamespace {
+            export const x = 5;
+            const y = x + 3;
+            export const z = y * 2;
+        }
     `,
 		expected: `
-      namespace MyNamespace {
-        export const x = 5;
-        export const z = (x + 3) * 2;
-      }
+        namespace MyNamespace {
+            export const x = 5;
+            export const z = (x + 3) * 2;
+        }
     `,
 	},
 ];

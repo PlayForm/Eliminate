@@ -7,13 +7,12 @@ export class TypeScriptValidator {
 		const visit = (node: Node) => {
 			// Validate type compatibility
 			if (ts.isVariableDeclaration(node) && node.initializer) {
-				const declType = typeChecker.getTypeAtLocation(node.name);
-
-				const initType = typeChecker.getTypeAtLocation(
-					node.initializer,
-				);
-
-				if (!typeChecker.isTypeAssignableTo(initType, declType)) {
+				if (
+					!typeChecker.isTypeAssignableTo(
+						typeChecker.getTypeAtLocation(node.initializer),
+						typeChecker.getTypeAtLocation(node.name),
+					)
+				) {
 					errors.push({
 						node,
 						message: "Type mismatch in variable declaration",
@@ -33,11 +32,12 @@ export class TypeScriptValidator {
 						typeof declaration !== "undefined" &&
 						ts.isVariableDeclaration(declaration)
 					) {
-						const scope = this.findEnclosingScope(node);
-
-						const declScope = this.findEnclosingScope(declaration);
-
-						if (!this.isAccessibleFrom(scope, declScope)) {
+						if (
+							!this.isAccessibleFrom(
+								this.findEnclosingScope(node),
+								this.findEnclosingScope(declaration),
+							)
+						) {
 							errors.push({
 								node,
 								message:
@@ -68,8 +68,10 @@ export class TypeScriptValidator {
 			) {
 				return current;
 			}
+
 			current = current.parent;
 		}
+
 		return node.getSourceFile();
 	}
 
@@ -81,6 +83,7 @@ export class TypeScriptValidator {
 
 			scope = scope.parent;
 		}
+
 		return false;
 	}
 }

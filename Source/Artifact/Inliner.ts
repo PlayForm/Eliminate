@@ -1,4 +1,4 @@
-import ts from "typescript";
+import ts, { type SourceFile } from "typescript";
 
 interface InlinerOptions {
 	allowComplexExpressions?: boolean;
@@ -86,11 +86,9 @@ class ExpressionAnalyzer {
 
 			let result = false;
 
-			ts.forEachChild(node, (child) => {
-				if (hasSideEffects(child)) {
-					result = true;
-				}
-			});
+			ts.forEachChild(node, (child) =>
+				hasSideEffects(child) ? (result = true) : null,
+			);
 
 			return result;
 		};
@@ -122,21 +120,17 @@ class ExpressionAnalyzer {
 			}
 
 			if (ts.isBinaryExpression(node)) {
-				const op = node.operatorToken.kind;
-
 				// Division could throw
-				if (op === ts.SyntaxKind.SlashToken) {
+				if (node.operatorToken.kind === ts.SyntaxKind.SlashToken) {
 					return true;
 				}
 			}
 
 			let result = false;
 
-			ts.forEachChild(node, (child) => {
-				if (hasRuntimeRisks(child)) {
-					result = true;
-				}
-			});
+			ts.forEachChild(node, (child) =>
+				hasRuntimeRisks(child) ? (result = true) : null,
+			);
 
 			return result;
 		};
@@ -174,6 +168,7 @@ class ScopeAnalyzer {
 				if (ts.isVariableDeclaration(child)) {
 					this.collectBindings(child.name, scope);
 				}
+
 				ts.forEachChild(child, visitNode);
 			};
 
@@ -209,8 +204,10 @@ class ScopeAnalyzer {
 			if (scope?.has(symbol)) {
 				return true;
 			}
+
 			current = current.parent;
 		}
+
 		return false;
 	}
 }
@@ -281,36 +278,34 @@ class VariableInliner {
 		}
 
 		if (ts.isArrayBindingPattern(pattern)) {
-			const elements: ts.Expression[] = pattern.elements.map(
-				(element) => {
+			return ts.factory.createArrayLiteralExpression(
+				pattern.elements.map((element) => {
 					if (ts.isBindingElement(element)) {
 						return (
 							element.initializer ||
 							ts.factory.createIdentifier("undefined")
 						);
 					}
-					return ts.factory.createIdentifier("undefined");
-				},
-			);
 
-			return ts.factory.createArrayLiteralExpression(elements);
+					return ts.factory.createIdentifier("undefined");
+				}),
+			);
 		}
 
 		throw new Error("Unsupported binding pattern type");
 	}
 
 	private shouldInlineExpression(node: ts.Expression): boolean {
-		const analysis = this.expressionAnalyzer.analyzeComplexity(node);
-
-		if (!analysis.safe) {
+		if (!this.expressionAnalyzer.analyzeComplexity(node).safe) {
 			this.statistics.skippedVariables.complexity++;
 
 			return false;
 		}
 
-		const size = this.expressionAnalyzer.getExpressionSize(node);
-
-		if (size > this.options.maxExpressionSize) {
+		if (
+			this.expressionAnalyzer.getExpressionSize(node) >
+			this.options.maxExpressionSize
+		) {
 			this.statistics.skippedVariables.size++;
 
 			return false;
@@ -345,11 +340,7 @@ class VariableInliner {
 					this.statistics.totalVariables +=
 						node.declarationList.declarations.length;
 
-					return this.transformVariableStatement(
-						node,
-						typeChecker,
-						context,
-					);
+					return this.transformVariableStatement(node, typeChecker);
 				}
 
 				return ts.visitEachChild(node, visit, context);
@@ -358,23 +349,21 @@ class VariableInliner {
 			return visit;
 		};
 
-		const transformed = ts.transform(sourceFile, [transformer])
-			.transformed[0];
-
 		// Generate output
-		const printer = ts.createPrinter({
-			newLine: ts.NewLineKind.LineFeed,
-			removeComments: !this.options.preserveComments,
-		});
-
 		this.statistics.optimizationTime = Date.now() - startTime;
 
 		const result: TransformationResult = {
-			code: printer.printNode(
-				ts.EmitHint.SourceFile,
-				transformed,
-				sourceFile,
-			),
+			code: ts
+				.createPrinter({
+					newLine: ts.NewLineKind.LineFeed,
+					removeComments: !this.options.preserveComments,
+				})
+				.printNode(
+					ts.EmitHint.SourceFile,
+					ts.transform(sourceFile, [transformer])
+						.transformed[0] as SourceFile,
+					sourceFile,
+				),
 			statistics: this.statistics,
 		};
 
@@ -385,6 +374,7 @@ class VariableInliner {
 
 		return result;
 	}
+
 	private transformVariableStatement(
 		node: ts.VariableStatement,
 		typeChecker: ts.TypeChecker,
@@ -396,16 +386,20 @@ class VariableInliner {
 				if (ts.isIdentifier(name)) {
 					if (this.isVariableExcluded(name.text)) {
 						this.statistics.skippedVariables.excluded++;
+
 						return true;
 					}
 
 					const symbol = typeChecker.getSymbolAtLocation(name);
-					if (!symbol) return true;
+
+					if (!symbol) {
+						return true;
+					}
 
 					// Check usage count
-					const references = this.findReferences(symbol, typeChecker);
-					if (references.length !== 1) {
+					if (this.findReferences(symbol, typeChecker).length !== 1) {
 						this.statistics.skippedVariables.multiple++;
+
 						return true;
 					}
 
@@ -415,6 +409,7 @@ class VariableInliner {
 						this.shouldInlineExpression(decl.initializer)
 					) {
 						this.statistics.inlinedVariables++;
+
 						return false;
 					}
 				} else if (
@@ -422,23 +417,21 @@ class VariableInliner {
 						ts.isObjectBindingPattern(name)) &&
 					this.options.inlineDestructuring
 				) {
-					if (!decl.initializer) return true;
+					if (!decl.initializer) {
+						return true;
+					}
 
 					// Check if we can inline the destructuring pattern
 					if (this.canInlineDestructuring(name, decl.initializer)) {
 						try {
 							// Transform the destructuring pattern and check if it's safe to inline
-							const transformedExpression =
-								this.handleDestructuring(
-									name,
-									decl.initializer,
-								);
 							if (
 								this.shouldInlineExpression(
-									transformedExpression,
+									this.handleDestructuring(name),
 								)
 							) {
 								this.statistics.inlinedVariables++;
+
 								return false; // Remove this declaration from the list
 							}
 						} catch (error) {
@@ -447,11 +440,13 @@ class VariableInliner {
 								"Failed to transform destructuring pattern:",
 								error,
 							);
+
 							return true;
 						}
 					}
 
 					this.statistics.skippedVariables.complexity++;
+
 					return true;
 				}
 
@@ -496,6 +491,7 @@ class VariableInliner {
 				ts.isCallExpression(initializer)
 			);
 		}
+
 		return false;
 	}
 
@@ -541,6 +537,7 @@ class VariableInliner {
 		if (ts.isArrayBindingPattern(pattern)) {
 			for (const element of pattern.elements) {
 				if (ts.isOmittedExpression(element)) continue;
+
 				if (element.dotDotDotToken) {
 					// Spread operators make inlining more complex
 					return false;
@@ -559,7 +556,9 @@ class VariableInliner {
 
 		const root = symbol.declarations?.[0]?.getSourceFile();
 
-		if (!root) return references;
+		if (!root) {
+			return references;
+		}
 
 		const visit = (node: ts.Node) => {
 			if (ts.isIdentifier(node)) {
@@ -569,6 +568,7 @@ class VariableInliner {
 					references.push(node);
 				}
 			}
+
 			ts.forEachChild(node, visit);
 		};
 
@@ -581,6 +581,7 @@ class VariableInliner {
 		if (this.options.includeVariables.length > 0) {
 			return !this.options.includeVariables.includes(name);
 		}
+
 		return this.options.excludeVariables.includes(name);
 	}
 
@@ -608,9 +609,7 @@ async function optimizeTypeScriptFile(
 		throw new Error(`Source file '${filePath}' not found`);
 	}
 
-	const inliner = new VariableInliner(options);
-
-	return inliner.transform(sourceFile, program);
+	return new VariableInliner(options).transform(sourceFile, program);
 }
 
 export {
