@@ -388,7 +388,6 @@ class VariableInliner {
 
 		return result;
 	}
-
 	private transformVariableStatement(
 		node: ts.VariableStatement,
 		typeChecker: ts.TypeChecker,
@@ -423,7 +422,8 @@ class VariableInliner {
 						return false;
 					}
 				} else if (
-					ts.isBindingPattern(name) &&
+					(ts.isArrayBindingPattern(name) ||
+						ts.isObjectBindingPattern(name)) &&
 					this.options.inlineDestructuring
 				) {
 					if (!decl.initializer) return true;
