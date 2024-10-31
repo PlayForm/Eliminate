@@ -257,10 +257,7 @@ class VariableInliner {
 		};
 	}
 
-	private handleDestructuring(
-		pattern: ts.BindingPattern,
-		initializer: ts.Expression,
-	): ts.Expression {
+	private handleDestructuring(pattern: ts.BindingPattern): ts.Expression {
 		if (ts.isObjectBindingPattern(pattern)) {
 			const properties: ts.PropertyAssignment[] = [];
 
@@ -391,7 +388,6 @@ class VariableInliner {
 	private transformVariableStatement(
 		node: ts.VariableStatement,
 		typeChecker: ts.TypeChecker,
-		context: ts.TransformationContext,
 	): ts.Node {
 		const declarations = node.declarationList.declarations.filter(
 			(decl) => {
@@ -431,26 +427,18 @@ class VariableInliner {
 					// Check if we can inline the destructuring pattern
 					if (this.canInlineDestructuring(name, decl.initializer)) {
 						try {
-							// Transform the destructuring pattern
+							// Transform the destructuring pattern and check if it's safe to inline
 							const transformedExpression =
 								this.handleDestructuring(
 									name,
 									decl.initializer,
 								);
-
-							// Check if the transformed expression is safe to inline
 							if (
 								this.shouldInlineExpression(
 									transformedExpression,
 								)
 							) {
 								this.statistics.inlinedVariables++;
-
-								// Replace the original declaration with the transformed expression
-								const statement =
-									ts.factory.createExpressionStatement(
-										transformedExpression,
-									);
 								return false; // Remove this declaration from the list
 							}
 						} catch (error) {
@@ -513,10 +501,8 @@ class VariableInliner {
 
 	private canInlineDestructuring(
 		pattern: ts.BindingPattern,
-		initializer: ts.Expression | undefined,
+		initializer: ts.Expression,
 	): boolean {
-		if (!initializer) return false;
-
 		// Validate basic pattern structure
 		if (!this.validateDestructuringPattern(pattern, initializer)) {
 			return false;
@@ -541,11 +527,10 @@ class VariableInliner {
 				}
 
 				// Check property access is safe
-				const propName = element.propertyName || element.name;
 				if (
-					ts.isIdentifier(propName) &&
+					element.propertyName &&
 					ts.isIdentifier(initializer) &&
-					!this.isPropertyAccessSafe(initializer, propName.text)
+					!this.isPropertyAccessSafe(initializer)
 				) {
 					return false;
 				}
@@ -600,7 +585,7 @@ class VariableInliner {
 	}
 
 	// Helper to check if property access is safe
-	private isPropertyAccessSafe(obj: ts.Expression, prop: string): boolean {
+	private isPropertyAccessSafe(obj: ts.Expression): boolean {
 		// This could be expanded to do more thorough analysis
 		// Currently just ensures basic safety
 		return !this.expressionAnalyzer.analyzeSideEffects(obj);

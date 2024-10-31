@@ -1,32 +1,42 @@
 // test-utils.ts
 import { expect } from "chai";
-import ts from "typescript";
+import ts, {
+	ModuleKind,
+	ScriptTarget,
+	type CompilerHost,
+	type Node,
+	type Symbol,
+	type TransformationContext,
+	type TypeChecker,
+	type VariableStatement,
+} from "typescript";
 
-import {
-	InlinerOptions,
-	TransformationResult,
-	VariableInliner,
-} from "./inliner";
+import { VariableInliner, type InlinerOptions } from "../Inliner.js";
 
 interface TestCase {
 	name: string;
+
 	input: string;
+
 	expected: string;
+
 	options?: InlinerOptions;
 }
 
 class TestRunner {
-	private compiler: ts.CompilerHost;
+	private compiler: CompilerHost;
+
 	private fileMap: Map<string, string> = new Map();
 
 	constructor() {
 		this.compiler = this.createCompilerHost();
 	}
 
-	private createCompilerHost(): ts.CompilerHost {
+	private createCompilerHost(): CompilerHost {
 		return {
 			getSourceFile: (fileName: string, languageVersion) => {
 				const sourceText = this.fileMap.get(fileName);
+
 				return sourceText
 					? ts.createSourceFile(fileName, sourceText, languageVersion)
 					: undefined;
@@ -44,19 +54,22 @@ class TestRunner {
 
 	async runTest(testCase: TestCase): Promise<void> {
 		const fileName = `test-${testCase.name}.ts`;
+
 		this.fileMap.set(fileName, testCase.input);
 
 		const program = ts.createProgram(
 			[fileName],
 			{
-				target: ts.ScriptTarget.ES2020,
-				module: ts.ModuleKind.CommonJS,
+				target: ScriptTarget.ES2020,
+				module: ModuleKind.CommonJS,
 			},
 			this.compiler,
 		);
 
 		const inliner = new VariableInliner(testCase.options);
+
 		const sourceFile = program.getSourceFile(fileName);
+
 		if (!sourceFile) {
 			throw new Error(
 				`Failed to create source file for test ${testCase.name}`,
@@ -67,6 +80,7 @@ class TestRunner {
 
 		// Normalize whitespace for comparison
 		const normalizedResult = result.code.replace(/\s+/g, " ").trim();
+
 		const normalizedExpected = testCase.expected
 			.replace(/\s+/g, " ")
 			.trim();
@@ -75,120 +89,19 @@ class TestRunner {
 	}
 }
 
-// validation.ts
-class TypeScriptValidator {
-	validate(node: ts.Node, typeChecker: ts.TypeChecker): ValidationResult {
-		const errors: ValidationError[] = [];
-
-		const visit = (node: ts.Node) => {
-			// Validate type compatibility
-			if (ts.isVariableDeclaration(node) && node.initializer) {
-				const declType = typeChecker.getTypeAtLocation(node.name);
-				const initType = typeChecker.getTypeAtLocation(
-					node.initializer,
-				);
-
-				if (!typeChecker.isTypeAssignableTo(initType, declType)) {
-					errors.push({
-						node,
-						message: "Type mismatch in variable declaration",
-						category: "type",
-					});
-				}
-			}
-
-			// Validate reference integrity
-			if (ts.isIdentifier(node)) {
-				const symbol = typeChecker.getSymbolAtLocation(node);
-				if (symbol && symbol.declarations) {
-					const declaration = symbol.declarations[0];
-					if (ts.isVariableDeclaration(declaration)) {
-						const scope = this.findEnclosingScope(node);
-						const declScope = this.findEnclosingScope(declaration);
-
-						if (!this.isAccessibleFrom(scope, declScope)) {
-							errors.push({
-								node,
-								message:
-									"Variable reference violates scope rules",
-								category: "scope",
-							});
-						}
-					}
-				}
-			}
-
-			ts.forEachChild(node, visit);
-		};
-
-		visit(node);
-		return new ValidationResult(errors);
-	}
-
-	private findEnclosingScope(node: ts.Node): ts.Node {
-		let current = node;
-		while (current) {
-			if (
-				ts.isSourceFile(current) ||
-				ts.isBlock(current) ||
-				ts.isFunctionLike(current)
-			) {
-				return current;
-			}
-			current = current.parent;
-		}
-		return node.getSourceFile();
-	}
-
-	private isAccessibleFrom(
-		currentScope: ts.Node,
-		targetScope: ts.Node,
-	): boolean {
-		let scope = currentScope;
-		while (scope) {
-			if (scope === targetScope) return true;
-			scope = scope.parent;
-		}
-		return false;
-	}
-}
-
-class ValidationResult {
-	constructor(private errors: ValidationError[]) {}
-
-	hasErrors(): boolean {
-		return this.errors.length > 0;
-	}
-
-	getErrors(): ValidationError[] {
-		return [...this.errors];
-	}
-
-	toString(): string {
-		return this.errors
-			.map((error) => `${error.category.toUpperCase()}: ${error.message}`)
-			.join("\n");
-	}
-}
-
-interface ValidationError {
-	node: ts.Node;
-	message: string;
-	category: "type" | "scope" | "syntax";
-}
-
 // Advanced TypeScript features support
 class TypeScriptFeatureHandler {
-	private typeChecker: ts.TypeChecker;
+	private typeChecker: TypeChecker;
 
-	constructor(typeChecker: ts.TypeChecker) {
+	constructor(typeChecker: TypeChecker) {
 		this.typeChecker = typeChecker;
 	}
 
-	handleDecorators(node: ts.Node): ts.Node {
+	handleDecorators(node: Node): Node {
 		if (!ts.canHaveDecorators(node)) return node;
 
 		const decorators = ts.getDecorators(node);
+
 		if (!decorators) return node;
 
 		// Analyze decorator impact
@@ -196,6 +109,7 @@ class TypeScriptFeatureHandler {
 			const symbol = this.typeChecker.getSymbolAtLocation(
 				decorator.expression,
 			);
+
 			if (!symbol) continue;
 
 			// Check if decorator affects inlining
@@ -207,36 +121,39 @@ class TypeScriptFeatureHandler {
 		return node;
 	}
 
-	private isInliningAffectingDecorator(symbol: ts.Symbol): boolean {
+	private isInliningAffectingDecorator(symbol: Symbol): boolean {
 		// Check for known decorators that affect variable behavior
 		const name = symbol.getName();
+
 		return ["observable", "computed", "action"].includes(name);
 	}
 
-	handleNamespaces(node: ts.Node): ts.Node {
+	handleNamespaces(node: Node): Node {
 		if (ts.isModuleDeclaration(node)) {
 			// Handle namespace-specific transformations
-			const transformer = (context: ts.TransformationContext) => {
-				const visit = (node: ts.Node): ts.Node => {
+			const transformer = (context: TransformationContext) => {
+				const visit = (node: Node): Node => {
 					if (ts.isVariableStatement(node)) {
 						// Special handling for namespace variables
 						return this.transformNamespaceVariable(node);
 					}
 					return ts.visitEachChild(node, visit, context);
 				};
+
 				return visit;
 			};
 
-			return ts.transform(node, [transformer]).transformed[0];
+			return ts.transform(node, [transformer]).transformed[0] as Node;
 		}
 		return node;
 	}
 
-	private transformNamespaceVariable(node: ts.VariableStatement): ts.Node {
+	private transformNamespaceVariable(node: VariableStatement): Node {
 		// Special handling for namespace variables
 		const declarations = node.declarationList.declarations.map((decl) => {
 			if (ts.isIdentifier(decl.name)) {
 				const symbol = this.typeChecker.getSymbolAtLocation(decl.name);
+
 				if (symbol && this.isExported(symbol)) {
 					// Don't inline exported namespace variables
 					return decl;
@@ -255,8 +172,8 @@ class TypeScriptFeatureHandler {
 		);
 	}
 
-	private isExported(symbol: ts.Symbol): boolean {
-		return !!(symbol.flags & ts.SymbolFlags.Exported);
+	private isExported(symbol: Symbol): boolean {
+		return !!(symbol.flags & ts.SymbolFlags.ExportValue);
 	}
 }
 
@@ -336,19 +253,16 @@ async function runAllTests() {
 	for (const testCase of testCases) {
 		try {
 			await runner.runTest(testCase);
+
 			console.log(`✓ Test passed: ${testCase.name}`);
 		} catch (error) {
 			console.error(`✗ Test failed: ${testCase.name}`);
+
 			console.error(error);
 		}
 	}
 }
 
-export {
-	TestRunner,
-	TypeScriptValidator,
-	ValidationResult,
-	TypeScriptFeatureHandler,
-	testCases,
-	runAllTests,
-};
+export { TestRunner, TypeScriptFeatureHandler, testCases, runAllTests };
+
+export { TypeScriptValidator, ValidationResult } from "./Test/Validation.js";
