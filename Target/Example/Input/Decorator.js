@@ -1,1 +1,0 @@
-var l=Object.defineProperty;var a=Object.getOwnPropertyDescriptor;var u=(b,s,d,t)=>{for(var e=t>1?void 0:t?a(s,d):s,o=b.length-1,r;o>=0;o--)(r=b[o])&&(e=(t?r(s,d,e):r(e))||e);return t&&e&&l(s,d,e),e};class c{x=5;get doubled(){return this.x*2}}u([observable],c.prototype,"x",2),u([computed],c.prototype,"doubled",1);

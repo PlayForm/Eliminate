@@ -15,7 +15,6 @@ export default (async (...[Source]) => {
 		true,
 	);
 
-	
 	const Usage: Usage = new Map([]);
 
 	const Initializer: Initializer = new Map([]);

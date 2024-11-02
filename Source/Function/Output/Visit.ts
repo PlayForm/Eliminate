@@ -6,22 +6,51 @@ import type Interface from "@Interface/Output/Visit.js";
  */
 export const Fn = ((...[Usage, Initializer]) =>
 	(...[Node]) => {
+		const MAX_USAGE_COUNT = 1000; // Prevent runaway usage counts
+		const MAX_INITIALIZER_SIZE = 1000; // Prevent too many initializers
+
+		// Check Maps size before processing
+		if (
+			Usage.size >= MAX_USAGE_COUNT ||
+			Initializer.size >= MAX_INITIALIZER_SIZE
+		) {
+			console.warn("Warning: Maximum map size reached", {
+				usageSize: Usage.size,
+				initializerSize: Initializer.size,
+			});
+			return; // Early exit if maps are too large
+		}
+
 		ts.forEachChild(Node, Fn(Usage, Initializer));
 
 		if (ts.isVariableDeclaration(Node) && Node.initializer) {
 			const NameNode = Node.name.getText();
 
-			// Reset the usage, because of found initializer
-			Usage.set(NameNode, 0);
+			// Reset the usage, but first check if the name exists
+			if (Usage.has(NameNode)) {
+				Usage.set(NameNode, 0);
+			} else if (Usage.size < MAX_USAGE_COUNT) {
+				Usage.set(NameNode, 0);
+			}
 
-			// Set the initializer
-			Initializer.set(Node.initializer, NameNode);
+			// Set the initializer with size check
+			if (Initializer.size < MAX_INITIALIZER_SIZE) {
+				Initializer.set(Node.initializer, NameNode);
+			}
 		} else if (ts.isIdentifier(Node)) {
 			const NameNode = Node.getText();
 
-			// Increment if usage is found
+			// Increment if usage is found, with bounds checking
 			if (!ts.isVariableDeclaration(Node.parent)) {
-				Usage.set(NameNode, (Usage.get(NameNode) ?? 0) + 1);
+				const currentCount = Usage.get(NameNode) ?? 0;
+
+				if (currentCount < MAX_USAGE_COUNT) {
+					Usage.set(NameNode, currentCount + 1);
+				} else {
+					console.warn(
+						`Warning: Maximum usage count reached for identifier: ${NameNode}`,
+					);
+				}
 			}
 		}
 	}) satisfies Interface as Interface;

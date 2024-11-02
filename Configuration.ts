@@ -25,7 +25,7 @@ export default (await import("./Target/Function/Merge.js")).default(
 				return "";
 			},
 		},
-		Path: new Map([["./Source/Example/Input", "./Source/Example/Output"]]),
+		Path: new Map([["./Example/Input", "./Example/Output"]]),
 		File: "**/*.ts",
 	} satisfies Interface,
 );

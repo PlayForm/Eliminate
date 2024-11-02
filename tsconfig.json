@@ -4,6 +4,5 @@
 		"outDir": "Target"
 	},
 	"extends": "@playform/build/tsconfig",
-	"include": ["Source"],
-	"exclude": ["Source/Example"]
+	"include": ["Source"]
 }
