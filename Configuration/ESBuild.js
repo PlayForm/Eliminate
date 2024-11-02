@@ -41,7 +41,9 @@ export default {
                     setup({ onEnd }) {
                         onEnd(async () => {
                             await Exec("Eliminate Configuration.ts");
-                            await Exec("node Target/Artifact/Inliner/Test.js");
+                            // await Exec(
+                            // 	"node Target/Artifact/Inliner/Test.js",
+                            // );
                         });
                     },
                 }

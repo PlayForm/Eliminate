@@ -18,11 +18,10 @@ export const Fn = ((...[Usage, Initializer]) =>
 			Initializer.set(Node.initializer, NameNode);
 		} else if (ts.isIdentifier(Node)) {
 			const NameNode = Node.getText();
-			const UsageNode = Usage.get(NameNode);
 
 			// Increment if usage is found
 			if (!ts.isVariableDeclaration(Node.parent)) {
-				Usage.set(NameNode, (UsageNode ?? 0) + 1);
+				Usage.set(NameNode, (Usage.get(NameNode) ?? 0) + 1);
 			}
 		}
 	}) satisfies Interface as Interface;

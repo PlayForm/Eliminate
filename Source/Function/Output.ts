@@ -24,16 +24,25 @@ export default (async (...[Source]) => {
 		Initializer,
 	)(Node);
 
-	return ts
-		.createPrinter()
-		.printFile(
-			ts.transform(Node, [
-				(await import("@Function/Output/Transformer.js")).default(
-					Usage,
-					Initializer,
-				),
-			]).transformed[0] as SourceFile,
-		);
+	const Transformer = (
+		await import("@Function/Output/Transformer.js")
+	).default(Usage, Initializer);
+
+	let Use = true;
+	let NodeTransform = ts.transform(Node, [Transformer])
+		.transformed[0] as SourceFile;
+
+	while (Use) {
+		const { transformed } = ts.transform(NodeTransform, [Transformer]);
+
+		if (transformed[0] === NodeTransform) {
+			Use = false;
+		} else {
+			NodeTransform = transformed[0] as SourceFile;
+		}
+	}
+
+	return ts.createPrinter().printFile(NodeTransform);
 }) satisfies Interface as Interface;
 
 export const ts = await import("typescript");
