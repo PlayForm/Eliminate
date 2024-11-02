@@ -14,23 +14,23 @@ import {
 export const Fn = ((Usage, Initializer) =>
 	(...[Context]) =>
 	(...[Node]) => {
-		const Eliminate = (
+		const _Visit = (
 			Node: Node,
 			Depth = 0,
 		): { Node: Node; Use: boolean } => {
 			const MAX_RECURSIVE_DEPTH = 100;
 			const MAX_NODE_VISITS = 100;
 
-			let nodeVisitCount = 0;
+			let Visit = 0;
 
-			nodeVisitCount++;
+			Visit++;
 
-			if (nodeVisitCount >= MAX_NODE_VISITS) {
+			if (Visit >= MAX_NODE_VISITS) {
 				console.warn(
 					`Warning: Maximum node visits (${MAX_NODE_VISITS}) reached for single Eliminate call`,
 					{
-						nodeType: ts.SyntaxKind[Node.kind],
-						depth: Depth,
+						TypeNode: ts.SyntaxKind[Node.kind],
+						Depth: Depth,
 					},
 				);
 
@@ -41,9 +41,9 @@ export const Fn = ((Usage, Initializer) =>
 				console.warn(
 					`Warning: Maximum recursive depth (${MAX_RECURSIVE_DEPTH}) reached in Eliminate function.`,
 					{
-						nodeType: ts.SyntaxKind[Node.kind],
-						position: Node.pos,
-						text: Node.getText?.(),
+						TypeNode: ts.SyntaxKind[Node.kind],
+						Position: Node.pos,
+						Text: Node.getText?.(),
 					},
 				);
 
@@ -145,22 +145,22 @@ export const Fn = ((Usage, Initializer) =>
 			): { Node: Node; Use: boolean } => {
 				let Use = false;
 
-				let shouldExit = false;
+				let Return = false;
 
 				const NodeNew = visitEachChild(
 					NodeParent,
 					(NodeChild) => {
-						if (shouldExit) {
+						if (Return) {
 							return NodeChild;
 						}
 
-						const Output = Eliminate(NodeChild, Depth + 1);
+						const Output = _Visit(NodeChild, Depth + 1);
 
 						if (
 							Output.Use === false &&
 							Depth > MAX_RECURSIVE_DEPTH
 						) {
-							shouldExit = true;
+							Return = true;
 
 							return NodeChild;
 						}
@@ -187,23 +187,23 @@ export const Fn = ((Usage, Initializer) =>
 
 		const MAX_ITERATIONS = 100;
 
-		let iterationCount = 0;
+		let Iteration = 0;
 
-		while (Use && iterationCount < MAX_ITERATIONS) {
-			if (iterationCount >= MAX_ITERATIONS) {
+		while (Use && Iteration < MAX_ITERATIONS) {
+			if (Iteration >= MAX_ITERATIONS) {
 				console.warn(
 					`Warning: Maximum iteration count (${MAX_ITERATIONS}) reached. Possible infinite loop detected.`,
 					{
-						nodeType: ts.SyntaxKind[NodeCurrent.kind],
-						position: NodeCurrent.pos,
-						depth: "root",
+						TypeNode: ts.SyntaxKind[NodeCurrent.kind],
+						Position: NodeCurrent.pos,
+						Depth: "root",
 					},
 				);
 
 				break;
 			}
 
-			const Output = Eliminate(NodeCurrent);
+			const Output = _Visit(NodeCurrent);
 
 			if (!Output.Use) {
 				Use = false;
@@ -211,7 +211,7 @@ export const Fn = ((Usage, Initializer) =>
 
 			NodeCurrent = Output.Node;
 
-			iterationCount++;
+			Iteration++;
 		}
 
 		return NodeCurrent;
