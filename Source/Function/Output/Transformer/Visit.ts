@@ -19,6 +19,13 @@ export const Fn = ((Usage, Initializer) =>
 
 			let NodeCurrent = Node;
 
+			if (ts.isEmptyStatement(NodeCurrent)) {
+				return {
+					Node: factory.createNotEmittedStatement(NodeCurrent),
+					Use: true,
+				};
+			}
+
 			if (ts.isVariableStatement(NodeCurrent)) {
 				const Declaration = NodeCurrent.declarationList.declarations;
 
@@ -53,59 +60,52 @@ export const Fn = ((Usage, Initializer) =>
 				}
 			}
 
-			// Handle identifiers
 			if (isIdentifier(NodeCurrent)) {
 				try {
-					const nameNode = NodeCurrent.text;
+					const NodeName = NodeCurrent.text;
 
-					const usageNode = Usage.get(nameNode);
+					const NodeUsage = Usage.get(NodeName);
 
-					const initializerNode = Get(nameNode, Initializer);
+					const NodeInitializer = Get(NodeName, Initializer);
 
-					if (initializerNode && usageNode === 1) {
-						// Check if we're in a property access expression
-						const parent = NodeCurrent.parent;
+					if (NodeInitializer && NodeUsage === 1) {
+						const NodeParent = NodeCurrent.parent;
 
 						if (
-							isPropertyAccessExpression(parent) &&
-							parent.name === NodeCurrent
+							isPropertyAccessExpression(NodeParent) &&
+							NodeParent.name === NodeCurrent
 						) {
-							// If we're the name part of a property access, keep as identifier
 							return {
 								Node: NodeCurrent,
 								Use: false,
 							};
 						}
 
-						// For identifiers, create new identifier
-						if (isIdentifier(initializerNode)) {
+						if (isIdentifier(NodeInitializer)) {
 							return {
 								Node: factory.createIdentifier(
-									initializerNode.text,
+									NodeInitializer.text,
 								),
 								Use: true,
 							};
 						}
 
-						// For expressions, preserve the node structure
-						const updatedNode = ts.transform(initializerNode, [
-							(_Context) => (node) => node,
-						]).transformed[0];
-
 						return {
-							Node: updatedNode as Node,
+							Node: ts.transform(NodeInitializer, [
+								(_Context) => (node) => node,
+							]).transformed[0] as Node,
 							Use: true,
 						};
 					}
-				} catch (error) {
+				} catch (_Error) {
 					console.error(
 						"Error during identifier replacement:",
-						error,
+						_Error,
 					);
 				}
 			}
 
-			const { Node: NodeProcessed, Use: UseChildren } = ((
+			const { Node: NodeOutput, Use: UseChildren } = ((
 				parentNode: Node,
 			): { Node: Node; Use: boolean } => {
 				let Use = false;
@@ -113,11 +113,11 @@ export const Fn = ((Usage, Initializer) =>
 				const NodeNew = visitEachChild(
 					parentNode,
 					(child) => {
-						const result = Eliminate(child);
+						const Output = Eliminate(child);
 
-						Use = Use || result.Use;
+						Use = Use || Output.Use;
 
-						return result.Node;
+						return Output.Node;
 					},
 					Context,
 				);
@@ -126,7 +126,7 @@ export const Fn = ((Usage, Initializer) =>
 			})(NodeCurrent);
 
 			return {
-				Node: NodeProcessed,
+				Node: NodeOutput,
 				Use: Use || UseChildren,
 			};
 		};
@@ -136,13 +136,13 @@ export const Fn = ((Usage, Initializer) =>
 		let Use = true;
 
 		while (Use) {
-			const Processed = Eliminate(NodeCurrent);
+			const Output = Eliminate(NodeCurrent);
 
-			if (!Processed.Use) {
+			if (!Output.Use) {
 				Use = false;
 			}
 
-			NodeCurrent = Processed.Node;
+			NodeCurrent = Output.Node;
 		}
 
 		return NodeCurrent;
