@@ -52,8 +52,7 @@ Run the build tool from the command line:
 npx @playform/eliminate Configuration.ts
 ```
 
-See an example of a configuration file in:
-[`Configuration.ts`](./Configuration.ts)
+See an example configuration file in: [`Configuration.ts`](./Configuration.ts)
 
 ### CLI Options
 
