@@ -2,9 +2,7 @@ import type Interface from "@Interface/Output/Transformer/Visit.js";
 import {
 	factory,
 	isIdentifier,
-	isMemberExpression,
 	isPropertyAccessExpression,
-	isVariableStatement,
 	visitEachChild,
 	type Node,
 } from "typescript";
@@ -16,79 +14,88 @@ import {
 export const Fn = ((Usage, Initializer) =>
 	(...[Context]) =>
 	(...[Node]) => {
-		const processNode = (node: Node): { node: Node; changed: boolean } => {
-			let changed = false;
-			let currentNode = node;
+		const Eliminate = (Node: Node): { Node: Node; Use: boolean } => {
+			let Use = false;
 
-			// Handle variable declarations
-			if (isVariableStatement(currentNode)) {
-				const declarations = currentNode.declarationList.declarations;
-				const newDeclarations = declarations.filter((decl) => {
-					if (isIdentifier(decl.name)) {
-						const usageCount = Usage.get(decl.name.text);
-						return (
-							!usageCount || usageCount > 1 || !decl.initializer
-						);
+			let NodeCurrent = Node;
+
+			if (ts.isVariableStatement(NodeCurrent)) {
+				const Declaration = NodeCurrent.declarationList.declarations;
+
+				const DeclarationNew = Declaration.filter((Declaration) => {
+					if (isIdentifier(Declaration.name)) {
+						const Count = Usage.get(Declaration.name.text);
+
+						return !Count || Count > 1 || !Declaration.initializer;
 					}
+
 					return true;
 				});
 
-				if (newDeclarations.length === 0) {
+				if (DeclarationNew.length === 0) {
 					return {
-						node: factory.createEmptyStatement(),
-						changed: true,
+						Node: factory.createEmptyStatement(),
+						Use: true,
 					};
 				}
 
-				if (newDeclarations.length !== declarations.length) {
-					currentNode = factory.updateVariableStatement(
-						currentNode,
-						currentNode.modifiers,
+				if (DeclarationNew.length !== Declaration.length) {
+					NodeCurrent = factory.updateVariableStatement(
+						NodeCurrent,
+						NodeCurrent.modifiers,
 						factory.createVariableDeclarationList(
-							newDeclarations,
-							currentNode.declarationList.flags,
+							DeclarationNew,
+							NodeCurrent.declarationList.flags,
 						),
 					);
-					changed = true;
+
+					Use = true;
 				}
 			}
 
 			// Handle identifiers
-			if (isIdentifier(currentNode)) {
+			if (isIdentifier(NodeCurrent)) {
 				try {
-					const nameNode = currentNode.text;
+					const nameNode = NodeCurrent.text;
+
 					const usageNode = Usage.get(nameNode);
+
 					const initializerNode = Get(nameNode, Initializer);
 
 					if (initializerNode && usageNode === 1) {
 						// Check if we're in a property access expression
-						const parent = currentNode.parent;
+						const parent = NodeCurrent.parent;
+
 						if (
 							isPropertyAccessExpression(parent) &&
-							parent.name === currentNode
+							parent.name === NodeCurrent
 						) {
 							// If we're the name part of a property access, keep as identifier
 							return {
-								node: currentNode,
-								changed: false,
+								Node: NodeCurrent,
+								Use: false,
 							};
 						}
 
-						// For other contexts, create appropriate expression
+						// For identifiers, create new identifier
 						if (isIdentifier(initializerNode)) {
 							return {
-								node: factory.createIdentifier(
+								Node: factory.createIdentifier(
 									initializerNode.text,
 								),
-								changed: true,
-							};
-						} else {
-							// Clone the initializer node to ensure proper context
-							return {
-								node: factory.cloneNode(initializerNode),
-								changed: true,
+								Use: true,
 							};
 						}
+
+						// For expressions, preserve the node structure
+						const updatedNode = ts.transform(initializerNode, [
+							(_Context) => (node) => node,
+						]).transformed[0];
+
+						return {
+							Node: updatedNode as Node,
+							Use: true,
+						};
 					}
 				} catch (error) {
 					console.error(
@@ -98,75 +105,47 @@ export const Fn = ((Usage, Initializer) =>
 				}
 			}
 
-			// Process children
-			const visitChildren = (
+			const { Node: NodeProcessed, Use: UseChildren } = ((
 				parentNode: Node,
-			): { node: Node; changed: boolean } => {
-				let childrenChanged = false;
-				const newNode = visitEachChild(
+			): { Node: Node; Use: boolean } => {
+				let Use = false;
+
+				const NodeNew = visitEachChild(
 					parentNode,
 					(child) => {
-						const result = processNode(child);
-						childrenChanged = childrenChanged || result.changed;
-						return result.node;
+						const result = Eliminate(child);
+
+						Use = Use || result.Use;
+
+						return result.Node;
 					},
 					Context,
 				);
-				return { node: newNode, changed: childrenChanged };
-			};
 
-			// Process current node's children first
-			const { node: processedNode, changed: childrenChanged } =
-				visitChildren(currentNode);
+				return { Node: NodeNew, Use: Use };
+			})(NodeCurrent);
 
 			return {
-				node: processedNode,
-				changed: changed || childrenChanged,
+				Node: NodeProcessed,
+				Use: Use || UseChildren,
 			};
 		};
 
-		// Keep processing until no more changes
-		let currentNode = Node;
-		let hasChanged = true;
+		let NodeCurrent = Node;
 
-		while (hasChanged) {
-			const result = processNode(currentNode);
-			if (!result.changed) {
-				hasChanged = false;
+		let Use = true;
+
+		while (Use) {
+			const Processed = Eliminate(NodeCurrent);
+
+			if (!Processed.Use) {
+				Use = false;
 			}
-			currentNode = result.node;
+
+			NodeCurrent = Processed.Node;
 		}
 
-		return currentNode;
-
-		// Node = ts.visitEachChild(
-		// 	Node,
-		// 	Fn(Usage, Initializer)(Context),
-		// 	Context,
-		// );
-
-		// if (ts.isIdentifier(Node)) {
-		// 	try {
-		// 		const NameNode = Node.text;
-		// 		const UsageNode = Usage.get(NameNode);
-		// 		const InitializerNode = Get(NameNode, Initializer);
-
-		// 		if (
-		// 			typeof InitializerNode !== "undefined" &&
-		// 			typeof UsageNode !== "undefined"
-		// 		) {
-		// 			if (ts.isCallExpression(Node.parent) && UsageNode === 1) {
-		// 				return ts.factory.createIdentifier(
-		// 					InitializerNode.getText(),
-		// 				);
-		// 			}
-		// 		}
-		// 	} catch (_Error) {
-		// 		console.log(_Error);
-		// 	}
-		// }
-
-		// return Node;
+		return NodeCurrent;
 	}) satisfies Interface as Interface;
 
 export const { default: ts } = await import("typescript");

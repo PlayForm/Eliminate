@@ -15,6 +15,7 @@ export default (async (...[Source]) => {
 		true,
 	);
 
+	
 	const Usage: Usage = new Map([]);
 
 	const Initializer: Initializer = new Map([]);
@@ -29,6 +30,7 @@ export default (async (...[Source]) => {
 	).default(Usage, Initializer);
 
 	let Use = true;
+
 	let NodeTransform = ts.transform(Node, [Transformer])
 		.transformed[0] as SourceFile;
 
