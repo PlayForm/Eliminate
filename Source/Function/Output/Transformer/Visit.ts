@@ -1,11 +1,5 @@
 import type Interface from "@Interface/Output/Transformer/Visit.js";
-import {
-	factory,
-	isIdentifier,
-	isPropertyAccessExpression,
-	visitEachChild,
-	type Node,
-} from "typescript";
+import type { Node } from "typescript";
 
 /**
  * @module Output
@@ -107,7 +101,7 @@ export const Fn = ((Usage, Initializer) =>
 						const NodeParent = NodeCurrent.parent;
 
 						if (
-							isPropertyAccessExpression(NodeParent) &&
+							ts.isPropertyAccessExpression(NodeParent) &&
 							NodeParent.name === NodeCurrent
 						) {
 							return {
@@ -147,7 +141,7 @@ export const Fn = ((Usage, Initializer) =>
 
 				let Return = false;
 
-				const NodeNew = visitEachChild(
+				const NodeNew = ts.visitEachChild(
 					NodeParent,
 					(NodeChild) => {
 						if (Return) {
@@ -217,7 +211,11 @@ export const Fn = ((Usage, Initializer) =>
 		return NodeCurrent;
 	}) satisfies Interface as Interface;
 
-export const { default: ts } = await import("typescript");
+export const {
+	default: ts,
+	isIdentifier,
+	factory,
+} = await import("typescript");
 
 export const { default: Get } = await import("@Function/Output/Visit/Get.js");
 

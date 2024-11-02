@@ -13,18 +13,19 @@ export const Fn = ((...[Usage, Initializer]) =>
 
 		const visitedNodes = new Set<string>();
 
-		const nodeId = `${ts.SyntaxKind[Node.kind]}-${Node.pos}-${Node.end}`;
+		const ID = `${ts.SyntaxKind[Node.kind]}-${Node.pos}-${Node.end}`;
 
-		if (visitedNodes.has(nodeId)) {
+		if (visitedNodes.has(ID)) {
 			console.warn("Warning: Circular reference detected", {
-				nodeType: ts.SyntaxKind[Node.kind],
-				position: Node.pos,
+				TypeNode: ts.SyntaxKind[Node.kind],
+				Position: Node.pos,
+				Text: Node.getText?.(),
 			});
 
 			return;
 		}
 
-		visitedNodes.add(nodeId);
+		visitedNodes.add(ID);
 
 		ts.forEachChild(Node, Fn(Usage, Initializer));
 
@@ -33,8 +34,8 @@ export const Fn = ((...[Usage, Initializer]) =>
 			Initializer.size >= MAX_INITIALIZER_SIZE
 		) {
 			console.warn("Warning: Maximum map size reached", {
-				usageSize: Usage.size,
-				initializerSize: Initializer.size,
+				UsageLength: Usage.size,
+				InitializerLength: Initializer.size,
 			});
 
 			return;
@@ -67,8 +68,13 @@ export const Fn = ((...[Usage, Initializer]) =>
 			})();
 
 			if (SelfReferential) {
-				console.debug(
-					`Skipping self-referential initializer for: ${NameNode}`,
+				console.info(
+					`Info: Skipping self-referential initializer for: ${NameNode}`,
+					{
+						TypeNode: ts.SyntaxKind[Node.kind],
+						Position: Node.pos,
+						Text: Node.getText?.(),
+					},
 				);
 
 				return;
@@ -87,13 +93,18 @@ export const Fn = ((...[Usage, Initializer]) =>
 			const NameNode = Node.getText();
 
 			if (!ts.isVariableDeclaration(Node.parent)) {
-				const currentCount = Usage.get(NameNode) ?? 0;
+				const Count = Usage.get(NameNode) ?? 0;
 
-				if (currentCount < MAX_USAGE_COUNT) {
-					Usage.set(NameNode, currentCount + 1);
+				if (Count < MAX_USAGE_COUNT) {
+					Usage.set(NameNode, Count + 1);
 				} else {
 					console.warn(
 						`Warning: Maximum usage count reached for identifier: ${NameNode}`,
+						{
+							TypeNode: ts.SyntaxKind[Node.kind],
+							Position: Node.pos,
+							Text: Node.getText?.(),
+						},
 					);
 				}
 			}
