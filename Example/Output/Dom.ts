@@ -1351,82 +1351,17 @@ export function finalHandler<T extends Event>(fn: (event: T) => unknown): (event
 }
 export function domContentLoaded(targetWindow: Window): Promise<void> {
     return new Promise<void>((resolve) => {
-        if (targetWindow.document.readyState
-            === "complete" ||
+        const readyState = targetWindow.document.readyState;
+        if (readyState === "complete" ||
             (targetWindow.document && targetWindow.document.body !== null)) {
             resolve(undefined);
         }
         else {
-            targetWindow.window.addEventListener("DOMContentLoaded", () => {
-                targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                    targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                        targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                            targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                    targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                        targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                            targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                    targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                        targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                            targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                                targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                                    targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                                        targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                                            targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                                                targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                                                    targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                                                        targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                                                            targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                                                                targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                                                                    targetWindow.window.removeEventListener("DOMContentLoaded", () => {
-                                                                                                        targetWindow.window.removeEventListener("DOMContentLoaded", listener, false);
-                                                                                                        resolve();
-                                                                                                    }, false);
-                                                                                                    resolve();
-                                                                                                }, false);
-                                                                                                resolve();
-                                                                                            }, false);
-                                                                                            resolve();
-                                                                                        }, false);
-                                                                                        resolve();
-                                                                                    }, false);
-                                                                                    resolve();
-                                                                                }, false);
-                                                                                resolve();
-                                                                            }, false);
-                                                                            resolve();
-                                                                        }, false);
-                                                                        resolve();
-                                                                    }, false);
-                                                                    resolve();
-                                                                }, false);
-                                                                resolve();
-                                                            }, false);
-                                                            resolve();
-                                                        }, false);
-                                                        resolve();
-                                                    }, false);
-                                                    resolve();
-                                                }, false);
-                                                resolve();
-                                            }, false);
-                                            resolve();
-                                        }, false);
-                                        resolve();
-                                    }, false);
-                                    resolve();
-                                }, false);
-                                resolve();
-                            }, false);
-                            resolve();
-                        }, false);
-                        resolve();
-                    }, false);
-                    resolve();
-                }, false);
+            const listener = () => {
+                targetWindow.window.removeEventListener("DOMContentLoaded", listener, false);
                 resolve();
-            }, false);
+            };
+            targetWindow.window.addEventListener("DOMContentLoaded", listener, false);
         }
     });
 }
