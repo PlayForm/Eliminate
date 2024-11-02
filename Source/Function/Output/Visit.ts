@@ -13,7 +13,6 @@ export const Fn = ((...[Usage, Initializer]) =>
 
 		const visitedNodes = new Set<string>();
 
-		// Add node path tracking to prevent infinite recursion
 		const nodeId = `${ts.SyntaxKind[Node.kind]}-${Node.pos}-${Node.end}`;
 
 		if (visitedNodes.has(nodeId)) {
@@ -21,6 +20,7 @@ export const Fn = ((...[Usage, Initializer]) =>
 				nodeType: ts.SyntaxKind[Node.kind],
 				position: Node.pos,
 			});
+
 			return;
 		}
 
@@ -43,33 +43,30 @@ export const Fn = ((...[Usage, Initializer]) =>
 		if (ts.isVariableDeclaration(Node) && Node.initializer) {
 			const NameNode = Node.name.getText();
 
-			// Improved self-reference check
-			const containsSelfReference = (() => {
-				let hasSelfRef = false;
+			const SelfReferential = (() => {
+				let True = false;
 
-				const checkNode = (node: Node) => {
-					if (hasSelfRef) return;
-
-					if (ts.isIdentifier(node) && node.getText() === NameNode) {
-						// Skip if this identifier is part of a property access
-						const parent = node.parent;
+				const Visit = (node: Node) => {
+					if (ts.isIdentifier(node)) {
 						if (
-							!ts.isPropertyAccessExpression(parent) ||
-							parent.name === node
+							node.text === NameNode &&
+							!ts.isTemplateExpression(node.parent) &&
+							!ts.isTemplateSpan(node.parent) &&
+							!ts.isPropertyAccessExpression(node.parent)
 						) {
-							hasSelfRef = true;
+							True = true;
 						}
 					}
-					
-					ts.forEachChild(node, checkNode);
+
+					ts.forEachChild(node, Visit);
 				};
 
-				checkNode(Node.initializer);
-				return hasSelfRef;
+				Visit(Node.initializer);
+
+				return True;
 			})();
 
-			// Skip self-referential initializers
-			if (containsSelfReference) {
+			if (SelfReferential) {
 				console.debug(
 					`Skipping self-referential initializer for: ${NameNode}`,
 				);

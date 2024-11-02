@@ -1351,8 +1351,8 @@ export function finalHandler<T extends Event>(fn: (event: T) => unknown): (event
 }
 export function domContentLoaded(targetWindow: Window): Promise<void> {
     return new Promise<void>((resolve) => {
-        const readyState = targetWindow.document.readyState;
-        if (readyState === "complete" ||
+        if (targetWindow.document.readyState
+            === "complete" ||
             (targetWindow.document && targetWindow.document.body !== null)) {
             resolve(undefined);
         }
