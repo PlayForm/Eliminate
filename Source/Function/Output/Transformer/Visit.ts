@@ -1,5 +1,6 @@
 import type Interface from "@Interface/Output/Transformer/Visit.js";
 import type {
+	Expression,
 	Identifier,
 	Node,
 	TransformationContext,
@@ -250,11 +251,16 @@ export const Fn = ((usageMap, initializerMap) => {
 			}
 
 			try {
-				// Instead of just returning the transformed node, we need to visit it
-				// to handle nested identifiers that might need inlining
+				// First transform the initializer
 				const transformedNode = this.transformNodeSafely(initializer);
 
+				// Then visit it to handle any nested identifiers
 				const result = this.visitNode(transformedNode);
+
+				// Ensure we have an expression
+				if (!ts.isExpression(result.node)) {
+					return this.createVisitResult(node, false);
+				}
 
 				return this.createVisitResult(
 					result.node as Identifier,
@@ -448,6 +454,57 @@ export const Fn = ((usageMap, initializerMap) => {
 		private handleGenericNode(node: Node, depth: number): VisitResult {
 			let modified = false;
 
+			// Special handling for property assignments
+			if (ts.isPropertyAssignment(node)) {
+				const nameResult = ts.isComputedPropertyName(node.name)
+					? this.visitNode(node.name.expression)
+					: { node: node.name, modified: false };
+
+				const initializerResult = this.visitNode(node.initializer);
+
+				if (nameResult.modified || initializerResult.modified) {
+					modified = true;
+
+					const newName = ts.isComputedPropertyName(node.name)
+						? factory.createComputedPropertyName(
+								nameResult.node as Expression,
+							)
+						: node.name;
+
+					return this.createVisitResult(
+						factory.createPropertyAssignment(
+							newName,
+							initializerResult.node as Expression,
+						),
+						true,
+					);
+				}
+				return this.createVisitResult(node, false);
+			}
+
+			// Special handling for array literals
+			if (ts.isArrayLiteralExpression(node)) {
+				const elements = node.elements.map((element) => {
+					const result = this.visitNode(element);
+
+					modified = modified || result.modified;
+
+					return result.node;
+				});
+
+				if (modified) {
+					return this.createVisitResult(
+						factory.createArrayLiteralExpression(
+							elements as Expression[],
+							node.multiLine,
+						),
+						true,
+					);
+				}
+				return this.createVisitResult(node, false);
+			}
+
+			// Handle all other nodes
 			const newNode = ts.visitEachChild(
 				node,
 				(child) => {
