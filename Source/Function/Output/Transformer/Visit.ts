@@ -608,29 +608,29 @@ export const Fn = ((usageMap, initializerMap) => {
 
 		let currentNode = rootNode;
 
-		let iterationCount = 0;
+		// let iterationCount = 0;
 
-		while (iterationCount < CONFIG.MAX_ITERATIONS) {
-			const result = transformer.visitNode(currentNode);
+		// while (iterationCount < CONFIG.MAX_ITERATIONS) {
+		// 	const result = transformer.visitNode(currentNode);
 
-			if (!result.modified) {
-				return result.node;
-			}
+		// 	if (!result.modified) {
+		// 		return result.node;
+		// 	}
 
-			currentNode = result.node;
+		// 	currentNode = result.node;
 
-			iterationCount++;
+		// 	iterationCount++;
 
-			const state = transformer.getState();
+		// 	const state = transformer.getState();
 
-			if (state.errors.length > 0) {
-				console.error("Transformation errors:", state.errors);
-			}
+		// 	if (state.errors.length > 0) {
+		// 		console.error("Transformation errors:", state.errors);
+		// 	}
 
-			if (state.warnings.length > 0) {
-				console.warn("Transformation warnings:", state.warnings);
-			}
-		}
+		// 	if (state.warnings.length > 0) {
+		// 		console.warn("Transformation warnings:", state.warnings);
+		// 	}
+		// }
 
 		return currentNode;
 	};

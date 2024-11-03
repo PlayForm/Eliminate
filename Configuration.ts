@@ -27,5 +27,6 @@ export default (await import("./Target/Function/Merge.js")).default(
 		},
 		Path: new Map([["./Example/Input", "./Example/Output"]]),
 		File: "**/*.ts",
+		Exclude: (File) => (File.indexOf(".d.ts") !== -1 ? true : false),
 	} satisfies Interface,
 );
