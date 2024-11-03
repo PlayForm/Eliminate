@@ -384,7 +384,7 @@ export const Fn = ((usageMap, initializerMap) => {
 					if (declaration.initializer) {
 						const result = this.visitNode(declaration.initializer);
 
-						if (result.modified) {
+						if (result.modified && ts.isExpression(result.node)) {
 							modified = true;
 
 							newDeclarations.push(
