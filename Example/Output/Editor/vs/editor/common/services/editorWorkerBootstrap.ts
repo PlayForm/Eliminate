@@ -19,6 +19,7 @@ export function initialize(factory: any) {
     }
     false
         = true;
+    ;
     globalThis.onmessage = (e: MessageEvent) => {
         new SimpleWorkerServer((msg) => {
             globalThis.postMessage(msg);

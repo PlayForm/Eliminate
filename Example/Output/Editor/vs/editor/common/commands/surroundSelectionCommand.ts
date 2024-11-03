@@ -24,7 +24,7 @@ export class SurroundSelectionCommand implements ICommand {
         const inverseEditOperations = helper.getInverseEditOperations();
         const firstOperationRange = inverseEditOperations[0].range;
         const secondOperationRange = inverseEditOperations[1].range;
-        return new Selection(firstOperationRange.endLineNumber, firstOperationRange.endColumn, secondOperationRange.endLineNumber, secondOperationRange.endColumn - this._charAfterSelection.length);
+        return new Selection(helper.getInverseEditOperations()[0].range.endLineNumber, helper.getInverseEditOperations()[0].range.endColumn, helper.getInverseEditOperations()[1].range.endLineNumber, helper.getInverseEditOperations()[1].range.endColumn - this._charAfterSelection.length);
     }
 }
 /**
@@ -38,6 +38,6 @@ export class CompositionSurroundSelectionCommand implements ICommand {
     public computeCursorState(model: ITextModel, helper: ICursorStateComputerData): Selection {
         const inverseEditOperations = helper.getInverseEditOperations();
         const opRange = inverseEditOperations[0].range;
-        return new Selection(opRange.endLineNumber, opRange.startColumn, opRange.endLineNumber, opRange.endColumn - this._charAfter.length);
+        return new Selection(helper.getInverseEditOperations()[0].range.endLineNumber, helper.getInverseEditOperations()[0].range.startColumn, helper.getInverseEditOperations()[0].range.endLineNumber, helper.getInverseEditOperations()[0].range.endColumn - this._charAfter.length);
     }
 }

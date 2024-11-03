@@ -23,6 +23,7 @@ class StandaloneLayoutService implements ILayoutService {
             ?.getContainerDomNode() ?? mainWindow.document.body);
     }
     get activeContainer(): HTMLElement {
+        ;
         return (this._codeEditorService.getFocusedCodeEditor() ??
             this._codeEditorService.getActiveCodeEditor())
             ?.getContainerDomNode() ?? this.mainContainer;

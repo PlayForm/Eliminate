@@ -97,11 +97,13 @@ class CodeMain {
         try {
             // Init services
             try {
-                await this.initServices(environmentMainService, userDataProfilesMainService, configurationService, stateMainService, productService);
+                await this.initServices(new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), new UserDataProfilesMainService(new StateService(SaveStrategy.DELAYED, new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(ILogService), accessor.get(IFileService)), new UriIdentityService(accessor.get(IFileService)), new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(IFileService), accessor.get(ILogService)), new ConfigurationService(new UserDataProfilesMainService(new StateService(SaveStrategy.DELAYED, new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(ILogService), accessor.get(IFileService)), new UriIdentityService(accessor.get(IFileService)), new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(IFileService), accessor.get(ILogService)).defaultProfile.settingsResource, accessor.get(IFileService), isWindows && { _serviceBrand: undefined, ...product }.win32RegValueName ? new DisposableStore().add(new NativePolicyService(accessor.get(ILogService), { _serviceBrand: undefined, ...product }.win32RegValueName))
+                    : new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }).policyFile ? new DisposableStore().add(new FilePolicyService(new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }).policyFile, accessor.get(IFileService), accessor.get(ILogService)))
+                        : new NullPolicyService(), accessor.get(ILogService)), stateMainService, { _serviceBrand: undefined, ...product });
             }
             catch (error) {
                 // Show a dialog for errors that can be resolved by the user
-                this.handleStartupDataDirError(environmentMainService, productService, error);
+                this.handleStartupDataDirError(new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), { _serviceBrand: undefined, ...product }, error);
                 throw error;
             }
             // Startup
@@ -116,18 +118,20 @@ class CodeMain {
                 const mainProcessNodeIpcServer = await this.claimInstance(logService, environmentMainService, lifecycleMainService, instantiationService, productService, true);
                 // Write a lockfile to indicate an instance is running
                 // (https://github.com/microsoft/vscode/issues/127861#issuecomment-877417451)
-                FSPromises.writeFile(environmentMainService.mainLockfile, String(process.pid)).catch(err => {
-                    logService.warn(`app#startup(): Error writing main lockfile: ${err.stack}`);
+                FSPromises.writeFile(new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }).mainLockfile, String(process.pid)).catch(err => {
+                    accessor.get(ILogService).warn(`app#startup(): Error writing main lockfile: ${err.stack}`);
                 });
                 // Delay creation of spdlog for perf reasons (https://github.com/microsoft/vscode/issues/72906)
-                bufferLogger.logger = loggerService.createLogger('main', { name: localize('mainLog', "Main") });
+                new BufferLogger(accessor.get(ILoggerService).getLogLevel()).logger = accessor.get(ILoggerService).createLogger('main', { name: localize('mainLog', "Main") });
                 // Lifecycle
-                Event.once(lifecycleMainService.onWillShutdown)(evt => {
-                    fileService.dispose();
-                    configurationService.dispose();
-                    evt.join('instanceLockfile', promises.unlink(environmentMainService.mainLockfile).catch(() => { }));
+                Event.once(accessor.get(ILifecycleMainService).onWillShutdown)(evt => {
+                    accessor.get(IFileService).dispose();
+                    new ConfigurationService(new UserDataProfilesMainService(new StateService(SaveStrategy.DELAYED, new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(ILogService), accessor.get(IFileService)), new UriIdentityService(accessor.get(IFileService)), new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(IFileService), accessor.get(ILogService)).defaultProfile.settingsResource, accessor.get(IFileService), isWindows && { _serviceBrand: undefined, ...product }.win32RegValueName ? new DisposableStore().add(new NativePolicyService(accessor.get(ILogService), { _serviceBrand: undefined, ...product }.win32RegValueName))
+                        : new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }).policyFile ? new DisposableStore().add(new FilePolicyService(new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }).policyFile, accessor.get(IFileService), accessor.get(ILogService)))
+                            : new NullPolicyService(), accessor.get(ILogService)).dispose();
+                    evt.join('instanceLockfile', promises.unlink(new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }).mainLockfile).catch(() => { }));
                 });
-                return instantiationService.createInstance(CodeApplication, mainProcessNodeIpcServer, instanceEnvironment).startup();
+                return instantiationService.createInstance(CodeApplication, await this.claimInstance(accessor.get(ILogService), new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(ILifecycleMainService), instantiationService, { _serviceBrand: undefined, ...product }, true), this.patchEnvironment(new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }))).startup();
             });
         }
         catch (error) {
@@ -146,59 +150,63 @@ class CodeMain {
     ] {
         const services = new ServiceCollection();
         const disposables = new DisposableStore();
-        process.once('exit', () => disposables.dispose());
+        process.once('exit', () => new DisposableStore().dispose());
         // Product
         const productService = { _serviceBrand: undefined, ...product };
-        services.set(IProductService, productService);
+        new ServiceCollection().set(IProductService, { _serviceBrand: undefined, ...product });
         // Environment
         const environmentMainService = new EnvironmentMainService(this.resolveArgs(), productService);
         const instanceEnvironment = this.patchEnvironment(environmentMainService); // Patch `process.env` with the instance's environment
-        services.set(IEnvironmentMainService, environmentMainService);
+        new ServiceCollection().set(IEnvironmentMainService, new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }));
         // Logger
         const loggerService = new LoggerMainService(getLogLevel(environmentMainService), environmentMainService.logsHome);
-        services.set(ILoggerMainService, loggerService);
+        new ServiceCollection().set(ILoggerMainService, accessor.get(ILoggerService));
         // Log: We need to buffer the spdlog logs until we are sure
         // we are the only instance running, otherwise we'll have concurrent
         // log file access on Windows (https://github.com/microsoft/vscode/issues/41218)
         const bufferLogger = new BufferLogger(loggerService.getLogLevel());
         const logService = disposables.add(new LogService(bufferLogger, [new ConsoleMainLogger(loggerService.getLogLevel())]));
-        services.set(ILogService, logService);
+        new ServiceCollection().set(ILogService, accessor.get(ILogService));
         // Files
         const fileService = new FileService(logService);
-        services.set(IFileService, fileService);
+        new ServiceCollection().set(IFileService, accessor.get(IFileService));
         const diskFileSystemProvider = new DiskFileSystemProvider(logService);
-        fileService.registerProvider(Schemas.file, diskFileSystemProvider);
+        accessor.get(IFileService).registerProvider(Schemas.file, new DiskFileSystemProvider(accessor.get(ILogService)));
         // URI Identity
         const uriIdentityService = new UriIdentityService(fileService);
-        services.set(IUriIdentityService, uriIdentityService);
+        new ServiceCollection().set(IUriIdentityService, new UriIdentityService(accessor.get(IFileService)));
         // State
         const stateService = new StateService(SaveStrategy.DELAYED, environmentMainService, logService, fileService);
-        services.set(IStateReadService, stateService);
-        services.set(IStateService, stateService);
+        new ServiceCollection().set(IStateReadService, new StateService(SaveStrategy.DELAYED, new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(ILogService), accessor.get(IFileService)));
+        new ServiceCollection().set(IStateService, new StateService(SaveStrategy.DELAYED, new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(ILogService), accessor.get(IFileService)));
         // User Data Profiles
         const userDataProfilesMainService = new UserDataProfilesMainService(stateService, uriIdentityService, environmentMainService, fileService, logService);
-        services.set(IUserDataProfilesMainService, userDataProfilesMainService);
+        new ServiceCollection().set(IUserDataProfilesMainService, new UserDataProfilesMainService(new StateService(SaveStrategy.DELAYED, new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(ILogService), accessor.get(IFileService)), new UriIdentityService(accessor.get(IFileService)), new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(IFileService), accessor.get(ILogService)));
         // Use FileUserDataProvider for user data to
         // enable atomic read / write operations.
-        fileService.registerProvider(Schemas.vscodeUserData, new FileUserDataProvider(Schemas.file, diskFileSystemProvider, Schemas.vscodeUserData, userDataProfilesMainService, uriIdentityService, logService));
+        accessor.get(IFileService).registerProvider(Schemas.vscodeUserData, new FileUserDataProvider(Schemas.file, new DiskFileSystemProvider(accessor.get(ILogService)), Schemas.vscodeUserData, new UserDataProfilesMainService(new StateService(SaveStrategy.DELAYED, new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(ILogService), accessor.get(IFileService)), new UriIdentityService(accessor.get(IFileService)), new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(IFileService), accessor.get(ILogService)), new UriIdentityService(accessor.get(IFileService)), accessor.get(ILogService)));
         // Policy
         const policyService = isWindows && productService.win32RegValueName ? disposables.add(new NativePolicyService(logService, productService.win32RegValueName))
             : environmentMainService.policyFile ? disposables.add(new FilePolicyService(environmentMainService.policyFile, fileService, logService))
                 : new NullPolicyService();
-        services.set(IPolicyService, policyService);
+        new ServiceCollection().set(IPolicyService, isWindows && { _serviceBrand: undefined, ...product }.win32RegValueName ? new DisposableStore().add(new NativePolicyService(accessor.get(ILogService), { _serviceBrand: undefined, ...product }.win32RegValueName))
+            : new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }).policyFile ? new DisposableStore().add(new FilePolicyService(new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }).policyFile, accessor.get(IFileService), accessor.get(ILogService)))
+                : new NullPolicyService());
         // Configuration
         const configurationService = new ConfigurationService(userDataProfilesMainService.defaultProfile.settingsResource, fileService, policyService, logService);
-        services.set(IConfigurationService, configurationService);
+        new ServiceCollection().set(IConfigurationService, new ConfigurationService(new UserDataProfilesMainService(new StateService(SaveStrategy.DELAYED, new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(ILogService), accessor.get(IFileService)), new UriIdentityService(accessor.get(IFileService)), new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }), accessor.get(IFileService), accessor.get(ILogService)).defaultProfile.settingsResource, accessor.get(IFileService), isWindows && { _serviceBrand: undefined, ...product }.win32RegValueName ? new DisposableStore().add(new NativePolicyService(accessor.get(ILogService), { _serviceBrand: undefined, ...product }.win32RegValueName))
+            : new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }).policyFile ? new DisposableStore().add(new FilePolicyService(new EnvironmentMainService(this.resolveArgs(), { _serviceBrand: undefined, ...product }).policyFile, accessor.get(IFileService), accessor.get(ILogService)))
+                : new NullPolicyService(), accessor.get(ILogService)));
         // Lifecycle
-        services.set(ILifecycleMainService, new SyncDescriptor(LifecycleMainService, undefined, false));
+        new ServiceCollection().set(ILifecycleMainService, new SyncDescriptor(LifecycleMainService, undefined, false));
         // Request
-        services.set(IRequestService, new SyncDescriptor(RequestService, undefined, true));
+        new ServiceCollection().set(IRequestService, new SyncDescriptor(RequestService, undefined, true));
         // Themes
-        services.set(IThemeMainService, new SyncDescriptor(ThemeMainService));
+        new ServiceCollection().set(IThemeMainService, new SyncDescriptor(ThemeMainService));
         // Signing
-        services.set(ISignService, new SyncDescriptor(SignService, undefined, false /* proxied to other processes */));
+        new ServiceCollection().set(ISignService, new SyncDescriptor(SignService, undefined, false /* proxied to other processes */));
         // Tunnel
-        services.set(ITunnelService, new SyncDescriptor(TunnelService));
+        new ServiceCollection().set(ITunnelService, new SyncDescriptor(TunnelService));
         // Protocol (instantiated early and not using sync descriptor for security reasons)
         services.set(IProtocolMainService, new ProtocolMainService(environmentMainService, userDataProfilesMainService, logService));
         return [new InstantiationService(services, true), instanceEnvironment, environmentMainService, configurationService, stateService, bufferLogger, productService, userDataProfilesMainService];

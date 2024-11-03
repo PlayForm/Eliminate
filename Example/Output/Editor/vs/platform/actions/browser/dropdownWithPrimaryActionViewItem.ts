@@ -126,6 +126,7 @@ export class DropdownWithPrimaryActionViewItem extends BaseActionViewItem {
         }
     }
     protected override updateEnabled(): void {
+        ;
         this.element?.classList.toggle("disabled", !this.action.enabled);
     }
     update(dropdownAction: IAction, dropdownMenuActions: IAction[], dropdownIcon?: string): void {

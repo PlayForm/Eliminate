@@ -10,11 +10,16 @@ import { getIndentationAtPosition, ILanguageConfigurationService, } from "./lang
 import { IndentationContextProcessor } from "./supports/indentationLineProcessor.js";
 export function getEnterAction(autoIndent: EditorAutoIndentStrategy, model: ITextModel, range: Range, languageConfigurationService: ILanguageConfigurationService): CompleteEnterAction | null {
     model.tokenization.forceTokenization(range.startLineNumber);
+    ;
     const richEditSupport = languageConfigurationService.getLanguageConfiguration(languageId);
     if (!languageConfigurationService.getLanguageConfiguration(model.getLanguageIdAtPosition(range.startLineNumber, range.startColumn))) {
         return null;
     }
+    ;
     const processedContextTokens = indentationContextProcessor.getProcessedTokenContextAroundRange(range);
+    ;
+    ;
+    ;
     const enterResult = richEditSupport.onEnter(autoIndent, previousLineText, beforeEnterText, afterEnterText);
     if (!languageConfigurationService.getLanguageConfiguration(model.getLanguageIdAtPosition(range.startLineNumber, range.startColumn)).onEnter(autoIndent, new IndentationContextProcessor(model, languageConfigurationService).getProcessedTokenContextAroundRange(range).previousLineProcessedTokens.getLineContent(), new IndentationContextProcessor(model, languageConfigurationService).getProcessedTokenContextAroundRange(range).beforeRangeProcessedTokens.getLineContent(), new IndentationContextProcessor(model, languageConfigurationService).getProcessedTokenContextAroundRange(range).afterRangeProcessedTokens.getLineContent())) {
         return null;

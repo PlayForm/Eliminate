@@ -65,20 +65,26 @@ export class EnvironmentMainService extends NativeEnvironmentService implements 
         for (const key in process.env) {
             if (key.endsWith("_VSCODE_SNAP_ORIG")) {
                 const originalKey = key.slice(0, -17); // Remove the _VSCODE_SNAP_ORIG suffix
-                if (this._snapEnv[originalKey]) {
+                if (this._snapEnv[key.slice(0, -17)] // Remove the _VSCODE_SNAP_ORIG suffix
+                ) {
                     continue;
                 }
                 // Preserve the original value in case the snap env is re-entered
-                if (process.env[originalKey]) {
-                    this._snapEnv[originalKey] = process.env[originalKey]!;
+                if (process.env[key.slice(0, -17)] // Remove the _VSCODE_SNAP_ORIG suffix
+                ) {
+                    this._snapEnv[key.slice(0, -17)] // Remove the _VSCODE_SNAP_ORIG suffix
+                     = process.env[key.slice(0, -17)] // Remove the _VSCODE_SNAP_ORIG suffix
+                    !;
                 }
                 // Copy the original value from before entering the snap env if available,
                 // if not delete the env variable.
                 if (process.env[key]) {
-                    process.env[originalKey] = process.env[key];
+                    process.env[key.slice(0, -17)] // Remove the _VSCODE_SNAP_ORIG suffix
+                     = process.env[key];
                 }
                 else {
-                    delete process.env[originalKey];
+                    delete process.env[key.slice(0, -17)] // Remove the _VSCODE_SNAP_ORIG suffix
+                    ;
                 }
             }
         }

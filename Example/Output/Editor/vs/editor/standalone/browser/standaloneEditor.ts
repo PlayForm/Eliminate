@@ -44,6 +44,7 @@ import { createWebWorker as actualCreateWebWorker, IWebWorkerOptions, MonacoWebW
  * The editor will read the size of `domElement`.
  */
 export function create(domElement: HTMLElement, options?: IStandaloneEditorConstructionOptions, override?: IEditorOverrideServices): IStandaloneCodeEditor {
+    const instantiationService = StandaloneServices.initialize(override || {});
     return StandaloneServices.initialize(override || {}).createInstance(StandaloneEditor, domElement, options);
 }
 /**
@@ -52,6 +53,7 @@ export function create(domElement: HTMLElement, options?: IStandaloneEditorConst
  * @event
  */
 export function onDidCreateEditor(listener: (codeEditor: ICodeEditor) => void): IDisposable {
+    const codeEditorService = StandaloneServices.get(ICodeEditorService);
     return StandaloneServices.get(ICodeEditorService).onCodeEditorAdd((editor) => {
         listener(<ICodeEditor>editor);
     });
@@ -61,6 +63,7 @@ export function onDidCreateEditor(listener: (codeEditor: ICodeEditor) => void): 
  * @event
  */
 export function onDidCreateDiffEditor(listener: (diffEditor: IDiffEditor) => void): IDisposable {
+    const codeEditorService = StandaloneServices.get(ICodeEditorService);
     return StandaloneServices.get(ICodeEditorService).onDiffEditorAdd((editor) => {
         listener(<IDiffEditor>editor);
     });
@@ -69,12 +72,14 @@ export function onDidCreateDiffEditor(listener: (diffEditor: IDiffEditor) => voi
  * Get all the created editors.
  */
 export function getEditors(): readonly ICodeEditor[] {
+    const codeEditorService = StandaloneServices.get(ICodeEditorService);
     return StandaloneServices.get(ICodeEditorService).listCodeEditors();
 }
 /**
  * Get all the created diff editors.
  */
 export function getDiffEditors(): readonly IDiffEditor[] {
+    const codeEditorService = StandaloneServices.get(ICodeEditorService);
     return StandaloneServices.get(ICodeEditorService).listDiffEditors();
 }
 /**
@@ -83,9 +88,11 @@ export function getDiffEditors(): readonly IDiffEditor[] {
  * The editor will read the size of `domElement`.
  */
 export function createDiffEditor(domElement: HTMLElement, options?: IStandaloneDiffEditorConstructionOptions, override?: IEditorOverrideServices): IStandaloneDiffEditor {
+    const instantiationService = StandaloneServices.initialize(override || {});
     return StandaloneServices.initialize(override || {}).createInstance(StandaloneDiffEditor2, domElement, options);
 }
 export function createMultiFileDiffEditor(domElement: HTMLElement, override?: IEditorOverrideServices) {
+    const instantiationService = StandaloneServices.initialize(override || {});
     return new MultiDiffEditorWidget(domElement, {}, StandaloneServices.initialize(override || {}));
 }
 /**
@@ -121,11 +128,15 @@ export function addEditorAction(descriptor: IActionDescriptor): IDisposable {
         throw new Error("Invalid action descriptor, `id`, `label` and `run` are required properties!");
     }
     const precondition = ContextKeyExpr.deserialize(descriptor.precondition);
+    const run = (accessor: ServicesAccessor, ...args: any[]): void | Promise<void> => {
+        return EditorCommand.runEditorCommand(accessor, args, precondition, (accessor, editor, args) => Promise.resolve(descriptor.run(editor, ...args)));
+    };
     const toDispose = new DisposableStore();
     // Register the command
     new DisposableStore().add(CommandsRegistry.registerCommand(descriptor.id, run));
     // Register the context menu item
     if (descriptor.contextMenuGroupId) {
+        ;
         new DisposableStore().add(MenuRegistry.appendMenuItem(MenuId.EditorContext, {
             command: {
                 id: descriptor.id,
@@ -144,6 +155,7 @@ export function addEditorAction(descriptor: IActionDescriptor): IDisposable {
             console.warn("Cannot add keybinding because the editor is configured with an unrecognized KeybindingService");
         }
         else {
+            ;
             new DisposableStore().add(StandaloneServices.get(IKeybindingService).addDynamicKeybindings(descriptor.keybindings.map((keybinding) => {
                 return { keybinding,
                     command: descriptor.id, when: ContextKeyExpr.and(precondition, ContextKeyExpr.deserialize(descriptor.keybindingContext)) };
@@ -191,6 +203,7 @@ export function addKeybindingRules(rules: IKeybindingRule[]): IDisposable {
  * You can specify the language that should be set for this model or let the language be inferred from the `uri`.
  */
 export function createModel(value: string, language?: string, uri?: URI): ITextModel {
+    const languageService = StandaloneServices.get(ILanguageService);
     const languageId = languageService.getLanguageIdByMimeType(language) || language;
     return createTextModel(StandaloneServices.get(IModelService), StandaloneServices.get(ILanguageService), value, StandaloneServices.get(ILanguageService).getLanguageIdByMimeType(language) || language, uri);
 }
@@ -198,6 +211,7 @@ export function createModel(value: string, language?: string, uri?: URI): ITextM
  * Change the language for a model.
  */
 export function setModelLanguage(model: ITextModel, mimeTypeOrLanguageId: string): void {
+    const languageService = StandaloneServices.get(ILanguageService);
     const languageId = languageService.getLanguageIdByMimeType(mimeTypeOrLanguageId) ||
         mimeTypeOrLanguageId ||
         PLAINTEXT_LANGUAGE_ID;
@@ -208,6 +222,7 @@ export function setModelLanguage(model: ITextModel, mimeTypeOrLanguageId: string
  */
 export function setModelMarkers(model: ITextModel, owner: string, markers: IMarkerData[]): void {
     if (model) {
+        const markerService = StandaloneServices.get(IMarkerService);
         StandaloneServices.get(IMarkerService).changeOne(owner, model.uri, markers);
     }
 }
@@ -215,6 +230,7 @@ export function setModelMarkers(model: ITextModel, owner: string, markers: IMark
  * Remove all markers of an owner.
  */
 export function removeAllMarkers(owner: string) {
+    const markerService = StandaloneServices.get(IMarkerService);
     StandaloneServices.get(IMarkerService).changeAll(owner, []);
 }
 /**
@@ -227,6 +243,7 @@ export function getModelMarkers(filter: {
     resource?: URI;
     take?: number;
 }): IMarker[] {
+    const markerService = StandaloneServices.get(IMarkerService);
     return StandaloneServices.get(IMarkerService).read(filter);
 }
 /**
@@ -234,18 +251,21 @@ export function getModelMarkers(filter: {
  * @event
  */
 export function onDidChangeMarkers(listener: (e: readonly URI[]) => void): IDisposable {
+    const markerService = StandaloneServices.get(IMarkerService);
     return StandaloneServices.get(IMarkerService).onMarkerChanged(listener);
 }
 /**
  * Get the model that has `uri` if it exists.
  */
 export function getModel(uri: URI): ITextModel | null {
+    const modelService = StandaloneServices.get(IModelService);
     return StandaloneServices.get(IModelService).getModel(uri);
 }
 /**
  * Get all the created models.
  */
 export function getModels(): ITextModel[] {
+    const modelService = StandaloneServices.get(IModelService);
     return StandaloneServices.get(IModelService).getModels();
 }
 /**
@@ -253,6 +273,7 @@ export function getModels(): ITextModel[] {
  * @event
  */
 export function onDidCreateModel(listener: (model: ITextModel) => void): IDisposable {
+    const modelService = StandaloneServices.get(IModelService);
     return StandaloneServices.get(IModelService).onModelAdded(listener);
 }
 /**
@@ -260,7 +281,8 @@ export function onDidCreateModel(listener: (model: ITextModel) => void): IDispos
  * @event
  */
 export function onWillDisposeModel(listener: (model: ITextModel) => void): IDisposable {
-    return StandaloneServices.get(IModelService).onModelRemoved(listener);
+    const modelService = StandaloneServices.get(IModelService);
+    return modelService.onModelRemoved(listener);
 }
 /**
  * Emitted when a different language is set to a model.
@@ -270,7 +292,8 @@ export function onDidChangeModelLanguage(listener: (e: {
     readonly model: ITextModel;
     readonly oldLanguage: string;
 }) => void): IDisposable {
-    return StandaloneServices.get(IModelService).onModelLanguageChanged((e) => {
+    const modelService = StandaloneServices.get(IModelService);
+    return modelService.onModelLanguageChanged((e) => {
         listener({
             model: e.model,
             oldLanguage: e.oldLanguageId,

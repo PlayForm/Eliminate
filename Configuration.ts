@@ -19,15 +19,13 @@ export default (await import("./Target/Function/Merge.js")).default(
 					return On.Buffer;
 				}
 			},
+			Failed: async ({ Input }, _Error) => {
+				console.log(_Error);
+
+				return `Error: Cannot process file ${Input}`;
+			},
 		},
 		Path: new Map([["./Example/Input", "./Example/Output"]]),
 		File: "**/*.ts",
-		Exclude: (File) =>
-			// File.indexOf(".d.ts") !== -1 || !File.includes("promise.ts")
-			File.indexOf(".d.ts") !== -1 ||
-			!File.includes("workbench.web.main.internal.ts")
-				? // File.indexOf(".d.ts") !== -1
-					true
-				: false,
 	} satisfies Interface,
 );

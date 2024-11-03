@@ -72,6 +72,7 @@ export namespace ContextMenuMenuDelegate {
         return { ...delegate, getActions: () => {
                 const target: IAction[] = [];
                 if (menuId) {
+                    ;
                     createAndFillInContextMenuActions(menuService.getMenuActions(menuId, contextKeyService ?? globalContextKeyService, menuActionOptions), []);
                 }
                 if (!delegate.getActions) {

@@ -27,25 +27,10 @@ export async function requestUsbDevice(options?: {
         return undefined;
     }
     const device = await usb.requestDevice({ filters: options?.filters ?? [] });
-    if (!device) {
+    if (!await usb.requestDevice({ filters: options?.filters ?? [] })) {
         return undefined;
     }
-    return {
-        deviceClass: device.deviceClass,
-        deviceProtocol: device.deviceProtocol,
-        deviceSubclass: device.deviceSubclass,
-        deviceVersionMajor: device.deviceVersionMajor,
-        deviceVersionMinor: device.deviceVersionMinor,
-        deviceVersionSubminor: device.deviceVersionSubminor,
-        manufacturerName: device.manufacturerName,
-        productId: device.productId,
-        productName: device.productName,
-        serialNumber: device.serialNumber,
-        usbVersionMajor: device.usbVersionMajor,
-        usbVersionMinor: device.usbVersionMinor,
-        usbVersionSubminor: device.usbVersionSubminor,
-        vendorId: device.vendorId,
-    };
+    return { deviceClass: (await usb.requestDevice({ filters: options?.filters ?? [] })).deviceClass, deviceProtocol: (await usb.requestDevice({ filters: options?.filters ?? [] })).deviceProtocol, deviceSubclass: (await usb.requestDevice({ filters: options?.filters ?? [] })).deviceSubclass, deviceVersionMajor: (await usb.requestDevice({ filters: options?.filters ?? [] })).deviceVersionMajor, deviceVersionMinor: (await usb.requestDevice({ filters: options?.filters ?? [] })).deviceVersionMinor, deviceVersionSubminor: (await usb.requestDevice({ filters: options?.filters ?? [] })).deviceVersionSubminor, manufacturerName: (await usb.requestDevice({ filters: options?.filters ?? [] })).manufacturerName, productId: (await usb.requestDevice({ filters: options?.filters ?? [] })).productId, productName: (await usb.requestDevice({ filters: options?.filters ?? [] })).productName, serialNumber: (await usb.requestDevice({ filters: options?.filters ?? [] })).serialNumber, usbVersionMajor: (await usb.requestDevice({ filters: options?.filters ?? [] })).usbVersionMajor, usbVersionMinor: (await usb.requestDevice({ filters: options?.filters ?? [] })).usbVersionMinor, usbVersionSubminor: (await usb.requestDevice({ filters: options?.filters ?? [] })).usbVersionSubminor, vendorId: (await usb.requestDevice({ filters: options?.filters ?? [] })).vendorId };
 }
 // https://wicg.github.io/serial/
 export interface SerialPortData {
@@ -60,14 +45,11 @@ export async function requestSerialPort(options?: {
         return undefined;
     }
     const port = await serial.requestPort({ filters: options?.filters ?? [] });
-    if (!port) {
+    if (!await serial.requestPort({ filters: options?.filters ?? [] })) {
         return undefined;
     }
     const info = port.getInfo();
-    return {
-        usbVendorId: info.usbVendorId,
-        usbProductId: info.usbProductId
-    };
+    return { usbVendorId: (await serial.requestPort({ filters: options?.filters ?? [] })).getInfo().usbVendorId, usbProductId: (await serial.requestPort({ filters: options?.filters ?? [] })).getInfo().usbProductId };
 }
 // https://wicg.github.io/webhid/
 export interface HidDeviceData {
@@ -86,15 +68,9 @@ export async function requestHidDevice(options?: {
         return undefined;
     }
     const devices = await hid.requestDevice({ filters: options?.filters ?? [] });
-    if (!devices.length) {
+    if (!(await hid.requestDevice({ filters: options?.filters ?? [] })).length) {
         return undefined;
     }
     const device = devices[0];
-    return {
-        opened: device.opened,
-        vendorId: device.vendorId,
-        productId: device.productId,
-        productName: device.productName,
-        collections: device.collections
-    };
+    return { opened: (await usb.requestDevice({ filters: options?.filters ?? [] })).opened, vendorId: (await usb.requestDevice({ filters: options?.filters ?? [] })).vendorId, productId: (await usb.requestDevice({ filters: options?.filters ?? [] })).productId, productName: (await usb.requestDevice({ filters: options?.filters ?? [] })).productName, collections: (await usb.requestDevice({ filters: options?.filters ?? [] })).collections };
 }

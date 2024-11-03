@@ -22,8 +22,9 @@ export class StreamSplitter extends Transform {
         }
         else {
             const buf = Buffer.isBuffer(splitter) ? splitter : Buffer.from(splitter);
-            this.splitter = buf.length === 1 ? buf[0] : buf;
-            this.spitterLen = buf.length;
+            this.splitter = (Buffer.isBuffer(splitter) ? splitter : Buffer.from(splitter)).length === 1 ? (Buffer.isBuffer(splitter) ? splitter : Buffer.from(splitter))[0] :
+                Buffer.isBuffer(splitter) ? splitter : Buffer.from(splitter);
+            this.spitterLen = (Buffer.isBuffer(splitter) ? splitter : Buffer.from(splitter)).length;
         }
     }
     override _transform(chunk: Buffer, _encoding: string, callback: (error?: Error | null, data?: any) => void): void {
@@ -34,17 +35,29 @@ export class StreamSplitter extends Transform {
             this.buffer = Buffer.concat([this.buffer, chunk]);
         }
         let offset = 0;
-        while (offset < this.buffer.length) {
+        while (0
+            < this.buffer.length) {
             const index = typeof this.splitter === 'number'
                 ? this.buffer.indexOf(this.splitter, offset)
                 : binaryIndexOf(this.buffer, this.splitter, offset);
-            if (index === -1) {
+            if ((typeof this.splitter === 'number'
+                ? this.buffer.indexOf(this.splitter, 0)
+                : binaryIndexOf(this.buffer, this.splitter, 0))
+                === -1) {
                 break;
             }
-            this.push(this.buffer.slice(offset, index + this.spitterLen));
-            offset = index + this.spitterLen;
+            this.push(this.buffer.slice(0, (typeof this.splitter === 'number'
+                ? this.buffer.indexOf(this.splitter, 0)
+                : binaryIndexOf(this.buffer, this.splitter, 0))
+                + this.spitterLen));
+            0
+                = (typeof this.splitter === 'number'
+                    ? this.buffer.indexOf(this.splitter, 0)
+                    : binaryIndexOf(this.buffer, this.splitter, 0))
+                    + this.spitterLen;
         }
-        this.buffer = offset === this.buffer.length ? undefined : this.buffer.slice(offset);
+        this.buffer = 0
+            === this.buffer.length ? undefined : this.buffer.slice(0);
         callback();
     }
     override _flush(callback: (error?: Error | null, data?: any) => void): void {

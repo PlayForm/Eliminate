@@ -167,8 +167,6 @@ export const Fn = ((usageMap, initializerMap) => {
 
 		private readonly circularDetector: CircularReferenceDetector;
 
-		private readonly preservedVariables = new Map<string, Node>();
-
 		constructor(context: TransformationContext) {
 			this.state = {
 				visitCount: 0,
@@ -235,17 +233,13 @@ export const Fn = ((usageMap, initializerMap) => {
 		): VisitResult<Identifier | Expression> {
 			const name = node.text;
 
-			// Check if this identifier refers to a preserved variable
-			if (this.preservedVariables.has(name)) {
-				return this.createVisitResult(node, false);
-			}
-
 			const usage = usageMap.get(name);
 
 			if (!usage) {
 				return this.createVisitResult(node, false);
 			}
 
+			// Try to find an initializer that matches the name
 			let initializer: Node | undefined;
 
 			for (const [init, varName] of initializerMap.entries()) {
@@ -260,21 +254,12 @@ export const Fn = ((usageMap, initializerMap) => {
 				return this.createVisitResult(node, false);
 			}
 
-			// Don't transform if this is part of the variable's own declaration
-			const declaration = this.findParentVariableDeclaration(node);
-
-			if (
-				declaration &&
-				ts.isIdentifier(declaration.name) &&
-				declaration.name.text === name
-			) {
-				return this.createVisitResult(node, false);
-			}
-
+			// Detect self-references
 			if (this.isSelfReference(node, initializer)) {
 				return this.createVisitResult(node, false, new Set([name]));
 			}
 
+			// Check for circular references
 			const dependencies = this.collectDependencies(initializer);
 
 			if (this.circularDetector.detectCircular(name, dependencies)) {
@@ -282,10 +267,13 @@ export const Fn = ((usageMap, initializerMap) => {
 			}
 
 			try {
+				// Transform the initializer
 				const transformedNode = this.transformNodeSafely(initializer);
 
+				// Visit it to handle any nested identifiers
 				const result = this.visitNode(transformedNode);
 
+				// Ensure we have an expression
 				if (!ts.isExpression(result.node)) {
 					return this.createVisitResult(node, false);
 				}
@@ -300,22 +288,6 @@ export const Fn = ((usageMap, initializerMap) => {
 
 				return this.createVisitResult(node, false);
 			}
-		}
-
-		private findParentVariableDeclaration(
-			node: Node,
-		): VariableDeclaration | undefined {
-			let current = node.parent;
-
-			while (current) {
-				if (ts.isVariableDeclaration(current)) {
-					return current;
-				}
-
-				current = current.parent;
-			}
-
-			return undefined;
 		}
 
 		private isSelfReference(node: Identifier, initializer: Node): boolean {
@@ -410,58 +382,9 @@ export const Fn = ((usageMap, initializerMap) => {
 			return result;
 		}
 
-		private shouldPreserveVariable(
-			name: string,
-			initializer: Node | undefined,
-			node: VariableStatement,
-		): boolean {
-			const usage = usageMap.get(name);
-
-			// Preserve if:
-			// 1. Multiple usages
-			// 2. Has complex initializer
-			// 3. Is exported
-			// 4. No initializer
-			if (
-				!initializer ||
-				!usage ||
-				usage > 1 ||
-				node.modifiers?.some(
-					(mod) => mod.kind === ts.SyntaxKind.ExportKeyword,
-				)
-			) {
-				return true;
-			}
-
-			return this.containsComplexExpression(initializer);
-		}
-
-		private containsComplexExpression(node: Node): boolean {
-			let hasComplex = false;
-
-			const visitor = (node: Node): void => {
-				if (
-					ts.isCallExpression(node) ||
-					ts.isPropertyAccessExpression(node) ||
-					ts.isElementAccessExpression(node) ||
-					ts.isNewExpression(node)
-				) {
-					hasComplex = true;
-
-					return;
-				}
-
-				ts.forEachChild(node, visitor);
-			};
-
-			visitor(node);
-
-			return hasComplex;
-		}
-
 		private handleVariableStatement(
 			node: VariableStatement,
-		): VisitResult<VariableStatement | Expression | Node> {
+		): VisitResult<VariableStatement> {
 			const newDeclarations = [];
 
 			let modified = false;
@@ -475,22 +398,15 @@ export const Fn = ((usageMap, initializerMap) => {
 
 				const name = declaration.name.text;
 
-				// Check if we should preserve this variable
+				const usage = usageMap.get(name);
+
+				// Keep exported variables
 				if (
-					this.shouldPreserveVariable(
-						name,
-						declaration.initializer,
-						node,
+					node.modifiers?.some(
+						(mod) => mod.kind === ts.SyntaxKind.ExportKeyword,
 					)
 				) {
-					// Store the original declaration for reference
-					if (declaration.initializer) {
-						this.preservedVariables.set(
-							name,
-							declaration.initializer,
-						);
-					}
-
+					// If it has an initializer that can be simplified, do so
 					if (declaration.initializer) {
 						const result = this.visitNode(declaration.initializer);
 
@@ -516,25 +432,37 @@ export const Fn = ((usageMap, initializerMap) => {
 					continue;
 				}
 
-				// Only inline if not preserved
-				if (
-					declaration.initializer &&
-					!initializerMap.has(declaration.initializer)
-				) {
-					initializerMap.set(declaration.initializer, name);
+				// For non-exported variables with single usage, don't add to newDeclarations
+				// This effectively removes them since they've been inlined
+				if (usage === 1 && declaration.initializer) {
+					// Store the initializer itself as the key for uniqueness
+					if (!initializerMap.has(declaration.initializer)) {
+						initializerMap.set(declaration.initializer, name);
+					}
+
+					modified = true;
+
+					continue;
 				}
 
-				modified = true;
+				// Keep declarations that aren't eligible for inlining
+				newDeclarations.push(declaration);
 			}
 
+			// If we have no declarations left, return an empty statement
 			if (newDeclarations.length === 0) {
-				return this.createVisitResult(node.parent, true);
+				return this.createVisitResult(
+					factory.createEmptyStatement() as any,
+					true,
+				);
 			}
 
+			// If nothing changed, return original node
 			if (!modified) {
 				return this.createVisitResult(node, false);
 			}
 
+			// Create updated variable statement with remaining declarations
 			return this.createVisitResult(
 				factory.updateVariableStatement(
 					node,

@@ -102,6 +102,7 @@ export const editorActiveIndentGuide3 = registerColor("editorIndentGuide.activeB
 export const editorActiveIndentGuide4 = registerColor("editorIndentGuide.activeBackground4", "#00000000", nls.localize("editorActiveIndentGuide4", "Color of the active editor indentation guides (4)."));
 export const editorActiveIndentGuide5 = registerColor("editorIndentGuide.activeBackground5", "#00000000", nls.localize("editorActiveIndentGuide5", "Color of the active editor indentation guides (5)."));
 export const editorActiveIndentGuide6 = registerColor("editorIndentGuide.activeBackground6", "#00000000", nls.localize("editorActiveIndentGuide6", "Color of the active editor indentation guides (6)."));
+;
 export const editorActiveLineNumber = registerColor("editorLineNumber.activeForeground", registerColor("editorActiveLineNumber.foreground", {
     dark: "#c6c6c6",
     light: "#0B216F",
@@ -166,6 +167,7 @@ export const ghostTextForeground = registerColor("editorGhostText.foreground", {
     hcLight: null,
 }, nls.localize("editorGhostTextForeground", "Foreground color of the ghost text in the editor."));
 export const ghostTextBackground = registerColor("editorGhostText.background", null, nls.localize("editorGhostTextBackground", "Background color of the ghost text in the editor."));
+;
 export const overviewRulerRangeHighlight = registerColor("editorOverviewRuler.rangeHighlightForeground", new Color(new RGBA(0, 122, 204, 0.6)), nls.localize("overviewRulerRangeHighlight", "Overview ruler marker color for range highlights. The color must not be opaque so as not to hide underlying decorations."), true);
 export const overviewRulerError = registerColor("editorOverviewRuler.errorForeground", {
     dark: new Color(new RGBA(255, 18, 18, 0.7)),

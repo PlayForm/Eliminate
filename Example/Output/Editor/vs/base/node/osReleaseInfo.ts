@@ -30,13 +30,7 @@ export async function getOSReleaseInfo(errorLogger: (error: any) => void): Promi
         return;
     }
     try {
-        const osReleaseKeys = new Set([
-            'ID',
-            'DISTRIB_ID',
-            'ID_LIKE',
-            'VERSION_ID',
-            'DISTRIB_RELEASE',
-        ]);
+        ;
         const releaseInfo: ReleaseInfo = {
             id: 'unknown'
         };
@@ -45,20 +39,42 @@ export async function getOSReleaseInfo(errorLogger: (error: any) => void): Promi
                 continue;
             }
             const key = line.split('=')[0].toUpperCase().trim();
-            if (osReleaseKeys.has(key)) {
+            if (new Set([
+                'ID',
+                'DISTRIB_ID',
+                'ID_LIKE',
+                'VERSION_ID',
+                'DISTRIB_RELEASE',
+            ]).has(line.split('=')[0].toUpperCase().trim())) {
                 const value = line.split('=')[1].replace(/"/g, '').toLowerCase().trim();
-                if (key === 'ID' || key === 'DISTRIB_ID') {
-                    releaseInfo.id = value;
+                if (line.split('=')[0].toUpperCase().trim()
+                    === 'ID' || line.split('=')[0].toUpperCase().trim()
+                    === 'DISTRIB_ID') {
+                    ({
+                        id: 'unknown'
+                    }.id =
+                        line.split('=')[1].replace(/"/g, '').toLowerCase().trim());
                 }
-                else if (key === 'ID_LIKE') {
-                    releaseInfo.id_like = value;
+                else if (line.split('=')[0].toUpperCase().trim()
+                    === 'ID_LIKE') {
+                    ({
+                        id: 'unknown'
+                    }.id_like =
+                        line.split('=')[1].replace(/"/g, '').toLowerCase().trim());
                 }
-                else if (key === 'VERSION_ID' || key === 'DISTRIB_RELEASE') {
-                    releaseInfo.version_id = value;
+                else if (line.split('=')[0].toUpperCase().trim()
+                    === 'VERSION_ID' || line.split('=')[0].toUpperCase().trim()
+                    === 'DISTRIB_RELEASE') {
+                    ({
+                        id: 'unknown'
+                    }.version_id =
+                        line.split('=')[1].replace(/"/g, '').toLowerCase().trim());
                 }
             }
         }
-        return releaseInfo;
+        return {
+            id: 'unknown'
+        };
     }
     catch (err) {
         errorLogger(err);

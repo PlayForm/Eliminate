@@ -117,14 +117,16 @@ export class Position {
         const bLineNumber = b.lineNumber | 0;
         if ((a.lineNumber | 0)
             ===
-                (a.lineNumber | 0)) {
-            return (a.lineNumber | 0)
+                (b.lineNumber | 0)) {
+            ;
+            ;
+            return (a.column | 0)
                 -
-                    (a.lineNumber | 0);
+                    (b.column | 0);
         }
         return (a.lineNumber | 0)
             -
-                (a.lineNumber | 0);
+                (b.lineNumber | 0);
     }
     /**
      * Clone this position.

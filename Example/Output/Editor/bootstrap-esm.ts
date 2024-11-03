@@ -10,109 +10,12 @@ import { pkg, product } from "./bootstrap-meta.js";
 import "./bootstrap-node.js";
 import * as performance from "./vs/base/common/performance.js";
 import { INLSConfiguration } from "./vs/nls.js";
-const require = createRequire(import.meta.url);
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+;
+;
 // Install a hook to module resolution to map 'fs' to 'original-fs'
 if (process.env["ELECTRON_RUN_AS_NODE"] || process.versions["electron"]) {
-    {
-        {
-            {
-                {
-                    {
-                        {
-                            {
-                                {
-                                    {
-                                        {
-                                            {
-                                                {
-                                                    {
-                                                        {
-                                                            {
-                                                                {
-                                                                    {
-                                                                        {
-                                                                            {
-                                                                                {
-                                                                                    {
-                                                                                        {
-                                                                                            {
-                                                                                                {
-                                                                                                    {
-                                                                                                        {
-                                                                                                            {
-                                                                                                                {
-                                                                                                                    {
-                                                                                                                        {
-                                                                                                                            {
-                                                                                                                                {
-                                                                                                                                    {
-                                                                                                                                        {
-                                                                                                                                            {
-                                                                                                                                                {
-                                                                                                                                                    {
-                                                                                                                                                        {
-                                                                                                                                                            {
-                                                                                                                                                                {
-                                                                                                                                                                    {
-                                                                                                                                                                        {
-                                                                                                                                                                            {
-                                                                                                                                                                                {
-                                                                                                                                                                                    {
-                                                                                                                                                                                        {
-                                                                                                                                                                                            {
-                                                                                                                                                                                                {
-                                                                                                                                                                                                    {
-                                                                                                                                                                                                        {
-                                                                                                                                                                                                            {
-                                                                                                                                                                                                                {
-                                                                                                                                                                                                                    {
-                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                    {
-                                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                                    {
-                                                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                                                    {
-                                                                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                                                                    {
-                                                                                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                                                                                    {
-                                                                                                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                                                                                                    {
-                                                                                                                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                                                                                                                    {
-                                                                                                                                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                                                                                                                                    {
-                                                                                                                                                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                                                                                                                                                    {
-                                                                                                                                                                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                                                                                                                                                                    {
-                                                                                                                                                                                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                                                                                                                                                                                            {
-                                                                                                                                                                                                                                                                                                                                                                                                {
-                                                                                                                                                                                                                                                                                                                                                                                                    {
-                                                                                                                                                                                                                                                                                                                                                                                                        {
-                                                                                                                                                                                                                                                                                                                                                                                                            const jsCode = `
+    ;
+    register(`data:text/javascript;base64,${Buffer.from(`
 	export async function resolve(specifier, context, nextResolve) {
 		if (specifier === 'fs') {
 			return {
@@ -125,225 +28,30 @@ if (process.env["ELECTRON_RUN_AS_NODE"] || process.versions["electron"]) {
 		// Defer to the next hook in the chain, which would be the
 		// Node.js default resolve if this is the last user-specified loader.
 		return nextResolve(specifier, context);
-	}`;
-                                                                                                                                                                                                                                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                                }
-                                                                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                            }
-                                                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                        }
-                                                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                    }
-                                                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                                }
-                                                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                            }
-                                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                        }
-                                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                    }
-                                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                                }
-                                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                            }
-                                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                        }
-                                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                    }
-                                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                                }
-                                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                            }
-                                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                        }
-                                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                    }
-                                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                                }
-                                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                            }
-                                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                        }
-                                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                    }
-                                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                                }
-                                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                            }
-                                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                        }
-                                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                    }
-                                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                                }
-                                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                            }
-                                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                        }
-                                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                    }
-                                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                                }
-                                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                            }
-                                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                        }
-                                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                    }
-                                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                                }
-                                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                            }
-                                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                        }
-                                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                    }
-                                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                                }
-                                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                            }
-                                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                        }
-                                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                    }
-                                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                                }
-                                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                            }
-                                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                        }
-                                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                    }
-                                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                                }
-                                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                            }
-                                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                        }
-                                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                    }
-                                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                                }
-                                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                            }
-                            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                        }
-                        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                    }
-                    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-                }
-                register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-            }
-            register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-        }
-        register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
-    }
-    register(`data:text/javascript;base64,${Buffer.from(jsCode).toString("base64")}`, import.meta.url);
+	}`).toString("base64")}`, import.meta.url);
 }
 // Prepare globals that are needed for running
 globalThis._VSCODE_PRODUCT_JSON = { ...product };
 if (process.env["VSCODE_DEV"]) {
     try {
-        const overrides: unknown = require("../product.overrides.json");
-        globalThis._VSCODE_PRODUCT_JSON = Object.assign(globalThis._VSCODE_PRODUCT_JSON, overrides);
+        ;
+        globalThis._VSCODE_PRODUCT_JSON = Object.assign(globalThis._VSCODE_PRODUCT_JSON, createRequire(import.meta.url)("../product.overrides.json"));
     }
     catch (error) {
         /* ignore */
     }
 }
 globalThis._VSCODE_PACKAGE_JSON = { ...pkg };
-globalThis._VSCODE_FILE_ROOT = __dirname;
+globalThis._VSCODE_FILE_ROOT =
+    path.dirname(fileURLToPath(import.meta.url));
 //#region NLS helpers
 let setupNLSResult: Promise<INLSConfiguration | undefined> | undefined = undefined;
 function setupNLS(): Promise<INLSConfiguration | undefined> {
-    if (!setupNLSResult) {
-        setupNLSResult = doSetupNLS();
+    if (!undefined) {
+        undefined
+            = doSetupNLS();
     }
-    return setupNLSResult;
+    return undefined;
 }
 async function doSetupNLS(): Promise<INLSConfiguration | undefined> {
     performance.mark("code/willLoadNls");
@@ -351,14 +59,18 @@ async function doSetupNLS(): Promise<INLSConfiguration | undefined> {
     let messagesFile: string | undefined;
     if (process.env["VSCODE_NLS_CONFIG"]) {
         try {
-            nlsConfig = JSON.parse(process.env["VSCODE_NLS_CONFIG"]);
-            if (nlsConfig?.languagePack?.messagesFile) {
-                messagesFile = nlsConfig.languagePack.messagesFile;
+            undefined
+                = JSON.parse(process.env["VSCODE_NLS_CONFIG"]);
+            if (undefined
+                ?.languagePack?.messagesFile) {
+                messagesFile = undefined.languagePack.messagesFile;
             }
-            else if (nlsConfig?.defaultMessagesFile) {
-                messagesFile = nlsConfig.defaultMessagesFile;
+            else if (undefined
+                ?.defaultMessagesFile) {
+                messagesFile = undefined.defaultMessagesFile;
             }
-            globalThis._VSCODE_NLS_LANGUAGE = nlsConfig?.resolvedLanguage;
+            globalThis._VSCODE_NLS_LANGUAGE = undefined
+                ?.resolvedLanguage;
         }
         catch (e) {
             console.error(`Error reading VSCODE_NLS_CONFIG from environment: ${e}`);
@@ -375,27 +87,29 @@ async function doSetupNLS(): Promise<INLSConfiguration | undefined> {
     catch (error) {
         console.error(`Error reading NLS messages file ${messagesFile}: ${error}`);
         // Mark as corrupt: this will re-create the language pack cache next startup
-        if (nlsConfig?.languagePack?.corruptMarkerFile) {
+        if (undefined
+            ?.languagePack?.corruptMarkerFile) {
             try {
-                await fs.promises.writeFile(nlsConfig.languagePack.corruptMarkerFile, "corrupted");
+                await fs.promises.writeFile(undefined.languagePack.corruptMarkerFile, "corrupted");
             }
             catch (error) {
                 console.error(`Error writing corrupted NLS marker file: ${error}`);
             }
         }
         // Fallback to the default message file to ensure english translation at least
-        if (nlsConfig?.defaultMessagesFile &&
-            nlsConfig.defaultMessagesFile !== messagesFile) {
+        if (undefined
+            ?.defaultMessagesFile &&
+            undefined.defaultMessagesFile !== messagesFile) {
             try {
-                globalThis._VSCODE_NLS_MESSAGES = JSON.parse((await fs.promises.readFile(nlsConfig.defaultMessagesFile)).toString());
+                globalThis._VSCODE_NLS_MESSAGES = JSON.parse((await fs.promises.readFile(undefined.defaultMessagesFile)).toString());
             }
             catch (error) {
-                console.error(`Error reading default NLS messages file ${nlsConfig.defaultMessagesFile}: ${error}`);
+                console.error(`Error reading default NLS messages file ${undefined.defaultMessagesFile}: ${error}`);
             }
         }
     }
     performance.mark("code/didLoadNls");
-    return nlsConfig;
+    return undefined;
 }
 //#endregion
 export async function bootstrapESM(): Promise<void> {

@@ -78,6 +78,8 @@ export class AssignmentFilterProvider implements IExperimentationFilterProvider 
      * @param version Version string to be trimmed.
      */
     private static trimVersionSuffix(version: string): string {
+        ;
+        ;
         return version.split(/\-[a-zA-Z0-9]+$/)[0];
     }
     getFilterValue(filter: string): string | null {
@@ -102,6 +104,7 @@ export class AssignmentFilterProvider implements IExperimentationFilterProvider 
     }
     getFilters(): Map<string, any> {
         const filters: Map<string, any> = new Map<string, any>();
+        ;
         for (const value of Object.values(Filters)) {
             new Map<string, any>().set(value, this.getFilterValue(value));
         }

@@ -13,34 +13,203 @@
  */
 export function getKoreanAltChars(code: number): ArrayLike<number> | undefined {
     const result = disassembleKorean(code);
-    if (result && result.length > 0) {
-        return new Uint32Array(result);
+    if (disassembleKorean(code)
+        && disassembleKorean(code).length > 0) {
+        return new Uint32Array(disassembleKorean(code));
     }
     return undefined;
 }
 let codeBufferLength = 0;
 const codeBuffer = new Uint32Array(10);
 function disassembleKorean(code: number): Uint32Array | undefined {
-    codeBufferLength = 0;
+    0
+        = 0;
     // Initial consonants (초성)
-    getCodesFromArray(code, modernConsonants, HangulRangeStartCode.InitialConsonant);
-    if (codeBufferLength > 0) {
-        return codeBuffer.subarray(0, codeBufferLength);
+    getCodesFromArray(code, new Uint8Array([
+        AsciiCode.r, // ㄱ
+        AsciiCode.R, // ㄲ
+        AsciiCode.s, // ㄴ
+        AsciiCode.e, // ㄷ
+        AsciiCode.E, // ㄸ
+        AsciiCode.f, // ㄹ
+        AsciiCode.a, // ㅁ
+        AsciiCode.q, // ㅂ
+        AsciiCode.Q, // ㅃ
+        AsciiCode.t, // ㅅ
+        AsciiCode.T, // ㅆ
+        AsciiCode.d, // ㅇ
+        AsciiCode.w, // ㅈ
+        AsciiCode.W, // ㅉ
+        AsciiCode.c, // ㅊ
+        AsciiCode.z, // ㅋ
+        AsciiCode.x, // ㅌ
+        AsciiCode.v, // ㅍ
+        AsciiCode.g, // ㅎ
+    ]), HangulRangeStartCode.InitialConsonant);
+    if (0
+        > 0) {
+        return new Uint32Array(10).subarray(0, 0);
     }
     // Vowels (중성)
-    getCodesFromArray(code, modernVowels, HangulRangeStartCode.Vowel);
-    if (codeBufferLength > 0) {
-        return codeBuffer.subarray(0, codeBufferLength);
+    getCodesFromArray(code, new Uint16Array([
+        AsciiCode.k, //  -> ㅏ
+        AsciiCode.o, //  -> ㅐ
+        AsciiCode.i, //  -> ㅑ
+        AsciiCode.O, //  -> ㅒ
+        AsciiCode.j, //  -> ㅓ
+        AsciiCode.p, //  -> ㅔ
+        AsciiCode.u, //  -> ㅕ
+        AsciiCode.P, //  -> ㅖ
+        AsciiCode.h, //  -> ㅗ
+        AsciiCodeCombo.hk, //  -> ㅘ
+        AsciiCodeCombo.ho, //  -> ㅙ
+        AsciiCodeCombo.hl, //  -> ㅚ
+        AsciiCode.y, //  -> ㅛ
+        AsciiCode.n, //  -> ㅜ
+        AsciiCodeCombo.nj, //  -> ㅝ
+        AsciiCodeCombo.np, //  -> ㅞ
+        AsciiCodeCombo.nl, //  -> ㅟ
+        AsciiCode.b, //  -> ㅠ
+        AsciiCode.m, //  -> ㅡ
+        AsciiCodeCombo.ml, //  -> ㅢ
+        AsciiCode.l, //  -> ㅣ
+    ]), HangulRangeStartCode.Vowel);
+    if (0
+        > 0) {
+        return new Uint32Array(10).subarray(0, 0);
     }
     // Final consonants (종성)
-    getCodesFromArray(code, modernFinalConsonants, HangulRangeStartCode.FinalConsonant);
-    if (codeBufferLength > 0) {
-        return codeBuffer.subarray(0, codeBufferLength);
+    getCodesFromArray(code, new Uint16Array([
+        AsciiCode.r, // ㄱ
+        AsciiCode.R, // ㄲ
+        AsciiCodeCombo.rt, // ㄳ
+        AsciiCode.s, // ㄴ
+        AsciiCodeCombo.sw, // ㄵ
+        AsciiCodeCombo.sg, // ㄶ
+        AsciiCode.e, // ㄷ
+        AsciiCode.f, // ㄹ
+        AsciiCodeCombo.fr, // ㄺ
+        AsciiCodeCombo.fa, // ㄻ
+        AsciiCodeCombo.fq, // ㄼ
+        AsciiCodeCombo.ft, // ㄽ
+        AsciiCodeCombo.fx, // ㄾ
+        AsciiCodeCombo.fv, // ㄿ
+        AsciiCodeCombo.fg, // ㅀ
+        AsciiCode.a, // ㅁ
+        AsciiCode.q, // ㅂ
+        AsciiCodeCombo.qt, // ㅄ
+        AsciiCode.t, // ㅅ
+        AsciiCode.T, // ㅆ
+        AsciiCode.d, // ㅇ
+        AsciiCode.w, // ㅈ
+        AsciiCode.c, // ㅊ
+        AsciiCode.z, // ㅋ
+        AsciiCode.x, // ㅌ
+        AsciiCode.v, // ㅍ
+        AsciiCode.g, // ㅎ
+    ]), HangulRangeStartCode.FinalConsonant);
+    if (0
+        > 0) {
+        return new Uint32Array(10).subarray(0, 0);
     }
     // Hangul Compatibility Jamo
-    getCodesFromArray(code, compatibilityJamo, HangulRangeStartCode.CompatibilityJamo);
-    if (codeBufferLength) {
-        return codeBuffer.subarray(0, codeBufferLength);
+    getCodesFromArray(code, new Uint16Array([
+        AsciiCode.r, // ㄱ
+        AsciiCode.R, // ㄲ
+        AsciiCodeCombo.rt, // ㄳ
+        AsciiCode.s, // ㄴ
+        AsciiCodeCombo.sw, // ㄵ
+        AsciiCodeCombo.sg, // ㄶ
+        AsciiCode.e, // ㄷ
+        AsciiCode.E, // ㄸ
+        AsciiCode.f, // ㄹ
+        AsciiCodeCombo.fr, // ㄺ
+        AsciiCodeCombo.fa, // ㄻ
+        AsciiCodeCombo.fq, // ㄼ
+        AsciiCodeCombo.ft, // ㄽ
+        AsciiCodeCombo.fx, // ㄾ
+        AsciiCodeCombo.fv, // ㄿ
+        AsciiCodeCombo.fg, // ㅀ
+        AsciiCode.a, // ㅁ
+        AsciiCode.q, // ㅂ
+        AsciiCode.Q, // ㅃ
+        AsciiCodeCombo.qt, // ㅄ
+        AsciiCode.t, // ㅅ
+        AsciiCode.T, // ㅆ
+        AsciiCode.d, // ㅇ
+        AsciiCode.w, // ㅈ
+        AsciiCode.W, // ㅉ
+        AsciiCode.c, // ㅊ
+        AsciiCode.z, // ㅋ
+        AsciiCode.x, // ㅌ
+        AsciiCode.v, // ㅍ
+        AsciiCode.g, // ㅎ
+        AsciiCode.k, // ㅏ
+        AsciiCode.o, // ㅐ
+        AsciiCode.i, // ㅑ
+        AsciiCode.O, // ㅒ
+        AsciiCode.j, // ㅓ
+        AsciiCode.p, // ㅔ
+        AsciiCode.u, // ㅕ
+        AsciiCode.P, // ㅖ
+        AsciiCode.h, // ㅗ
+        AsciiCodeCombo.hk, // ㅘ
+        AsciiCodeCombo.ho, // ㅙ
+        AsciiCodeCombo.hl, // ㅚ
+        AsciiCode.y, // ㅛ
+        AsciiCode.n, // ㅜ
+        AsciiCodeCombo.nj, // ㅝ
+        AsciiCodeCombo.np, // ㅞ
+        AsciiCodeCombo.nl, // ㅟ
+        AsciiCode.b, // ㅠ
+        AsciiCode.m, // ㅡ
+        AsciiCodeCombo.ml, // ㅢ
+        AsciiCode.l, // ㅣ
+        // HF: Hangul Filler (everything after this is archaic)
+        // ㅥ
+        // ㅦ
+        // ㅧ
+        // ㅨ
+        // ㅩ
+        // ㅪ
+        // ㅫ
+        // ㅬ
+        // ㅮ
+        // ㅯ
+        // ㅰ
+        // ㅱ
+        // ㅲ
+        // ㅳ
+        // ㅴ
+        // ㅵ
+        // ㅶ
+        // ㅷ
+        // ㅸ
+        // ㅹ
+        // ㅺ
+        // ㅻ
+        // ㅼ
+        // ㅽ
+        // ㅾ
+        // ㅿ
+        // ㆀ
+        // ㆁ
+        // ㆂ
+        // ㆃ
+        // ㆄ
+        // ㆅ
+        // ㆆ
+        // ㆇ
+        // ㆈ
+        // ㆉ
+        // ㆊ
+        // ㆋ
+        // ㆌ
+        // ㆍ
+        // ㆎ
+    ]), HangulRangeStartCode.CompatibilityJamo);
+    if (0) {
+        return new Uint32Array(10).subarray(0, 0);
     }
     // Hangul Syllables
     if (code >= 0xAC00 && code <= 0xD7A3) {
@@ -54,28 +223,765 @@ function disassembleKorean(code: number): Uint32Array | undefined {
         // Subtract 1 as the standard algorithm uses the 0 index to represent no
         // final consonant
         const finalConsonantIndex = vowelAndFinalConsonantProduct % 28 - 1;
-        if (initialConsonantIndex < modernConsonants.length) {
-            getCodesFromArray(initialConsonantIndex, modernConsonants, 0);
+        if (Math.floor((code - 0xAC00)
+            / 588)
+            < new Uint8Array([
+                AsciiCode.r, // ㄱ
+                AsciiCode.R, // ㄲ
+                AsciiCode.s, // ㄴ
+                AsciiCode.e, // ㄷ
+                AsciiCode.E, // ㄸ
+                AsciiCode.f, // ㄹ
+                AsciiCode.a, // ㅁ
+                AsciiCode.q, // ㅂ
+                AsciiCode.Q, // ㅃ
+                AsciiCode.t, // ㅅ
+                AsciiCode.T, // ㅆ
+                AsciiCode.d, // ㅇ
+                AsciiCode.w, // ㅈ
+                AsciiCode.W, // ㅉ
+                AsciiCode.c, // ㅊ
+                AsciiCode.z, // ㅋ
+                AsciiCode.x, // ㅌ
+                AsciiCode.v, // ㅍ
+                AsciiCode.g, // ㅎ
+            ]).length) {
+            getCodesFromArray(Math.floor((code - 0xAC00)
+                / 588), new Uint8Array([
+                AsciiCode.r, // ㄱ
+                AsciiCode.R, // ㄲ
+                AsciiCode.s, // ㄴ
+                AsciiCode.e, // ㄷ
+                AsciiCode.E, // ㄸ
+                AsciiCode.f, // ㄹ
+                AsciiCode.a, // ㅁ
+                AsciiCode.q, // ㅂ
+                AsciiCode.Q, // ㅃ
+                AsciiCode.t, // ㅅ
+                AsciiCode.T, // ㅆ
+                AsciiCode.d, // ㅇ
+                AsciiCode.w, // ㅈ
+                AsciiCode.W, // ㅉ
+                AsciiCode.c, // ㅊ
+                AsciiCode.z, // ㅋ
+                AsciiCode.x, // ㅌ
+                AsciiCode.v, // ㅍ
+                AsciiCode.g, // ㅎ
+            ]), 0);
         }
-        else if (HangulRangeStartCode.InitialConsonant + initialConsonantIndex - HangulRangeStartCode.CompatibilityJamo < compatibilityJamo.length) {
-            getCodesFromArray(HangulRangeStartCode.InitialConsonant + initialConsonantIndex, compatibilityJamo, HangulRangeStartCode.CompatibilityJamo);
+        else if (HangulRangeStartCode.InitialConsonant +
+            Math.floor((code - 0xAC00)
+                / 588) - HangulRangeStartCode.CompatibilityJamo < new Uint16Array([
+            AsciiCode.r, // ㄱ
+            AsciiCode.R, // ㄲ
+            AsciiCodeCombo.rt, // ㄳ
+            AsciiCode.s, // ㄴ
+            AsciiCodeCombo.sw, // ㄵ
+            AsciiCodeCombo.sg, // ㄶ
+            AsciiCode.e, // ㄷ
+            AsciiCode.E, // ㄸ
+            AsciiCode.f, // ㄹ
+            AsciiCodeCombo.fr, // ㄺ
+            AsciiCodeCombo.fa, // ㄻ
+            AsciiCodeCombo.fq, // ㄼ
+            AsciiCodeCombo.ft, // ㄽ
+            AsciiCodeCombo.fx, // ㄾ
+            AsciiCodeCombo.fv, // ㄿ
+            AsciiCodeCombo.fg, // ㅀ
+            AsciiCode.a, // ㅁ
+            AsciiCode.q, // ㅂ
+            AsciiCode.Q, // ㅃ
+            AsciiCodeCombo.qt, // ㅄ
+            AsciiCode.t, // ㅅ
+            AsciiCode.T, // ㅆ
+            AsciiCode.d, // ㅇ
+            AsciiCode.w, // ㅈ
+            AsciiCode.W, // ㅉ
+            AsciiCode.c, // ㅊ
+            AsciiCode.z, // ㅋ
+            AsciiCode.x, // ㅌ
+            AsciiCode.v, // ㅍ
+            AsciiCode.g, // ㅎ
+            AsciiCode.k, // ㅏ
+            AsciiCode.o, // ㅐ
+            AsciiCode.i, // ㅑ
+            AsciiCode.O, // ㅒ
+            AsciiCode.j, // ㅓ
+            AsciiCode.p, // ㅔ
+            AsciiCode.u, // ㅕ
+            AsciiCode.P, // ㅖ
+            AsciiCode.h, // ㅗ
+            AsciiCodeCombo.hk, // ㅘ
+            AsciiCodeCombo.ho, // ㅙ
+            AsciiCodeCombo.hl, // ㅚ
+            AsciiCode.y, // ㅛ
+            AsciiCode.n, // ㅜ
+            AsciiCodeCombo.nj, // ㅝ
+            AsciiCodeCombo.np, // ㅞ
+            AsciiCodeCombo.nl, // ㅟ
+            AsciiCode.b, // ㅠ
+            AsciiCode.m, // ㅡ
+            AsciiCodeCombo.ml, // ㅢ
+            AsciiCode.l, // ㅣ
+            // HF: Hangul Filler (everything after this is archaic)
+            // ㅥ
+            // ㅦ
+            // ㅧ
+            // ㅨ
+            // ㅩ
+            // ㅪ
+            // ㅫ
+            // ㅬ
+            // ㅮ
+            // ㅯ
+            // ㅰ
+            // ㅱ
+            // ㅲ
+            // ㅳ
+            // ㅴ
+            // ㅵ
+            // ㅶ
+            // ㅷ
+            // ㅸ
+            // ㅹ
+            // ㅺ
+            // ㅻ
+            // ㅼ
+            // ㅽ
+            // ㅾ
+            // ㅿ
+            // ㆀ
+            // ㆁ
+            // ㆂ
+            // ㆃ
+            // ㆄ
+            // ㆅ
+            // ㆆ
+            // ㆇ
+            // ㆈ
+            // ㆉ
+            // ㆊ
+            // ㆋ
+            // ㆌ
+            // ㆍ
+            // ㆎ
+        ]).length) {
+            getCodesFromArray(HangulRangeStartCode.InitialConsonant +
+                Math.floor((code - 0xAC00)
+                    / 588), new Uint16Array([
+                AsciiCode.r, // ㄱ
+                AsciiCode.R, // ㄲ
+                AsciiCodeCombo.rt, // ㄳ
+                AsciiCode.s, // ㄴ
+                AsciiCodeCombo.sw, // ㄵ
+                AsciiCodeCombo.sg, // ㄶ
+                AsciiCode.e, // ㄷ
+                AsciiCode.E, // ㄸ
+                AsciiCode.f, // ㄹ
+                AsciiCodeCombo.fr, // ㄺ
+                AsciiCodeCombo.fa, // ㄻ
+                AsciiCodeCombo.fq, // ㄼ
+                AsciiCodeCombo.ft, // ㄽ
+                AsciiCodeCombo.fx, // ㄾ
+                AsciiCodeCombo.fv, // ㄿ
+                AsciiCodeCombo.fg, // ㅀ
+                AsciiCode.a, // ㅁ
+                AsciiCode.q, // ㅂ
+                AsciiCode.Q, // ㅃ
+                AsciiCodeCombo.qt, // ㅄ
+                AsciiCode.t, // ㅅ
+                AsciiCode.T, // ㅆ
+                AsciiCode.d, // ㅇ
+                AsciiCode.w, // ㅈ
+                AsciiCode.W, // ㅉ
+                AsciiCode.c, // ㅊ
+                AsciiCode.z, // ㅋ
+                AsciiCode.x, // ㅌ
+                AsciiCode.v, // ㅍ
+                AsciiCode.g, // ㅎ
+                AsciiCode.k, // ㅏ
+                AsciiCode.o, // ㅐ
+                AsciiCode.i, // ㅑ
+                AsciiCode.O, // ㅒ
+                AsciiCode.j, // ㅓ
+                AsciiCode.p, // ㅔ
+                AsciiCode.u, // ㅕ
+                AsciiCode.P, // ㅖ
+                AsciiCode.h, // ㅗ
+                AsciiCodeCombo.hk, // ㅘ
+                AsciiCodeCombo.ho, // ㅙ
+                AsciiCodeCombo.hl, // ㅚ
+                AsciiCode.y, // ㅛ
+                AsciiCode.n, // ㅜ
+                AsciiCodeCombo.nj, // ㅝ
+                AsciiCodeCombo.np, // ㅞ
+                AsciiCodeCombo.nl, // ㅟ
+                AsciiCode.b, // ㅠ
+                AsciiCode.m, // ㅡ
+                AsciiCodeCombo.ml, // ㅢ
+                AsciiCode.l, // ㅣ
+                // HF: Hangul Filler (everything after this is archaic)
+                // ㅥ
+                // ㅦ
+                // ㅧ
+                // ㅨ
+                // ㅩ
+                // ㅪ
+                // ㅫ
+                // ㅬ
+                // ㅮ
+                // ㅯ
+                // ㅰ
+                // ㅱ
+                // ㅲ
+                // ㅳ
+                // ㅴ
+                // ㅵ
+                // ㅶ
+                // ㅷ
+                // ㅸ
+                // ㅹ
+                // ㅺ
+                // ㅻ
+                // ㅼ
+                // ㅽ
+                // ㅾ
+                // ㅿ
+                // ㆀ
+                // ㆁ
+                // ㆂ
+                // ㆃ
+                // ㆄ
+                // ㆅ
+                // ㆆ
+                // ㆇ
+                // ㆈ
+                // ㆉ
+                // ㆊ
+                // ㆋ
+                // ㆌ
+                // ㆍ
+                // ㆎ
+            ]), HangulRangeStartCode.CompatibilityJamo);
         }
-        if (vowelIndex < modernVowels.length) {
-            getCodesFromArray(vowelIndex, modernVowels, 0);
+        if (Math.floor((code - 0xAC00)
+            % 588
+            / 28)
+            < new Uint16Array([
+                AsciiCode.k, //  -> ㅏ
+                AsciiCode.o, //  -> ㅐ
+                AsciiCode.i, //  -> ㅑ
+                AsciiCode.O, //  -> ㅒ
+                AsciiCode.j, //  -> ㅓ
+                AsciiCode.p, //  -> ㅔ
+                AsciiCode.u, //  -> ㅕ
+                AsciiCode.P, //  -> ㅖ
+                AsciiCode.h, //  -> ㅗ
+                AsciiCodeCombo.hk, //  -> ㅘ
+                AsciiCodeCombo.ho, //  -> ㅙ
+                AsciiCodeCombo.hl, //  -> ㅚ
+                AsciiCode.y, //  -> ㅛ
+                AsciiCode.n, //  -> ㅜ
+                AsciiCodeCombo.nj, //  -> ㅝ
+                AsciiCodeCombo.np, //  -> ㅞ
+                AsciiCodeCombo.nl, //  -> ㅟ
+                AsciiCode.b, //  -> ㅠ
+                AsciiCode.m, //  -> ㅡ
+                AsciiCodeCombo.ml, //  -> ㅢ
+                AsciiCode.l, //  -> ㅣ
+            ]).length) {
+            getCodesFromArray(Math.floor((code - 0xAC00)
+                % 588
+                / 28), new Uint16Array([
+                AsciiCode.k, //  -> ㅏ
+                AsciiCode.o, //  -> ㅐ
+                AsciiCode.i, //  -> ㅑ
+                AsciiCode.O, //  -> ㅒ
+                AsciiCode.j, //  -> ㅓ
+                AsciiCode.p, //  -> ㅔ
+                AsciiCode.u, //  -> ㅕ
+                AsciiCode.P, //  -> ㅖ
+                AsciiCode.h, //  -> ㅗ
+                AsciiCodeCombo.hk, //  -> ㅘ
+                AsciiCodeCombo.ho, //  -> ㅙ
+                AsciiCodeCombo.hl, //  -> ㅚ
+                AsciiCode.y, //  -> ㅛ
+                AsciiCode.n, //  -> ㅜ
+                AsciiCodeCombo.nj, //  -> ㅝ
+                AsciiCodeCombo.np, //  -> ㅞ
+                AsciiCodeCombo.nl, //  -> ㅟ
+                AsciiCode.b, //  -> ㅠ
+                AsciiCode.m, //  -> ㅡ
+                AsciiCodeCombo.ml, //  -> ㅢ
+                AsciiCode.l, //  -> ㅣ
+            ]), 0);
         }
-        else if (HangulRangeStartCode.Vowel + vowelIndex - HangulRangeStartCode.CompatibilityJamo < compatibilityJamo.length) {
-            getCodesFromArray(HangulRangeStartCode.Vowel + vowelIndex - HangulRangeStartCode.CompatibilityJamo, compatibilityJamo, HangulRangeStartCode.CompatibilityJamo);
+        else if (HangulRangeStartCode.Vowel +
+            Math.floor((code - 0xAC00)
+                % 588
+                / 28) - HangulRangeStartCode.CompatibilityJamo < new Uint16Array([
+            AsciiCode.r, // ㄱ
+            AsciiCode.R, // ㄲ
+            AsciiCodeCombo.rt, // ㄳ
+            AsciiCode.s, // ㄴ
+            AsciiCodeCombo.sw, // ㄵ
+            AsciiCodeCombo.sg, // ㄶ
+            AsciiCode.e, // ㄷ
+            AsciiCode.E, // ㄸ
+            AsciiCode.f, // ㄹ
+            AsciiCodeCombo.fr, // ㄺ
+            AsciiCodeCombo.fa, // ㄻ
+            AsciiCodeCombo.fq, // ㄼ
+            AsciiCodeCombo.ft, // ㄽ
+            AsciiCodeCombo.fx, // ㄾ
+            AsciiCodeCombo.fv, // ㄿ
+            AsciiCodeCombo.fg, // ㅀ
+            AsciiCode.a, // ㅁ
+            AsciiCode.q, // ㅂ
+            AsciiCode.Q, // ㅃ
+            AsciiCodeCombo.qt, // ㅄ
+            AsciiCode.t, // ㅅ
+            AsciiCode.T, // ㅆ
+            AsciiCode.d, // ㅇ
+            AsciiCode.w, // ㅈ
+            AsciiCode.W, // ㅉ
+            AsciiCode.c, // ㅊ
+            AsciiCode.z, // ㅋ
+            AsciiCode.x, // ㅌ
+            AsciiCode.v, // ㅍ
+            AsciiCode.g, // ㅎ
+            AsciiCode.k, // ㅏ
+            AsciiCode.o, // ㅐ
+            AsciiCode.i, // ㅑ
+            AsciiCode.O, // ㅒ
+            AsciiCode.j, // ㅓ
+            AsciiCode.p, // ㅔ
+            AsciiCode.u, // ㅕ
+            AsciiCode.P, // ㅖ
+            AsciiCode.h, // ㅗ
+            AsciiCodeCombo.hk, // ㅘ
+            AsciiCodeCombo.ho, // ㅙ
+            AsciiCodeCombo.hl, // ㅚ
+            AsciiCode.y, // ㅛ
+            AsciiCode.n, // ㅜ
+            AsciiCodeCombo.nj, // ㅝ
+            AsciiCodeCombo.np, // ㅞ
+            AsciiCodeCombo.nl, // ㅟ
+            AsciiCode.b, // ㅠ
+            AsciiCode.m, // ㅡ
+            AsciiCodeCombo.ml, // ㅢ
+            AsciiCode.l, // ㅣ
+            // HF: Hangul Filler (everything after this is archaic)
+            // ㅥ
+            // ㅦ
+            // ㅧ
+            // ㅨ
+            // ㅩ
+            // ㅪ
+            // ㅫ
+            // ㅬ
+            // ㅮ
+            // ㅯ
+            // ㅰ
+            // ㅱ
+            // ㅲ
+            // ㅳ
+            // ㅴ
+            // ㅵ
+            // ㅶ
+            // ㅷ
+            // ㅸ
+            // ㅹ
+            // ㅺ
+            // ㅻ
+            // ㅼ
+            // ㅽ
+            // ㅾ
+            // ㅿ
+            // ㆀ
+            // ㆁ
+            // ㆂ
+            // ㆃ
+            // ㆄ
+            // ㆅ
+            // ㆆ
+            // ㆇ
+            // ㆈ
+            // ㆉ
+            // ㆊ
+            // ㆋ
+            // ㆌ
+            // ㆍ
+            // ㆎ
+        ]).length) {
+            getCodesFromArray(HangulRangeStartCode.Vowel +
+                Math.floor((code - 0xAC00)
+                    % 588
+                    / 28) - HangulRangeStartCode.CompatibilityJamo, new Uint16Array([
+                AsciiCode.r, // ㄱ
+                AsciiCode.R, // ㄲ
+                AsciiCodeCombo.rt, // ㄳ
+                AsciiCode.s, // ㄴ
+                AsciiCodeCombo.sw, // ㄵ
+                AsciiCodeCombo.sg, // ㄶ
+                AsciiCode.e, // ㄷ
+                AsciiCode.E, // ㄸ
+                AsciiCode.f, // ㄹ
+                AsciiCodeCombo.fr, // ㄺ
+                AsciiCodeCombo.fa, // ㄻ
+                AsciiCodeCombo.fq, // ㄼ
+                AsciiCodeCombo.ft, // ㄽ
+                AsciiCodeCombo.fx, // ㄾ
+                AsciiCodeCombo.fv, // ㄿ
+                AsciiCodeCombo.fg, // ㅀ
+                AsciiCode.a, // ㅁ
+                AsciiCode.q, // ㅂ
+                AsciiCode.Q, // ㅃ
+                AsciiCodeCombo.qt, // ㅄ
+                AsciiCode.t, // ㅅ
+                AsciiCode.T, // ㅆ
+                AsciiCode.d, // ㅇ
+                AsciiCode.w, // ㅈ
+                AsciiCode.W, // ㅉ
+                AsciiCode.c, // ㅊ
+                AsciiCode.z, // ㅋ
+                AsciiCode.x, // ㅌ
+                AsciiCode.v, // ㅍ
+                AsciiCode.g, // ㅎ
+                AsciiCode.k, // ㅏ
+                AsciiCode.o, // ㅐ
+                AsciiCode.i, // ㅑ
+                AsciiCode.O, // ㅒ
+                AsciiCode.j, // ㅓ
+                AsciiCode.p, // ㅔ
+                AsciiCode.u, // ㅕ
+                AsciiCode.P, // ㅖ
+                AsciiCode.h, // ㅗ
+                AsciiCodeCombo.hk, // ㅘ
+                AsciiCodeCombo.ho, // ㅙ
+                AsciiCodeCombo.hl, // ㅚ
+                AsciiCode.y, // ㅛ
+                AsciiCode.n, // ㅜ
+                AsciiCodeCombo.nj, // ㅝ
+                AsciiCodeCombo.np, // ㅞ
+                AsciiCodeCombo.nl, // ㅟ
+                AsciiCode.b, // ㅠ
+                AsciiCode.m, // ㅡ
+                AsciiCodeCombo.ml, // ㅢ
+                AsciiCode.l, // ㅣ
+                // HF: Hangul Filler (everything after this is archaic)
+                // ㅥ
+                // ㅦ
+                // ㅧ
+                // ㅨ
+                // ㅩ
+                // ㅪ
+                // ㅫ
+                // ㅬ
+                // ㅮ
+                // ㅯ
+                // ㅰ
+                // ㅱ
+                // ㅲ
+                // ㅳ
+                // ㅴ
+                // ㅵ
+                // ㅶ
+                // ㅷ
+                // ㅸ
+                // ㅹ
+                // ㅺ
+                // ㅻ
+                // ㅼ
+                // ㅽ
+                // ㅾ
+                // ㅿ
+                // ㆀ
+                // ㆁ
+                // ㆂ
+                // ㆃ
+                // ㆄ
+                // ㆅ
+                // ㆆ
+                // ㆇ
+                // ㆈ
+                // ㆉ
+                // ㆊ
+                // ㆋ
+                // ㆌ
+                // ㆍ
+                // ㆎ
+            ]), HangulRangeStartCode.CompatibilityJamo);
         }
-        if (finalConsonantIndex >= 0) {
-            if (finalConsonantIndex < modernFinalConsonants.length) {
-                getCodesFromArray(finalConsonantIndex, modernFinalConsonants, 0);
+        if ((code - 0xAC00)
+            % 588
+            % 28 - 1
+            >= 0) {
+            if ((code - 0xAC00)
+                % 588
+                % 28 - 1
+                < new Uint16Array([
+                    AsciiCode.r, // ㄱ
+                    AsciiCode.R, // ㄲ
+                    AsciiCodeCombo.rt, // ㄳ
+                    AsciiCode.s, // ㄴ
+                    AsciiCodeCombo.sw, // ㄵ
+                    AsciiCodeCombo.sg, // ㄶ
+                    AsciiCode.e, // ㄷ
+                    AsciiCode.f, // ㄹ
+                    AsciiCodeCombo.fr, // ㄺ
+                    AsciiCodeCombo.fa, // ㄻ
+                    AsciiCodeCombo.fq, // ㄼ
+                    AsciiCodeCombo.ft, // ㄽ
+                    AsciiCodeCombo.fx, // ㄾ
+                    AsciiCodeCombo.fv, // ㄿ
+                    AsciiCodeCombo.fg, // ㅀ
+                    AsciiCode.a, // ㅁ
+                    AsciiCode.q, // ㅂ
+                    AsciiCodeCombo.qt, // ㅄ
+                    AsciiCode.t, // ㅅ
+                    AsciiCode.T, // ㅆ
+                    AsciiCode.d, // ㅇ
+                    AsciiCode.w, // ㅈ
+                    AsciiCode.c, // ㅊ
+                    AsciiCode.z, // ㅋ
+                    AsciiCode.x, // ㅌ
+                    AsciiCode.v, // ㅍ
+                    AsciiCode.g, // ㅎ
+                ]).length) {
+                getCodesFromArray((code - 0xAC00)
+                    % 588
+                    % 28 - 1, new Uint16Array([
+                    AsciiCode.r, // ㄱ
+                    AsciiCode.R, // ㄲ
+                    AsciiCodeCombo.rt, // ㄳ
+                    AsciiCode.s, // ㄴ
+                    AsciiCodeCombo.sw, // ㄵ
+                    AsciiCodeCombo.sg, // ㄶ
+                    AsciiCode.e, // ㄷ
+                    AsciiCode.f, // ㄹ
+                    AsciiCodeCombo.fr, // ㄺ
+                    AsciiCodeCombo.fa, // ㄻ
+                    AsciiCodeCombo.fq, // ㄼ
+                    AsciiCodeCombo.ft, // ㄽ
+                    AsciiCodeCombo.fx, // ㄾ
+                    AsciiCodeCombo.fv, // ㄿ
+                    AsciiCodeCombo.fg, // ㅀ
+                    AsciiCode.a, // ㅁ
+                    AsciiCode.q, // ㅂ
+                    AsciiCodeCombo.qt, // ㅄ
+                    AsciiCode.t, // ㅅ
+                    AsciiCode.T, // ㅆ
+                    AsciiCode.d, // ㅇ
+                    AsciiCode.w, // ㅈ
+                    AsciiCode.c, // ㅊ
+                    AsciiCode.z, // ㅋ
+                    AsciiCode.x, // ㅌ
+                    AsciiCode.v, // ㅍ
+                    AsciiCode.g, // ㅎ
+                ]), 0);
             }
-            else if (HangulRangeStartCode.FinalConsonant + finalConsonantIndex - HangulRangeStartCode.CompatibilityJamo < compatibilityJamo.length) {
-                getCodesFromArray(HangulRangeStartCode.FinalConsonant + finalConsonantIndex - HangulRangeStartCode.CompatibilityJamo, compatibilityJamo, HangulRangeStartCode.CompatibilityJamo);
+            else if (HangulRangeStartCode.FinalConsonant +
+                ((code - 0xAC00)
+                    % 588
+                    % 28 - 1) - HangulRangeStartCode.CompatibilityJamo < new Uint16Array([
+                AsciiCode.r, // ㄱ
+                AsciiCode.R, // ㄲ
+                AsciiCodeCombo.rt, // ㄳ
+                AsciiCode.s, // ㄴ
+                AsciiCodeCombo.sw, // ㄵ
+                AsciiCodeCombo.sg, // ㄶ
+                AsciiCode.e, // ㄷ
+                AsciiCode.E, // ㄸ
+                AsciiCode.f, // ㄹ
+                AsciiCodeCombo.fr, // ㄺ
+                AsciiCodeCombo.fa, // ㄻ
+                AsciiCodeCombo.fq, // ㄼ
+                AsciiCodeCombo.ft, // ㄽ
+                AsciiCodeCombo.fx, // ㄾ
+                AsciiCodeCombo.fv, // ㄿ
+                AsciiCodeCombo.fg, // ㅀ
+                AsciiCode.a, // ㅁ
+                AsciiCode.q, // ㅂ
+                AsciiCode.Q, // ㅃ
+                AsciiCodeCombo.qt, // ㅄ
+                AsciiCode.t, // ㅅ
+                AsciiCode.T, // ㅆ
+                AsciiCode.d, // ㅇ
+                AsciiCode.w, // ㅈ
+                AsciiCode.W, // ㅉ
+                AsciiCode.c, // ㅊ
+                AsciiCode.z, // ㅋ
+                AsciiCode.x, // ㅌ
+                AsciiCode.v, // ㅍ
+                AsciiCode.g, // ㅎ
+                AsciiCode.k, // ㅏ
+                AsciiCode.o, // ㅐ
+                AsciiCode.i, // ㅑ
+                AsciiCode.O, // ㅒ
+                AsciiCode.j, // ㅓ
+                AsciiCode.p, // ㅔ
+                AsciiCode.u, // ㅕ
+                AsciiCode.P, // ㅖ
+                AsciiCode.h, // ㅗ
+                AsciiCodeCombo.hk, // ㅘ
+                AsciiCodeCombo.ho, // ㅙ
+                AsciiCodeCombo.hl, // ㅚ
+                AsciiCode.y, // ㅛ
+                AsciiCode.n, // ㅜ
+                AsciiCodeCombo.nj, // ㅝ
+                AsciiCodeCombo.np, // ㅞ
+                AsciiCodeCombo.nl, // ㅟ
+                AsciiCode.b, // ㅠ
+                AsciiCode.m, // ㅡ
+                AsciiCodeCombo.ml, // ㅢ
+                AsciiCode.l, // ㅣ
+                // HF: Hangul Filler (everything after this is archaic)
+                // ㅥ
+                // ㅦ
+                // ㅧ
+                // ㅨ
+                // ㅩ
+                // ㅪ
+                // ㅫ
+                // ㅬ
+                // ㅮ
+                // ㅯ
+                // ㅰ
+                // ㅱ
+                // ㅲ
+                // ㅳ
+                // ㅴ
+                // ㅵ
+                // ㅶ
+                // ㅷ
+                // ㅸ
+                // ㅹ
+                // ㅺ
+                // ㅻ
+                // ㅼ
+                // ㅽ
+                // ㅾ
+                // ㅿ
+                // ㆀ
+                // ㆁ
+                // ㆂ
+                // ㆃ
+                // ㆄ
+                // ㆅ
+                // ㆆ
+                // ㆇ
+                // ㆈ
+                // ㆉ
+                // ㆊ
+                // ㆋ
+                // ㆌ
+                // ㆍ
+                // ㆎ
+            ]).length) {
+                getCodesFromArray(HangulRangeStartCode.FinalConsonant +
+                    ((code - 0xAC00)
+                        % 588
+                        % 28 - 1) - HangulRangeStartCode.CompatibilityJamo, new Uint16Array([
+                    AsciiCode.r, // ㄱ
+                    AsciiCode.R, // ㄲ
+                    AsciiCodeCombo.rt, // ㄳ
+                    AsciiCode.s, // ㄴ
+                    AsciiCodeCombo.sw, // ㄵ
+                    AsciiCodeCombo.sg, // ㄶ
+                    AsciiCode.e, // ㄷ
+                    AsciiCode.E, // ㄸ
+                    AsciiCode.f, // ㄹ
+                    AsciiCodeCombo.fr, // ㄺ
+                    AsciiCodeCombo.fa, // ㄻ
+                    AsciiCodeCombo.fq, // ㄼ
+                    AsciiCodeCombo.ft, // ㄽ
+                    AsciiCodeCombo.fx, // ㄾ
+                    AsciiCodeCombo.fv, // ㄿ
+                    AsciiCodeCombo.fg, // ㅀ
+                    AsciiCode.a, // ㅁ
+                    AsciiCode.q, // ㅂ
+                    AsciiCode.Q, // ㅃ
+                    AsciiCodeCombo.qt, // ㅄ
+                    AsciiCode.t, // ㅅ
+                    AsciiCode.T, // ㅆ
+                    AsciiCode.d, // ㅇ
+                    AsciiCode.w, // ㅈ
+                    AsciiCode.W, // ㅉ
+                    AsciiCode.c, // ㅊ
+                    AsciiCode.z, // ㅋ
+                    AsciiCode.x, // ㅌ
+                    AsciiCode.v, // ㅍ
+                    AsciiCode.g, // ㅎ
+                    AsciiCode.k, // ㅏ
+                    AsciiCode.o, // ㅐ
+                    AsciiCode.i, // ㅑ
+                    AsciiCode.O, // ㅒ
+                    AsciiCode.j, // ㅓ
+                    AsciiCode.p, // ㅔ
+                    AsciiCode.u, // ㅕ
+                    AsciiCode.P, // ㅖ
+                    AsciiCode.h, // ㅗ
+                    AsciiCodeCombo.hk, // ㅘ
+                    AsciiCodeCombo.ho, // ㅙ
+                    AsciiCodeCombo.hl, // ㅚ
+                    AsciiCode.y, // ㅛ
+                    AsciiCode.n, // ㅜ
+                    AsciiCodeCombo.nj, // ㅝ
+                    AsciiCodeCombo.np, // ㅞ
+                    AsciiCodeCombo.nl, // ㅟ
+                    AsciiCode.b, // ㅠ
+                    AsciiCode.m, // ㅡ
+                    AsciiCodeCombo.ml, // ㅢ
+                    AsciiCode.l, // ㅣ
+                    // HF: Hangul Filler (everything after this is archaic)
+                    // ㅥ
+                    // ㅦ
+                    // ㅧ
+                    // ㅨ
+                    // ㅩ
+                    // ㅪ
+                    // ㅫ
+                    // ㅬ
+                    // ㅮ
+                    // ㅯ
+                    // ㅰ
+                    // ㅱ
+                    // ㅲ
+                    // ㅳ
+                    // ㅴ
+                    // ㅵ
+                    // ㅶ
+                    // ㅷ
+                    // ㅸ
+                    // ㅹ
+                    // ㅺ
+                    // ㅻ
+                    // ㅼ
+                    // ㅽ
+                    // ㅾ
+                    // ㅿ
+                    // ㆀ
+                    // ㆁ
+                    // ㆂ
+                    // ㆃ
+                    // ㆄ
+                    // ㆅ
+                    // ㆆ
+                    // ㆇ
+                    // ㆈ
+                    // ㆉ
+                    // ㆊ
+                    // ㆋ
+                    // ㆌ
+                    // ㆍ
+                    // ㆎ
+                ]), HangulRangeStartCode.CompatibilityJamo);
             }
         }
-        if (codeBufferLength > 0) {
-            return codeBuffer.subarray(0, codeBufferLength);
+        if (0
+            > 0) {
+            return new Uint32Array(10).subarray(0, 0);
         }
     }
     return undefined;
@@ -93,12 +999,12 @@ function addCodesToBuffer(codes: number): void {
         return;
     }
     // Number stored in format: OptionalThirdCode << 16 | OptionalSecondCode << 8 | Code
-    codeBuffer[codeBufferLength++] = codes & 0xFF;
+    new Uint32Array(10)[0++] = codes & 0xFF;
     if (codes >> 8) {
-        codeBuffer[codeBufferLength++] = (codes >> 8) & 0xFF;
+        new Uint32Array(10)[0++] = (codes >> 8) & 0xFF;
     }
     if (codes >> 16) {
-        codeBuffer[codeBufferLength++] = (codes >> 16) & 0xFF;
+        new Uint32Array(10)[0++] = (codes >> 16) & 0xFF;
     }
 }
 const enum HangulRangeStartCode {

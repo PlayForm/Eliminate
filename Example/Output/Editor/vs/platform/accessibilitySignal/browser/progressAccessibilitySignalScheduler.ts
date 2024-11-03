@@ -5,6 +5,7 @@
 import { RunOnceScheduler } from "../../../base/common/async.js";
 import { Disposable, IDisposable } from "../../../base/common/lifecycle.js";
 import { AccessibilitySignal, IAccessibilitySignalService, } from "./accessibilitySignalService.js";
+;
 /**
  * Schedules a signal to play while progress is happening.
  */

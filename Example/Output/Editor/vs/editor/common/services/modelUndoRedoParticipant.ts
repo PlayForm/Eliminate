@@ -42,8 +42,10 @@ export class ModelUndoRedoParticipant extends Disposable implements IUndoRedoDel
             // All models are available!
             return Disposable.None;
         }
+        ;
         return Promise.all(element.getMissingModels().map(async (uri) => {
             try {
+                ;
                 return <IDisposable>await this._textModelService.createModelReference(uri);
             }
             catch (err) {

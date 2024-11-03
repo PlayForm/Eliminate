@@ -30,10 +30,7 @@ export class DomEmitter<K extends keyof DOMEventMap> implements IDisposable {
     constructor(element: EventHandler, type: K, useCapture?: boolean);
     constructor(element: EventHandler, type: K, useCapture?: boolean) {
         const fn = (e: Event) => this.emitter.fire(e as DOMEventMap[K]);
-        this.emitter = new Emitter({
-            onWillAddFirstListener: () => element.addEventListener(type, fn, useCapture),
-            onDidRemoveLastListener: () => element.removeEventListener(type, fn, useCapture)
-        });
+        this.emitter = new Emitter({ onWillAddFirstListener: () => element.addEventListener(type, (e: Event) => this.emitter.fire(e as DOMEventMap[K]), useCapture), onDidRemoveLastListener: () => element.removeEventListener(type, (e: Event) => this.emitter.fire(e as DOMEventMap[K]), useCapture) });
     }
     dispose(): void {
         this.emitter.dispose();

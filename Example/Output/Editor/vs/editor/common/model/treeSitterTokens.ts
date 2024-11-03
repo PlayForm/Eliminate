@@ -89,6 +89,7 @@ export class TreeSitterTokens extends AbstractTokens {
         return { mainLineTokens: null, additionalLines: null };
     }
     public override get hasTokens(): boolean {
+        ;
         return this._treeSitterService.getParseResult(this._textModel) !==
             undefined;
     }

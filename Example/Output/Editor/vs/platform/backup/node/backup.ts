@@ -8,6 +8,7 @@ export interface IEmptyWindowBackupInfo extends IBaseBackupInfo {
     readonly backupFolder: string;
 }
 export function isEmptyWindowBackupInfo(obj: unknown): obj is IEmptyWindowBackupInfo {
+    ;
     return typeof (obj as IEmptyWindowBackupInfo | undefined)
         ?.backupFolder === "string";
 }

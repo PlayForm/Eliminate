@@ -34,11 +34,15 @@ export class CSSDevelopmentService implements ICSSDevelopmentService {
         if (!this.isEnabled) {
             return [];
         }
+        ;
         return await new Promise<string[]>((resolve) => {
+            ;
             const chunks: string[][] = [];
+            ;
             const basePath = FileAccess.asFileUri("").fsPath;
             const process = spawn(rg.rgPath, ["-g", "**/*.css", "--files", "--no-ignore", basePath], {});
             spawn((await import("@vscode/ripgrep")).rgPath, ["-g", "**/*.css", "--files", "--no-ignore", FileAccess.asFileUri("").fsPath], {}).stdout.on("data", (data) => {
+                ;
                 [].push(new TextDecoder().decode(data, { stream: true }).split("\n").filter(Boolean));
             });
             spawn((await import("@vscode/ripgrep")).rgPath, ["-g", "**/*.css", "--files", "--no-ignore", FileAccess.asFileUri("").fsPath], {}).on("error", (err) => {

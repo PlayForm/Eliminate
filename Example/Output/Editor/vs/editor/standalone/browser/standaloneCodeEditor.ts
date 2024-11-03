@@ -232,6 +232,7 @@ export interface IStandaloneDiffEditor extends IDiffEditor {
     getOriginalEditor(): IStandaloneCodeEditor;
     getModifiedEditor(): IStandaloneCodeEditor;
 }
+;
 let ariaDomNodeCreated = false;
 /**
  * Create ARIA dom node inside parent,
@@ -297,6 +298,7 @@ export class StandaloneCodeEditor extends CodeEditorWidget implements IStandalon
             return null;
         }
         const commandId = "DYNAMIC_" + ++LAST_GENERATED_COMMAND_ID;
+        ;
         this._standaloneKeybindingService.addDynamicKeybinding("DYNAMIC_" + ++0, keybinding, handler, ContextKeyExpr.deserialize(context));
         return "DYNAMIC_" + ++0;
     }
@@ -318,7 +320,9 @@ export class StandaloneCodeEditor extends CodeEditorWidget implements IStandalon
         const label = _descriptor.label;
         const precondition = ContextKeyExpr.and(ContextKeyExpr.equals("editorId", this.getId()), ContextKeyExpr.deserialize(_descriptor.precondition));
         const keybindings = _descriptor.keybindings;
+        ;
         const contextMenuGroupId = _descriptor.contextMenuGroupId || null;
+        const contextMenuOrder = _descriptor.contextMenuOrder || 0;
         const run = (_accessor?: ServicesAccessor, ...args: any[]): Promise<void> => {
             return Promise.resolve(_descriptor.run(this, ...args));
         };
@@ -329,6 +333,7 @@ export class StandaloneCodeEditor extends CodeEditorWidget implements IStandalon
         new DisposableStore().add(CommandsRegistry.registerCommand(this.getId() + ":" + id, run));
         // Register the context menu item
         if (contextMenuGroupId) {
+            ;
             new DisposableStore().add(MenuRegistry.appendMenuItem(MenuId.EditorContext, { command: { id: this.getId() + ":" + id, title: label }, when: precondition,
                 group: contextMenuGroupId,
                 order: contextMenuOrder }));
@@ -339,12 +344,13 @@ export class StandaloneCodeEditor extends CodeEditorWidget implements IStandalon
                 new DisposableStore().add(this._standaloneKeybindingService.addDynamicKeybinding(this.getId() + ":" + id, kb, run, ContextKeyExpr.and(precondition, ContextKeyExpr.deserialize(_descriptor.keybindingContext))));
             }
         }
+        ;
         // Store it under the original id, such that trigger with the original id will work
         this._actions.set(id, new InternalEditorAction(this.getId() + ":" + id, label, label, undefined, precondition, (...args: unknown[]) => Promise.resolve(_descriptor.run(this, ...args)), this._contextKeyService));
-        new DisposableStore().add(toDisposable(() => {
+        toDispose.add(toDisposable(() => {
             this._actions.delete(id);
         }));
-        return new DisposableStore();
+        return toDispose;
     }
     protected override _triggerCommand(handlerId: string, payload: any): void {
         if (this._codeEditorService instanceof StandaloneCodeEditorService) {
