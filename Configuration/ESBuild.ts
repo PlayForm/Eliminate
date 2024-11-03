@@ -44,7 +44,9 @@ export default {
 						name: "Example",
 						setup({ onEnd }) {
 							onEnd(async () => {
-								await Exec("Eliminate Configuration.ts");
+								await Exec(
+									"node ./Target/Class/Eliminate.js Configuration.ts",
+								);
 							});
 						},
 					} as Plugin)

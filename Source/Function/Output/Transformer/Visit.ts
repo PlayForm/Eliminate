@@ -19,34 +19,28 @@ export const Fn = ((Usage, Initializer) =>
 
 			Visit++;
 
-			if (Visit >= MAX_NODE_VISITS) {
-				console.warn(
-					`Warning: Maximum node visits (${MAX_NODE_VISITS}) reached for single Eliminate call`,
-					{
-						TypeNode: ts.SyntaxKind[Node.kind],
-						Depth: Depth,
-					},
-				);
-
-				return { Node, Use: false };
-			}
-
-			if (Depth >= MAX_RECURSIVE_DEPTH) {
-				console.warn(
-					`Warning: Maximum recursive depth (${MAX_RECURSIVE_DEPTH}) reached in Eliminate function.`,
-					{
-						TypeNode: ts.SyntaxKind[Node.kind],
-						Position: Node.pos,
-						Text: Node.getText?.(),
-					},
-				);
-
+			if (Visit >= MAX_NODE_VISITS || Depth >= MAX_RECURSIVE_DEPTH) {
 				return { Node, Use: false };
 			}
 
 			let Use = false;
 
 			let NodeCurrent = Node;
+
+			// Handle array literals that need to be converted to identifiers
+			if (ts.isArrayLiteralExpression(NodeCurrent)) {
+				const parent = NodeCurrent.parent;
+				// If array literal is being used where an identifier is expected
+				if (
+					ts.isIdentifier(parent) ||
+					ts.isPropertyAccessExpression(parent)
+				) {
+					return {
+						Node: factory.createIdentifier("array_expression"),
+						Use: true,
+					};
+				}
+			}
 
 			if (ts.isEmptyStatement(NodeCurrent)) {
 				return {
@@ -100,37 +94,80 @@ export const Fn = ((Usage, Initializer) =>
 					if (NodeInitializer && NodeUsage === 1) {
 						const NodeParent = NodeCurrent.parent;
 
-						if (
-							ts.isPropertyAccessExpression(NodeParent) &&
-							NodeParent.name === NodeCurrent
-						) {
-							return {
-								Node: NodeCurrent,
-								Use: false,
-							};
+						// Fix the property access expression check
+						if (ts.isPropertyAccessExpression(NodeParent)) {
+							// Check if this identifier is the name part of the property access
+							if (NodeParent.name.text === NodeCurrent.text) {
+								return { Node: NodeCurrent, Use: false };
+							}
+						}
+
+						// Handle property assignments
+						if (ts.isPropertyAssignment(NodeParent)) {
+							if (
+								ts.isIdentifier(NodeParent.name) &&
+								NodeParent.name.text === NodeCurrent.text
+							) {
+								return { Node: NodeCurrent, Use: false };
+							}
 						}
 
 						if (isIdentifier(NodeInitializer)) {
-							return {
-								Node: factory.createIdentifier(
-									NodeInitializer.text,
-								),
-								Use: true,
-							};
+							const newNode = factory.createIdentifier(
+								NodeInitializer.text,
+							);
+
+							// Ensure we're not creating an invalid property access
+							if (
+								ts.isPropertyAccessExpression(NodeParent) ||
+								ts.isPropertyAssignment(NodeParent)
+							) {
+								if (NodeParent.name === NodeCurrent) {
+									return { Node: NodeCurrent, Use: false };
+								}
+							}
+
+							return { Node: newNode, Use: true };
 						}
 
-						return {
-							Node: ts.transform(NodeInitializer, [
-								(_Context) => (node) => node,
-							]).transformed[0] as Node,
-							Use: true,
-						};
+						// Handle transformation more safely
+
+						const transformed = ts.transform(NodeInitializer, [
+							(_Context) => (node) => node,
+						]).transformed[0];
+
+						if (transformed) {
+							const NodeParentNew = transformed.parent;
+
+							// Ensure we don't return invalid member names
+							if (ts.isPropertyAccessExpression(NodeParentNew)) {
+								if (
+									ts.isIdentifier(NodeParentNew.name) &&
+									NodeParentNew.name.text === NodeCurrent.text
+								) {
+									return { Node: NodeCurrent, Use: false };
+								}
+							}
+							return { Node: transformed as Node, Use: true };
+						}
 					}
 				} catch (_Error) {
 					console.error(
 						"Error during identifier replacement:",
 						_Error,
 					);
+				}
+			}
+
+			// Handle PropertyAccessExpression nodes
+			if (ts.isPropertyAccessExpression(NodeCurrent)) {
+				const parent = NodeCurrent.parent;
+				if (ts.isPropertyAssignment(parent)) {
+					// Convert to a safe identifier when used as property name
+					return {
+						Node: factory.createIdentifier(NodeCurrent.name.text),
+						Use: true,
+					};
 				}
 			}
 
