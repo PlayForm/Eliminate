@@ -498,7 +498,6 @@ export const Fn = ((usageMap, initializerMap) => {
 					return this.createVisitResult(
 						factory.createArrayLiteralExpression(
 							elements as Expression[],
-							node.multiLine,
 						),
 						true,
 					);
