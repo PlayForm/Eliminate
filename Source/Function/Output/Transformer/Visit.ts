@@ -408,6 +408,7 @@ export const Fn = ((usageMap, initializerMap) => {
 					} else {
 						newDeclarations.push(declaration);
 					}
+
 					continue;
 				}
 
@@ -479,6 +480,7 @@ export const Fn = ((usageMap, initializerMap) => {
 						true,
 					);
 				}
+
 				return this.createVisitResult(node, false);
 			}
 
@@ -501,6 +503,7 @@ export const Fn = ((usageMap, initializerMap) => {
 						true,
 					);
 				}
+
 				return this.createVisitResult(node, false);
 			}
 
@@ -548,6 +551,7 @@ export const Fn = ((usageMap, initializerMap) => {
 			if (state.errors.length > 0) {
 				console.error("Transformation errors:", state.errors);
 			}
+
 			if (state.warnings.length > 0) {
 				console.warn("Transformation warnings:", state.warnings);
 			}
