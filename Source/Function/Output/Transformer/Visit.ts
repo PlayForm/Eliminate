@@ -227,14 +227,29 @@ export const Fn = ((usageMap, initializerMap) => {
 			return { isValid: true };
 		}
 
-		private handleIdentifier(node: Identifier): VisitResult<Identifier> {
+		private handleIdentifier(
+			node: Identifier,
+		): VisitResult<Identifier | Expression> {
 			const name = node.text;
 
 			const usage = usageMap.get(name);
 
-			const initializer = Get(name, initializerMap);
+			if (!usage) {
+				return this.createVisitResult(node, false);
+			}
 
-			if (!initializer || !usage) {
+			// Try to find an initializer that matches the name
+			let initializer: Node | undefined;
+
+			for (const [init, varName] of initializerMap.entries()) {
+				if (varName === name) {
+					initializer = init;
+
+					break;
+				}
+			}
+
+			if (!initializer) {
 				return this.createVisitResult(node, false);
 			}
 
@@ -251,10 +266,10 @@ export const Fn = ((usageMap, initializerMap) => {
 			}
 
 			try {
-				// First transform the initializer
+				// Transform the initializer
 				const transformedNode = this.transformNodeSafely(initializer);
 
-				// Then visit it to handle any nested identifiers
+				// Visit it to handle any nested identifiers
 				const result = this.visitNode(transformedNode);
 
 				// Ensure we have an expression
@@ -263,7 +278,7 @@ export const Fn = ((usageMap, initializerMap) => {
 				}
 
 				return this.createVisitResult(
-					result.node as Identifier,
+					result.node as Expression,
 					true,
 					dependencies,
 				);
@@ -419,12 +434,9 @@ export const Fn = ((usageMap, initializerMap) => {
 				// For non-exported variables with single usage, don't add to newDeclarations
 				// This effectively removes them since they've been inlined
 				if (usage === 1 && declaration.initializer) {
-					// Store the initializer for inlining if we haven't already
+					// Store the initializer itself as the key for uniqueness
 					if (!initializerMap.has(declaration.initializer)) {
-						initializerMap.set(
-							declaration.initializer,
-							declaration.name.text,
-						);
+						initializerMap.set(declaration.initializer, name);
 					}
 
 					modified = true;
@@ -445,11 +457,7 @@ export const Fn = ((usageMap, initializerMap) => {
 			}
 
 			// If nothing changed, return original node
-			if (
-				!modified &&
-				newDeclarations.length ===
-					node.declarationList.declarations.length
-			) {
+			if (!modified) {
 				return this.createVisitResult(node, false);
 			}
 
