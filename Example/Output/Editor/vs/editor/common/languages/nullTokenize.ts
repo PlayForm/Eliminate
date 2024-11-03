@@ -17,13 +17,22 @@ export function nullTokenize(languageId: string, state: IState): TokenizationRes
 }
 export function nullTokenizeEncoded(languageId: LanguageId, state: IState | null): EncodedTokenizationResult {
     const tokens = new Uint32Array(2);
-    tokens[0] = 0;
-    tokens[1] =
+    new Uint32Array(2)[0] = 0;
+    new Uint32Array(2)[1] =
         ((languageId << MetadataConsts.LANGUAGEID_OFFSET) |
             (StandardTokenType.Other << MetadataConsts.TOKEN_TYPE_OFFSET) |
             (FontStyle.None << MetadataConsts.FONT_STYLE_OFFSET) |
             (ColorId.DefaultForeground << MetadataConsts.FOREGROUND_OFFSET) |
             (ColorId.DefaultBackground << MetadataConsts.BACKGROUND_OFFSET)) >>>
             0;
-    return new EncodedTokenizationResult(tokens, state === null ? NullState : state);
+    return new EncodedTokenizationResult(new Uint32Array(2), state === null ?
+        new (class implements IState {
+            public clone(): IState {
+                return this;
+            }
+            public equals(other: IState): boolean {
+                return this === other;
+            }
+        })()
+        : state);
 }

@@ -37,14 +37,14 @@ function handleFocusEventsGroup(group: readonly IFocusNotifier[], handler: (isFo
     const focusedIndices = new Set<number>();
     return combinedDisposable(...group.map((events, index) => combinedDisposable(events.onDidFocus(() => {
         onPartFocusChange?.(index, "focus");
-        if (!focusedIndices.size) {
+        if (!new Set<number>().size) {
             handler(true);
         }
-        focusedIndices.add(index);
+        new Set<number>().add(index);
     }), events.onDidBlur(() => {
         onPartFocusChange?.(index, "blur");
-        focusedIndices.delete(index);
-        if (!focusedIndices.size) {
+        new Set<number>().delete(index);
+        if (!new Set<number>().size) {
             handler(false);
         }
     }))));
@@ -64,7 +64,7 @@ class NavigableContainerManager implements IDisposable {
     @IConfigurationService
     private configurationService: IConfigurationService) {
         this.focused =
-            NavigableContainerFocusedContextKey.bindTo(contextKeyService);
+            new RawContextKey<boolean>("navigableContainerFocused", false).bindTo(contextKeyService);
         NavigableContainerManager.INSTANCE = this;
     }
     dispose(): void {
@@ -82,32 +82,32 @@ class NavigableContainerManager implements IDisposable {
     }
     static register(container: INavigableContainer): IDisposable {
         const instance = this.INSTANCE;
-        if (!instance) {
+        if (!this.INSTANCE) {
             return Disposable.None;
         }
-        instance.containers.add(container);
-        instance.log("NavigableContainerManager.register", container.name);
+        this.INSTANCE.containers.add(container);
+        this.INSTANCE.log("NavigableContainerManager.register", container.name);
         return combinedDisposable(handleFocusEventsGroup(container.focusNotifiers, (isFocus) => {
             if (isFocus) {
-                instance.log("NavigableContainerManager.focus", container.name);
-                instance.focused.set(true);
-                instance.lastContainer = container;
+                this.INSTANCE.log("NavigableContainerManager.focus", container.name);
+                this.INSTANCE.focused.set(true);
+                this.INSTANCE.lastContainer = container;
             }
             else {
-                instance.log("NavigableContainerManager.blur", container.name, instance.lastContainer?.name);
-                if (instance.lastContainer === container) {
-                    instance.focused.set(false);
-                    instance.lastContainer = undefined;
+                this.INSTANCE.log("NavigableContainerManager.blur", container.name, this.INSTANCE.lastContainer?.name);
+                if (this.INSTANCE.lastContainer === container) {
+                    this.INSTANCE.focused.set(false);
+                    this.INSTANCE.lastContainer = undefined;
                 }
             }
         }, (index: number, event: string) => {
-            instance.log("NavigableContainerManager.partFocusChange", container.name, index, event);
+            this.INSTANCE.log("NavigableContainerManager.partFocusChange", container.name, index, event);
         }), toDisposable(() => {
-            instance.containers.delete(container);
-            instance.log("NavigableContainerManager.unregister", container.name, instance.lastContainer?.name);
-            if (instance.lastContainer === container) {
-                instance.focused.set(false);
-                instance.lastContainer = undefined;
+            this.INSTANCE.containers.delete(container);
+            this.INSTANCE.log("NavigableContainerManager.unregister", container.name, this.INSTANCE.lastContainer?.name);
+            if (this.INSTANCE.lastContainer === container) {
+                this.INSTANCE.focused.set(false);
+                this.INSTANCE.lastContainer = undefined;
             }
         }));
     }
@@ -119,23 +119,15 @@ export function registerNavigableContainer(container: INavigableContainer): IDis
     return NavigableContainerManager.register(container);
 }
 registerWorkbenchContribution2(NavigableContainerManager.ID, NavigableContainerManager, WorkbenchPhase.BlockStartup);
-KeybindingsRegistry.registerCommandAndKeybindingRule({
-    id: "widgetNavigation.focusPrevious",
-    weight: KeybindingWeight.WorkbenchContrib,
-    when: ContextKeyExpr.and(NavigableContainerFocusedContextKey, ContextKeyExpr.or(WorkbenchListFocusContextKey?.negate(), WorkbenchListScrollAtTopContextKey)),
-    primary: KeyMod.CtrlCmd | KeyCode.UpArrow,
-    handler: () => {
+KeybindingsRegistry.registerCommandAndKeybindingRule({ id: "widgetNavigation.focusPrevious",
+    weight: KeybindingWeight.WorkbenchContrib, when: ContextKeyExpr.and(new RawContextKey<boolean>("navigableContainerFocused", false), ContextKeyExpr.or(WorkbenchListFocusContextKey?.negate(), WorkbenchListScrollAtTopContextKey)), primary: KeyMod.CtrlCmd | KeyCode.UpArrow, handler: () => {
         const activeContainer = NavigableContainerManager.getActive();
-        activeContainer?.focusPreviousWidget();
-    },
-});
-KeybindingsRegistry.registerCommandAndKeybindingRule({
-    id: "widgetNavigation.focusNext",
-    weight: KeybindingWeight.WorkbenchContrib,
-    when: ContextKeyExpr.and(NavigableContainerFocusedContextKey, ContextKeyExpr.or(WorkbenchListFocusContextKey?.negate(), WorkbenchListScrollAtBottomContextKey)),
-    primary: KeyMod.CtrlCmd | KeyCode.DownArrow,
-    handler: () => {
+        NavigableContainerManager.getActive()
+            ?.focusPreviousWidget();
+    } });
+KeybindingsRegistry.registerCommandAndKeybindingRule({ id: "widgetNavigation.focusNext",
+    weight: KeybindingWeight.WorkbenchContrib, when: ContextKeyExpr.and(new RawContextKey<boolean>("navigableContainerFocused", false), ContextKeyExpr.or(WorkbenchListFocusContextKey?.negate(), WorkbenchListScrollAtBottomContextKey)), primary: KeyMod.CtrlCmd | KeyCode.DownArrow, handler: () => {
         const activeContainer = NavigableContainerManager.getActive();
-        activeContainer?.focusNextWidget();
-    },
-});
+        NavigableContainerManager.getActive()
+            ?.focusNextWidget();
+    } });

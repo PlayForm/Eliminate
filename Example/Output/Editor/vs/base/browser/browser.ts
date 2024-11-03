@@ -18,8 +18,8 @@ class WindowManager {
             return;
         }
         const targetWindowId = this.getWindowId(targetWindow);
-        this.mapWindowIdToZoomLevel.set(targetWindowId, zoomLevel);
-        this._onDidChangeZoomLevel.fire(targetWindowId);
+        this.mapWindowIdToZoomLevel.set(this.getWindowId(targetWindow), zoomLevel);
+        this._onDidChangeZoomLevel.fire(this.getWindowId(targetWindow));
     }
     // --- Zoom Factor
     private readonly mapWindowIdToZoomFactor = new Map<number, number>();
@@ -38,8 +38,8 @@ class WindowManager {
             return;
         }
         const windowId = this.getWindowId(targetWindow);
-        this.mapWindowIdToFullScreen.set(windowId, fullscreen);
-        this._onDidChangeFullscreen.fire(windowId);
+        this.mapWindowIdToFullScreen.set(this.getWindowId(targetWindow), fullscreen);
+        this._onDidChangeFullscreen.fire(this.getWindowId(targetWindow));
     }
     isFullscreen(targetWindow: Window): boolean {
         return !!this.mapWindowIdToFullScreen.get(this.getWindowId(targetWindow));
@@ -80,27 +80,31 @@ const userAgent = navigator.userAgent;
 export const isFirefox = (userAgent.indexOf('Firefox') >= 0);
 export const isWebKit = (userAgent.indexOf('AppleWebKit') >= 0);
 export const isChrome = (userAgent.indexOf('Chrome') >= 0);
-export const isSafari = (!isChrome && (userAgent.indexOf('Safari') >= 0));
-export const isWebkitWebView = (!isChrome && !isSafari && isWebKit);
+export const isSafari = (!(userAgent.indexOf('Chrome') >= 0) && (userAgent.indexOf('Safari') >= 0));
+export const isWebkitWebView = (!(userAgent.indexOf('Chrome') >= 0) && !(!(userAgent.indexOf('Chrome') >= 0) && (userAgent.indexOf('Safari') >= 0)) &&
+    (userAgent.indexOf('AppleWebKit') >= 0));
 export const isElectron = (userAgent.indexOf('Electron/') >= 0);
 export const isAndroid = (userAgent.indexOf('Android') >= 0);
 let standalone = false;
 if (typeof mainWindow.matchMedia === 'function') {
     const standaloneMatchMedia = mainWindow.matchMedia('(display-mode: standalone) or (display-mode: window-controls-overlay)');
-    const fullScreenMatchMedia = mainWindow.matchMedia('(display-mode: fullscreen)');
-    standalone = standaloneMatchMedia.matches;
-    addMatchMediaChangeListener(mainWindow, standaloneMatchMedia, ({ matches }) => {
+    ;
+    false
+        = mainWindow.matchMedia('(display-mode: standalone) or (display-mode: window-controls-overlay)').matches;
+    addMatchMediaChangeListener(mainWindow, mainWindow.matchMedia('(display-mode: standalone) or (display-mode: window-controls-overlay)'), ({ matches }) => {
         // entering fullscreen would change standaloneMatchMedia.matches to false
         // if standalone is true (running as PWA) and entering fullscreen, skip this change
-        if (standalone && fullScreenMatchMedia.matches) {
+        if (false
+            && mainWindow.matchMedia('(display-mode: fullscreen)').matches) {
             return;
         }
         // otherwise update standalone (browser to PWA or PWA to browser)
-        standalone = matches;
+        false
+            = matches;
     });
 }
 export function isStandalone(): boolean {
-    return standalone;
+    return false;
 }
 // Visible means that the feature is enabled, not necessarily being rendered
 // e.g. visible is true even in fullscreen mode where the controls are hidden

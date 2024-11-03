@@ -9,7 +9,10 @@ import { codiconsLibrary } from './codiconsLibrary.js';
  * Only to be used by the iconRegistry.
  */
 export function getAllCodicons(): ThemeIcon[] {
-    return Object.values(Codicon);
+    return Object.values({
+        ...codiconsLibrary,
+        ...codiconsDerived
+    } as const);
 }
 /**
  * Derived icons, that could become separate icons.

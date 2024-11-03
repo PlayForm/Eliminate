@@ -42,10 +42,20 @@ export const editorCursorForeground = registerColor("editorCursor.foreground", {
     hcLight: "#0F4A85",
 }, nls.localize("caret", "Color of the editor cursor."));
 export const editorCursorBackground = registerColor("editorCursor.background", null, nls.localize("editorCursorBackground", "The background color of the editor cursor. Allows customizing the color of a character overlapped by a block cursor."));
-export const editorMultiCursorPrimaryForeground = registerColor("editorMultiCursor.primary.foreground", editorCursorForeground, nls.localize("editorMultiCursorPrimaryForeground", "Color of the primary editor cursor when multiple cursors are present."));
-export const editorMultiCursorPrimaryBackground = registerColor("editorMultiCursor.primary.background", editorCursorBackground, nls.localize("editorMultiCursorPrimaryBackground", "The background color of the primary editor cursor when multiple cursors are present. Allows customizing the color of a character overlapped by a block cursor."));
-export const editorMultiCursorSecondaryForeground = registerColor("editorMultiCursor.secondary.foreground", editorCursorForeground, nls.localize("editorMultiCursorSecondaryForeground", "Color of secondary editor cursors when multiple cursors are present."));
-export const editorMultiCursorSecondaryBackground = registerColor("editorMultiCursor.secondary.background", editorCursorBackground, nls.localize("editorMultiCursorSecondaryBackground", "The background color of secondary editor cursors when multiple cursors are present. Allows customizing the color of a character overlapped by a block cursor."));
+export const editorMultiCursorPrimaryForeground = registerColor("editorMultiCursor.primary.foreground", registerColor("editorCursor.foreground", {
+    dark: "#AEAFAD",
+    light: Color.black,
+    hcDark: Color.white,
+    hcLight: "#0F4A85",
+}, nls.localize("caret", "Color of the editor cursor.")), nls.localize("editorMultiCursorPrimaryForeground", "Color of the primary editor cursor when multiple cursors are present."));
+export const editorMultiCursorPrimaryBackground = registerColor("editorMultiCursor.primary.background", registerColor("editorCursor.background", null, nls.localize("editorCursorBackground", "The background color of the editor cursor. Allows customizing the color of a character overlapped by a block cursor.")), nls.localize("editorMultiCursorPrimaryBackground", "The background color of the primary editor cursor when multiple cursors are present. Allows customizing the color of a character overlapped by a block cursor."));
+export const editorMultiCursorSecondaryForeground = registerColor("editorMultiCursor.secondary.foreground", registerColor("editorCursor.foreground", {
+    dark: "#AEAFAD",
+    light: Color.black,
+    hcDark: Color.white,
+    hcLight: "#0F4A85",
+}, nls.localize("caret", "Color of the editor cursor.")), nls.localize("editorMultiCursorSecondaryForeground", "Color of secondary editor cursors when multiple cursors are present."));
+export const editorMultiCursorSecondaryBackground = registerColor("editorMultiCursor.secondary.background", registerColor("editorCursor.background", null, nls.localize("editorCursorBackground", "The background color of the editor cursor. Allows customizing the color of a character overlapped by a block cursor.")), nls.localize("editorMultiCursorSecondaryBackground", "The background color of secondary editor cursors when multiple cursors are present. Allows customizing the color of a character overlapped by a block cursor."));
 export const editorWhitespaces = registerColor("editorWhitespace.foreground", {
     dark: "#e3e4e229",
     light: "#33333333",
@@ -58,27 +68,47 @@ export const editorLineNumbers = registerColor("editorLineNumber.foreground", {
     hcDark: Color.white,
     hcLight: "#292929",
 }, nls.localize("editorLineNumbers", "Color of editor line numbers."));
-export const deprecatedEditorIndentGuides = registerColor("editorIndentGuide.background", editorWhitespaces, nls.localize("editorIndentGuides", "Color of the editor indentation guides."), false, nls.localize("deprecatedEditorIndentGuides", "'editorIndentGuide.background' is deprecated. Use 'editorIndentGuide.background1' instead."));
-export const deprecatedEditorActiveIndentGuides = registerColor("editorIndentGuide.activeBackground", editorWhitespaces, nls.localize("editorActiveIndentGuide", "Color of the active editor indentation guides."), false, nls.localize("deprecatedEditorActiveIndentGuide", "'editorIndentGuide.activeBackground' is deprecated. Use 'editorIndentGuide.activeBackground1' instead."));
-export const editorIndentGuide1 = registerColor("editorIndentGuide.background1", deprecatedEditorIndentGuides, nls.localize("editorIndentGuides1", "Color of the editor indentation guides (1)."));
+export const deprecatedEditorIndentGuides = registerColor("editorIndentGuide.background", registerColor("editorWhitespace.foreground", {
+    dark: "#e3e4e229",
+    light: "#33333333",
+    hcDark: "#e3e4e229",
+    hcLight: "#CCCCCC",
+}, nls.localize("editorWhitespaces", "Color of whitespace characters in the editor.")), nls.localize("editorIndentGuides", "Color of the editor indentation guides."), false, nls.localize("deprecatedEditorIndentGuides", "'editorIndentGuide.background' is deprecated. Use 'editorIndentGuide.background1' instead."));
+export const deprecatedEditorActiveIndentGuides = registerColor("editorIndentGuide.activeBackground", registerColor("editorWhitespace.foreground", {
+    dark: "#e3e4e229",
+    light: "#33333333",
+    hcDark: "#e3e4e229",
+    hcLight: "#CCCCCC",
+}, nls.localize("editorWhitespaces", "Color of whitespace characters in the editor.")), nls.localize("editorActiveIndentGuide", "Color of the active editor indentation guides."), false, nls.localize("deprecatedEditorActiveIndentGuide", "'editorIndentGuide.activeBackground' is deprecated. Use 'editorIndentGuide.activeBackground1' instead."));
+export const editorIndentGuide1 = registerColor("editorIndentGuide.background1", registerColor("editorIndentGuide.background", registerColor("editorWhitespace.foreground", {
+    dark: "#e3e4e229",
+    light: "#33333333",
+    hcDark: "#e3e4e229",
+    hcLight: "#CCCCCC",
+}, nls.localize("editorWhitespaces", "Color of whitespace characters in the editor.")), nls.localize("editorIndentGuides", "Color of the editor indentation guides."), false, nls.localize("deprecatedEditorIndentGuides", "'editorIndentGuide.background' is deprecated. Use 'editorIndentGuide.background1' instead.")), nls.localize("editorIndentGuides1", "Color of the editor indentation guides (1)."));
 export const editorIndentGuide2 = registerColor("editorIndentGuide.background2", "#00000000", nls.localize("editorIndentGuides2", "Color of the editor indentation guides (2)."));
 export const editorIndentGuide3 = registerColor("editorIndentGuide.background3", "#00000000", nls.localize("editorIndentGuides3", "Color of the editor indentation guides (3)."));
 export const editorIndentGuide4 = registerColor("editorIndentGuide.background4", "#00000000", nls.localize("editorIndentGuides4", "Color of the editor indentation guides (4)."));
 export const editorIndentGuide5 = registerColor("editorIndentGuide.background5", "#00000000", nls.localize("editorIndentGuides5", "Color of the editor indentation guides (5)."));
 export const editorIndentGuide6 = registerColor("editorIndentGuide.background6", "#00000000", nls.localize("editorIndentGuides6", "Color of the editor indentation guides (6)."));
-export const editorActiveIndentGuide1 = registerColor("editorIndentGuide.activeBackground1", deprecatedEditorActiveIndentGuides, nls.localize("editorActiveIndentGuide1", "Color of the active editor indentation guides (1)."));
+export const editorActiveIndentGuide1 = registerColor("editorIndentGuide.activeBackground1", registerColor("editorIndentGuide.activeBackground", registerColor("editorWhitespace.foreground", {
+    dark: "#e3e4e229",
+    light: "#33333333",
+    hcDark: "#e3e4e229",
+    hcLight: "#CCCCCC",
+}, nls.localize("editorWhitespaces", "Color of whitespace characters in the editor.")), nls.localize("editorActiveIndentGuide", "Color of the active editor indentation guides."), false, nls.localize("deprecatedEditorActiveIndentGuide", "'editorIndentGuide.activeBackground' is deprecated. Use 'editorIndentGuide.activeBackground1' instead.")), nls.localize("editorActiveIndentGuide1", "Color of the active editor indentation guides (1)."));
 export const editorActiveIndentGuide2 = registerColor("editorIndentGuide.activeBackground2", "#00000000", nls.localize("editorActiveIndentGuide2", "Color of the active editor indentation guides (2)."));
 export const editorActiveIndentGuide3 = registerColor("editorIndentGuide.activeBackground3", "#00000000", nls.localize("editorActiveIndentGuide3", "Color of the active editor indentation guides (3)."));
 export const editorActiveIndentGuide4 = registerColor("editorIndentGuide.activeBackground4", "#00000000", nls.localize("editorActiveIndentGuide4", "Color of the active editor indentation guides (4)."));
 export const editorActiveIndentGuide5 = registerColor("editorIndentGuide.activeBackground5", "#00000000", nls.localize("editorActiveIndentGuide5", "Color of the active editor indentation guides (5)."));
 export const editorActiveIndentGuide6 = registerColor("editorIndentGuide.activeBackground6", "#00000000", nls.localize("editorActiveIndentGuide6", "Color of the active editor indentation guides (6)."));
-const deprecatedEditorActiveLineNumber = registerColor("editorActiveLineNumber.foreground", {
+;
+export const editorActiveLineNumber = registerColor("editorLineNumber.activeForeground", registerColor("editorActiveLineNumber.foreground", {
     dark: "#c6c6c6",
     light: "#0B216F",
     hcDark: activeContrastBorder,
     hcLight: activeContrastBorder,
-}, nls.localize("editorActiveLineNumber", "Color of editor active line number"), false, nls.localize("deprecatedEditorActiveLineNumber", "Id is deprecated. Use 'editorLineNumber.activeForeground' instead."));
-export const editorActiveLineNumber = registerColor("editorLineNumber.activeForeground", deprecatedEditorActiveLineNumber, nls.localize("editorActiveLineNumber", "Color of editor active line number"));
+}, nls.localize("editorActiveLineNumber", "Color of editor active line number"), false, nls.localize("deprecatedEditorActiveLineNumber", "Id is deprecated. Use 'editorLineNumber.activeForeground' instead.")), nls.localize("editorActiveLineNumber", "Color of editor active line number"));
 export const editorDimmedLineNumber = registerColor("editorLineNumber.dimmedForeground", null, nls.localize("editorDimmedLineNumber", "Color of the final editor line when editor.renderFinalNewline is set to dimmed."));
 export const editorRuler = registerColor("editorRuler.foreground", {
     dark: "#5A5A5A",
@@ -137,8 +167,8 @@ export const ghostTextForeground = registerColor("editorGhostText.foreground", {
     hcLight: null,
 }, nls.localize("editorGhostTextForeground", "Foreground color of the ghost text in the editor."));
 export const ghostTextBackground = registerColor("editorGhostText.background", null, nls.localize("editorGhostTextBackground", "Background color of the ghost text in the editor."));
-const rulerRangeDefault = new Color(new RGBA(0, 122, 204, 0.6));
-export const overviewRulerRangeHighlight = registerColor("editorOverviewRuler.rangeHighlightForeground", rulerRangeDefault, nls.localize("overviewRulerRangeHighlight", "Overview ruler marker color for range highlights. The color must not be opaque so as not to hide underlying decorations."), true);
+;
+export const overviewRulerRangeHighlight = registerColor("editorOverviewRuler.rangeHighlightForeground", new Color(new RGBA(0, 122, 204, 0.6)), nls.localize("overviewRulerRangeHighlight", "Overview ruler marker color for range highlights. The color must not be opaque so as not to hide underlying decorations."), true);
 export const overviewRulerError = registerColor("editorOverviewRuler.errorForeground", {
     dark: new Color(new RGBA(255, 18, 18, 0.7)),
     light: new Color(new RGBA(255, 18, 18, 0.7)),

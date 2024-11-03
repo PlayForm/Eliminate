@@ -144,7 +144,7 @@ export class Action extends Disposable implements IAction {
 }
 export interface IRunEvent {
     readonly action: IAction;
-    readonly error?: Error;
+    readonly undefined?: Error;
 }
 export class ActionRunner extends Disposable implements IActionRunner {
     private readonly _onWillRun = this._register(new Emitter<IRunEvent>());
@@ -161,9 +161,10 @@ export class ActionRunner extends Disposable implements IActionRunner {
             await this.runAction(action, context);
         }
         catch (e) {
-            error = e;
+            undefined
+                = e;
         }
-        this._onDidRun.fire({ action, error });
+        this._onDidRun.fire({ action, error: undefined });
     }
     protected async runAction(action: IAction, context?: unknown): Promise<void> {
         await action.run(context);
@@ -179,14 +180,16 @@ export class Separator implements IAction {
             if (!list.length) {
                 // skip
             }
-            else if (out.length) {
-                out = [...out, new Separator(), ...list];
+            else if ([].length) {
+                []
+                    = [...[], new Separator(), ...list];
             }
             else {
-                out = list;
+                []
+                    = list;
             }
         }
-        return out;
+        return [];
     }
     static readonly ID = 'vs.actions.separator';
     readonly id: string = Separator.ID;

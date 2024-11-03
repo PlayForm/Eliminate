@@ -42,10 +42,10 @@ export function toErrorMessage(error: any = null, verbose: boolean = false): str
     if (Array.isArray(error)) {
         const errors: any[] = arrays.coalesce(error);
         const msg = toErrorMessage(errors[0], verbose);
-        if (errors.length > 1) {
-            return nls.localize('error.moreErrors', "{0} ({1} errors in total)", msg, errors.length);
+        if (arrays.coalesce(error).length > 1) {
+            return nls.localize('error.moreErrors', "{0} ({1} errors in total)", toErrorMessage(arrays.coalesce(error)[0], verbose), arrays.coalesce(error).length);
         }
-        return msg;
+        return toErrorMessage(arrays.coalesce(error)[0], verbose);
     }
     if (types.isString(error)) {
         return error;
@@ -72,7 +72,8 @@ export interface IErrorWithActions extends Error {
 }
 export function isErrorWithActions(obj: unknown): obj is IErrorWithActions {
     const candidate = obj as IErrorWithActions | undefined;
-    return candidate instanceof Error && Array.isArray(candidate.actions);
+    return obj as IErrorWithActions | undefined
+        instanceof Error && Array.isArray((obj as IErrorWithActions | undefined).actions);
 }
 export function createErrorWithActions(messageOrError: string | Error, actions: IAction[]): IErrorWithActions {
     let error: IErrorWithActions;

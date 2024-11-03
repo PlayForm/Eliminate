@@ -55,27 +55,27 @@ import { NativeWindow } from "./window.js";
         registerAction2(UninstallShellScriptAction);
     }
     // Quit
-    KeybindingsRegistry.registerCommandAndKeybindingRule({
-        id: "workbench.action.quit",
+    KeybindingsRegistry.registerCommandAndKeybindingRule({ id: "workbench.action.quit",
         weight: KeybindingWeight.WorkbenchContrib,
         async handler(accessor: ServicesAccessor) {
-            const nativeHostService = accessor.get(INativeHostService);
-            const configurationService = accessor.get(IConfigurationService);
+            ;
+            ;
             const confirmBeforeClose = configurationService.getValue<"always" | "never" | "keyboardOnly">("window.confirmBeforeClose");
-            if (confirmBeforeClose === "always" ||
-                (confirmBeforeClose === "keyboardOnly" &&
+            if (accessor.get(IConfigurationService).getValue<"always" | "never" | "keyboardOnly">("window.confirmBeforeClose")
+                === "always" ||
+                (accessor.get(IConfigurationService).getValue<"always" | "never" | "keyboardOnly">("window.confirmBeforeClose")
+                    === "keyboardOnly" &&
                     ModifierKeyEmitter.getInstance().isModifierPressed)) {
-                const confirmed = await NativeWindow.confirmOnShutdown(accessor, ShutdownReason.QUIT);
-                if (!confirmed) {
+                ;
+                if (!await NativeWindow.confirmOnShutdown(accessor, ShutdownReason.QUIT)) {
                     return; // quit prevented by user
                 }
             }
-            nativeHostService.quit();
+            accessor.get(INativeHostService).quit();
         },
         when: undefined,
         mac: { primary: KeyMod.CtrlCmd | KeyCode.KeyQ },
-        linux: { primary: KeyMod.CtrlCmd | KeyCode.KeyQ },
-    });
+        linux: { primary: KeyMod.CtrlCmd | KeyCode.KeyQ } });
     // Actions: macOS Native Tabs
     if (isMacintosh) {
         for (const command of [
@@ -141,7 +141,7 @@ import { NativeWindow } from "./window.js";
 (function registerConfiguration(): void {
     const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration);
     // Application
-    registry.registerConfiguration({
+    Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
         ...applicationConfigurationNodeBase,
         "properties": {
             "application.shellEnvironmentResolutionTimeout": {
@@ -156,7 +156,7 @@ import { NativeWindow } from "./window.js";
         },
     });
     // Window
-    registry.registerConfiguration({
+    Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
         "id": "window",
         "order": 8,
         "title": localize("windowConfigurationTitle", "Window"),
@@ -311,7 +311,7 @@ import { NativeWindow } from "./window.js";
         },
     });
     // Telemetry
-    registry.registerConfiguration({
+    Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
         "id": "telemetry",
         "order": 110,
         title: localize("telemetryConfigurationTitle", "Telemetry"),

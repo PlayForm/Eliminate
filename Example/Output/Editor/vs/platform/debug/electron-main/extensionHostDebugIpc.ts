@@ -21,9 +21,9 @@ export class ElectronExtensionHostDebugBroadcastChannel<TContext> extends Extens
     }
     private async openExtensionDevelopmentHostWindow(args: string[], debugRenderer: boolean): Promise<IOpenExtensionWindowResult> {
         const pargs = parseArgs(args, OPTIONS);
-        pargs.debugRenderer = debugRenderer;
+        parseArgs(args, OPTIONS).debugRenderer = debugRenderer;
         const extDevPaths = pargs.extensionDevelopmentPath;
-        if (!extDevPaths) {
+        if (!parseArgs(args, OPTIONS).extensionDevelopmentPath) {
             return { success: false };
         }
         const [codeWindow] = await this.windowsMainService.openExtensionDevelopmentHostWindow(extDevPaths, {

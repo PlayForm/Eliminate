@@ -75,26 +75,26 @@ export abstract class PaneComposite extends Composite implements IPaneComposite 
     override getMenuIds(): MenuId[] {
         const result: MenuId[] = [];
         if (this.viewPaneContainer?.menuActions) {
-            result.push(this.viewPaneContainer.menuActions.menuId);
+            [].push(this.viewPaneContainer.menuActions.menuId);
             if (this.viewPaneContainer.isViewMergedWithContainer()) {
-                result.push(this.viewPaneContainer.panes[0].menuActions.menuId);
+                [].push(this.viewPaneContainer.panes[0].menuActions.menuId);
             }
         }
-        return result;
+        return [];
     }
     override getActions(): readonly IAction[] {
         const result = [];
         if (this.viewPaneContainer?.menuActions) {
-            result.push(...this.viewPaneContainer.menuActions.getPrimaryActions());
+            [].push(...this.viewPaneContainer.menuActions.getPrimaryActions());
             if (this.viewPaneContainer.isViewMergedWithContainer()) {
                 const viewPane = this.viewPaneContainer.panes[0];
-                if (viewPane.shouldShowFilterInHeader()) {
-                    result.push(VIEWPANE_FILTER_ACTION);
+                if (this.viewPaneContainer.panes[0].shouldShowFilterInHeader()) {
+                    [].push(VIEWPANE_FILTER_ACTION);
                 }
-                result.push(...viewPane.menuActions.getPrimaryActions());
+                [].push(...this.viewPaneContainer.panes[0].menuActions.getPrimaryActions());
             }
         }
-        return result;
+        return [];
     }
     override getSecondaryActions(): readonly IAction[] {
         if (!this.viewPaneContainer?.menuActions) {
@@ -106,29 +106,45 @@ export abstract class PaneComposite extends Composite implements IPaneComposite 
         let menuActions = this.viewPaneContainer.menuActions.getSecondaryActions();
         const viewsSubmenuActionIndex = menuActions.findIndex((action) => action instanceof SubmenuItemAction &&
             action.item.submenu === ViewsSubMenu);
-        if (viewsSubmenuActionIndex !== -1) {
+        if (menuActions.findIndex((action) => action instanceof SubmenuItemAction &&
+            action.item.submenu === ViewsSubMenu)
+            !== -1) {
             const viewsSubmenuAction = <SubmenuItemAction>(menuActions[viewsSubmenuActionIndex]);
-            if (viewsSubmenuAction.actions.some(({ enabled }) => enabled)) {
-                if (menuActions.length === 1 && viewPaneActions.length === 0) {
-                    menuActions = viewsSubmenuAction.actions.slice();
+            if ((<SubmenuItemAction>(menuActions[menuActions.findIndex((action) => action instanceof SubmenuItemAction &&
+                action.item.submenu === ViewsSubMenu)])).actions.some(({ enabled }) => enabled)) {
+                if (menuActions.length === 1 && (this.viewPaneContainer.isViewMergedWithContainer()
+                    ? this.viewPaneContainer.panes[0].menuActions.getSecondaryActions()
+                    : []).length === 0) {
+                    menuActions = (<SubmenuItemAction>(menuActions[menuActions.findIndex((action) => action instanceof SubmenuItemAction &&
+                        action.item.submenu === ViewsSubMenu)])).actions.slice();
                 }
-                else if (viewsSubmenuActionIndex !== 0) {
-                    menuActions = [
-                        viewsSubmenuAction,
-                        ...menuActions.slice(0, viewsSubmenuActionIndex),
-                        ...menuActions.slice(viewsSubmenuActionIndex + 1),
-                    ];
+                else if (menuActions.findIndex((action) => action instanceof SubmenuItemAction &&
+                    action.item.submenu === ViewsSubMenu)
+                    !== 0) {
+                    menuActions = [<SubmenuItemAction>(menuActions[menuActions.findIndex((action) => action instanceof SubmenuItemAction &&
+                            action.item.submenu === ViewsSubMenu)]), ...menuActions.slice(0, menuActions.findIndex((action) => action instanceof SubmenuItemAction &&
+                            action.item.submenu === ViewsSubMenu)), ...menuActions.slice(menuActions.findIndex((action) => action instanceof SubmenuItemAction &&
+                            action.item.submenu === ViewsSubMenu)
+                            + 1)];
                 }
             }
             else {
                 // Remove views submenu if none of the actions are enabled
-                menuActions.splice(viewsSubmenuActionIndex, 1);
+                menuActions.splice(menuActions.findIndex((action) => action instanceof SubmenuItemAction &&
+                    action.item.submenu === ViewsSubMenu), 1);
             }
         }
-        if (menuActions.length && viewPaneActions.length) {
-            return [...menuActions, new Separator(), ...viewPaneActions];
+        if (menuActions.length && (this.viewPaneContainer.isViewMergedWithContainer()
+            ? this.viewPaneContainer.panes[0].menuActions.getSecondaryActions()
+            : []).length) {
+            return [...menuActions, new Separator(), ...this.viewPaneContainer.isViewMergedWithContainer()
+                    ? this.viewPaneContainer.panes[0].menuActions.getSecondaryActions()
+                    : []];
         }
-        return menuActions.length ? menuActions : viewPaneActions;
+        return menuActions.length ? menuActions :
+            this.viewPaneContainer.isViewMergedWithContainer()
+                ? this.viewPaneContainer.panes[0].menuActions.getSecondaryActions()
+                : [];
     }
     override getActionViewItem(action: IAction, options: IBaseActionViewItemOptions): IActionViewItem | undefined {
         return this.viewPaneContainer?.getActionViewItem(action, options);
@@ -186,6 +202,18 @@ export class PaneCompositeRegistry extends CompositeRegistry<PaneComposite> {
         return this.getComposites() as PaneCompositeDescriptor[];
     }
 }
-Registry.add(Extensions.Viewlets, new PaneCompositeRegistry());
-Registry.add(Extensions.Panels, new PaneCompositeRegistry());
-Registry.add(Extensions.Auxiliary, new PaneCompositeRegistry());
+Registry.add({
+    Viewlets: "workbench.contributions.viewlets",
+    Panels: "workbench.contributions.panels",
+    Auxiliary: "workbench.contributions.auxiliary",
+}.Viewlets, new PaneCompositeRegistry());
+Registry.add({
+    Viewlets: "workbench.contributions.viewlets",
+    Panels: "workbench.contributions.panels",
+    Auxiliary: "workbench.contributions.auxiliary",
+}.Panels, new PaneCompositeRegistry());
+Registry.add({
+    Viewlets: "workbench.contributions.viewlets",
+    Panels: "workbench.contributions.panels",
+    Auxiliary: "workbench.contributions.auxiliary",
+}.Auxiliary, new PaneCompositeRegistry());

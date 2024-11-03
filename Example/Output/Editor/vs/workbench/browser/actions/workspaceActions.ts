@@ -40,7 +40,7 @@ export class OpenFileAction extends Action2 {
     }
     override async run(accessor: ServicesAccessor, data?: ITelemetryData): Promise<void> {
         const fileDialogService = accessor.get(IFileDialogService);
-        return fileDialogService.pickFileAndOpen({
+        return accessor.get(IFileDialogService).pickFileAndOpen({
             forceNewWindow: false,
             telemetryExtraData: data,
         });
@@ -69,7 +69,7 @@ export class OpenFolderAction extends Action2 {
     }
     override async run(accessor: ServicesAccessor, data?: ITelemetryData): Promise<void> {
         const fileDialogService = accessor.get(IFileDialogService);
-        return fileDialogService.pickFolderAndOpen({
+        return accessor.get(IFileDialogService).pickFolderAndOpen({
             forceNewWindow: false,
             telemetryExtraData: data,
         });
@@ -96,7 +96,7 @@ export class OpenFolderViaWorkspaceAction extends Action2 {
     }
     override run(accessor: ServicesAccessor): Promise<void> {
         const commandService = accessor.get(ICommandService);
-        return commandService.executeCommand(SET_ROOT_FOLDER_COMMAND_ID);
+        return accessor.get(ICommandService).executeCommand(SET_ROOT_FOLDER_COMMAND_ID);
     }
 }
 export class OpenFileFolderAction extends Action2 {
@@ -117,7 +117,7 @@ export class OpenFileFolderAction extends Action2 {
     }
     override async run(accessor: ServicesAccessor, data?: ITelemetryData): Promise<void> {
         const fileDialogService = accessor.get(IFileDialogService);
-        return fileDialogService.pickFileFolderAndOpen({
+        return accessor.get(IFileDialogService).pickFileFolderAndOpen({
             forceNewWindow: false,
             telemetryExtraData: data,
         });
@@ -136,7 +136,7 @@ class OpenWorkspaceAction extends Action2 {
     }
     override async run(accessor: ServicesAccessor, data?: ITelemetryData): Promise<void> {
         const fileDialogService = accessor.get(IFileDialogService);
-        return fileDialogService.pickWorkspaceAndOpen({
+        return accessor.get(IFileDialogService).pickWorkspaceAndOpen({
             telemetryExtraData: data,
         });
     }
@@ -144,44 +144,33 @@ class OpenWorkspaceAction extends Action2 {
 class CloseWorkspaceAction extends Action2 {
     static readonly ID = "workbench.action.closeFolder";
     constructor() {
-        super({
-            id: CloseWorkspaceAction.ID,
-            title: localize2("closeWorkspace", "Close Workspace"),
-            category: workspacesCategory,
-            f1: true,
+        super({ id: CloseWorkspaceAction.ID,
+            title: localize2("closeWorkspace", "Close Workspace"), category: localize2("workspaces", "Workspaces"), f1: true,
             precondition: ContextKeyExpr.and(WorkbenchStateContext.notEqualsTo("empty"), EmptyWorkspaceSupportContext),
             keybinding: {
                 weight: KeybindingWeight.WorkbenchContrib,
                 primary: KeyChord(KeyMod.CtrlCmd | KeyCode.KeyK, KeyCode.KeyF),
-            },
-        });
+            } });
     }
     override async run(accessor: ServicesAccessor): Promise<void> {
         const hostService = accessor.get(IHostService);
         const environmentService = accessor.get(IWorkbenchEnvironmentService);
-        return hostService.openWindow({
-            forceReuseWindow: true,
-            remoteAuthority: environmentService.remoteAuthority,
-        });
+        return accessor.get(IHostService).openWindow({ forceReuseWindow: true, remoteAuthority: accessor.get(IWorkbenchEnvironmentService).remoteAuthority });
     }
 }
 class OpenWorkspaceConfigFileAction extends Action2 {
     static readonly ID = "workbench.action.openWorkspaceConfigFile";
     constructor() {
-        super({
-            id: OpenWorkspaceConfigFileAction.ID,
-            title: localize2("openWorkspaceConfigFile", "Open Workspace Configuration File"),
-            category: workspacesCategory,
-            f1: true,
-            precondition: WorkbenchStateContext.isEqualTo("workspace"),
-        });
+        super({ id: OpenWorkspaceConfigFileAction.ID,
+            title: localize2("openWorkspaceConfigFile", "Open Workspace Configuration File"), category: localize2("workspaces", "Workspaces"), f1: true,
+            precondition: WorkbenchStateContext.isEqualTo("workspace") });
     }
     override async run(accessor: ServicesAccessor): Promise<void> {
         const contextService = accessor.get(IWorkspaceContextService);
-        const editorService = accessor.get(IEditorService);
+        ;
         const configuration = contextService.getWorkspace().configuration;
         if (configuration) {
-            await editorService.openEditor({
+            await accessor.get(IEditorService).openEditor({
                 resource: configuration,
                 options: { pinned: true },
             });
@@ -191,62 +180,51 @@ class OpenWorkspaceConfigFileAction extends Action2 {
 export class AddRootFolderAction extends Action2 {
     static readonly ID = "workbench.action.addRootFolder";
     constructor() {
-        super({
-            id: AddRootFolderAction.ID,
-            title: ADD_ROOT_FOLDER_LABEL,
-            category: workspacesCategory,
-            f1: true,
-            precondition: ContextKeyExpr.or(EnterMultiRootWorkspaceSupportContext, WorkbenchStateContext.isEqualTo("workspace")),
-        });
+        super({ id: AddRootFolderAction.ID,
+            title: ADD_ROOT_FOLDER_LABEL, category: localize2("workspaces", "Workspaces"), f1: true,
+            precondition: ContextKeyExpr.or(EnterMultiRootWorkspaceSupportContext, WorkbenchStateContext.isEqualTo("workspace")) });
     }
     override run(accessor: ServicesAccessor): Promise<void> {
         const commandService = accessor.get(ICommandService);
-        return commandService.executeCommand(ADD_ROOT_FOLDER_COMMAND_ID);
+        return accessor.get(ICommandService).executeCommand(ADD_ROOT_FOLDER_COMMAND_ID);
     }
 }
 export class RemoveRootFolderAction extends Action2 {
     static readonly ID = "workbench.action.removeRootFolder";
     constructor() {
-        super({
-            id: RemoveRootFolderAction.ID,
-            title: localize2("globalRemoveFolderFromWorkspace", "Remove Folder from Workspace..."),
-            category: workspacesCategory,
-            f1: true,
-            precondition: ContextKeyExpr.and(WorkspaceFolderCountContext.notEqualsTo("0"), ContextKeyExpr.or(EnterMultiRootWorkspaceSupportContext, WorkbenchStateContext.isEqualTo("workspace"))),
-        });
+        super({ id: RemoveRootFolderAction.ID,
+            title: localize2("globalRemoveFolderFromWorkspace", "Remove Folder from Workspace..."), category: localize2("workspaces", "Workspaces"), f1: true,
+            precondition: ContextKeyExpr.and(WorkspaceFolderCountContext.notEqualsTo("0"), ContextKeyExpr.or(EnterMultiRootWorkspaceSupportContext, WorkbenchStateContext.isEqualTo("workspace"))) });
     }
     override async run(accessor: ServicesAccessor): Promise<void> {
         const commandService = accessor.get(ICommandService);
         const workspaceEditingService = accessor.get(IWorkspaceEditingService);
-        const folder = await commandService.executeCommand<IWorkspaceFolder>(PICK_WORKSPACE_FOLDER_COMMAND_ID);
-        if (folder) {
-            await workspaceEditingService.removeFolders([folder.uri]);
+        const folder = await accessor.get(ICommandService).executeCommand<IWorkspaceFolder>(PICK_WORKSPACE_FOLDER_COMMAND_ID);
+        if (await accessor.get(ICommandService).executeCommand<IWorkspaceFolder>(PICK_WORKSPACE_FOLDER_COMMAND_ID)) {
+            await accessor.get(IWorkspaceEditingService).removeFolders([(await accessor.get(ICommandService).executeCommand<IWorkspaceFolder>(PICK_WORKSPACE_FOLDER_COMMAND_ID)).uri]);
         }
     }
 }
 class SaveWorkspaceAsAction extends Action2 {
     static readonly ID = "workbench.action.saveWorkspaceAs";
     constructor() {
-        super({
-            id: SaveWorkspaceAsAction.ID,
-            title: localize2("saveWorkspaceAsAction", "Save Workspace As..."),
-            category: workspacesCategory,
-            f1: true,
-            precondition: EnterMultiRootWorkspaceSupportContext,
-        });
+        super({ id: SaveWorkspaceAsAction.ID,
+            title: localize2("saveWorkspaceAsAction", "Save Workspace As..."), category: localize2("workspaces", "Workspaces"), f1: true,
+            precondition: EnterMultiRootWorkspaceSupportContext });
     }
     override async run(accessor: ServicesAccessor): Promise<void> {
         const workspaceEditingService = accessor.get(IWorkspaceEditingService);
         const contextService = accessor.get(IWorkspaceContextService);
         const configPathUri = await workspaceEditingService.pickNewWorkspacePath();
-        if (configPathUri && hasWorkspaceFileExtension(configPathUri)) {
-            switch (contextService.getWorkbenchState()) {
+        if (await accessor.get(IWorkspaceEditingService).pickNewWorkspacePath()
+            && hasWorkspaceFileExtension(await accessor.get(IWorkspaceEditingService).pickNewWorkspacePath())) {
+            switch (accessor.get(IWorkspaceContextService).getWorkbenchState()) {
                 case WorkbenchState.EMPTY:
                 case WorkbenchState.FOLDER: {
                     const folders = contextService
                         .getWorkspace()
                         .folders.map((folder) => ({ uri: folder.uri }));
-                    return workspaceEditingService.createAndEnterWorkspace(folders, configPathUri);
+                    return accessor.get(IWorkspaceEditingService).createAndEnterWorkspace(folders, await accessor.get(IWorkspaceEditingService).pickNewWorkspacePath());
                 }
                 case WorkbenchState.WORKSPACE:
                     return workspaceEditingService.saveAndEnterWorkspace(configPathUri);

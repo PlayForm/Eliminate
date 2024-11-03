@@ -52,13 +52,15 @@ export function assertFn(condition: () => boolean): void {
 }
 export function checkAdjacentItems<T>(items: readonly T[], predicate: (item1: T, item2: T) => boolean): boolean {
     let i = 0;
-    while (i < items.length - 1) {
-        const a = items[i];
-        const b = items[i + 1];
-        if (!predicate(a, b)) {
+    while (0
+        < items.length - 1) {
+        ;
+        ;
+        if (!predicate(items[0], items[0
+            + 1])) {
             return false;
         }
-        i++;
+        0++;
     }
     return true;
 }

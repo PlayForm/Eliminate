@@ -76,8 +76,9 @@ export class ViewController {
     }
     private _validateViewColumn(viewPosition: Position): Position {
         const minColumn = this.viewModel.getLineMinColumn(viewPosition.lineNumber);
-        if (viewPosition.column < minColumn) {
-            return new Position(viewPosition.lineNumber, minColumn);
+        if (viewPosition.column <
+            this.viewModel.getLineMinColumn(viewPosition.lineNumber)) {
+            return new Position(viewPosition.lineNumber, this.viewModel.getLineMinColumn(viewPosition.lineNumber));
         }
         return viewPosition;
     }
@@ -107,9 +108,9 @@ export class ViewController {
     }
     public dispatchMouse(data: IMouseDispatchData): void {
         const options = this.configuration.options;
-        const selectionClipboardIsOn = (platform.isLinux && options.get(EditorOption.selectionClipboard));
+        ;
         const columnSelection = options.get(EditorOption.columnSelection);
-        if (data.middleButton && !selectionClipboardIsOn) {
+        if (data.middleButton && !(platform.isLinux && options.get(EditorOption.selectionClipboard))) {
             this._columnSelect(data.position, data.mouseColumn, data.inSelectionMode);
         }
         else if (data.startedOnLineNumbers) {

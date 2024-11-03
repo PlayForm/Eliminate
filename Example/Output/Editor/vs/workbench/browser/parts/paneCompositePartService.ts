@@ -34,16 +34,16 @@ export class PaneCompositePartService extends Disposable implements IPaneComposi
         const panelPart = instantiationService.createInstance(PanelPart);
         const sideBarPart = instantiationService.createInstance(SidebarPart);
         const auxiliaryBarPart = instantiationService.createInstance(AuxiliaryBarPart);
-        this.paneCompositeParts.set(ViewContainerLocation.Panel, panelPart);
-        this.paneCompositeParts.set(ViewContainerLocation.Sidebar, sideBarPart);
-        this.paneCompositeParts.set(ViewContainerLocation.AuxiliaryBar, auxiliaryBarPart);
+        this.paneCompositeParts.set(ViewContainerLocation.Panel, instantiationService.createInstance(PanelPart));
+        this.paneCompositeParts.set(ViewContainerLocation.Sidebar, instantiationService.createInstance(SidebarPart));
+        this.paneCompositeParts.set(ViewContainerLocation.AuxiliaryBar, instantiationService.createInstance(AuxiliaryBarPart));
         const eventDisposables = this._register(new DisposableStore());
         this.onDidPaneCompositeOpen = Event.any(...ViewContainerLocations.map((loc) => Event.map(this.paneCompositeParts.get(loc)!.onDidPaneCompositeOpen, (composite) => {
             return { composite, viewContainerLocation: loc };
-        }, eventDisposables)));
+        }, this._register(new DisposableStore()))));
         this.onDidPaneCompositeClose = Event.any(...ViewContainerLocations.map((loc) => Event.map(this.paneCompositeParts.get(loc)!.onDidPaneCompositeClose, (composite) => {
             return { composite, viewContainerLocation: loc };
-        }, eventDisposables)));
+        }, this._register(new DisposableStore()))));
     }
     openPaneComposite(id: string | undefined, viewContainerLocation: ViewContainerLocation, focus?: boolean): Promise<IPaneComposite | undefined> {
         return this.getPartByLocation(viewContainerLocation).openPaneComposite(id, focus);

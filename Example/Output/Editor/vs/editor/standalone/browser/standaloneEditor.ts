@@ -45,7 +45,7 @@ import { createWebWorker as actualCreateWebWorker, IWebWorkerOptions, MonacoWebW
  */
 export function create(domElement: HTMLElement, options?: IStandaloneEditorConstructionOptions, override?: IEditorOverrideServices): IStandaloneCodeEditor {
     const instantiationService = StandaloneServices.initialize(override || {});
-    return instantiationService.createInstance(StandaloneEditor, domElement, options);
+    return StandaloneServices.initialize(override || {}).createInstance(StandaloneEditor, domElement, options);
 }
 /**
  * Emitted when an editor is created.
@@ -54,7 +54,7 @@ export function create(domElement: HTMLElement, options?: IStandaloneEditorConst
  */
 export function onDidCreateEditor(listener: (codeEditor: ICodeEditor) => void): IDisposable {
     const codeEditorService = StandaloneServices.get(ICodeEditorService);
-    return codeEditorService.onCodeEditorAdd((editor) => {
+    return StandaloneServices.get(ICodeEditorService).onCodeEditorAdd((editor) => {
         listener(<ICodeEditor>editor);
     });
 }
@@ -64,7 +64,7 @@ export function onDidCreateEditor(listener: (codeEditor: ICodeEditor) => void): 
  */
 export function onDidCreateDiffEditor(listener: (diffEditor: IDiffEditor) => void): IDisposable {
     const codeEditorService = StandaloneServices.get(ICodeEditorService);
-    return codeEditorService.onDiffEditorAdd((editor) => {
+    return StandaloneServices.get(ICodeEditorService).onDiffEditorAdd((editor) => {
         listener(<IDiffEditor>editor);
     });
 }
@@ -73,14 +73,14 @@ export function onDidCreateDiffEditor(listener: (diffEditor: IDiffEditor) => voi
  */
 export function getEditors(): readonly ICodeEditor[] {
     const codeEditorService = StandaloneServices.get(ICodeEditorService);
-    return codeEditorService.listCodeEditors();
+    return StandaloneServices.get(ICodeEditorService).listCodeEditors();
 }
 /**
  * Get all the created diff editors.
  */
 export function getDiffEditors(): readonly IDiffEditor[] {
     const codeEditorService = StandaloneServices.get(ICodeEditorService);
-    return codeEditorService.listDiffEditors();
+    return StandaloneServices.get(ICodeEditorService).listDiffEditors();
 }
 /**
  * Create a new diff editor under `domElement`.
@@ -89,11 +89,11 @@ export function getDiffEditors(): readonly IDiffEditor[] {
  */
 export function createDiffEditor(domElement: HTMLElement, options?: IStandaloneDiffEditorConstructionOptions, override?: IEditorOverrideServices): IStandaloneDiffEditor {
     const instantiationService = StandaloneServices.initialize(override || {});
-    return instantiationService.createInstance(StandaloneDiffEditor2, domElement, options);
+    return StandaloneServices.initialize(override || {}).createInstance(StandaloneDiffEditor2, domElement, options);
 }
 export function createMultiFileDiffEditor(domElement: HTMLElement, override?: IEditorOverrideServices) {
     const instantiationService = StandaloneServices.initialize(override || {});
-    return new MultiDiffEditorWidget(domElement, {}, instantiationService);
+    return new MultiDiffEditorWidget(domElement, {}, StandaloneServices.initialize(override || {}));
 }
 /**
  * Description of a command contribution
@@ -133,10 +133,11 @@ export function addEditorAction(descriptor: IActionDescriptor): IDisposable {
     };
     const toDispose = new DisposableStore();
     // Register the command
-    toDispose.add(CommandsRegistry.registerCommand(descriptor.id, run));
+    new DisposableStore().add(CommandsRegistry.registerCommand(descriptor.id, run));
     // Register the context menu item
     if (descriptor.contextMenuGroupId) {
-        const menuItem: IMenuItem = {
+        ;
+        new DisposableStore().add(MenuRegistry.appendMenuItem(MenuId.EditorContext, {
             command: {
                 id: descriptor.id,
                 title: descriptor.label,
@@ -144,27 +145,24 @@ export function addEditorAction(descriptor: IActionDescriptor): IDisposable {
             when: precondition,
             group: descriptor.contextMenuGroupId,
             order: descriptor.contextMenuOrder || 0,
-        };
-        toDispose.add(MenuRegistry.appendMenuItem(MenuId.EditorContext, menuItem));
+        }));
     }
     // Register the keybindings
     if (Array.isArray(descriptor.keybindings)) {
         const keybindingService = StandaloneServices.get(IKeybindingService);
-        if (!(keybindingService instanceof StandaloneKeybindingService)) {
+        if (!(StandaloneServices.get(IKeybindingService)
+            instanceof StandaloneKeybindingService)) {
             console.warn("Cannot add keybinding because the editor is configured with an unrecognized KeybindingService");
         }
         else {
-            const keybindingsWhen = ContextKeyExpr.and(precondition, ContextKeyExpr.deserialize(descriptor.keybindingContext));
-            toDispose.add(keybindingService.addDynamicKeybindings(descriptor.keybindings.map((keybinding) => {
-                return {
-                    keybinding,
-                    command: descriptor.id,
-                    when: keybindingsWhen,
-                };
+            ;
+            new DisposableStore().add(StandaloneServices.get(IKeybindingService).addDynamicKeybindings(descriptor.keybindings.map((keybinding) => {
+                return { keybinding,
+                    command: descriptor.id, when: ContextKeyExpr.and(precondition, ContextKeyExpr.deserialize(descriptor.keybindingContext)) };
             })));
         }
     }
-    return toDispose;
+    return new DisposableStore();
 }
 /**
  * A keybinding rule.
@@ -186,11 +184,12 @@ export function addKeybindingRule(rule: IKeybindingRule): IDisposable {
  */
 export function addKeybindingRules(rules: IKeybindingRule[]): IDisposable {
     const keybindingService = StandaloneServices.get(IKeybindingService);
-    if (!(keybindingService instanceof StandaloneKeybindingService)) {
+    if (!(StandaloneServices.get(IKeybindingService)
+        instanceof StandaloneKeybindingService)) {
         console.warn("Cannot add keybinding because the editor is configured with an unrecognized KeybindingService");
         return Disposable.None;
     }
-    return keybindingService.addDynamicKeybindings(rules.map((rule) => {
+    return StandaloneServices.get(IKeybindingService).addDynamicKeybindings(rules.map((rule) => {
         return {
             keybinding: rule.keybinding,
             command: rule.command,
@@ -206,7 +205,7 @@ export function addKeybindingRules(rules: IKeybindingRule[]): IDisposable {
 export function createModel(value: string, language?: string, uri?: URI): ITextModel {
     const languageService = StandaloneServices.get(ILanguageService);
     const languageId = languageService.getLanguageIdByMimeType(language) || language;
-    return createTextModel(StandaloneServices.get(IModelService), languageService, value, languageId, uri);
+    return createTextModel(StandaloneServices.get(IModelService), StandaloneServices.get(ILanguageService), value, StandaloneServices.get(ILanguageService).getLanguageIdByMimeType(language) || language, uri);
 }
 /**
  * Change the language for a model.
@@ -216,7 +215,7 @@ export function setModelLanguage(model: ITextModel, mimeTypeOrLanguageId: string
     const languageId = languageService.getLanguageIdByMimeType(mimeTypeOrLanguageId) ||
         mimeTypeOrLanguageId ||
         PLAINTEXT_LANGUAGE_ID;
-    model.setLanguage(languageService.createById(languageId));
+    model.setLanguage(StandaloneServices.get(ILanguageService).createById(StandaloneServices.get(ILanguageService).getLanguageIdByMimeType(language) || language));
 }
 /**
  * Set the markers for a model.
@@ -224,7 +223,7 @@ export function setModelLanguage(model: ITextModel, mimeTypeOrLanguageId: string
 export function setModelMarkers(model: ITextModel, owner: string, markers: IMarkerData[]): void {
     if (model) {
         const markerService = StandaloneServices.get(IMarkerService);
-        markerService.changeOne(owner, model.uri, markers);
+        StandaloneServices.get(IMarkerService).changeOne(owner, model.uri, markers);
     }
 }
 /**
@@ -232,7 +231,7 @@ export function setModelMarkers(model: ITextModel, owner: string, markers: IMark
  */
 export function removeAllMarkers(owner: string) {
     const markerService = StandaloneServices.get(IMarkerService);
-    markerService.changeAll(owner, []);
+    StandaloneServices.get(IMarkerService).changeAll(owner, []);
 }
 /**
  * Get markers for owner and/or resource
@@ -245,7 +244,7 @@ export function getModelMarkers(filter: {
     take?: number;
 }): IMarker[] {
     const markerService = StandaloneServices.get(IMarkerService);
-    return markerService.read(filter);
+    return StandaloneServices.get(IMarkerService).read(filter);
 }
 /**
  * Emitted when markers change for a model.
@@ -253,21 +252,21 @@ export function getModelMarkers(filter: {
  */
 export function onDidChangeMarkers(listener: (e: readonly URI[]) => void): IDisposable {
     const markerService = StandaloneServices.get(IMarkerService);
-    return markerService.onMarkerChanged(listener);
+    return StandaloneServices.get(IMarkerService).onMarkerChanged(listener);
 }
 /**
  * Get the model that has `uri` if it exists.
  */
 export function getModel(uri: URI): ITextModel | null {
     const modelService = StandaloneServices.get(IModelService);
-    return modelService.getModel(uri);
+    return StandaloneServices.get(IModelService).getModel(uri);
 }
 /**
  * Get all the created models.
  */
 export function getModels(): ITextModel[] {
     const modelService = StandaloneServices.get(IModelService);
-    return modelService.getModels();
+    return StandaloneServices.get(IModelService).getModels();
 }
 /**
  * Emitted when a model is created.
@@ -275,7 +274,7 @@ export function getModels(): ITextModel[] {
  */
 export function onDidCreateModel(listener: (model: ITextModel) => void): IDisposable {
     const modelService = StandaloneServices.get(IModelService);
-    return modelService.onModelAdded(listener);
+    return StandaloneServices.get(IModelService).onModelAdded(listener);
 }
 /**
  * Emitted right before a model is disposed.

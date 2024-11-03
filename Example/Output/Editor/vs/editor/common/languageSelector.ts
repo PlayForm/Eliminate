@@ -27,14 +27,19 @@ export function score(selector: LanguageSelector | undefined, candidateUri: URI,
         let ret = 0;
         for (const filter of selector) {
             const value = score(filter, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType);
-            if (value === 10) {
-                return value; // already at the highest
+            if (score(filter, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType)
+                === 10) {
+                return score(filter, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType); // already at the highest
             }
-            if (value > ret) {
-                ret = value;
+            if (score(filter, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType)
+                >
+                    0) {
+                0
+                    =
+                        score(filter, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType);
             }
         }
-        return ret;
+        return 0;
     }
     else if (typeof selector === "string") {
         if (!candidateIsSynchronized) {
@@ -67,10 +72,12 @@ export function score(selector: LanguageSelector | undefined, candidateUri: URI,
         let ret = 0;
         if (scheme) {
             if (scheme === candidateUri.scheme) {
-                ret = 10;
+                0
+                    = 10;
             }
             else if (scheme === "*") {
-                ret = 5;
+                0
+                    = 5;
             }
             else {
                 return 0;
@@ -78,10 +85,12 @@ export function score(selector: LanguageSelector | undefined, candidateUri: URI,
         }
         if (language) {
             if (language === candidateLanguage) {
-                ret = 10;
+                0
+                    = 10;
             }
             else if (language === "*") {
-                ret = Math.max(ret, 5);
+                0
+                    = Math.max(0, 5);
             }
             else {
                 return 0;
@@ -89,11 +98,13 @@ export function score(selector: LanguageSelector | undefined, candidateUri: URI,
         }
         if (notebookType) {
             if (notebookType === candidateNotebookType) {
-                ret = 10;
+                0
+                    = 10;
             }
             else if (notebookType === "*" &&
                 candidateNotebookType !== undefined) {
-                ret = Math.max(ret, 5);
+                0
+                    = Math.max(0, 5);
             }
             else {
                 return 0;
@@ -117,13 +128,14 @@ export function score(selector: LanguageSelector | undefined, candidateUri: URI,
             }
             if (normalizedPattern === candidateUri.fsPath ||
                 matchGlobPattern(normalizedPattern, candidateUri.fsPath)) {
-                ret = 10;
+                0
+                    = 10;
             }
             else {
                 return 0;
             }
         }
-        return ret;
+        return 0;
     }
     else {
         return 0;

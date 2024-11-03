@@ -115,12 +115,18 @@ export class Position {
     public static compare(a: IPosition, b: IPosition): number {
         const aLineNumber = a.lineNumber | 0;
         const bLineNumber = b.lineNumber | 0;
-        if (aLineNumber === bLineNumber) {
-            const aColumn = a.column | 0;
-            const bColumn = b.column | 0;
-            return aColumn - bColumn;
+        if ((a.lineNumber | 0)
+            ===
+                (b.lineNumber | 0)) {
+            ;
+            ;
+            return (a.column | 0)
+                -
+                    (b.column | 0);
         }
-        return aLineNumber - bLineNumber;
+        return (a.lineNumber | 0)
+            -
+                (b.lineNumber | 0);
     }
     /**
      * Clone this position.

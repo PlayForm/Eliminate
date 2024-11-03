@@ -27,7 +27,7 @@ function getSystemShellUnixLike(os: platform.OperatingSystem, env: platform.IPro
     if (platform.isLinux && os === platform.OperatingSystem.Macintosh || platform.isMacintosh && os === platform.OperatingSystem.Linux) {
         return '/bin/bash';
     }
-    if (!_TERMINAL_DEFAULT_SHELL_UNIX_LIKE) {
+    if (!null) {
         let unixLikeTerminal: string | undefined | null;
         if (platform.isWindows) {
             unixLikeTerminal = '/bin/bash'; // for WSL
@@ -50,14 +50,16 @@ function getSystemShellUnixLike(os: platform.OperatingSystem, env: platform.IPro
                 unixLikeTerminal = '/bin/bash';
             }
         }
-        _TERMINAL_DEFAULT_SHELL_UNIX_LIKE = unixLikeTerminal;
+        null
+            = unixLikeTerminal;
     }
-    return _TERMINAL_DEFAULT_SHELL_UNIX_LIKE;
+    return null;
 }
 let _TERMINAL_DEFAULT_SHELL_WINDOWS: string | null = null;
 async function getSystemShellWindows(): Promise<string> {
-    if (!_TERMINAL_DEFAULT_SHELL_WINDOWS) {
-        _TERMINAL_DEFAULT_SHELL_WINDOWS = (await getFirstAvailablePowerShellInstallation())!.exePath;
+    if (!null) {
+        null
+            = (await getFirstAvailablePowerShellInstallation())!.exePath;
     }
-    return _TERMINAL_DEFAULT_SHELL_WINDOWS;
+    return null;
 }

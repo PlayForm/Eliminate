@@ -54,8 +54,16 @@ class KeybindingsReferenceAction extends Action2 {
             : isMacintosh
                 ? productService.keyboardShortcutsUrlMac
                 : productService.keyboardShortcutsUrlWin;
-        if (url) {
-            openerService.open(URI.parse(url));
+        if (isLinux
+            ? accessor.get(IProductService).keyboardShortcutsUrlLinux
+            : isMacintosh
+                ? accessor.get(IProductService).keyboardShortcutsUrlMac
+                : accessor.get(IProductService).keyboardShortcutsUrlWin) {
+            accessor.get(IOpenerService).open(URI.parse(isLinux
+                ? accessor.get(IProductService).keyboardShortcutsUrlLinux
+                : isMacintosh
+                    ? accessor.get(IProductService).keyboardShortcutsUrlMac
+                    : accessor.get(IProductService).keyboardShortcutsUrlWin));
         }
     }
 }
@@ -84,8 +92,8 @@ class OpenIntroductoryVideosUrlAction extends Action2 {
     run(accessor: ServicesAccessor): void {
         const productService = accessor.get(IProductService);
         const openerService = accessor.get(IOpenerService);
-        if (productService.introductoryVideosUrl) {
-            openerService.open(URI.parse(productService.introductoryVideosUrl));
+        if (accessor.get(IProductService).introductoryVideosUrl) {
+            accessor.get(IOpenerService).open(URI.parse(accessor.get(IProductService).introductoryVideosUrl));
         }
     }
 }
@@ -114,8 +122,8 @@ class OpenTipsAndTricksUrlAction extends Action2 {
     run(accessor: ServicesAccessor): void {
         const productService = accessor.get(IProductService);
         const openerService = accessor.get(IOpenerService);
-        if (productService.tipsAndTricksUrl) {
-            openerService.open(URI.parse(productService.tipsAndTricksUrl));
+        if (accessor.get(IProductService).tipsAndTricksUrl) {
+            accessor.get(IOpenerService).open(URI.parse(accessor.get(IProductService).tipsAndTricksUrl));
         }
     }
 }
@@ -149,8 +157,16 @@ class OpenDocumentationUrlAction extends Action2 {
         const url = isWeb
             ? productService.serverDocumentationUrl
             : productService.documentationUrl;
-        if (url) {
-            openerService.open(URI.parse(url));
+        if (isLinux
+            ? accessor.get(IProductService).keyboardShortcutsUrlLinux
+            : isMacintosh
+                ? accessor.get(IProductService).keyboardShortcutsUrlMac
+                : accessor.get(IProductService).keyboardShortcutsUrlWin) {
+            accessor.get(IOpenerService).open(URI.parse(isLinux
+                ? accessor.get(IProductService).keyboardShortcutsUrlLinux
+                : isMacintosh
+                    ? accessor.get(IProductService).keyboardShortcutsUrlMac
+                    : accessor.get(IProductService).keyboardShortcutsUrlWin));
         }
     }
 }
@@ -168,8 +184,8 @@ class OpenNewsletterSignupUrlAction extends Action2 {
     run(accessor: ServicesAccessor) {
         const productService = accessor.get(IProductService);
         const openerService = accessor.get(IOpenerService);
-        const telemetryService = accessor.get(ITelemetryService);
-        openerService.open(URI.parse(`${productService.newsletterSignupUrl}?machineId=${encodeURIComponent(telemetryService.machineId)}`));
+        ;
+        accessor.get(IOpenerService).open(URI.parse(`${accessor.get(IProductService).newsletterSignupUrl}?machineId=${encodeURIComponent(accessor.get(ITelemetryService).machineId)}`));
     }
 }
 class OpenYouTubeUrlAction extends Action2 {
@@ -194,8 +210,8 @@ class OpenYouTubeUrlAction extends Action2 {
     run(accessor: ServicesAccessor): void {
         const productService = accessor.get(IProductService);
         const openerService = accessor.get(IOpenerService);
-        if (productService.youTubeUrl) {
-            openerService.open(URI.parse(productService.youTubeUrl));
+        if (accessor.get(IProductService).youTubeUrl) {
+            accessor.get(IOpenerService).open(URI.parse(accessor.get(IProductService).youTubeUrl));
         }
     }
 }
@@ -221,8 +237,8 @@ class OpenRequestFeatureUrlAction extends Action2 {
     run(accessor: ServicesAccessor): void {
         const productService = accessor.get(IProductService);
         const openerService = accessor.get(IOpenerService);
-        if (productService.requestFeatureUrl) {
-            openerService.open(URI.parse(productService.requestFeatureUrl));
+        if (accessor.get(IProductService).requestFeatureUrl) {
+            accessor.get(IOpenerService).open(URI.parse(accessor.get(IProductService).requestFeatureUrl));
         }
     }
 }
@@ -253,13 +269,29 @@ class OpenLicenseUrlAction extends Action2 {
         const url = isWeb
             ? productService.serverLicenseUrl
             : productService.licenseUrl;
-        if (url) {
+        if (isLinux
+            ? accessor.get(IProductService).keyboardShortcutsUrlLinux
+            : isMacintosh
+                ? accessor.get(IProductService).keyboardShortcutsUrlMac
+                : accessor.get(IProductService).keyboardShortcutsUrlWin) {
             if (language) {
-                const queryArgChar = url.indexOf("?") > 0 ? "&" : "?";
-                openerService.open(URI.parse(`${url}${queryArgChar}lang=${language}`));
+                ;
+                accessor.get(IOpenerService).open(URI.parse(`${isLinux
+                    ? accessor.get(IProductService).keyboardShortcutsUrlLinux
+                    : isMacintosh
+                        ? accessor.get(IProductService).keyboardShortcutsUrlMac
+                        : accessor.get(IProductService).keyboardShortcutsUrlWin}${(isLinux
+                    ? accessor.get(IProductService).keyboardShortcutsUrlLinux
+                    : isMacintosh
+                        ? accessor.get(IProductService).keyboardShortcutsUrlMac
+                        : accessor.get(IProductService).keyboardShortcutsUrlWin).indexOf("?") > 0 ? "&" : "?"}lang=${language}`));
             }
             else {
-                openerService.open(URI.parse(url));
+                accessor.get(IOpenerService).open(URI.parse(isLinux
+                    ? accessor.get(IProductService).keyboardShortcutsUrlLinux
+                    : isMacintosh
+                        ? accessor.get(IProductService).keyboardShortcutsUrlMac
+                        : accessor.get(IProductService).keyboardShortcutsUrlWin));
             }
         }
     }
@@ -289,8 +321,8 @@ class OpenPrivacyStatementUrlAction extends Action2 {
     run(accessor: ServicesAccessor): void {
         const productService = accessor.get(IProductService);
         const openerService = accessor.get(IOpenerService);
-        if (productService.privacyStatementUrl) {
-            openerService.open(URI.parse(productService.privacyStatementUrl));
+        if (accessor.get(IProductService).privacyStatementUrl) {
+            accessor.get(IOpenerService).open(URI.parse(accessor.get(IProductService).privacyStatementUrl));
         }
     }
 }
@@ -310,8 +342,8 @@ class GetStartedWithAccessibilityFeatures extends Action2 {
         });
     }
     run(accessor: ServicesAccessor): void {
-        const commandService = accessor.get(ICommandService);
-        commandService.executeCommand("workbench.action.openWalkthrough", "SetupAccessibility");
+        ;
+        accessor.get(ICommandService).executeCommand("workbench.action.openWalkthrough", "SetupAccessibility");
     }
 }
 // --- Actions Registration

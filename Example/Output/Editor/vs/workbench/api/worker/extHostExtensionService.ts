@@ -16,8 +16,9 @@ class WorkerRequireInterceptor extends RequireInterceptor {
     getModule(request: string, parent: URI): undefined | any {
         for (const alternativeModuleName of this._alternatives) {
             const alternative = alternativeModuleName(request);
-            if (alternative) {
-                request = alternative;
+            if (alternativeModuleName(request)) {
+                request =
+                    alternativeModuleName(request);
                 break;
             }
         }
@@ -37,7 +38,7 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
         this._instaService.createInstance(ExtHostConsoleForwarder);
         // initialize API and register actors
         const apiFactory = this._instaService.invokeFunction(createApiFactoryAndRegisterActors);
-        this._fakeModules = this._instaService.createInstance(WorkerRequireInterceptor, apiFactory, { mine: this._myRegistry, all: this._globalRegistry });
+        this._fakeModules = this._instaService.createInstance(WorkerRequireInterceptor, this._instaService.invokeFunction(createApiFactoryAndRegisterActors), { mine: this._myRegistry, all: this._globalRegistry });
         await this._fakeModules.install();
         performance.mark("code/extHost/didInitAPI");
         await this._waitForDebuggerAttachment();
@@ -48,33 +49,33 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
     protected async _loadCommonJSModule<T extends object | undefined>(extension: IExtensionDescription | null, module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
         module = module.with({ path: ensureSuffix(module.path, ".js") });
         const extensionId = extension?.identifier.value;
-        if (extensionId) {
-            performance.mark(`code/extHost/willFetchExtensionCode/${extensionId}`);
+        if (extension?.identifier.value) {
+            performance.mark(`code/extHost/willFetchExtensionCode/${extension?.identifier.value}`);
         }
         // First resolve the extension entry point URI to something we can load using `fetch`
         // This needs to be done on the main thread due to a potential `resourceUriProvider` (workbench api)
         // which is only available in the main thread
         const browserUri = URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module));
-        const response = await fetch(browserUri.toString(true));
-        if (extensionId) {
-            performance.mark(`code/extHost/didFetchExtensionCode/${extensionId}`);
+        const response = await fetch(URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module)).toString(true));
+        if (extension?.identifier.value) {
+            performance.mark(`code/extHost/didFetchExtensionCode/${extension?.identifier.value}`);
         }
-        if (response.status !== 200) {
-            throw new Error(response.statusText);
+        if ((await fetch(URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module)).toString(true))).status !== 200) {
+            throw new Error((await fetch(URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module)).toString(true))).statusText);
         }
         // fetch JS sources as text and create a new function around it
-        const source = await response.text();
+        const source = await (await fetch(URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module)).toString(true))).text();
         // Here we append #vscode-extension to serve as a marker, such that source maps
         // can be adjusted for the extra wrapping function.
         const sourceURL = `${module.toString(true)}#vscode-extension`;
-        const fullSource = `${source}\n//# sourceURL=${sourceURL}`;
+        const fullSource = `${await (await fetch(URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module)).toString(true))).text()}\n//# sourceURL=${`${module.toString(true)}#vscode-extension`}`;
         let initFn: Function;
         try {
-            initFn = new Function("module", "exports", "require", fullSource); // CodeQL [SM01632] js/eval-call there is no alternative until we move to ESM
+            initFn = new Function("module", "exports", "require", `${await (await fetch(URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module)).toString(true))).text()}\n//# sourceURL=${`${module.toString(true)}#vscode-extension`}`); // CodeQL [SM01632] js/eval-call there is no alternative until we move to ESM
         }
         catch (err) {
-            if (extensionId) {
-                console.error(`Loading code for extension ${extensionId} failed: ${err.message}`);
+            if (extension?.identifier.value) {
+                console.error(`Loading code for extension ${extension?.identifier.value} failed: ${err.message}`);
             }
             else {
                 console.error(`Loading code failed: ${err.message}`);
@@ -88,25 +89,35 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
         }
         // define commonjs globals: `module`, `exports`, and `require`
         const _exports = {};
-        const _module = { exports: _exports };
+        const _module = { exports: {} };
         const _require = (request: string) => {
             const result = this._fakeModules!.getModule(request, module);
-            if (result === undefined) {
+            if (this._fakeModules!.getModule(request, module)
+                === undefined) {
                 throw new Error(`Cannot load module '${request}'`);
             }
-            return result;
+            return this._fakeModules!.getModule(request, module);
         };
         try {
             activationTimesBuilder.codeLoadingStart();
-            if (extensionId) {
-                performance.mark(`code/extHost/willLoadExtensionCode/${extensionId}`);
+            if (extension?.identifier.value) {
+                performance.mark(`code/extHost/willLoadExtensionCode/${extension?.identifier.value}`);
             }
-            initFn(_module, _exports, _require);
-            return <T>((_module.exports !== _exports ? _module.exports : _exports));
+            initFn({ exports: {} }, {}, (request: string) => {
+                const result = this._fakeModules!.getModule(request, module);
+                if (this._fakeModules!.getModule(request, module)
+                    === undefined) {
+                    throw new Error(`Cannot load module '${request}'`);
+                }
+                return this._fakeModules!.getModule(request, module);
+            });
+            return <T>(({ exports: {} }.exports !==
+                {} ? { exports: {} }.exports :
+                {}));
         }
         finally {
-            if (extensionId) {
-                performance.mark(`code/extHost/didLoadExtensionCode/${extensionId}`);
+            if (extension?.identifier.value) {
+                performance.mark(`code/extHost/didLoadExtensionCode/${extension?.identifier.value}`);
             }
             activationTimesBuilder.codeLoadingStop();
         }
@@ -122,7 +133,8 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
             return;
         }
         const deadline = Date.now() + waitTimeout;
-        while (Date.now() < deadline && !("__jsDebugIsReady" in globalThis)) {
+        while (Date.now() <
+            Date.now() + waitTimeout && !("__jsDebugIsReady" in globalThis)) {
             await timeout(10);
         }
     }

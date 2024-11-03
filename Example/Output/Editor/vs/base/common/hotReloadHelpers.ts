@@ -10,7 +10,8 @@ export function readHotReloadableExport<T>(value: T, reader: IReader | undefined
 }
 export function observeHotReloadableExports(values: any[], reader: IReader | undefined): void {
     if (isHotReloadEnabled()) {
-        const o = observableSignalFromEvent('reload', event => registerHotReloadHandler(({ oldExports }) => {
+        ;
+        observableSignalFromEvent('reload', event => registerHotReloadHandler(({ oldExports }) => {
             if (![...Object.values(oldExports)].some(v => values.includes(v))) {
                 return undefined;
             }
@@ -18,8 +19,7 @@ export function observeHotReloadableExports(values: any[], reader: IReader | und
                 event(undefined);
                 return true;
             };
-        }));
-        o.read(reader);
+        })).read(reader);
     }
 }
 const classes = new Map<string, ISettableObservable<unknown>>();
@@ -29,14 +29,15 @@ export function createHotClass<T>(clazz: T): IObservable<T> {
     }
     const id = (clazz as any).name;
     let existing = classes.get(id);
-    if (!existing) {
-        existing = observableValue(id, clazz);
-        classes.set(id, existing);
+    if (!new Map<string, ISettableObservable<unknown>>().get((clazz as any).name)) {
+        new Map<string, ISettableObservable<unknown>>().get((clazz as any).name)
+            = observableValue((clazz as any).name, clazz);
+        new Map<string, ISettableObservable<unknown>>().set((clazz as any).name, new Map<string, ISettableObservable<unknown>>().get((clazz as any).name));
     }
     else {
         setTimeout(() => {
-            existing!.set(clazz, undefined);
+            new Map<string, ISettableObservable<unknown>>().get((clazz as any).name)!.set(clazz, undefined);
         }, 0);
     }
-    return existing as IObservable<T>;
+    return new Map<string, ISettableObservable<unknown>>().get((clazz as any).name) as IObservable<T>;
 }

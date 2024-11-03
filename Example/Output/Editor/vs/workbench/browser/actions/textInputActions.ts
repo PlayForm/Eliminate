@@ -48,9 +48,9 @@ export class TextInputActionsProvider extends Disposable implements IWorkbenchCo
                         isHTMLInputElement(element)) {
                         const selectionStart = element.selectionStart || 0;
                         const selectionEnd = element.selectionEnd || 0;
-                        element.value = `${element.value.substring(0, selectionStart)}${clipboardText}${element.value.substring(selectionEnd, element.value.length)}`;
+                        element.value = `${element.value.substring(0, selectionStart)}${await this.clipboardService.readText()}${element.value.substring(selectionEnd, element.value.length)}`;
                         element.selectionStart =
-                            selectionStart + clipboardText.length;
+                            selectionStart + (await this.clipboardService.readText()).length;
                         element.selectionEnd = element.selectionStart;
                         element.dispatchEvent(new Event("input", {
                             bubbles: true,
@@ -61,8 +61,7 @@ export class TextInputActionsProvider extends Disposable implements IWorkbenchCo
             }),
             new Separator(),
             // Select All
-            new Action("editor.action.selectAll", localize("selectAll", "Select All"), undefined, true, async () => getActiveDocument().execCommand("selectAll")),
-        ];
+            new Action("editor.action.selectAll", localize("selectAll", "Select All"), undefined, true, async () => getActiveDocument().execCommand("selectAll"))];
     }
     private registerListeners(): void {
         // Context menu support in input/textarea
@@ -85,11 +84,8 @@ export class TextInputActionsProvider extends Disposable implements IWorkbenchCo
         }
         EventHelper.stop(e, true);
         const event = new StandardMouseEvent(targetWindow, e);
-        this.contextMenuService.showContextMenu({
-            getAnchor: () => event,
-            getActions: () => this.textInputActions.value,
-            getActionsContext: () => target,
-        });
+        this.contextMenuService.showContextMenu({ getAnchor: () => new StandardMouseEvent(targetWindow, e), getActions: () => this.textInputActions.value,
+            getActionsContext: () => target });
     }
 }
 registerWorkbenchContribution2(TextInputActionsProvider.ID, TextInputActionsProvider, WorkbenchPhase.BlockRestore);

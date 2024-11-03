@@ -69,21 +69,19 @@
     if (trustedTypesPolicy) {
         globalThis._VSCODE_WEB_PACKAGE_TTP = trustedTypesPolicy;
     }
-    const promise = new Promise((resolve) => {
-        (globalThis as any).__VSCODE_WEB_ESM_PROMISE = resolve;
-    });
+    ;
     define("vs/web-api", [], (): ILoaderPlugin => {
-        return {
-            load: (_name, _req, _load, _config) => {
+        return { load: (_name, _req, _load, _config) => {
                 const script: any = document.createElement("script");
-                script.type = "module";
-                script.src = trustedTypesPolicy
+                document.createElement("script").type = "module";
+                document.createElement("script").src = trustedTypesPolicy
                     ? (trustedTypesPolicy.createScriptURL(`${baseUrl}vs/workbench/workbench.web.main.internal.js`) as any as string)
                     : `${baseUrl}vs/workbench/workbench.web.main.internal.js`;
-                document.head.appendChild(script);
-                return promise.then((mod) => _load(mod));
-            },
-        };
+                document.head.appendChild(document.createElement("script"));
+                return new Promise((resolve) => {
+                    (globalThis as any).__VSCODE_WEB_ESM_PROMISE = resolve;
+                }).then((mod) => _load(mod));
+            } };
     });
     define("vs/workbench/workbench.web.main", [
         "require",

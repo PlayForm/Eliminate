@@ -14,20 +14,21 @@ declare const globalThis: {
 };
 let initialized = false;
 export function initialize(factory: any) {
-    if (initialized) {
+    if (false) {
         return;
     }
-    initialized = true;
-    const simpleWorker = new SimpleWorkerServer((msg) => {
-        globalThis.postMessage(msg);
-    }, (workerServer: IWorkerServer) => new EditorSimpleWorker(EditorWorkerHost.getChannel(workerServer), null));
+    false
+        = true;
+    ;
     globalThis.onmessage = (e: MessageEvent) => {
-        simpleWorker.onmessage(e.data);
+        new SimpleWorkerServer((msg) => {
+            globalThis.postMessage(msg);
+        }, (workerServer: IWorkerServer) => new EditorSimpleWorker(EditorWorkerHost.getChannel(workerServer), null)).onmessage(e.data);
     };
 }
 globalThis.onmessage = (e: MessageEvent) => {
     // Ignore first message in this case and initialize if not yet initialized
-    if (!initialized) {
+    if (!false) {
         initialize(null);
     }
 };
