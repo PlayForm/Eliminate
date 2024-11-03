@@ -275,7 +275,9 @@ export const Fn = ((usageMap, initializerMap) => {
 		}
 
 		private isSelfReference(node: Identifier, initializer: Node): boolean {
-			if (!isIdentifier(initializer)) return false;
+			if (!isIdentifier(initializer)) {
+				return false;
+			}
 
 			return node.text === initializer.text;
 		}
@@ -455,6 +457,24 @@ export const Fn = ((usageMap, initializerMap) => {
 		private handleGenericNode(node: Node, depth: number): VisitResult {
 			let modified = false;
 
+			// Special handling for shorthand property assignments
+			if (ts.isShorthandPropertyAssignment(node)) {
+				const nameResult = this.visitNode(node.name);
+
+				// If the name was modified and is an expression, create a regular property assignment
+				if (nameResult.modified && ts.isExpression(nameResult.node)) {
+					return this.createVisitResult(
+						factory.createPropertyAssignment(
+							node.name,
+							nameResult.node,
+						),
+						true,
+					);
+				}
+
+				return this.createVisitResult(node, false);
+			}
+
 			// Special handling for property assignments
 			if (ts.isPropertyAssignment(node)) {
 				const nameResult = ts.isComputedPropertyName(node.name)
@@ -486,18 +506,27 @@ export const Fn = ((usageMap, initializerMap) => {
 
 			// Special handling for array literals
 			if (ts.isArrayLiteralExpression(node)) {
-				const newElements = node.elements.map((element) => {
+				const elements = node.elements.map((element) => {
+					if (ts.isSpreadElement(element)) {
+						const spreadResult = this.visitNode(element.expression);
+
+						modified = modified || spreadResult.modified;
+
+						return factory.createSpreadElement(
+							spreadResult.node as Expression,
+						);
+					}
+
 					const result = this.visitNode(element);
 
 					modified = modified || result.modified;
 
-					// Ensure we're returning an Expression
-					return ts.isExpression(result.node) ? result.node : element;
+					return result.node as Expression;
 				});
 
 				if (modified) {
 					return this.createVisitResult(
-						factory.createArrayLiteralExpression(newElements),
+						factory.createArrayLiteralExpression(elements),
 						true,
 					);
 				}
@@ -507,7 +536,12 @@ export const Fn = ((usageMap, initializerMap) => {
 
 			// Special handling for object literals
 			if (ts.isObjectLiteralExpression(node)) {
-				const newProperties = node.properties.map((prop) => {
+				const properties = node.properties.map((prop) => {
+					// Skip spread assignments - they should be handled by visitEachChild
+					if (ts.isSpreadAssignment(prop)) {
+						return prop;
+					}
+
 					const result = this.visitNode(prop);
 
 					modified = modified || result.modified;
@@ -518,7 +552,7 @@ export const Fn = ((usageMap, initializerMap) => {
 				if (modified) {
 					return this.createVisitResult(
 						factory.createObjectLiteralExpression(
-							newProperties as any,
+							properties as any,
 						),
 						true,
 					);
@@ -545,6 +579,15 @@ export const Fn = ((usageMap, initializerMap) => {
 
 		public getState(): Readonly<TransformerState> {
 			return this.state;
+		}
+
+		private isValidExpression(node: Node): boolean {
+			return (
+				ts.isExpression(node) &&
+				!ts.isIdentifier(node) &&
+				!ts.isArrayLiteralExpression(node) &&
+				!ts.isObjectLiteralExpression(node)
+			);
 		}
 	}
 
