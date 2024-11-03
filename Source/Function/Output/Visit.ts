@@ -7,7 +7,7 @@ import type { Node } from "typescript";
  */
 export const Fn = ((...[Usage, Initializer]) =>
 	(...[Node]) => {
-		const MAX_USAGE_COUNT = 54;
+		const MAX_USAGE_COUNT = 1000;
 
 		const MAX_INITIALIZER_SIZE = 1000;
 

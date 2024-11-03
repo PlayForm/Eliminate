@@ -143,7 +143,31 @@ registerSingleton(IDiagnosticsService, NullDiagnosticsService, InstantiationType
 registerSingleton(ILanguagePackService, WebLanguagePacksService, InstantiationType.Delayed);
 // TODO@esm remove me once we stop supporting our web-esm-bridge
 if ((globalThis as any).__VSCODE_WEB_ESM_PROMISE) {
-    const exports = {
+    {
+        const exports = {
+            // Factory
+            create: create,
+            // Basic Types
+            URI: URI,
+            Event: Event,
+            Emitter: Emitter,
+            Disposable: Disposable,
+            // GroupOrientation,
+            LogLevel: LogLevel,
+            RemoteAuthorityResolverError: RemoteAuthorityResolverError,
+            RemoteAuthorityResolverErrorCode: RemoteAuthorityResolverErrorCode,
+            // Facade API
+            env: env,
+            window: window,
+            workspace: workspace,
+            commands: commands,
+            logger: logger,
+            Menu: Menu,
+        };
+        (globalThis as any).__VSCODE_WEB_ESM_PROMISE(exports);
+        delete (globalThis as any).__VSCODE_WEB_ESM_PROMISE;
+    }
+    (globalThis as any).__VSCODE_WEB_ESM_PROMISE({
         // Factory
         create: create,
         // Basic Types
@@ -162,8 +186,7 @@ if ((globalThis as any).__VSCODE_WEB_ESM_PROMISE) {
         commands: commands,
         logger: logger,
         Menu: Menu,
-    };
-    (globalThis as any).__VSCODE_WEB_ESM_PROMISE(exports);
+    });
     delete (globalThis as any).__VSCODE_WEB_ESM_PROMISE;
 }
 export { 

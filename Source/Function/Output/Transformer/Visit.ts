@@ -4,6 +4,7 @@ import type {
 	Identifier,
 	Node,
 	TransformationContext,
+	VariableDeclaration,
 	VariableStatement,
 } from "typescript";
 
@@ -166,7 +167,7 @@ export const Fn = ((usageMap, initializerMap) => {
 
 		private readonly circularDetector: CircularReferenceDetector;
 
-		private readonly preservedVariables = new Set<string>();
+		private readonly preservedVariables = new Map<string, Node>();
 
 		constructor(context: TransformationContext) {
 			this.state = {
@@ -234,7 +235,7 @@ export const Fn = ((usageMap, initializerMap) => {
 		): VisitResult<Identifier | Expression> {
 			const name = node.text;
 
-			// Don't replace references to preserved variables
+			// Check if this identifier refers to a preserved variable
 			if (this.preservedVariables.has(name)) {
 				return this.createVisitResult(node, false);
 			}
@@ -245,7 +246,6 @@ export const Fn = ((usageMap, initializerMap) => {
 				return this.createVisitResult(node, false);
 			}
 
-			// Try to find an initializer that matches the name
 			let initializer: Node | undefined;
 
 			for (const [init, varName] of initializerMap.entries()) {
@@ -260,12 +260,21 @@ export const Fn = ((usageMap, initializerMap) => {
 				return this.createVisitResult(node, false);
 			}
 
-			// Detect self-references
+			// Don't transform if this is part of the variable's own declaration
+			const declaration = this.findParentVariableDeclaration(node);
+
+			if (
+				declaration &&
+				ts.isIdentifier(declaration.name) &&
+				declaration.name.text === name
+			) {
+				return this.createVisitResult(node, false);
+			}
+
 			if (this.isSelfReference(node, initializer)) {
 				return this.createVisitResult(node, false, new Set([name]));
 			}
 
-			// Check for circular references
 			const dependencies = this.collectDependencies(initializer);
 
 			if (this.circularDetector.detectCircular(name, dependencies)) {
@@ -291,6 +300,22 @@ export const Fn = ((usageMap, initializerMap) => {
 
 				return this.createVisitResult(node, false);
 			}
+		}
+
+		private findParentVariableDeclaration(
+			node: Node,
+		): VariableDeclaration | undefined {
+			let current = node.parent;
+
+			while (current) {
+				if (ts.isVariableDeclaration(current)) {
+					return current;
+				}
+
+				current = current.parent;
+			}
+
+			return undefined;
 		}
 
 		private isSelfReference(node: Identifier, initializer: Node): boolean {
@@ -385,43 +410,30 @@ export const Fn = ((usageMap, initializerMap) => {
 			return result;
 		}
 
-		private shouldInlineVariable(
+		private shouldPreserveVariable(
 			name: string,
 			initializer: Node | undefined,
 			node: VariableStatement,
 		): boolean {
 			const usage = usageMap.get(name);
 
-			// Don't inline if:
-			// 1. No usage count available
-			// 2. No initializer
-			// 3. Multiple usages
-			// 4. Is exported
+			// Preserve if:
+			// 1. Multiple usages
+			// 2. Has complex initializer
+			// 3. Is exported
+			// 4. No initializer
 			if (
-				!usage ||
 				!initializer ||
+				!usage ||
 				usage > 1 ||
 				node.modifiers?.some(
 					(mod) => mod.kind === ts.SyntaxKind.ExportKeyword,
 				)
 			) {
-				this.preservedVariables.add(name);
-
-				return false;
+				return true;
 			}
 
-			// Don't inline if the initializer contains function calls or other complex expressions
-			// that should only be evaluated once
-			const hasComplexInitializer =
-				this.containsComplexExpression(initializer);
-
-			if (hasComplexInitializer) {
-				this.preservedVariables.add(name);
-
-				return false;
-			}
-
-			return true;
+			return this.containsComplexExpression(initializer);
 		}
 
 		private containsComplexExpression(node: Node): boolean {
@@ -463,47 +475,56 @@ export const Fn = ((usageMap, initializerMap) => {
 
 				const name = declaration.name.text;
 
-				// Evaluate if we should inline this variable
+				// Check if we should preserve this variable
 				if (
-					this.shouldInlineVariable(
+					this.shouldPreserveVariable(
 						name,
 						declaration.initializer,
 						node,
 					)
 				) {
-					if (
-						declaration.initializer &&
-						!initializerMap.has(declaration.initializer)
-					) {
-						initializerMap.set(declaration.initializer, name);
+					// Store the original declaration for reference
+					if (declaration.initializer) {
+						this.preservedVariables.set(
+							name,
+							declaration.initializer,
+						);
 					}
-					modified = true;
+
+					if (declaration.initializer) {
+						const result = this.visitNode(declaration.initializer);
+
+						if (result.modified && ts.isExpression(result.node)) {
+							modified = true;
+
+							newDeclarations.push(
+								factory.updateVariableDeclaration(
+									declaration,
+									declaration.name,
+									declaration.exclamationToken,
+									declaration.type,
+									result.node,
+								),
+							);
+						} else {
+							newDeclarations.push(declaration);
+						}
+					} else {
+						newDeclarations.push(declaration);
+					}
 
 					continue;
 				}
 
-				// If the variable shouldn't be inlined, try to simplify its initializer if possible
-				if (declaration.initializer) {
-					const result = this.visitNode(declaration.initializer);
-
-					if (result.modified && ts.isExpression(result.node)) {
-						modified = true;
-
-						newDeclarations.push(
-							factory.updateVariableDeclaration(
-								declaration,
-								declaration.name,
-								declaration.exclamationToken,
-								declaration.type,
-								result.node,
-							),
-						);
-					} else {
-						newDeclarations.push(declaration);
-					}
-				} else {
-					newDeclarations.push(declaration);
+				// Only inline if not preserved
+				if (
+					declaration.initializer &&
+					!initializerMap.has(declaration.initializer)
+				) {
+					initializerMap.set(declaration.initializer, name);
 				}
+
+				modified = true;
 			}
 
 			if (newDeclarations.length === 0) {
