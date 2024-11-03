@@ -409,7 +409,6 @@ export const Fn = ((usageMap, initializerMap) => {
 				if (!usage || usage > 1 || !declaration.initializer) {
 					newDeclarations.push(declaration);
 
-					
 					continue;
 				}
 
