@@ -10,5 +10,5 @@ export default interface Interface {
 	(
 		Usage: Usage,
 		Initializer: Initializer,
-	): (Context: TransformationContext) => (Node: Node) => Node;
+	): (Context: TransformationContext) => (Node: Node) => Promise<Node>;
 }
