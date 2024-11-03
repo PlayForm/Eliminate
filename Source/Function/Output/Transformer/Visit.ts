@@ -486,8 +486,29 @@ export const Fn = ((usageMap, initializerMap) => {
 
 			// Special handling for array literals
 			if (ts.isArrayLiteralExpression(node)) {
-				const elements = node.elements.map((element) => {
+				const newElements = node.elements.map((element) => {
 					const result = this.visitNode(element);
+
+					modified = modified || result.modified;
+
+					// Ensure we're returning an Expression
+					return ts.isExpression(result.node) ? result.node : element;
+				});
+
+				if (modified) {
+					return this.createVisitResult(
+						factory.createArrayLiteralExpression(newElements),
+						true,
+					);
+				}
+
+				return this.createVisitResult(node, false);
+			}
+
+			// Special handling for object literals
+			if (ts.isObjectLiteralExpression(node)) {
+				const newProperties = node.properties.map((prop) => {
+					const result = this.visitNode(prop);
 
 					modified = modified || result.modified;
 
@@ -496,8 +517,8 @@ export const Fn = ((usageMap, initializerMap) => {
 
 				if (modified) {
 					return this.createVisitResult(
-						factory.createArrayLiteralExpression(
-							elements as Expression[],
+						factory.createObjectLiteralExpression(
+							newProperties as any,
 						),
 						true,
 					);
