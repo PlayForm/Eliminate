@@ -2,21 +2,21 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Dimension, IDomPosition, trackFocus } from "../../base/browser/dom.js";
-import { IActionViewItem } from "../../base/browser/ui/actionbar/actionbar.js";
-import { IBaseActionViewItemOptions } from "../../base/browser/ui/actionbar/actionViewItems.js";
-import { IBoundarySashes } from "../../base/browser/ui/sash/sash.js";
-import { ActionRunner, IAction, IActionRunner, } from "../../base/common/actions.js";
-import { Emitter, Event } from "../../base/common/event.js";
-import { Disposable } from "../../base/common/lifecycle.js";
-import { assertIsDefined } from "../../base/common/types.js";
-import { MenuId } from "../../platform/actions/common/actions.js";
-import { IConstructorSignature, IInstantiationService, } from "../../platform/instantiation/common/instantiation.js";
-import { IStorageService } from "../../platform/storage/common/storage.js";
-import { ITelemetryService } from "../../platform/telemetry/common/telemetry.js";
-import { IThemeService } from "../../platform/theme/common/themeService.js";
-import { Component } from "../common/component.js";
-import { IComposite, ICompositeControl } from "../common/composite.js";
+import { IAction, IActionRunner, ActionRunner } from '../../base/common/actions.js';
+import { Component } from '../common/component.js';
+import { ITelemetryService } from '../../platform/telemetry/common/telemetry.js';
+import { IComposite, ICompositeControl } from '../common/composite.js';
+import { Event, Emitter } from '../../base/common/event.js';
+import { IThemeService } from '../../platform/theme/common/themeService.js';
+import { IConstructorSignature, IInstantiationService } from '../../platform/instantiation/common/instantiation.js';
+import { trackFocus, Dimension, IDomPosition } from '../../base/browser/dom.js';
+import { IStorageService } from '../../platform/storage/common/storage.js';
+import { Disposable } from '../../base/common/lifecycle.js';
+import { assertIsDefined } from '../../base/common/types.js';
+import { IActionViewItem } from '../../base/browser/ui/actionbar/actionbar.js';
+import { MenuId } from '../../platform/actions/common/actions.js';
+import { IBoundarySashes } from '../../base/browser/ui/sash/sash.js';
+import { IBaseActionViewItemOptions } from '../../base/browser/ui/actionbar/actionViewItems.js';
 /**
  * Composites are layed out in the sidebar and panel part of the workbench. At a time only one composite
  * can be open in the sidebar, and only one composite can be open in the panel.
@@ -56,12 +56,12 @@ export abstract class Composite extends Component implements IComposite {
     } {
         const container = assertIsDefined(this.getContainer());
         const focusTracker = this._register(trackFocus(container));
-        const onDidFocus = (this._onDidFocus = this._register(new Emitter<void>()));
+        const onDidFocus = this._onDidFocus = this._register(new Emitter<void>());
         this._register(focusTracker.onDidFocus(() => {
             this._hasFocus = true;
             onDidFocus.fire();
         }));
-        const onDidBlur = (this._onDidBlur = this._register(new Emitter<void>()));
+        const onDidBlur = this._onDidBlur = this._register(new Emitter<void>());
         this._register(focusTracker.onDidBlur(() => {
             this._hasFocus = false;
             onDidBlur.fire();
@@ -236,6 +236,6 @@ export abstract class CompositeRegistry<T extends Composite> extends Disposable 
         return this.composites.slice(0);
     }
     private compositeById(id: string): CompositeDescriptor<T> | undefined {
-        return this.composites.find((composite) => composite.id === id);
+        return this.composites.find(composite => composite.id === id);
     }
 }

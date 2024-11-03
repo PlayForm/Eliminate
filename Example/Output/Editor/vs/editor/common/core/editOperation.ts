@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Position } from "./position.js";
-import { IRange, Range } from "./range.js";
+import { Position } from './position.js';
+import { IRange, Range } from './range.js';
 /**
  * A single edit operation, that acts as a simple replace.
  * i.e. Replace text at `range` with `text` in model.
@@ -28,26 +28,26 @@ export class EditOperation {
         return {
             range: new Range(position.lineNumber, position.column, position.lineNumber, position.column),
             text: text,
-            forceMoveMarkers: true,
+            forceMoveMarkers: true
         };
     }
     public static delete(range: Range): ISingleEditOperation {
         return {
             range: range,
-            text: null,
+            text: null
         };
     }
     public static replace(range: Range, text: string | null): ISingleEditOperation {
         return {
             range: range,
-            text: text,
+            text: text
         };
     }
     public static replaceMove(range: Range, text: string | null): ISingleEditOperation {
         return {
             range: range,
             text: text,
-            forceMoveMarkers: true,
+            forceMoveMarkers: true
         };
     }
 }

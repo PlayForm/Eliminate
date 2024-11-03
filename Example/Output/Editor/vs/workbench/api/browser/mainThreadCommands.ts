@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { DisposableMap, IDisposable } from "../../../base/common/lifecycle.js";
-import { revive } from "../../../base/common/marshalling.js";
-import { isString } from "../../../base/common/types.js";
-import { CommandsRegistry, ICommandMetadata, ICommandService, } from "../../../platform/commands/common/commands.js";
-import { IExtensionService } from "../../services/extensions/common/extensions.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { Dto, SerializableObjectWithBuffers, } from "../../services/extensions/common/proxyIdentifier.js";
-import { ExtHostCommandsShape, ExtHostContext, MainContext, MainThreadCommandsShape, } from "../common/extHost.protocol.js";
+import { DisposableMap, IDisposable } from '../../../base/common/lifecycle.js';
+import { revive } from '../../../base/common/marshalling.js';
+import { CommandsRegistry, ICommandMetadata, ICommandService } from '../../../platform/commands/common/commands.js';
+import { IExtHostContext, extHostNamedCustomer } from '../../services/extensions/common/extHostCustomers.js';
+import { IExtensionService } from '../../services/extensions/common/extensions.js';
+import { Dto, SerializableObjectWithBuffers } from '../../services/extensions/common/proxyIdentifier.js';
+import { ExtHostCommandsShape, ExtHostContext, MainContext, MainThreadCommandsShape } from '../common/extHost.protocol.js';
+import { isString } from '../../../base/common/types.js';
 @extHostNamedCustomer(MainContext.MainThreadCommands)
 export class MainThreadCommands implements MainThreadCommandsShape {
     private readonly _commandRegistrations = new DisposableMap<string>();
@@ -21,8 +21,7 @@ export class MainThreadCommands implements MainThreadCommandsShape {
     @IExtensionService
     private readonly _extensionService: IExtensionService) {
         this._proxy = extHostContext.getProxy(ExtHostContext.ExtHostCommands);
-        this._generateCommandsDocumentationRegistration =
-            CommandsRegistry.registerCommand("_generateCommandsDocumentation", () => this._generateCommandsDocumentation());
+        this._generateCommandsDocumentationRegistration = CommandsRegistry.registerCommand('_generateCommandsDocumentation', () => this._generateCommandsDocumentation());
     }
     dispose() {
         this._commandRegistrations.dispose();
@@ -40,15 +39,13 @@ export class MainThreadCommands implements MainThreadCommandsShape {
         // print all as markdown
         const all: string[] = [];
         for (const id in result) {
-            all.push("`" + id + "` - " + _generateMarkdown(result[id]));
+            all.push('`' + id + '` - ' + _generateMarkdown(result[id]));
         }
-        console.log(all.join("\n"));
+        console.log(all.join('\n'));
     }
     $registerCommand(id: string): void {
         this._commandRegistrations.set(id, CommandsRegistry.registerCommand(id, (accessor, ...args) => {
-            return this._proxy
-                .$executeContributedCommand(id, ...args)
-                .then((result) => {
+            return this._proxy.$executeContributedCommand(id, ...args).then(result => {
                 return revive(result);
             });
         }));
@@ -73,7 +70,7 @@ export class MainThreadCommands implements MainThreadCommandsShape {
         }
         if (retry && args.length > 0 && !CommandsRegistry.getCommand(id)) {
             await this._extensionService.activateByEvent(`onCommand:${id}`);
-            throw new Error("$executeCommand:retry");
+            throw new Error('$executeCommand:retry');
         }
         return this._commandService.executeCommand<T>(id, ...args);
     }
@@ -83,25 +80,25 @@ export class MainThreadCommands implements MainThreadCommandsShape {
 }
 // --- command doc
 function _generateMarkdown(description: string | Dto<ICommandMetadata> | ICommandMetadata): string {
-    if (typeof description === "string") {
+    if (typeof description === 'string') {
         return description;
     }
     else {
         const descriptionString = isString(description.description)
             ? description.description
-            : // Our docs website is in English, so keep the original here.
-                description.description.original;
+            // Our docs website is in English, so keep the original here.
+            : description.description.original;
         const parts = [descriptionString];
-        parts.push("\n\n");
+        parts.push('\n\n');
         if (description.args) {
             for (const arg of description.args) {
-                parts.push(`* _${arg.name}_ - ${arg.description || ""}\n`);
+                parts.push(`* _${arg.name}_ - ${arg.description || ''}\n`);
             }
         }
         if (description.returns) {
             parts.push(`* _(returns)_ - ${description.returns}`);
         }
-        parts.push("\n\n");
-        return parts.join("");
+        parts.push('\n\n');
+        return parts.join('');
     }
 }

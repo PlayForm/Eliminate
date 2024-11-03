@@ -2,28 +2,28 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Color } from "../../../base/common/color.js";
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { IConfigurationService } from "../../../platform/configuration/common/configuration.js";
-import { IMarkerData, IMarkerService, } from "../../../platform/markers/common/markers.js";
-import { Position } from "../../common/core/position.js";
-import { Range } from "../../common/core/range.js";
-import { MetadataConsts } from "../../common/encodedTokenAttributes.js";
-import * as languages from "../../common/languages.js";
-import { ILanguageExtensionPoint, ILanguageService, } from "../../common/languages/language.js";
-import { LanguageConfiguration } from "../../common/languages/languageConfiguration.js";
-import { ILanguageConfigurationService } from "../../common/languages/languageConfigurationRegistry.js";
-import { ModesRegistry } from "../../common/languages/modesRegistry.js";
-import { LanguageSelector } from "../../common/languageSelector.js";
-import * as model from "../../common/model.js";
-import { ILanguageFeaturesService } from "../../common/services/languageFeatures.js";
-import * as standaloneEnums from "../../common/standalone/standaloneEnums.js";
-import { compile } from "../common/monarch/monarchCompile.js";
-import { MonarchTokenizer } from "../common/monarch/monarchLexer.js";
-import { IMonarchLanguage } from "../common/monarch/monarchTypes.js";
-import { IStandaloneThemeService } from "../common/standaloneTheme.js";
-import { StandaloneServices } from "./standaloneServices.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { Color } from '../../../base/common/color.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { Position } from '../../common/core/position.js';
+import { Range } from '../../common/core/range.js';
+import { MetadataConsts } from '../../common/encodedTokenAttributes.js';
+import * as languages from '../../common/languages.js';
+import { ILanguageExtensionPoint, ILanguageService } from '../../common/languages/language.js';
+import { LanguageConfiguration } from '../../common/languages/languageConfiguration.js';
+import { ILanguageConfigurationService } from '../../common/languages/languageConfigurationRegistry.js';
+import { ModesRegistry } from '../../common/languages/modesRegistry.js';
+import { LanguageSelector } from '../../common/languageSelector.js';
+import * as model from '../../common/model.js';
+import { ILanguageFeaturesService } from '../../common/services/languageFeatures.js';
+import * as standaloneEnums from '../../common/standalone/standaloneEnums.js';
+import { StandaloneServices } from './standaloneServices.js';
+import { compile } from '../common/monarch/monarchCompile.js';
+import { MonarchTokenizer } from '../common/monarch/monarchLexer.js';
+import { IMonarchLanguage } from '../common/monarch/monarchTypes.js';
+import { IStandaloneThemeService } from '../common/standaloneTheme.js';
+import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
+import { IMarkerData, IMarkerService } from '../../../platform/markers/common/markers.js';
 /**
  * Register information about a new language.
  */
@@ -109,12 +109,12 @@ export class EncodedTokenizationSupportAdapter implements languages.ITokenizatio
         return this._actual.getInitialState();
     }
     public tokenize(line: string, hasEOL: boolean, state: languages.IState): languages.TokenizationResult {
-        if (typeof this._actual.tokenize === "function") {
+        if (typeof this._actual.tokenize === 'function') {
             return TokenizationSupportAdapter.adaptTokenize(this._languageId, <{
                 tokenize(line: string, state: languages.IState): ILineTokens;
             }>this._actual, line, state);
         }
-        throw new Error("Not supported!");
+        throw new Error('Not supported!');
     }
     public tokenizeEncoded(line: string, hasEOL: boolean, state: languages.IState): languages.EncodedTokenizationResult {
         const result = this._actual.tokenizeEncoded(line, state);
@@ -125,7 +125,8 @@ export class EncodedTokenizationSupportAdapter implements languages.ITokenizatio
  * @internal
  */
 export class TokenizationSupportAdapter implements languages.ITokenizationSupport, IDisposable {
-    constructor(private readonly _languageId: string, private readonly _actual: TokensProvider, private readonly _languageService: ILanguageService, private readonly _standaloneThemeService: IStandaloneThemeService) { }
+    constructor(private readonly _languageId: string, private readonly _actual: TokensProvider, private readonly _languageService: ILanguageService, private readonly _standaloneThemeService: IStandaloneThemeService) {
+    }
     dispose(): void {
         // NOOP
     }
@@ -178,8 +179,7 @@ export class TokenizationSupportAdapter implements languages.ITokenizationSuppor
         let previousStartIndex: number = 0;
         for (let i = 0, len = tokens.length; i < len; i++) {
             const t = tokens[i];
-            const metadata = tokenTheme.match(languageId, t.scopes) |
-                MetadataConsts.BALANCED_BRACKETS_MASK;
+            const metadata = tokenTheme.match(languageId, t.scopes) | MetadataConsts.BALANCED_BRACKETS_MASK;
             if (resultLen > 0 && result[resultLen - 1] === metadata) {
                 // same metadata
                 continue;
@@ -307,13 +307,13 @@ export interface EncodedTokensProvider {
     tokenize?(line: string, state: languages.IState): ILineTokens;
 }
 function isATokensProvider(provider: TokensProvider | EncodedTokensProvider | IMonarchLanguage): provider is TokensProvider | EncodedTokensProvider {
-    return typeof provider.getInitialState === "function";
+    return (typeof provider.getInitialState === 'function');
 }
 function isEncodedTokensProvider(provider: TokensProvider | EncodedTokensProvider): provider is EncodedTokensProvider {
-    return "tokenizeEncoded" in provider;
+    return 'tokenizeEncoded' in provider;
 }
 function isThenable<T>(obj: any): obj is Thenable<T> {
-    return obj && typeof obj.then === "function";
+    return obj && typeof obj.then === 'function';
 }
 /**
  * Change the color map that is used for token colors.
@@ -373,9 +373,7 @@ export function setTokensProvider(languageId: string, provider: TokensProvider |
         throw new Error(`Cannot set tokens provider for unknown language ${languageId}`);
     }
     if (isThenable<TokensProvider | EncodedTokensProvider>(provider)) {
-        return registerTokensProviderFactory(languageId, {
-            create: () => provider,
-        });
+        return registerTokensProviderFactory(languageId, { create: () => provider });
     }
     return languages.TokenizationRegistry.register(languageId, createTokenizationSupportAdapter(languageId, provider));
 }
@@ -390,9 +388,7 @@ export function setMonarchTokensProvider(languageId: string, languageDef: IMonar
         return new MonarchTokenizer(StandaloneServices.get(ILanguageService), StandaloneServices.get(IStandaloneThemeService), languageId, compile(languageId, languageDef), StandaloneServices.get(IConfigurationService));
     };
     if (isThenable<IMonarchLanguage>(languageDef)) {
-        return registerTokensProviderFactory(languageId, {
-            create: () => languageDef,
-        });
+        return registerTokensProviderFactory(languageId, { create: () => languageDef });
     }
     return languages.TokenizationRegistry.register(languageId, create(languageDef));
 }
@@ -444,7 +440,7 @@ export function registerHoverProvider(languageSelector: LanguageSelector, provid
                 }
                 return value;
             });
-        },
+        }
     });
 }
 /**
@@ -506,14 +502,12 @@ export function registerCodeActionProvider(languageSelector: LanguageSelector, p
         documentation: metadata?.documentation,
         provideCodeActions: (model: model.ITextModel, range: Range, context: languages.CodeActionContext, token: CancellationToken): languages.ProviderResult<languages.CodeActionList> => {
             const markerService = StandaloneServices.get(IMarkerService);
-            const markers = markerService
-                .read({ resource: model.uri })
-                .filter((m) => {
+            const markers = markerService.read({ resource: model.uri }).filter(m => {
                 return Range.areIntersectingOrTouching(m, range);
             });
             return provider.provideCodeActions(model, range, { markers, only: context.only, trigger: context.trigger }, token);
         },
-        resolveCodeAction: provider.resolveCodeAction,
+        resolveCodeAction: provider.resolveCodeAction
     });
 }
 /**
@@ -692,24 +686,24 @@ export function createMonacoLanguagesAPI(): typeof monaco.languages {
         registerSignatureHelpProvider: <any>registerSignatureHelpProvider,
         registerHoverProvider: <any>registerHoverProvider,
         registerDocumentSymbolProvider: <any>registerDocumentSymbolProvider,
-        registerDocumentHighlightProvider: <any>(registerDocumentHighlightProvider),
-        registerLinkedEditingRangeProvider: <any>(registerLinkedEditingRangeProvider),
+        registerDocumentHighlightProvider: <any>registerDocumentHighlightProvider,
+        registerLinkedEditingRangeProvider: <any>registerLinkedEditingRangeProvider,
         registerDefinitionProvider: <any>registerDefinitionProvider,
         registerImplementationProvider: <any>registerImplementationProvider,
         registerTypeDefinitionProvider: <any>registerTypeDefinitionProvider,
         registerCodeLensProvider: <any>registerCodeLensProvider,
         registerCodeActionProvider: <any>registerCodeActionProvider,
-        registerDocumentFormattingEditProvider: <any>(registerDocumentFormattingEditProvider),
-        registerDocumentRangeFormattingEditProvider: <any>(registerDocumentRangeFormattingEditProvider),
-        registerOnTypeFormattingEditProvider: <any>(registerOnTypeFormattingEditProvider),
+        registerDocumentFormattingEditProvider: <any>registerDocumentFormattingEditProvider,
+        registerDocumentRangeFormattingEditProvider: <any>registerDocumentRangeFormattingEditProvider,
+        registerOnTypeFormattingEditProvider: <any>registerOnTypeFormattingEditProvider,
         registerLinkProvider: <any>registerLinkProvider,
         registerColorProvider: <any>registerColorProvider,
         registerFoldingRangeProvider: <any>registerFoldingRangeProvider,
         registerDeclarationProvider: <any>registerDeclarationProvider,
         registerSelectionRangeProvider: <any>registerSelectionRangeProvider,
-        registerDocumentSemanticTokensProvider: <any>(registerDocumentSemanticTokensProvider),
-        registerDocumentRangeSemanticTokensProvider: <any>(registerDocumentRangeSemanticTokensProvider),
-        registerInlineCompletionsProvider: <any>(registerInlineCompletionsProvider),
+        registerDocumentSemanticTokensProvider: <any>registerDocumentSemanticTokensProvider,
+        registerDocumentRangeSemanticTokensProvider: <any>registerDocumentRangeSemanticTokensProvider,
+        registerInlineCompletionsProvider: <any>registerInlineCompletionsProvider,
         registerInlineEditProvider: <any>registerInlineEditProvider,
         registerInlayHintsProvider: <any>registerInlayHintsProvider,
         // enums

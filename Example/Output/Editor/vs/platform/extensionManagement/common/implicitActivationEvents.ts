@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { onUnexpectedError } from "../../../base/common/errors.js";
-import { ExtensionIdentifier, IExtensionDescription, } from "../../extensions/common/extensions.js";
+import { onUnexpectedError } from '../../../base/common/errors.js';
+import { ExtensionIdentifier, IExtensionDescription } from '../../extensions/common/extensions.js';
 export interface IActivationEventsGenerator<T> {
     (contributions: T[], result: {
         push(item: string): void;
@@ -44,18 +44,14 @@ export class ImplicitActivationEventsImpl {
         return result;
     }
     private _readActivationEvents(desc: IExtensionDescription): string[] {
-        if (typeof desc.main === "undefined" &&
-            typeof desc.browser === "undefined") {
+        if (typeof desc.main === 'undefined' && typeof desc.browser === 'undefined') {
             return [];
         }
-        const activationEvents: string[] = Array.isArray(desc.activationEvents)
-            ? desc.activationEvents.slice(0)
-            : [];
+        const activationEvents: string[] = (Array.isArray(desc.activationEvents) ? desc.activationEvents.slice(0) : []);
         for (let i = 0; i < activationEvents.length; i++) {
             // TODO@joao: there's no easy way to contribute this
-            if (activationEvents[i] === "onUri") {
-                activationEvents[i] =
-                    `onUri:${ExtensionIdentifier.toKey(desc.identifier)}`;
+            if (activationEvents[i] === 'onUri') {
+                activationEvents[i] = `onUri:${ExtensionIdentifier.toKey(desc.identifier)}`;
             }
         }
         if (!desc.contributes) {

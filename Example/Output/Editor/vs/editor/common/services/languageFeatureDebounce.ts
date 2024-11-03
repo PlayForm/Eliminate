@@ -2,17 +2,17 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { doHash } from "../../../base/common/hash.js";
-import { LRUCache } from "../../../base/common/map.js";
-import { matchesScheme } from "../../../base/common/network.js";
-import { clamp, MovingAverage, SlidingWindowAverage, } from "../../../base/common/numbers.js";
-import { IEnvironmentService } from "../../../platform/environment/common/environment.js";
-import { InstantiationType, registerSingleton, } from "../../../platform/instantiation/common/extensions.js";
-import { createDecorator } from "../../../platform/instantiation/common/instantiation.js";
-import { ILogService } from "../../../platform/log/common/log.js";
-import { LanguageFeatureRegistry } from "../languageFeatureRegistry.js";
-import { ITextModel } from "../model.js";
-export const ILanguageFeatureDebounceService = createDecorator<ILanguageFeatureDebounceService>("ILanguageFeatureDebounceService");
+import { doHash } from '../../../base/common/hash.js';
+import { LRUCache } from '../../../base/common/map.js';
+import { clamp, MovingAverage, SlidingWindowAverage } from '../../../base/common/numbers.js';
+import { LanguageFeatureRegistry } from '../languageFeatureRegistry.js';
+import { ITextModel } from '../model.js';
+import { IEnvironmentService } from '../../../platform/environment/common/environment.js';
+import { InstantiationType, registerSingleton } from '../../../platform/instantiation/common/extensions.js';
+import { createDecorator } from '../../../platform/instantiation/common/instantiation.js';
+import { ILogService } from '../../../platform/log/common/log.js';
+import { matchesScheme } from '../../../base/common/network.js';
+export const ILanguageFeatureDebounceService = createDecorator<ILanguageFeatureDebounceService>('ILanguageFeatureDebounceService');
 export interface ILanguageFeatureDebounceService {
     readonly _serviceBrand: undefined;
     for(feature: LanguageFeatureRegistry<object>, debugName: string, config?: {
@@ -54,15 +54,14 @@ class FeatureDebounceInformation implements IFeatureDebounceInformation {
     private readonly _cache = new LRUCache<string, SlidingWindowAverage>(50, 0.7);
     constructor(private readonly _logService: ILogService, private readonly _name: string, private readonly _registry: LanguageFeatureRegistry<object>, private readonly _default: number, private readonly _min: number, private readonly _max: number) { }
     private _key(model: ITextModel): string {
-        return (model.id +
-            this._registry
-                .all(model)
-                .reduce((hashVal, obj) => doHash(IdentityHash.of(obj), hashVal), 0));
+        return model.id + this._registry.all(model).reduce((hashVal, obj) => doHash(IdentityHash.of(obj), hashVal), 0);
     }
     get(model: ITextModel): number {
         const key = this._key(model);
         const avg = this._cache.get(key);
-        return avg ? clamp(avg.value, this._min, this._max) : this.default();
+        return avg
+            ? clamp(avg.value, this._min, this._max)
+            : this.default();
     }
     update(model: ITextModel, value: number): number {
         const key = this._key(model);
@@ -72,7 +71,7 @@ class FeatureDebounceInformation implements IFeatureDebounceInformation {
             this._cache.set(key, avg);
         }
         const newValue = clamp(avg.update(value), this._min, this._max);
-        if (!matchesScheme(model.uri, "output")) {
+        if (!matchesScheme(model.uri, 'output')) {
             this._logService.trace(`[DEBOUNCE: ${this._name}] for ${model.uri.toString()} is ${newValue}ms`);
         }
         return newValue;
@@ -85,7 +84,7 @@ class FeatureDebounceInformation implements IFeatureDebounceInformation {
         return result.value;
     }
     default() {
-        const value = this._overall() | 0 || this._default;
+        const value = (this._overall() | 0) || this._default;
         return clamp(value, this._min, this._max);
     }
 }
@@ -108,7 +107,7 @@ export class LanguageFeatureDebounceService implements ILanguageFeatureDebounceS
         const min = config?.min ?? 50;
         const max = config?.max ?? min ** 2;
         const extra = config?.key ?? undefined;
-        const key = `${IdentityHash.of(feature)},${min}${extra ? "," + extra : ""}`;
+        const key = `${IdentityHash.of(feature)},${min}${extra ? ',' + extra : ''}`;
         let info = this._data.get(key);
         if (!info) {
             if (this._isDev) {
@@ -116,7 +115,7 @@ export class LanguageFeatureDebounceService implements ILanguageFeatureDebounceS
                 info = new NullDebounceInformation(min * 1.5);
             }
             else {
-                info = new FeatureDebounceInformation(this._logService, name, feature, this._overallAverage() | 0 || min * 1.5, // default is overall default or derived from min-value
+                info = new FeatureDebounceInformation(this._logService, name, feature, (this._overallAverage() | 0) || (min * 1.5), // default is overall default or derived from min-value
                 min, max);
             }
             this._data.set(key, info);

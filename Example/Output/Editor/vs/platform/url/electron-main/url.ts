@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { URI } from "../../../base/common/uri.js";
-import { IWindowOpenable } from "../../window/common/window.js";
+import { URI } from '../../../base/common/uri.js';
+import { IWindowOpenable } from '../../window/common/window.js';
 export interface IProtocolUrl {
     /**
      * The parsed URI from the raw URL.

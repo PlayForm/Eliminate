@@ -2,11 +2,11 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { getWindow } from "../../../base/browser/dom.js";
-import { ContextView, ContextViewDOMPosition, IContextViewProvider, } from "../../../base/browser/ui/contextview/contextview.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { ILayoutService } from "../../layout/browser/layoutService.js";
-import { IContextViewDelegate, IContextViewService, IOpenContextView, } from "./contextView.js";
+import { ContextView, ContextViewDOMPosition, IContextViewProvider } from '../../../base/browser/ui/contextview/contextview.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { ILayoutService } from '../../layout/browser/layoutService.js';
+import { IContextViewDelegate, IContextViewService, IOpenContextView } from './contextView.js';
+import { getWindow } from '../../../base/browser/dom.js';
 export class ContextViewHandler extends Disposable implements IContextViewProvider {
     private openContextView: IOpenContextView | undefined;
     protected readonly contextView = this._register(new ContextView(this.layoutService.mainContainer, ContextViewDOMPosition.ABSOLUTE));
@@ -21,8 +21,7 @@ export class ContextViewHandler extends Disposable implements IContextViewProvid
     showContextView(delegate: IContextViewDelegate, container?: HTMLElement, shadowRoot?: boolean): IOpenContextView {
         let domPosition: ContextViewDOMPosition;
         if (container) {
-            if (container ===
-                this.layoutService.getContainer(getWindow(container))) {
+            if (container === this.layoutService.getContainer(getWindow(container))) {
                 domPosition = ContextViewDOMPosition.ABSOLUTE;
             }
             else if (shadowRoot) {
@@ -42,7 +41,7 @@ export class ContextViewHandler extends Disposable implements IContextViewProvid
                 if (this.openContextView === openContextView) {
                     this.hideContextView();
                 }
-            },
+            }
         };
         this.openContextView = openContextView;
         return openContextView;

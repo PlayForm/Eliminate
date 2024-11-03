@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Disposable, DisposableMap, IDisposable, } from "../../../base/common/lifecycle.js";
-import { revive } from "../../../base/common/marshalling.js";
-import { URI } from "../../../base/common/uri.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { ISaveProfileResult, IUserDataProfileImportExportService, } from "../../services/userDataProfile/common/userDataProfile.js";
-import { ExtHostContext, ExtHostProfileContentHandlersShape, MainContext, MainThreadProfileContentHandlersShape, } from "../common/extHost.protocol.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { Disposable, DisposableMap, IDisposable } from '../../../base/common/lifecycle.js';
+import { revive } from '../../../base/common/marshalling.js';
+import { URI } from '../../../base/common/uri.js';
+import { ExtHostContext, ExtHostProfileContentHandlersShape, MainContext, MainThreadProfileContentHandlersShape } from '../common/extHost.protocol.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { ISaveProfileResult, IUserDataProfileImportExportService } from '../../services/userDataProfile/common/userDataProfile.js';
 @extHostNamedCustomer(MainContext.MainThreadProfileContentHandlers)
 export class MainThreadProfileContentHandlers extends Disposable implements MainThreadProfileContentHandlersShape {
     private readonly proxy: ExtHostProfileContentHandlersShape;
@@ -26,9 +26,7 @@ export class MainThreadProfileContentHandlers extends Disposable implements Main
             extensionId,
             saveProfile: async (name: string, content: string, token: CancellationToken) => {
                 const result = await this.proxy.$saveProfile(id, name, content, token);
-                return result
-                    ? revive<ISaveProfileResult>(result)
-                    : null;
+                return result ? revive<ISaveProfileResult>(result) : null;
             },
             readProfile: async (uri: URI, token: CancellationToken) => {
                 return this.proxy.$readProfile(id, uri, token);

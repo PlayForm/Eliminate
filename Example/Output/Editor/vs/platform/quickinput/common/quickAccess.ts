@@ -2,11 +2,11 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { coalesce } from "../../../base/common/arrays.js";
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { IDisposable, toDisposable } from "../../../base/common/lifecycle.js";
-import { Registry } from "../../registry/common/platform.js";
-import { IQuickNavigateConfiguration, IQuickPick, IQuickPickItem, IQuickPickSeparator, ItemActivation, QuickPickItem, } from "./quickInput.js";
+import { coalesce } from '../../../base/common/arrays.js';
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { ItemActivation, IQuickNavigateConfiguration, IQuickPick, IQuickPickItem, QuickPickItem, IQuickPickSeparator } from './quickInput.js';
+import { Registry } from '../../registry/common/platform.js';
 /**
  * Provider specific options for this particular showing of the
  * quick access.
@@ -60,7 +60,7 @@ export interface IQuickAccessOptions {
     readonly enabledProviderPrefixes?: string[];
     /**
      * A placeholder to use for this particular showing of the quick access.
-     */
+    */
     readonly placeholder?: string;
 }
 export interface IQuickAccessController {
@@ -168,7 +168,7 @@ export interface IQuickAccessProviderDescriptor {
     readonly contextKey?: string;
 }
 export const Extensions = {
-    Quickaccess: "workbench.contributions.quickaccess",
+    Quickaccess: 'workbench.contributions.quickaccess'
 };
 export interface IQuickAccessRegistry {
     /**
@@ -209,9 +209,7 @@ export class QuickAccessRegistry implements IQuickAccessRegistry {
         return coalesce([this.defaultProvider, ...this.providers]);
     }
     getQuickAccessProvider(prefix: string): IQuickAccessProviderDescriptor | undefined {
-        const result = prefix
-            ? this.providers.find((provider) => prefix.startsWith(provider.prefix)) || undefined
-            : undefined;
+        const result = prefix ? (this.providers.find(provider => prefix.startsWith(provider.prefix)) || undefined) : undefined;
         return result || this.defaultProvider;
     }
     clear(): Function {

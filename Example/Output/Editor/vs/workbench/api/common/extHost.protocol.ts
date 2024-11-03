@@ -2,88 +2,88 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { VSBuffer } from "../../../base/common/buffer.js";
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { IRemoteConsoleLog } from "../../../base/common/console.js";
-import { SerializedError } from "../../../base/common/errors.js";
-import { IRelativePattern } from "../../../base/common/glob.js";
-import { IMarkdownString } from "../../../base/common/htmlContent.js";
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import * as performance from "../../../base/common/performance.js";
-import Severity from "../../../base/common/severity.js";
-import { ThemeColor, ThemeIcon } from "../../../base/common/themables.js";
-import { URI, UriComponents, UriDto } from "../../../base/common/uri.js";
-import { RenderLineNumbersType, TextEditorCursorStyle, } from "../../../editor/common/config/editorOptions.js";
-import { ISingleEditOperation } from "../../../editor/common/core/editOperation.js";
-import { IPosition } from "../../../editor/common/core/position.js";
-import { IRange } from "../../../editor/common/core/range.js";
-import { ISelection, Selection, } from "../../../editor/common/core/selection.js";
-import { IChange } from "../../../editor/common/diff/legacyLinesDiffComputer.js";
-import * as editorCommon from "../../../editor/common/editorCommon.js";
-import { StandardTokenType } from "../../../editor/common/encodedTokenAttributes.js";
-import * as languages from "../../../editor/common/languages.js";
-import { CharacterPair, CommentRule, EnterAction, } from "../../../editor/common/languages/languageConfiguration.js";
-import { EndOfLineSequence } from "../../../editor/common/model.js";
-import { IModelChangedEvent } from "../../../editor/common/model/mirrorTextModel.js";
-import { IAccessibilityInformation } from "../../../platform/accessibility/common/accessibility.js";
-import { ILocalizedString } from "../../../platform/action/common/action.js";
-import { ConfigurationTarget, IConfigurationChange, IConfigurationData, IConfigurationOverrides, } from "../../../platform/configuration/common/configuration.js";
-import { ConfigurationScope } from "../../../platform/configuration/common/configurationRegistry.js";
-import { IExtensionIdWithVersion } from "../../../platform/extensionManagement/common/extensionStorage.js";
-import { ExtensionIdentifier, IExtensionDescription, } from "../../../platform/extensions/common/extensions.js";
-import * as files from "../../../platform/files/common/files.js";
-import { ResourceLabelFormatter } from "../../../platform/label/common/label.js";
-import { ILoggerOptions, ILoggerResource, LogLevel, } from "../../../platform/log/common/log.js";
-import { IMarkerData } from "../../../platform/markers/common/markers.js";
-import { IProgressOptions, IProgressStep, } from "../../../platform/progress/common/progress.js";
-import * as quickInput from "../../../platform/quickinput/common/quickInput.js";
-import { IRemoteConnectionData, TunnelDescription, } from "../../../platform/remote/common/remoteAuthorityResolver.js";
-import { AuthInfo, Credentials, } from "../../../platform/request/common/request.js";
-import { ClassifiedEvent, IGDPRProperty, OmitMetadata, StrictPropertyCheck, } from "../../../platform/telemetry/common/gdprTypings.js";
-import { TelemetryLevel } from "../../../platform/telemetry/common/telemetry.js";
-import { ISerializableEnvironmentDescriptionMap, ISerializableEnvironmentVariableCollection, } from "../../../platform/terminal/common/environmentVariable.js";
-import { ICreateContributedTerminalProfileOptions, IProcessProperty, IProcessReadyWindowsPty, IShellLaunchConfigDto, ITerminalEnvironment, ITerminalLaunchError, ITerminalProfile, TerminalExitReason, TerminalLocation, } from "../../../platform/terminal/common/terminal.js";
-import { ProvidedPortAttributes, TunnelCreationOptions, TunnelOptions, TunnelPrivacyId, TunnelProviderFeatures, } from "../../../platform/tunnel/common/tunnel.js";
-import { EditSessionIdentityMatch } from "../../../platform/workspace/common/editSessions.js";
-import { WorkspaceTrustRequestOptions } from "../../../platform/workspace/common/workspaceTrust.js";
-import { SaveReason } from "../../common/editor.js";
-import { IRevealOptions, ITreeItem, IViewBadge } from "../../common/views.js";
-import { CallHierarchyItem } from "../../contrib/callHierarchy/common/callHierarchy.js";
-import { ChatAgentLocation, IChatAgentMetadata, IChatAgentRequest, IChatAgentResult, IChatWelcomeMessageContent, } from "../../contrib/chat/common/chatAgents.js";
-import { ICodeMapperRequest, ICodeMapperResult, } from "../../contrib/chat/common/chatCodeMapperService.js";
-import { IChatProgressHistoryResponseContent } from "../../contrib/chat/common/chatModel.js";
-import { IChatContentInlineReference, IChatFollowup, IChatProgress, IChatResponseErrorDetails, IChatTask, IChatTaskDto, IChatUserActionEvent, IChatVoteAction, } from "../../contrib/chat/common/chatService.js";
-import { IChatRequestVariableValue, IChatVariableData, IChatVariableResolverProgress, } from "../../contrib/chat/common/chatVariables.js";
-import { IChatMessage, IChatResponseFragment, ILanguageModelChatMetadata, ILanguageModelChatSelector, ILanguageModelsChangeEvent, } from "../../contrib/chat/common/languageModels.js";
-import { IPreparedToolInvocation, IToolData, IToolInvocation, IToolResult, } from "../../contrib/chat/common/languageModelToolsService.js";
-import { DebugConfigurationProviderTriggerKind, IAdapterDescriptor, IConfig, IDebugSessionReplMode, IDebugTestRunReference, IDebugVisualization, IDebugVisualizationContext, IDebugVisualizationTreeItem, MainThreadDebugVisualization, } from "../../contrib/debug/common/debug.js";
-import * as notebookCommon from "../../contrib/notebook/common/notebookCommon.js";
-import { CellExecutionUpdateType } from "../../contrib/notebook/common/notebookExecutionService.js";
-import { ICellExecutionComplete, ICellExecutionStateUpdate, } from "../../contrib/notebook/common/notebookExecutionStateService.js";
-import { ICellRange } from "../../contrib/notebook/common/notebookRange.js";
-import { InputValidationType } from "../../contrib/scm/common/scm.js";
-import { IWorkspaceSymbol, NotebookPriorityInfo, } from "../../contrib/search/common/search.js";
-import { IRawClosedNotebookFileMatch } from "../../contrib/search/common/searchNotebookHelpers.js";
-import { IKeywordRecognitionEvent, ISpeechProviderMetadata, ISpeechToTextEvent, ITextToSpeechEvent, } from "../../contrib/speech/common/speechService.js";
-import { CoverageDetails, ExtensionRunTestsRequest, ICallProfileRunHandler, IFileCoverage, ISerializedTestResults, IStartControllerTests, ITestItem, ITestMessage, ITestRunProfile, ITestRunTask, ResolvedTestRunRequest, TestControllerCapability, TestMessageFollowupRequest, TestMessageFollowupResponse, TestResultState, TestsDiffOp, } from "../../contrib/testing/common/testTypes.js";
-import { Timeline, TimelineChangeEvent, TimelineOptions, TimelineProviderDescriptor, } from "../../contrib/timeline/common/timeline.js";
-import { TypeHierarchyItem } from "../../contrib/typeHierarchy/common/typeHierarchy.js";
-import { RelatedInformationResult, RelatedInformationType, } from "../../services/aiRelatedInformation/common/aiRelatedInformation.js";
-import { AuthenticationSession, AuthenticationSessionAccount, AuthenticationSessionsChangeEvent, IAuthenticationCreateSessionOptions, IAuthenticationProviderSessionOptions, } from "../../services/authentication/common/authentication.js";
-import { EditorGroupColumn } from "../../services/editor/common/editorGroupColumn.js";
-import { IExtensionDescriptionDelta, IStaticWorkspaceData, } from "../../services/extensions/common/extensionHostProtocol.js";
-import { IResolveAuthorityResult } from "../../services/extensions/common/extensionHostProxy.js";
-import { ActivationKind, ExtensionActivationReason, MissingExtensionDependency, } from "../../services/extensions/common/extensions.js";
-import { createProxyIdentifier, Dto, IRPCProtocol, SerializableObjectWithBuffers, } from "../../services/extensions/common/proxyIdentifier.js";
-import { ILanguageStatus } from "../../services/languageStatus/common/languageStatusService.js";
-import { OutputChannelUpdateMode } from "../../services/output/common/output.js";
-import { CandidatePort } from "../../services/remote/common/tunnelModel.js";
-import { IFileQueryBuilderOptions, ITextQueryBuilderOptions, } from "../../services/search/common/queryBuilder.js";
-import * as search from "../../services/search/common/search.js";
-import { TextSearchCompleteMessage } from "../../services/search/common/searchExtTypes.js";
-import { ISaveProfileResult } from "../../services/userDataProfile/common/userDataProfile.js";
-import { TerminalShellExecutionCommandLineConfidence } from "./extHostTypes.js";
-import * as tasks from "./shared/tasks.js";
+import { VSBuffer } from '../../../base/common/buffer.js';
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { IRemoteConsoleLog } from '../../../base/common/console.js';
+import { SerializedError } from '../../../base/common/errors.js';
+import { IRelativePattern } from '../../../base/common/glob.js';
+import { IMarkdownString } from '../../../base/common/htmlContent.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import * as performance from '../../../base/common/performance.js';
+import Severity from '../../../base/common/severity.js';
+import { ThemeColor, ThemeIcon } from '../../../base/common/themables.js';
+import { URI, UriComponents, UriDto } from '../../../base/common/uri.js';
+import { RenderLineNumbersType, TextEditorCursorStyle } from '../../../editor/common/config/editorOptions.js';
+import { ISingleEditOperation } from '../../../editor/common/core/editOperation.js';
+import { IPosition } from '../../../editor/common/core/position.js';
+import { IRange } from '../../../editor/common/core/range.js';
+import { ISelection, Selection } from '../../../editor/common/core/selection.js';
+import { IChange } from '../../../editor/common/diff/legacyLinesDiffComputer.js';
+import * as editorCommon from '../../../editor/common/editorCommon.js';
+import { StandardTokenType } from '../../../editor/common/encodedTokenAttributes.js';
+import * as languages from '../../../editor/common/languages.js';
+import { CharacterPair, CommentRule, EnterAction } from '../../../editor/common/languages/languageConfiguration.js';
+import { EndOfLineSequence } from '../../../editor/common/model.js';
+import { IModelChangedEvent } from '../../../editor/common/model/mirrorTextModel.js';
+import { IAccessibilityInformation } from '../../../platform/accessibility/common/accessibility.js';
+import { ILocalizedString } from '../../../platform/action/common/action.js';
+import { ConfigurationTarget, IConfigurationChange, IConfigurationData, IConfigurationOverrides } from '../../../platform/configuration/common/configuration.js';
+import { ConfigurationScope } from '../../../platform/configuration/common/configurationRegistry.js';
+import { IExtensionIdWithVersion } from '../../../platform/extensionManagement/common/extensionStorage.js';
+import { ExtensionIdentifier, IExtensionDescription } from '../../../platform/extensions/common/extensions.js';
+import * as files from '../../../platform/files/common/files.js';
+import { ResourceLabelFormatter } from '../../../platform/label/common/label.js';
+import { ILoggerOptions, ILoggerResource, LogLevel } from '../../../platform/log/common/log.js';
+import { IMarkerData } from '../../../platform/markers/common/markers.js';
+import { IProgressOptions, IProgressStep } from '../../../platform/progress/common/progress.js';
+import * as quickInput from '../../../platform/quickinput/common/quickInput.js';
+import { IRemoteConnectionData, TunnelDescription } from '../../../platform/remote/common/remoteAuthorityResolver.js';
+import { AuthInfo, Credentials } from '../../../platform/request/common/request.js';
+import { ClassifiedEvent, IGDPRProperty, OmitMetadata, StrictPropertyCheck } from '../../../platform/telemetry/common/gdprTypings.js';
+import { TelemetryLevel } from '../../../platform/telemetry/common/telemetry.js';
+import { ISerializableEnvironmentDescriptionMap, ISerializableEnvironmentVariableCollection } from '../../../platform/terminal/common/environmentVariable.js';
+import { ICreateContributedTerminalProfileOptions, IProcessProperty, IProcessReadyWindowsPty, IShellLaunchConfigDto, ITerminalEnvironment, ITerminalLaunchError, ITerminalProfile, TerminalExitReason, TerminalLocation } from '../../../platform/terminal/common/terminal.js';
+import { ProvidedPortAttributes, TunnelCreationOptions, TunnelOptions, TunnelPrivacyId, TunnelProviderFeatures } from '../../../platform/tunnel/common/tunnel.js';
+import { EditSessionIdentityMatch } from '../../../platform/workspace/common/editSessions.js';
+import { WorkspaceTrustRequestOptions } from '../../../platform/workspace/common/workspaceTrust.js';
+import { SaveReason } from '../../common/editor.js';
+import { IRevealOptions, ITreeItem, IViewBadge } from '../../common/views.js';
+import { CallHierarchyItem } from '../../contrib/callHierarchy/common/callHierarchy.js';
+import { ChatAgentLocation, IChatAgentMetadata, IChatAgentRequest, IChatAgentResult, IChatWelcomeMessageContent } from '../../contrib/chat/common/chatAgents.js';
+import { ICodeMapperRequest, ICodeMapperResult } from '../../contrib/chat/common/chatCodeMapperService.js';
+import { IChatProgressHistoryResponseContent } from '../../contrib/chat/common/chatModel.js';
+import { IChatContentInlineReference, IChatFollowup, IChatProgress, IChatResponseErrorDetails, IChatTask, IChatTaskDto, IChatUserActionEvent, IChatVoteAction } from '../../contrib/chat/common/chatService.js';
+import { IChatRequestVariableValue, IChatVariableData, IChatVariableResolverProgress } from '../../contrib/chat/common/chatVariables.js';
+import { IChatMessage, IChatResponseFragment, ILanguageModelChatMetadata, ILanguageModelChatSelector, ILanguageModelsChangeEvent } from '../../contrib/chat/common/languageModels.js';
+import { IPreparedToolInvocation, IToolData, IToolInvocation, IToolResult } from '../../contrib/chat/common/languageModelToolsService.js';
+import { DebugConfigurationProviderTriggerKind, IAdapterDescriptor, IConfig, IDebugSessionReplMode, IDebugTestRunReference, IDebugVisualization, IDebugVisualizationContext, IDebugVisualizationTreeItem, MainThreadDebugVisualization } from '../../contrib/debug/common/debug.js';
+import * as notebookCommon from '../../contrib/notebook/common/notebookCommon.js';
+import { CellExecutionUpdateType } from '../../contrib/notebook/common/notebookExecutionService.js';
+import { ICellExecutionComplete, ICellExecutionStateUpdate } from '../../contrib/notebook/common/notebookExecutionStateService.js';
+import { ICellRange } from '../../contrib/notebook/common/notebookRange.js';
+import { InputValidationType } from '../../contrib/scm/common/scm.js';
+import { IWorkspaceSymbol, NotebookPriorityInfo } from '../../contrib/search/common/search.js';
+import { IRawClosedNotebookFileMatch } from '../../contrib/search/common/searchNotebookHelpers.js';
+import { IKeywordRecognitionEvent, ISpeechProviderMetadata, ISpeechToTextEvent, ITextToSpeechEvent } from '../../contrib/speech/common/speechService.js';
+import { CoverageDetails, ExtensionRunTestsRequest, ICallProfileRunHandler, IFileCoverage, ISerializedTestResults, IStartControllerTests, ITestItem, ITestMessage, ITestRunProfile, ITestRunTask, ResolvedTestRunRequest, TestControllerCapability, TestMessageFollowupRequest, TestMessageFollowupResponse, TestResultState, TestsDiffOp } from '../../contrib/testing/common/testTypes.js';
+import { Timeline, TimelineChangeEvent, TimelineOptions, TimelineProviderDescriptor } from '../../contrib/timeline/common/timeline.js';
+import { TypeHierarchyItem } from '../../contrib/typeHierarchy/common/typeHierarchy.js';
+import { RelatedInformationResult, RelatedInformationType } from '../../services/aiRelatedInformation/common/aiRelatedInformation.js';
+import { AuthenticationSession, AuthenticationSessionAccount, AuthenticationSessionsChangeEvent, IAuthenticationCreateSessionOptions, IAuthenticationProviderSessionOptions } from '../../services/authentication/common/authentication.js';
+import { EditorGroupColumn } from '../../services/editor/common/editorGroupColumn.js';
+import { IExtensionDescriptionDelta, IStaticWorkspaceData } from '../../services/extensions/common/extensionHostProtocol.js';
+import { IResolveAuthorityResult } from '../../services/extensions/common/extensionHostProxy.js';
+import { ActivationKind, ExtensionActivationReason, MissingExtensionDependency } from '../../services/extensions/common/extensions.js';
+import { Dto, IRPCProtocol, SerializableObjectWithBuffers, createProxyIdentifier } from '../../services/extensions/common/proxyIdentifier.js';
+import { ILanguageStatus } from '../../services/languageStatus/common/languageStatusService.js';
+import { OutputChannelUpdateMode } from '../../services/output/common/output.js';
+import { CandidatePort } from '../../services/remote/common/tunnelModel.js';
+import { IFileQueryBuilderOptions, ITextQueryBuilderOptions } from '../../services/search/common/queryBuilder.js';
+import * as search from '../../services/search/common/search.js';
+import { TextSearchCompleteMessage } from '../../services/search/common/searchExtTypes.js';
+import { ISaveProfileResult } from '../../services/userDataProfile/common/userDataProfile.js';
+import { TerminalShellExecutionCommandLineConfidence } from './extHostTypes.js';
+import * as tasks from './shared/tasks.js';
 export interface IWorkspaceData extends IStaticWorkspaceData {
     folders: {
         uri: UriComponents;
@@ -226,16 +226,16 @@ export interface MainThreadDocumentsShape extends IDisposable {
     $trySaveDocument(uri: UriComponents): Promise<boolean>;
 }
 export interface ITextEditorConfigurationUpdate {
-    tabSize?: number | "auto";
-    indentSize?: number | "tabSize";
-    insertSpaces?: boolean | "auto";
+    tabSize?: number | 'auto';
+    indentSize?: number | 'tabSize';
+    insertSpaces?: boolean | 'auto';
     cursorStyle?: TextEditorCursorStyle;
     lineNumbers?: RenderLineNumbersType;
 }
 export interface IResolvedTextEditorConfiguration {
     tabSize: number;
     indentSize: number;
-    originalIndentSize: number | "tabSize";
+    originalIndentSize: number | 'tabSize';
     insertSpaces: boolean;
     cursorStyle: TextEditorCursorStyle;
     lineNumbers: RenderLineNumbersType;
@@ -376,7 +376,7 @@ export interface IDocumentContextItemDto {
     readonly ranges: IRange[];
 }
 export interface IConversationItemDto {
-    readonly type: "request" | "response";
+    readonly type: 'request' | 'response';
     readonly message: string;
     readonly references?: IDocumentContextItemDto[];
 }
@@ -563,7 +563,7 @@ export type TransferQuickPickItemOrSeparator = TransferQuickPickItem | quickInpu
 export interface TransferQuickPickItem {
     handle: number;
     // shared properties from IQuickPickItem
-    type?: "item";
+    type?: 'item';
     label: string;
     iconPath?: {
         light?: URI;
@@ -584,13 +584,13 @@ export interface BaseTransferQuickInput {
     [key: string]: any;
     id: number;
     title?: string;
-    type?: "quickPick" | "inputBox";
+    type?: 'quickPick' | 'inputBox';
     enabled?: boolean;
     busy?: boolean;
     visible?: boolean;
 }
 export interface TransferQuickPick extends BaseTransferQuickInput {
-    type?: "quickPick";
+    type?: 'quickPick';
     value?: string;
     placeholder?: string;
     buttons?: TransferQuickInputButton[];
@@ -604,7 +604,7 @@ export interface TransferQuickPick extends BaseTransferQuickInput {
     sortByLabel?: boolean;
 }
 export interface TransferInputBox extends BaseTransferQuickInput {
-    type?: "inputBox";
+    type?: 'inputBox';
     value?: string;
     valueSelection?: Readonly<[
         number,
@@ -1120,9 +1120,9 @@ export interface ExtHostLanguageModelsShape {
 export interface MainThreadEmbeddingsShape extends IDisposable {
     $registerEmbeddingProvider(handle: number, identifier: string): void;
     $unregisterEmbeddingProvider(handle: number): void;
-    $computeEmbeddings(embeddingsModel: string, input: string[], token: CancellationToken): Promise<{
+    $computeEmbeddings(embeddingsModel: string, input: string[], token: CancellationToken): Promise<({
         values: number[];
-    }[]>;
+    }[])>;
 }
 export interface ExtHostEmbeddingsShape {
     $provideEmbeddings(handle: number, input: string[], token: CancellationToken): Promise<{
@@ -1218,7 +1218,7 @@ export interface MainThreadChatVariablesShape extends IDisposable {
     $handleProgressChunk(requestId: string, progress: IChatVariableResolverProgressDto): Promise<number | void>;
     $unregisterVariable(handle: number): void;
 }
-export type IToolDataDto = Omit<IToolData, "when">;
+export type IToolDataDto = Omit<IToolData, 'when'>;
 export interface MainThreadLanguageModelToolsShape extends IDisposable {
     $getTools(): Promise<Dto<IToolDataDto>[]>;
     $invokeTool(dto: IToolInvocation, token?: CancellationToken): Promise<IToolResult>;
@@ -1418,7 +1418,7 @@ export type SCMRawResourceSplice = [
     SCMRawResource[]
 ];
 export type SCMRawResourceSplices = [
-    number /*handle*/,
+    number, /*handle*/
     SCMRawResourceSplice[]
 ];
 export interface SCMHistoryItemRefDto {
@@ -1466,8 +1466,8 @@ export interface MainThreadSCMShape extends IDisposable {
         number /*handle*/,
         string /*id*/,
         string /*label*/,
-        SCMGroupFeatures,
-        /* multiDiffEditorEnableViewChanges */ boolean
+        SCMGroupFeatures, /* multiDiffEditorEnableViewChanges */
+        boolean
     ][], splices: SCMRawResourceSplices[]): Promise<void>;
     $updateGroup(sourceControlHandle: number, handle: number, features: SCMGroupFeatures): Promise<void>;
     $updateGroupLabel(sourceControlHandle: number, handle: number, label: string): Promise<void>;
@@ -1835,22 +1835,22 @@ export class IdObject {
     }
 }
 export const enum ISuggestDataDtoField {
-    label = "a",
-    kind = "b",
-    detail = "c",
-    documentation = "d",
-    sortText = "e",
-    filterText = "f",
-    preselect = "g",
-    insertText = "h",
-    insertTextRules = "i",
-    range = "j",
-    commitCharacters = "k",
-    additionalTextEdits = "l",
-    kindModifier = "m",
-    commandIdent = "n",
-    commandId = "o",
-    commandArguments = "p"
+    label = 'a',
+    kind = 'b',
+    detail = 'c',
+    documentation = 'd',
+    sortText = 'e',
+    filterText = 'f',
+    preselect = 'g',
+    insertText = 'h',
+    insertTextRules = 'i',
+    range = 'j',
+    commitCharacters = 'k',
+    additionalTextEdits = 'l',
+    kindModifier = 'm',
+    commandIdent = 'n',
+    commandId = 'o',
+    commandArguments = 'p'
 }
 export interface ISuggestDataDto {
     [ISuggestDataDtoField.label]: string | languages.CompletionItemLabel;
@@ -1877,10 +1877,10 @@ export interface ISuggestDataDto {
     x?: ChainedCacheId;
 }
 export const enum ISuggestResultDtoField {
-    defaultRanges = "a",
-    completions = "b",
-    isIncomplete = "c",
-    duration = "d"
+    defaultRanges = 'a',
+    completions = 'b',
+    isIncomplete = 'c',
+    duration = 'd'
 }
 export interface ISuggestResultDto {
     [ISuggestResultDtoField.defaultRanges]: {
@@ -1931,16 +1931,16 @@ export type ICellEditOperationDto = notebookCommon.ICellMetadataEdit | notebookC
     count: number;
     cells: NotebookCellDataDto[];
 };
-export type IWorkspaceCellEditDto = Dto<Omit<notebookCommon.IWorkspaceNotebookCellEdit, "cellEdit">> & {
+export type IWorkspaceCellEditDto = Dto<Omit<notebookCommon.IWorkspaceNotebookCellEdit, 'cellEdit'>> & {
     cellEdit: ICellEditOperationDto;
 };
-export type IWorkspaceFileEditDto = Dto<Omit<languages.IWorkspaceFileEdit, "options"> & {
-    options?: Omit<languages.WorkspaceFileEditOptions, "contents"> & {
+export type IWorkspaceFileEditDto = Dto<Omit<languages.IWorkspaceFileEdit, 'options'> & {
+    options?: Omit<languages.WorkspaceFileEditOptions, 'contents'> & {
         contents?: {
-            type: "base64";
+            type: 'base64';
             value: string;
         } | {
-            type: "dataTransferItem";
+            type: 'dataTransferItem';
             id: string;
         };
     };
@@ -2093,9 +2093,9 @@ export interface ExtHostLanguageFeaturesShape {
     $provideWorkspaceSymbols(handle: number, search: string, token: CancellationToken): Promise<IWorkspaceSymbolsDto>;
     $resolveWorkspaceSymbol(handle: number, symbol: IWorkspaceSymbolDto, token: CancellationToken): Promise<IWorkspaceSymbolDto | undefined>;
     $releaseWorkspaceSymbols(handle: number, id: number): void;
-    $provideRenameEdits(handle: number, resource: UriComponents, position: IPosition, newName: string, token: CancellationToken): Promise<(IWorkspaceEditDto & {
+    $provideRenameEdits(handle: number, resource: UriComponents, position: IPosition, newName: string, token: CancellationToken): Promise<IWorkspaceEditDto & {
         rejectReason?: string;
-    }) | undefined>;
+    } | undefined>;
     $resolveRenameLocation(handle: number, resource: UriComponents, position: IPosition, token: CancellationToken): Promise<languages.RenameLocation | undefined>;
     $supportsAutomaticNewSymbolNamesTriggerKind(handle: number): Promise<boolean | undefined>;
     $provideNewSymbolNames(handle: number, resource: UriComponents, range: IRange, triggerKind: languages.NewSymbolNameTriggerKind, token: CancellationToken): Promise<languages.NewSymbolName[] | undefined>;
@@ -2287,12 +2287,12 @@ export interface IBreakpointDto {
     mode?: string;
 }
 export interface IFunctionBreakpointDto extends IBreakpointDto {
-    type: "function";
+    type: 'function';
     functionName: string;
     mode?: string;
 }
 export interface IDataBreakpointDto extends IBreakpointDto {
-    type: "data";
+    type: 'data';
     dataId: string;
     canPersist: boolean;
     label: string;
@@ -2301,7 +2301,7 @@ export interface IDataBreakpointDto extends IBreakpointDto {
     mode?: string;
 }
 export interface ISourceBreakpointDto extends IBreakpointDto {
-    type: "source";
+    type: 'source';
     uri: UriComponents;
     line: number;
     character: number;
@@ -2312,7 +2312,7 @@ export interface IBreakpointsDeltaDto {
     changed?: Array<ISourceBreakpointDto | IFunctionBreakpointDto | IDataBreakpointDto>;
 }
 export interface ISourceMultiBreakpointDto {
-    type: "sourceMulti";
+    type: 'sourceMulti';
     uri: UriComponents;
     lines: {
         id: string;
@@ -2335,12 +2335,12 @@ export interface IDebugSessionFullDto {
 }
 export type IDebugSessionDto = IDebugSessionFullDto | DebugSessionUUID;
 export interface IThreadFocusDto {
-    kind: "thread";
+    kind: 'thread';
     sessionId: string;
     threadId: number;
 }
 export interface IStackFrameFocusDto {
-    kind: "stackFrame";
+    kind: 'stackFrame';
     sessionId: string;
     threadId: number;
     frameId: number;
@@ -2496,7 +2496,7 @@ export interface NotebookCellDto {
     metadata?: notebookCommon.NotebookCellMetadata;
     internalMetadata?: notebookCommon.NotebookCellInternalMetadata;
 }
-export type INotebookPartialFileStatsWithMetadata = Omit<files.IFileStatWithMetadata, "resource" | "children">;
+export type INotebookPartialFileStatsWithMetadata = Omit<files.IFileStatWithMetadata, 'resource' | 'children'>;
 export interface ExtHostNotebookShape extends ExtHostNotebookDocumentsAndEditorsShape {
     $provideNotebookCellStatusBarItems(handle: number, uri: UriComponents, index: number, token: CancellationToken): Promise<INotebookCellStatusBarListDto | undefined>;
     $releaseNotebookCellStatusBarItems(id: number): void;
@@ -2540,7 +2540,6 @@ export type NotebookRawContentEventDto =
 } | notebookCommon.NotebookCellsChangeLanguageEvent | notebookCommon.NotebookCellsChangeMimeEvent | notebookCommon.NotebookCellsChangeMetadataEvent | notebookCommon.NotebookCellsChangeInternalMetadataEvent
 // | notebookCommon.NotebookDocumentChangeMetadataEvent
  | notebookCommon.NotebookCellContentChangeEvent;
-// | notebookCommon.NotebookDocumentUnknownChangeEvent
 export type NotebookCellsChangedEventDto = {
     readonly rawEvents: NotebookRawContentEventDto[];
     readonly versionId: number;
@@ -2562,7 +2561,7 @@ export interface ExtHostNotebookKernelsShape {
     $acceptKernelMessageFromRenderer(handle: number, editorId: string, message: any): void;
     $cellExecutionChanged(uri: UriComponents, cellHandle: number, state: notebookCommon.NotebookCellExecutionState | undefined): void;
     $provideKernelSourceActions(handle: number, token: CancellationToken): Promise<notebookCommon.INotebookKernelSourceAction[]>;
-    $provideVariables(handle: number, requestId: string, notebookUri: UriComponents, parentId: number | undefined, kind: "named" | "indexed", start: number, token: CancellationToken): Promise<void>;
+    $provideVariables(handle: number, requestId: string, notebookUri: UriComponents, parentId: number | undefined, kind: 'named' | 'indexed', start: number, token: CancellationToken): Promise<void>;
 }
 export interface ExtHostInteractiveShape {
     $willAddInteractiveDocument(uri: UriComponents, eol: string, languageId: string, notebookUri: UriComponents): void;
@@ -2716,145 +2715,145 @@ export interface MainThreadTestingShape {
 }
 // --- proxy identifiers
 export const MainContext = {
-    MainThreadAuthentication: createProxyIdentifier<MainThreadAuthenticationShape>("MainThreadAuthentication"),
-    MainThreadBulkEdits: createProxyIdentifier<MainThreadBulkEditsShape>("MainThreadBulkEdits"),
-    MainThreadLanguageModels: createProxyIdentifier<MainThreadLanguageModelsShape>("MainThreadLanguageModels"),
-    MainThreadEmbeddings: createProxyIdentifier<MainThreadEmbeddingsShape>("MainThreadEmbeddings"),
-    MainThreadChatAgents2: createProxyIdentifier<MainThreadChatAgentsShape2>("MainThreadChatAgents2"),
-    MainThreadCodeMapper: createProxyIdentifier<MainThreadCodeMapperShape>("MainThreadCodeMapper"),
-    MainThreadChatVariables: createProxyIdentifier<MainThreadChatVariablesShape>("MainThreadChatVariables"),
-    MainThreadLanguageModelTools: createProxyIdentifier<MainThreadLanguageModelToolsShape>("MainThreadChatSkills"),
-    MainThreadClipboard: createProxyIdentifier<MainThreadClipboardShape>("MainThreadClipboard"),
-    MainThreadCommands: createProxyIdentifier<MainThreadCommandsShape>("MainThreadCommands"),
-    MainThreadComments: createProxyIdentifier<MainThreadCommentsShape>("MainThreadComments"),
-    MainThreadConfiguration: createProxyIdentifier<MainThreadConfigurationShape>("MainThreadConfiguration"),
-    MainThreadConsole: createProxyIdentifier<MainThreadConsoleShape>("MainThreadConsole"),
-    MainThreadDebugService: createProxyIdentifier<MainThreadDebugServiceShape>("MainThreadDebugService"),
-    MainThreadDecorations: createProxyIdentifier<MainThreadDecorationsShape>("MainThreadDecorations"),
-    MainThreadDiagnostics: createProxyIdentifier<MainThreadDiagnosticsShape>("MainThreadDiagnostics"),
-    MainThreadDialogs: createProxyIdentifier<MainThreadDiaglogsShape>("MainThreadDiaglogs"),
-    MainThreadDocuments: createProxyIdentifier<MainThreadDocumentsShape>("MainThreadDocuments"),
-    MainThreadDocumentContentProviders: createProxyIdentifier<MainThreadDocumentContentProvidersShape>("MainThreadDocumentContentProviders"),
-    MainThreadTextEditors: createProxyIdentifier<MainThreadTextEditorsShape>("MainThreadTextEditors"),
-    MainThreadEditorInsets: createProxyIdentifier<MainThreadEditorInsetsShape>("MainThreadEditorInsets"),
-    MainThreadEditorTabs: createProxyIdentifier<MainThreadEditorTabsShape>("MainThreadEditorTabs"),
-    MainThreadErrors: createProxyIdentifier<MainThreadErrorsShape>("MainThreadErrors"),
-    MainThreadTreeViews: createProxyIdentifier<MainThreadTreeViewsShape>("MainThreadTreeViews"),
-    MainThreadDownloadService: createProxyIdentifier<MainThreadDownloadServiceShape>("MainThreadDownloadService"),
-    MainThreadLanguageFeatures: createProxyIdentifier<MainThreadLanguageFeaturesShape>("MainThreadLanguageFeatures"),
-    MainThreadLanguages: createProxyIdentifier<MainThreadLanguagesShape>("MainThreadLanguages"),
-    MainThreadLogger: createProxyIdentifier<MainThreadLoggerShape>("MainThreadLogger"),
-    MainThreadMessageService: createProxyIdentifier<MainThreadMessageServiceShape>("MainThreadMessageService"),
-    MainThreadOutputService: createProxyIdentifier<MainThreadOutputServiceShape>("MainThreadOutputService"),
-    MainThreadProgress: createProxyIdentifier<MainThreadProgressShape>("MainThreadProgress"),
-    MainThreadQuickDiff: createProxyIdentifier<MainThreadQuickDiffShape>("MainThreadQuickDiff"),
-    MainThreadQuickOpen: createProxyIdentifier<MainThreadQuickOpenShape>("MainThreadQuickOpen"),
-    MainThreadStatusBar: createProxyIdentifier<MainThreadStatusBarShape>("MainThreadStatusBar"),
-    MainThreadSecretState: createProxyIdentifier<MainThreadSecretStateShape>("MainThreadSecretState"),
-    MainThreadStorage: createProxyIdentifier<MainThreadStorageShape>("MainThreadStorage"),
-    MainThreadSpeech: createProxyIdentifier<MainThreadSpeechShape>("MainThreadSpeechProvider"),
-    MainThreadTelemetry: createProxyIdentifier<MainThreadTelemetryShape>("MainThreadTelemetry"),
-    MainThreadTerminalService: createProxyIdentifier<MainThreadTerminalServiceShape>("MainThreadTerminalService"),
-    MainThreadTerminalShellIntegration: createProxyIdentifier<MainThreadTerminalShellIntegrationShape>("MainThreadTerminalShellIntegration"),
-    MainThreadWebviews: createProxyIdentifier<MainThreadWebviewsShape>("MainThreadWebviews"),
-    MainThreadWebviewPanels: createProxyIdentifier<MainThreadWebviewPanelsShape>("MainThreadWebviewPanels"),
-    MainThreadWebviewViews: createProxyIdentifier<MainThreadWebviewViewsShape>("MainThreadWebviewViews"),
-    MainThreadCustomEditors: createProxyIdentifier<MainThreadCustomEditorsShape>("MainThreadCustomEditors"),
-    MainThreadUrls: createProxyIdentifier<MainThreadUrlsShape>("MainThreadUrls"),
-    MainThreadUriOpeners: createProxyIdentifier<MainThreadUriOpenersShape>("MainThreadUriOpeners"),
-    MainThreadProfileContentHandlers: createProxyIdentifier<MainThreadProfileContentHandlersShape>("MainThreadProfileContentHandlers"),
-    MainThreadWorkspace: createProxyIdentifier<MainThreadWorkspaceShape>("MainThreadWorkspace"),
-    MainThreadFileSystem: createProxyIdentifier<MainThreadFileSystemShape>("MainThreadFileSystem"),
-    MainThreadFileSystemEventService: createProxyIdentifier<MainThreadFileSystemEventServiceShape>("MainThreadFileSystemEventService"),
-    MainThreadExtensionService: createProxyIdentifier<MainThreadExtensionServiceShape>("MainThreadExtensionService"),
-    MainThreadSCM: createProxyIdentifier<MainThreadSCMShape>("MainThreadSCM"),
-    MainThreadSearch: createProxyIdentifier<MainThreadSearchShape>("MainThreadSearch"),
-    MainThreadShare: createProxyIdentifier<MainThreadShareShape>("MainThreadShare"),
-    MainThreadTask: createProxyIdentifier<MainThreadTaskShape>("MainThreadTask"),
-    MainThreadWindow: createProxyIdentifier<MainThreadWindowShape>("MainThreadWindow"),
-    MainThreadLabelService: createProxyIdentifier<MainThreadLabelServiceShape>("MainThreadLabelService"),
-    MainThreadNotebook: createProxyIdentifier<MainThreadNotebookShape>("MainThreadNotebook"),
-    MainThreadNotebookDocuments: createProxyIdentifier<MainThreadNotebookDocumentsShape>("MainThreadNotebookDocumentsShape"),
-    MainThreadNotebookEditors: createProxyIdentifier<MainThreadNotebookEditorsShape>("MainThreadNotebookEditorsShape"),
-    MainThreadNotebookKernels: createProxyIdentifier<MainThreadNotebookKernelsShape>("MainThreadNotebookKernels"),
-    MainThreadNotebookRenderers: createProxyIdentifier<MainThreadNotebookRenderersShape>("MainThreadNotebookRenderers"),
-    MainThreadInteractive: createProxyIdentifier<MainThreadInteractiveShape>("MainThreadInteractive"),
-    MainThreadTheming: createProxyIdentifier<MainThreadThemingShape>("MainThreadTheming"),
-    MainThreadTunnelService: createProxyIdentifier<MainThreadTunnelServiceShape>("MainThreadTunnelService"),
-    MainThreadManagedSockets: createProxyIdentifier<MainThreadManagedSocketsShape>("MainThreadManagedSockets"),
-    MainThreadTimeline: createProxyIdentifier<MainThreadTimelineShape>("MainThreadTimeline"),
-    MainThreadTesting: createProxyIdentifier<MainThreadTestingShape>("MainThreadTesting"),
-    MainThreadLocalization: createProxyIdentifier<MainThreadLocalizationShape>("MainThreadLocalizationShape"),
-    MainThreadAiRelatedInformation: createProxyIdentifier<MainThreadAiRelatedInformationShape>("MainThreadAiRelatedInformation"),
-    MainThreadAiEmbeddingVector: createProxyIdentifier<MainThreadAiEmbeddingVectorShape>("MainThreadAiEmbeddingVector"),
+    MainThreadAuthentication: createProxyIdentifier<MainThreadAuthenticationShape>('MainThreadAuthentication'),
+    MainThreadBulkEdits: createProxyIdentifier<MainThreadBulkEditsShape>('MainThreadBulkEdits'),
+    MainThreadLanguageModels: createProxyIdentifier<MainThreadLanguageModelsShape>('MainThreadLanguageModels'),
+    MainThreadEmbeddings: createProxyIdentifier<MainThreadEmbeddingsShape>('MainThreadEmbeddings'),
+    MainThreadChatAgents2: createProxyIdentifier<MainThreadChatAgentsShape2>('MainThreadChatAgents2'),
+    MainThreadCodeMapper: createProxyIdentifier<MainThreadCodeMapperShape>('MainThreadCodeMapper'),
+    MainThreadChatVariables: createProxyIdentifier<MainThreadChatVariablesShape>('MainThreadChatVariables'),
+    MainThreadLanguageModelTools: createProxyIdentifier<MainThreadLanguageModelToolsShape>('MainThreadChatSkills'),
+    MainThreadClipboard: createProxyIdentifier<MainThreadClipboardShape>('MainThreadClipboard'),
+    MainThreadCommands: createProxyIdentifier<MainThreadCommandsShape>('MainThreadCommands'),
+    MainThreadComments: createProxyIdentifier<MainThreadCommentsShape>('MainThreadComments'),
+    MainThreadConfiguration: createProxyIdentifier<MainThreadConfigurationShape>('MainThreadConfiguration'),
+    MainThreadConsole: createProxyIdentifier<MainThreadConsoleShape>('MainThreadConsole'),
+    MainThreadDebugService: createProxyIdentifier<MainThreadDebugServiceShape>('MainThreadDebugService'),
+    MainThreadDecorations: createProxyIdentifier<MainThreadDecorationsShape>('MainThreadDecorations'),
+    MainThreadDiagnostics: createProxyIdentifier<MainThreadDiagnosticsShape>('MainThreadDiagnostics'),
+    MainThreadDialogs: createProxyIdentifier<MainThreadDiaglogsShape>('MainThreadDiaglogs'),
+    MainThreadDocuments: createProxyIdentifier<MainThreadDocumentsShape>('MainThreadDocuments'),
+    MainThreadDocumentContentProviders: createProxyIdentifier<MainThreadDocumentContentProvidersShape>('MainThreadDocumentContentProviders'),
+    MainThreadTextEditors: createProxyIdentifier<MainThreadTextEditorsShape>('MainThreadTextEditors'),
+    MainThreadEditorInsets: createProxyIdentifier<MainThreadEditorInsetsShape>('MainThreadEditorInsets'),
+    MainThreadEditorTabs: createProxyIdentifier<MainThreadEditorTabsShape>('MainThreadEditorTabs'),
+    MainThreadErrors: createProxyIdentifier<MainThreadErrorsShape>('MainThreadErrors'),
+    MainThreadTreeViews: createProxyIdentifier<MainThreadTreeViewsShape>('MainThreadTreeViews'),
+    MainThreadDownloadService: createProxyIdentifier<MainThreadDownloadServiceShape>('MainThreadDownloadService'),
+    MainThreadLanguageFeatures: createProxyIdentifier<MainThreadLanguageFeaturesShape>('MainThreadLanguageFeatures'),
+    MainThreadLanguages: createProxyIdentifier<MainThreadLanguagesShape>('MainThreadLanguages'),
+    MainThreadLogger: createProxyIdentifier<MainThreadLoggerShape>('MainThreadLogger'),
+    MainThreadMessageService: createProxyIdentifier<MainThreadMessageServiceShape>('MainThreadMessageService'),
+    MainThreadOutputService: createProxyIdentifier<MainThreadOutputServiceShape>('MainThreadOutputService'),
+    MainThreadProgress: createProxyIdentifier<MainThreadProgressShape>('MainThreadProgress'),
+    MainThreadQuickDiff: createProxyIdentifier<MainThreadQuickDiffShape>('MainThreadQuickDiff'),
+    MainThreadQuickOpen: createProxyIdentifier<MainThreadQuickOpenShape>('MainThreadQuickOpen'),
+    MainThreadStatusBar: createProxyIdentifier<MainThreadStatusBarShape>('MainThreadStatusBar'),
+    MainThreadSecretState: createProxyIdentifier<MainThreadSecretStateShape>('MainThreadSecretState'),
+    MainThreadStorage: createProxyIdentifier<MainThreadStorageShape>('MainThreadStorage'),
+    MainThreadSpeech: createProxyIdentifier<MainThreadSpeechShape>('MainThreadSpeechProvider'),
+    MainThreadTelemetry: createProxyIdentifier<MainThreadTelemetryShape>('MainThreadTelemetry'),
+    MainThreadTerminalService: createProxyIdentifier<MainThreadTerminalServiceShape>('MainThreadTerminalService'),
+    MainThreadTerminalShellIntegration: createProxyIdentifier<MainThreadTerminalShellIntegrationShape>('MainThreadTerminalShellIntegration'),
+    MainThreadWebviews: createProxyIdentifier<MainThreadWebviewsShape>('MainThreadWebviews'),
+    MainThreadWebviewPanels: createProxyIdentifier<MainThreadWebviewPanelsShape>('MainThreadWebviewPanels'),
+    MainThreadWebviewViews: createProxyIdentifier<MainThreadWebviewViewsShape>('MainThreadWebviewViews'),
+    MainThreadCustomEditors: createProxyIdentifier<MainThreadCustomEditorsShape>('MainThreadCustomEditors'),
+    MainThreadUrls: createProxyIdentifier<MainThreadUrlsShape>('MainThreadUrls'),
+    MainThreadUriOpeners: createProxyIdentifier<MainThreadUriOpenersShape>('MainThreadUriOpeners'),
+    MainThreadProfileContentHandlers: createProxyIdentifier<MainThreadProfileContentHandlersShape>('MainThreadProfileContentHandlers'),
+    MainThreadWorkspace: createProxyIdentifier<MainThreadWorkspaceShape>('MainThreadWorkspace'),
+    MainThreadFileSystem: createProxyIdentifier<MainThreadFileSystemShape>('MainThreadFileSystem'),
+    MainThreadFileSystemEventService: createProxyIdentifier<MainThreadFileSystemEventServiceShape>('MainThreadFileSystemEventService'),
+    MainThreadExtensionService: createProxyIdentifier<MainThreadExtensionServiceShape>('MainThreadExtensionService'),
+    MainThreadSCM: createProxyIdentifier<MainThreadSCMShape>('MainThreadSCM'),
+    MainThreadSearch: createProxyIdentifier<MainThreadSearchShape>('MainThreadSearch'),
+    MainThreadShare: createProxyIdentifier<MainThreadShareShape>('MainThreadShare'),
+    MainThreadTask: createProxyIdentifier<MainThreadTaskShape>('MainThreadTask'),
+    MainThreadWindow: createProxyIdentifier<MainThreadWindowShape>('MainThreadWindow'),
+    MainThreadLabelService: createProxyIdentifier<MainThreadLabelServiceShape>('MainThreadLabelService'),
+    MainThreadNotebook: createProxyIdentifier<MainThreadNotebookShape>('MainThreadNotebook'),
+    MainThreadNotebookDocuments: createProxyIdentifier<MainThreadNotebookDocumentsShape>('MainThreadNotebookDocumentsShape'),
+    MainThreadNotebookEditors: createProxyIdentifier<MainThreadNotebookEditorsShape>('MainThreadNotebookEditorsShape'),
+    MainThreadNotebookKernels: createProxyIdentifier<MainThreadNotebookKernelsShape>('MainThreadNotebookKernels'),
+    MainThreadNotebookRenderers: createProxyIdentifier<MainThreadNotebookRenderersShape>('MainThreadNotebookRenderers'),
+    MainThreadInteractive: createProxyIdentifier<MainThreadInteractiveShape>('MainThreadInteractive'),
+    MainThreadTheming: createProxyIdentifier<MainThreadThemingShape>('MainThreadTheming'),
+    MainThreadTunnelService: createProxyIdentifier<MainThreadTunnelServiceShape>('MainThreadTunnelService'),
+    MainThreadManagedSockets: createProxyIdentifier<MainThreadManagedSocketsShape>('MainThreadManagedSockets'),
+    MainThreadTimeline: createProxyIdentifier<MainThreadTimelineShape>('MainThreadTimeline'),
+    MainThreadTesting: createProxyIdentifier<MainThreadTestingShape>('MainThreadTesting'),
+    MainThreadLocalization: createProxyIdentifier<MainThreadLocalizationShape>('MainThreadLocalizationShape'),
+    MainThreadAiRelatedInformation: createProxyIdentifier<MainThreadAiRelatedInformationShape>('MainThreadAiRelatedInformation'),
+    MainThreadAiEmbeddingVector: createProxyIdentifier<MainThreadAiEmbeddingVectorShape>('MainThreadAiEmbeddingVector')
 };
 export const ExtHostContext = {
-    ExtHostCodeMapper: createProxyIdentifier<ExtHostCodeMapperShape>("ExtHostCodeMapper"),
-    ExtHostCommands: createProxyIdentifier<ExtHostCommandsShape>("ExtHostCommands"),
-    ExtHostConfiguration: createProxyIdentifier<ExtHostConfigurationShape>("ExtHostConfiguration"),
-    ExtHostDiagnostics: createProxyIdentifier<ExtHostDiagnosticsShape>("ExtHostDiagnostics"),
-    ExtHostDebugService: createProxyIdentifier<ExtHostDebugServiceShape>("ExtHostDebugService"),
-    ExtHostDecorations: createProxyIdentifier<ExtHostDecorationsShape>("ExtHostDecorations"),
-    ExtHostDocumentsAndEditors: createProxyIdentifier<ExtHostDocumentsAndEditorsShape>("ExtHostDocumentsAndEditors"),
-    ExtHostDocuments: createProxyIdentifier<ExtHostDocumentsShape>("ExtHostDocuments"),
-    ExtHostDocumentContentProviders: createProxyIdentifier<ExtHostDocumentContentProvidersShape>("ExtHostDocumentContentProviders"),
-    ExtHostDocumentSaveParticipant: createProxyIdentifier<ExtHostDocumentSaveParticipantShape>("ExtHostDocumentSaveParticipant"),
-    ExtHostEditors: createProxyIdentifier<ExtHostEditorsShape>("ExtHostEditors"),
-    ExtHostTreeViews: createProxyIdentifier<ExtHostTreeViewsShape>("ExtHostTreeViews"),
-    ExtHostFileSystem: createProxyIdentifier<ExtHostFileSystemShape>("ExtHostFileSystem"),
-    ExtHostFileSystemInfo: createProxyIdentifier<ExtHostFileSystemInfoShape>("ExtHostFileSystemInfo"),
-    ExtHostFileSystemEventService: createProxyIdentifier<ExtHostFileSystemEventServiceShape>("ExtHostFileSystemEventService"),
-    ExtHostLanguages: createProxyIdentifier<ExtHostLanguagesShape>("ExtHostLanguages"),
-    ExtHostLanguageFeatures: createProxyIdentifier<ExtHostLanguageFeaturesShape>("ExtHostLanguageFeatures"),
-    ExtHostQuickOpen: createProxyIdentifier<ExtHostQuickOpenShape>("ExtHostQuickOpen"),
-    ExtHostQuickDiff: createProxyIdentifier<ExtHostQuickDiffShape>("ExtHostQuickDiff"),
-    ExtHostStatusBar: createProxyIdentifier<ExtHostStatusBarShape>("ExtHostStatusBar"),
-    ExtHostShare: createProxyIdentifier<ExtHostShareShape>("ExtHostShare"),
-    ExtHostExtensionService: createProxyIdentifier<ExtHostExtensionServiceShape>("ExtHostExtensionService"),
-    ExtHostLogLevelServiceShape: createProxyIdentifier<ExtHostLogLevelServiceShape>("ExtHostLogLevelServiceShape"),
-    ExtHostTerminalService: createProxyIdentifier<ExtHostTerminalServiceShape>("ExtHostTerminalService"),
-    ExtHostTerminalShellIntegration: createProxyIdentifier<ExtHostTerminalShellIntegrationShape>("ExtHostTerminalShellIntegration"),
-    ExtHostSCM: createProxyIdentifier<ExtHostSCMShape>("ExtHostSCM"),
-    ExtHostSearch: createProxyIdentifier<ExtHostSearchShape>("ExtHostSearch"),
-    ExtHostTask: createProxyIdentifier<ExtHostTaskShape>("ExtHostTask"),
-    ExtHostWorkspace: createProxyIdentifier<ExtHostWorkspaceShape>("ExtHostWorkspace"),
-    ExtHostWindow: createProxyIdentifier<ExtHostWindowShape>("ExtHostWindow"),
-    ExtHostWebviews: createProxyIdentifier<ExtHostWebviewsShape>("ExtHostWebviews"),
-    ExtHostWebviewPanels: createProxyIdentifier<ExtHostWebviewPanelsShape>("ExtHostWebviewPanels"),
-    ExtHostCustomEditors: createProxyIdentifier<ExtHostCustomEditorsShape>("ExtHostCustomEditors"),
-    ExtHostWebviewViews: createProxyIdentifier<ExtHostWebviewViewsShape>("ExtHostWebviewViews"),
-    ExtHostEditorInsets: createProxyIdentifier<ExtHostEditorInsetsShape>("ExtHostEditorInsets"),
-    ExtHostEditorTabs: createProxyIdentifier<IExtHostEditorTabsShape>("ExtHostEditorTabs"),
-    ExtHostProgress: createProxyIdentifier<ExtHostProgressShape>("ExtHostProgress"),
-    ExtHostComments: createProxyIdentifier<ExtHostCommentsShape>("ExtHostComments"),
-    ExtHostSecretState: createProxyIdentifier<ExtHostSecretStateShape>("ExtHostSecretState"),
-    ExtHostStorage: createProxyIdentifier<ExtHostStorageShape>("ExtHostStorage"),
-    ExtHostUrls: createProxyIdentifier<ExtHostUrlsShape>("ExtHostUrls"),
-    ExtHostUriOpeners: createProxyIdentifier<ExtHostUriOpenersShape>("ExtHostUriOpeners"),
-    ExtHostProfileContentHandlers: createProxyIdentifier<ExtHostProfileContentHandlersShape>("ExtHostProfileContentHandlers"),
-    ExtHostOutputService: createProxyIdentifier<ExtHostOutputServiceShape>("ExtHostOutputService"),
-    ExtHostLabelService: createProxyIdentifier<ExtHostLabelServiceShape>("ExtHostLabelService"),
-    ExtHostNotebook: createProxyIdentifier<ExtHostNotebookShape>("ExtHostNotebook"),
-    ExtHostNotebookDocuments: createProxyIdentifier<ExtHostNotebookDocumentsShape>("ExtHostNotebookDocuments"),
-    ExtHostNotebookEditors: createProxyIdentifier<ExtHostNotebookEditorsShape>("ExtHostNotebookEditors"),
-    ExtHostNotebookKernels: createProxyIdentifier<ExtHostNotebookKernelsShape>("ExtHostNotebookKernels"),
-    ExtHostNotebookRenderers: createProxyIdentifier<ExtHostNotebookRenderersShape>("ExtHostNotebookRenderers"),
-    ExtHostNotebookDocumentSaveParticipant: createProxyIdentifier<ExtHostNotebookDocumentSaveParticipantShape>("ExtHostNotebookDocumentSaveParticipant"),
-    ExtHostInteractive: createProxyIdentifier<ExtHostInteractiveShape>("ExtHostInteractive"),
-    ExtHostChatAgents2: createProxyIdentifier<ExtHostChatAgentsShape2>("ExtHostChatAgents"),
-    ExtHostChatVariables: createProxyIdentifier<ExtHostChatVariablesShape>("ExtHostChatVariables"),
-    ExtHostLanguageModelTools: createProxyIdentifier<ExtHostLanguageModelToolsShape>("ExtHostChatSkills"),
-    ExtHostChatProvider: createProxyIdentifier<ExtHostLanguageModelsShape>("ExtHostChatProvider"),
-    ExtHostSpeech: createProxyIdentifier<ExtHostSpeechShape>("ExtHostSpeech"),
-    ExtHostEmbeddings: createProxyIdentifier<ExtHostEmbeddingsShape>("ExtHostEmbeddings"),
-    ExtHostAiRelatedInformation: createProxyIdentifier<ExtHostAiRelatedInformationShape>("ExtHostAiRelatedInformation"),
-    ExtHostAiEmbeddingVector: createProxyIdentifier<ExtHostAiEmbeddingVectorShape>("ExtHostAiEmbeddingVector"),
-    ExtHostTheming: createProxyIdentifier<ExtHostThemingShape>("ExtHostTheming"),
-    ExtHostTunnelService: createProxyIdentifier<ExtHostTunnelServiceShape>("ExtHostTunnelService"),
-    ExtHostManagedSockets: createProxyIdentifier<ExtHostManagedSocketsShape>("ExtHostManagedSockets"),
-    ExtHostAuthentication: createProxyIdentifier<ExtHostAuthenticationShape>("ExtHostAuthentication"),
-    ExtHostTimeline: createProxyIdentifier<ExtHostTimelineShape>("ExtHostTimeline"),
-    ExtHostTesting: createProxyIdentifier<ExtHostTestingShape>("ExtHostTesting"),
-    ExtHostTelemetry: createProxyIdentifier<ExtHostTelemetryShape>("ExtHostTelemetry"),
-    ExtHostLocalization: createProxyIdentifier<ExtHostLocalizationShape>("ExtHostLocalization"),
+    ExtHostCodeMapper: createProxyIdentifier<ExtHostCodeMapperShape>('ExtHostCodeMapper'),
+    ExtHostCommands: createProxyIdentifier<ExtHostCommandsShape>('ExtHostCommands'),
+    ExtHostConfiguration: createProxyIdentifier<ExtHostConfigurationShape>('ExtHostConfiguration'),
+    ExtHostDiagnostics: createProxyIdentifier<ExtHostDiagnosticsShape>('ExtHostDiagnostics'),
+    ExtHostDebugService: createProxyIdentifier<ExtHostDebugServiceShape>('ExtHostDebugService'),
+    ExtHostDecorations: createProxyIdentifier<ExtHostDecorationsShape>('ExtHostDecorations'),
+    ExtHostDocumentsAndEditors: createProxyIdentifier<ExtHostDocumentsAndEditorsShape>('ExtHostDocumentsAndEditors'),
+    ExtHostDocuments: createProxyIdentifier<ExtHostDocumentsShape>('ExtHostDocuments'),
+    ExtHostDocumentContentProviders: createProxyIdentifier<ExtHostDocumentContentProvidersShape>('ExtHostDocumentContentProviders'),
+    ExtHostDocumentSaveParticipant: createProxyIdentifier<ExtHostDocumentSaveParticipantShape>('ExtHostDocumentSaveParticipant'),
+    ExtHostEditors: createProxyIdentifier<ExtHostEditorsShape>('ExtHostEditors'),
+    ExtHostTreeViews: createProxyIdentifier<ExtHostTreeViewsShape>('ExtHostTreeViews'),
+    ExtHostFileSystem: createProxyIdentifier<ExtHostFileSystemShape>('ExtHostFileSystem'),
+    ExtHostFileSystemInfo: createProxyIdentifier<ExtHostFileSystemInfoShape>('ExtHostFileSystemInfo'),
+    ExtHostFileSystemEventService: createProxyIdentifier<ExtHostFileSystemEventServiceShape>('ExtHostFileSystemEventService'),
+    ExtHostLanguages: createProxyIdentifier<ExtHostLanguagesShape>('ExtHostLanguages'),
+    ExtHostLanguageFeatures: createProxyIdentifier<ExtHostLanguageFeaturesShape>('ExtHostLanguageFeatures'),
+    ExtHostQuickOpen: createProxyIdentifier<ExtHostQuickOpenShape>('ExtHostQuickOpen'),
+    ExtHostQuickDiff: createProxyIdentifier<ExtHostQuickDiffShape>('ExtHostQuickDiff'),
+    ExtHostStatusBar: createProxyIdentifier<ExtHostStatusBarShape>('ExtHostStatusBar'),
+    ExtHostShare: createProxyIdentifier<ExtHostShareShape>('ExtHostShare'),
+    ExtHostExtensionService: createProxyIdentifier<ExtHostExtensionServiceShape>('ExtHostExtensionService'),
+    ExtHostLogLevelServiceShape: createProxyIdentifier<ExtHostLogLevelServiceShape>('ExtHostLogLevelServiceShape'),
+    ExtHostTerminalService: createProxyIdentifier<ExtHostTerminalServiceShape>('ExtHostTerminalService'),
+    ExtHostTerminalShellIntegration: createProxyIdentifier<ExtHostTerminalShellIntegrationShape>('ExtHostTerminalShellIntegration'),
+    ExtHostSCM: createProxyIdentifier<ExtHostSCMShape>('ExtHostSCM'),
+    ExtHostSearch: createProxyIdentifier<ExtHostSearchShape>('ExtHostSearch'),
+    ExtHostTask: createProxyIdentifier<ExtHostTaskShape>('ExtHostTask'),
+    ExtHostWorkspace: createProxyIdentifier<ExtHostWorkspaceShape>('ExtHostWorkspace'),
+    ExtHostWindow: createProxyIdentifier<ExtHostWindowShape>('ExtHostWindow'),
+    ExtHostWebviews: createProxyIdentifier<ExtHostWebviewsShape>('ExtHostWebviews'),
+    ExtHostWebviewPanels: createProxyIdentifier<ExtHostWebviewPanelsShape>('ExtHostWebviewPanels'),
+    ExtHostCustomEditors: createProxyIdentifier<ExtHostCustomEditorsShape>('ExtHostCustomEditors'),
+    ExtHostWebviewViews: createProxyIdentifier<ExtHostWebviewViewsShape>('ExtHostWebviewViews'),
+    ExtHostEditorInsets: createProxyIdentifier<ExtHostEditorInsetsShape>('ExtHostEditorInsets'),
+    ExtHostEditorTabs: createProxyIdentifier<IExtHostEditorTabsShape>('ExtHostEditorTabs'),
+    ExtHostProgress: createProxyIdentifier<ExtHostProgressShape>('ExtHostProgress'),
+    ExtHostComments: createProxyIdentifier<ExtHostCommentsShape>('ExtHostComments'),
+    ExtHostSecretState: createProxyIdentifier<ExtHostSecretStateShape>('ExtHostSecretState'),
+    ExtHostStorage: createProxyIdentifier<ExtHostStorageShape>('ExtHostStorage'),
+    ExtHostUrls: createProxyIdentifier<ExtHostUrlsShape>('ExtHostUrls'),
+    ExtHostUriOpeners: createProxyIdentifier<ExtHostUriOpenersShape>('ExtHostUriOpeners'),
+    ExtHostProfileContentHandlers: createProxyIdentifier<ExtHostProfileContentHandlersShape>('ExtHostProfileContentHandlers'),
+    ExtHostOutputService: createProxyIdentifier<ExtHostOutputServiceShape>('ExtHostOutputService'),
+    ExtHostLabelService: createProxyIdentifier<ExtHostLabelServiceShape>('ExtHostLabelService'),
+    ExtHostNotebook: createProxyIdentifier<ExtHostNotebookShape>('ExtHostNotebook'),
+    ExtHostNotebookDocuments: createProxyIdentifier<ExtHostNotebookDocumentsShape>('ExtHostNotebookDocuments'),
+    ExtHostNotebookEditors: createProxyIdentifier<ExtHostNotebookEditorsShape>('ExtHostNotebookEditors'),
+    ExtHostNotebookKernels: createProxyIdentifier<ExtHostNotebookKernelsShape>('ExtHostNotebookKernels'),
+    ExtHostNotebookRenderers: createProxyIdentifier<ExtHostNotebookRenderersShape>('ExtHostNotebookRenderers'),
+    ExtHostNotebookDocumentSaveParticipant: createProxyIdentifier<ExtHostNotebookDocumentSaveParticipantShape>('ExtHostNotebookDocumentSaveParticipant'),
+    ExtHostInteractive: createProxyIdentifier<ExtHostInteractiveShape>('ExtHostInteractive'),
+    ExtHostChatAgents2: createProxyIdentifier<ExtHostChatAgentsShape2>('ExtHostChatAgents'),
+    ExtHostChatVariables: createProxyIdentifier<ExtHostChatVariablesShape>('ExtHostChatVariables'),
+    ExtHostLanguageModelTools: createProxyIdentifier<ExtHostLanguageModelToolsShape>('ExtHostChatSkills'),
+    ExtHostChatProvider: createProxyIdentifier<ExtHostLanguageModelsShape>('ExtHostChatProvider'),
+    ExtHostSpeech: createProxyIdentifier<ExtHostSpeechShape>('ExtHostSpeech'),
+    ExtHostEmbeddings: createProxyIdentifier<ExtHostEmbeddingsShape>('ExtHostEmbeddings'),
+    ExtHostAiRelatedInformation: createProxyIdentifier<ExtHostAiRelatedInformationShape>('ExtHostAiRelatedInformation'),
+    ExtHostAiEmbeddingVector: createProxyIdentifier<ExtHostAiEmbeddingVectorShape>('ExtHostAiEmbeddingVector'),
+    ExtHostTheming: createProxyIdentifier<ExtHostThemingShape>('ExtHostTheming'),
+    ExtHostTunnelService: createProxyIdentifier<ExtHostTunnelServiceShape>('ExtHostTunnelService'),
+    ExtHostManagedSockets: createProxyIdentifier<ExtHostManagedSocketsShape>('ExtHostManagedSockets'),
+    ExtHostAuthentication: createProxyIdentifier<ExtHostAuthenticationShape>('ExtHostAuthentication'),
+    ExtHostTimeline: createProxyIdentifier<ExtHostTimelineShape>('ExtHostTimeline'),
+    ExtHostTesting: createProxyIdentifier<ExtHostTestingShape>('ExtHostTesting'),
+    ExtHostTelemetry: createProxyIdentifier<ExtHostTelemetryShape>('ExtHostTelemetry'),
+    ExtHostLocalization: createProxyIdentifier<ExtHostLocalizationShape>('ExtHostLocalization')
 };

@@ -2,15 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { isString } from "../../../base/common/types.js";
-import { URI, UriDto } from "../../../base/common/uri.js";
-import { INativeEnvironmentService } from "../../environment/common/environment.js";
-import { IFileService } from "../../files/common/files.js";
-import { ILogService } from "../../log/common/log.js";
-import { IStateReadService, IStateService } from "../../state/node/state.js";
-import { SaveStrategy, StateService } from "../../state/node/stateService.js";
-import { IUriIdentityService } from "../../uriIdentity/common/uriIdentity.js";
-import { UserDataProfilesService as BaseUserDataProfilesService, IUserDataProfilesService, StoredProfileAssociations, StoredUserDataProfile, } from "../common/userDataProfile.js";
+import { URI, UriDto } from '../../../base/common/uri.js';
+import { INativeEnvironmentService } from '../../environment/common/environment.js';
+import { IFileService } from '../../files/common/files.js';
+import { ILogService } from '../../log/common/log.js';
+import { IStateReadService, IStateService } from '../../state/node/state.js';
+import { IUriIdentityService } from '../../uriIdentity/common/uriIdentity.js';
+import { IUserDataProfilesService, UserDataProfilesService as BaseUserDataProfilesService, StoredUserDataProfile, StoredProfileAssociations } from '../common/userDataProfile.js';
+import { isString } from '../../../base/common/types.js';
+import { SaveStrategy, StateService } from '../../state/node/stateService.js';
 type StoredUserDataProfileState = StoredUserDataProfile & {
     location: URI | string;
 };
@@ -30,20 +30,13 @@ export class UserDataProfilesReadonlyService extends BaseUserDataProfilesService
     }
     protected override getStoredProfiles(): StoredUserDataProfile[] {
         const storedProfilesState = this.stateReadonlyService.getItem<UriDto<StoredUserDataProfileState>[]>(UserDataProfilesReadonlyService.PROFILES_KEY, []);
-        return storedProfilesState.map((p) => ({
-            ...p,
-            location: isString(p.location)
-                ? this.uriIdentityService.extUri.joinPath(this.profilesHome, p.location)
-                : URI.revive(p.location),
-        }));
+        return storedProfilesState.map(p => ({ ...p, location: isString(p.location) ? this.uriIdentityService.extUri.joinPath(this.profilesHome, p.location) : URI.revive(p.location) }));
     }
     protected override getStoredProfileAssociations(): StoredProfileAssociations {
         return this.stateReadonlyService.getItem<StoredProfileAssociations>(UserDataProfilesReadonlyService.PROFILE_ASSOCIATIONS_KEY, {});
     }
     protected override getDefaultProfileExtensionsLocation(): URI {
-        return this.uriIdentityService.extUri.joinPath(URI.file(this.nativeEnvironmentService.extensionsPath).with({
-            scheme: this.profilesHome.scheme,
-        }), "extensions.json");
+        return this.uriIdentityService.extUri.joinPath(URI.file(this.nativeEnvironmentService.extensionsPath).with({ scheme: this.profilesHome.scheme }), 'extensions.json');
     }
 }
 export class UserDataProfilesService extends UserDataProfilesReadonlyService implements IUserDataProfilesService {
@@ -62,18 +55,14 @@ export class UserDataProfilesService extends UserDataProfilesReadonlyService imp
     }
     protected override saveStoredProfiles(storedProfiles: StoredUserDataProfile[]): void {
         if (storedProfiles.length) {
-            this.stateService.setItem(UserDataProfilesService.PROFILES_KEY, storedProfiles.map((profile) => ({
-                ...profile,
-                location: this.uriIdentityService.extUri.basename(profile.location),
-            })));
+            this.stateService.setItem(UserDataProfilesService.PROFILES_KEY, storedProfiles.map(profile => ({ ...profile, location: this.uriIdentityService.extUri.basename(profile.location) })));
         }
         else {
             this.stateService.removeItem(UserDataProfilesService.PROFILES_KEY);
         }
     }
     protected override saveStoredProfileAssociations(storedProfileAssociations: StoredProfileAssociations): void {
-        if (storedProfileAssociations.emptyWindows ||
-            storedProfileAssociations.workspaces) {
+        if (storedProfileAssociations.emptyWindows || storedProfileAssociations.workspaces) {
             this.stateService.setItem(UserDataProfilesService.PROFILE_ASSOCIATIONS_KEY, storedProfileAssociations);
         }
         else {

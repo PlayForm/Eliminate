@@ -2,15 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as fs from "fs";
-import { IntervalTimer, timeout } from "../../../base/common/async.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { Schemas } from "../../../base/common/network.js";
-import * as path from "../../../base/common/path.js";
-import { URI } from "../../../base/common/uri.js";
-import { Promises } from "../../../base/node/pfs.js";
-import { ILogService } from "../../../platform/log/common/log.js";
-import { ExtensionStoragePaths as CommonExtensionStoragePaths } from "../common/extHostStoragePaths.js";
+import * as fs from 'fs';
+import * as path from '../../../base/common/path.js';
+import { URI } from '../../../base/common/uri.js';
+import { ExtensionStoragePaths as CommonExtensionStoragePaths } from '../common/extHostStoragePaths.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { Schemas } from '../../../base/common/network.js';
+import { IntervalTimer, timeout } from '../../../base/common/async.js';
+import { ILogService } from '../../../platform/log/common/log.js';
+import { Promises } from '../../../base/node/pfs.js';
 export class ExtensionStoragePaths extends CommonExtensionStoragePaths {
     private _workspaceStorageLock: Lock | null = null;
     protected override async _getWorkspaceStorageURI(storageName: string): Promise<URI> {
@@ -30,16 +30,16 @@ export class ExtensionStoragePaths extends CommonExtensionStoragePaths {
                 workspaceStoragePath = workspaceStorageBase;
             }
             else {
-                workspaceStoragePath = /[/\\]$/.test(workspaceStorageBase)
+                workspaceStoragePath = (/[/\\]$/.test(workspaceStorageBase)
                     ? `${workspaceStorageBase.substr(0, workspaceStorageBase.length - 1)}-${attempt}`
-                    : `${workspaceStorageBase}-${attempt}`;
+                    : `${workspaceStorageBase}-${attempt}`);
             }
             await mkdir(workspaceStoragePath);
-            const lockfile = path.join(workspaceStoragePath, "vscode.lock");
+            const lockfile = path.join(workspaceStoragePath, 'vscode.lock');
             const lock = await tryAcquireLock(this._logService, lockfile, false);
             if (lock) {
                 this._workspaceStorageLock = lock;
-                process.on("exit", () => {
+                process.on('exit', () => {
                     lock.dispose();
                 });
                 return URI.file(workspaceStoragePath);
@@ -65,7 +65,8 @@ async function mkdir(dir: string): Promise<void> {
     try {
         await fs.promises.mkdir(dir, { recursive: true });
     }
-    catch { }
+    catch {
+    }
 }
 const MTIME_UPDATE_TIME = 1000; // 1s
 const STALE_LOCK_TIME = 10 * 60 * 1000; // 10 minutes
@@ -102,11 +103,9 @@ class Lock extends Disposable {
         try {
             const contents: ILockfileContents = {
                 pid: process.pid,
-                willReleaseAt: Date.now() + timeUntilReleaseMs,
+                willReleaseAt: Date.now() + timeUntilReleaseMs
             };
-            await Promises.writeFile(this.filename, JSON.stringify(contents), {
-                flag: "w",
-            });
+            await Promises.writeFile(this.filename, JSON.stringify(contents), { flag: 'w' });
         }
         catch (err) {
             this.logService.error(err);
@@ -122,11 +121,9 @@ async function tryAcquireLock(logService: ILogService, filename: string, isSecon
     try {
         const contents: ILockfileContents = {
             pid: process.pid,
-            willReleaseAt: 0,
+            willReleaseAt: 0
         };
-        await Promises.writeFile(filename, JSON.stringify(contents), {
-            flag: "wx",
-        });
+        await Promises.writeFile(filename, JSON.stringify(contents), { flag: 'wx' });
     }
     catch (err) {
         logService.error(err);

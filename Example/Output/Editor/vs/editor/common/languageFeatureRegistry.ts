@@ -2,11 +2,11 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Emitter } from "../../base/common/event.js";
-import { IDisposable, toDisposable } from "../../base/common/lifecycle.js";
-import { URI } from "../../base/common/uri.js";
-import { LanguageFilter, LanguageSelector, score } from "./languageSelector.js";
-import { ITextModel, shouldSynchronizeModel } from "./model.js";
+import { Emitter } from '../../base/common/event.js';
+import { IDisposable, toDisposable } from '../../base/common/lifecycle.js';
+import { ITextModel, shouldSynchronizeModel } from './model.js';
+import { LanguageFilter, LanguageSelector, score } from './languageSelector.js';
+import { URI } from '../../base/common/uri.js';
 interface Entry<T> {
     readonly selector: LanguageSelector;
     readonly provider: T;
@@ -14,7 +14,7 @@ interface Entry<T> {
     readonly _time: number;
 }
 function isExclusive(selector: LanguageSelector): boolean {
-    if (typeof selector === "string") {
+    if (typeof selector === 'string') {
         return false;
     }
     else if (Array.isArray(selector)) {
@@ -34,11 +34,11 @@ export interface NotebookInfoResolver {
 class MatchCandidate {
     constructor(readonly uri: URI, readonly languageId: string, readonly notebookUri: URI | undefined, readonly notebookType: string | undefined, readonly recursive: boolean) { }
     equals(other: MatchCandidate): boolean {
-        return (this.notebookType === other.notebookType &&
-            this.languageId === other.languageId &&
-            this.uri.toString() === other.uri.toString() &&
-            this.notebookUri?.toString() === other.notebookUri?.toString() &&
-            this.recursive === other.recursive);
+        return this.notebookType === other.notebookType
+            && this.languageId === other.languageId
+            && this.uri.toString() === other.uri.toString()
+            && this.notebookUri?.toString() === other.notebookUri?.toString()
+            && this.recursive === other.recursive;
     }
 }
 export class LanguageFeatureRegistry<T> {
@@ -52,7 +52,7 @@ export class LanguageFeatureRegistry<T> {
             selector,
             provider,
             _score: -1,
-            _time: this._clock++,
+            _time: this._clock++
         };
         this._entries.push(entry);
         this._lastCandidate = undefined;
@@ -87,18 +87,18 @@ export class LanguageFeatureRegistry<T> {
         return result;
     }
     allNoModel(): T[] {
-        return this._entries.map((entry) => entry.provider);
+        return this._entries.map(entry => entry.provider);
     }
     ordered(model: ITextModel, recursive = false): T[] {
         const result: T[] = [];
-        this._orderedForEach(model, recursive, (entry) => result.push(entry.provider));
+        this._orderedForEach(model, recursive, entry => result.push(entry.provider));
         return result;
     }
     orderedGroups(model: ITextModel): T[][] {
         const result: T[][] = [];
         let lastBucket: T[];
         let lastBucketScore: number;
-        this._orderedForEach(model, false, (entry) => {
+        this._orderedForEach(model, false, entry => {
             if (lastBucket && lastBucketScore === entry._score) {
                 lastBucket.push(entry.provider);
             }
@@ -162,8 +162,7 @@ export class LanguageFeatureRegistry<T> {
         if (isBuiltinSelector(a.selector) && !isBuiltinSelector(b.selector)) {
             return 1;
         }
-        else if (!isBuiltinSelector(a.selector) &&
-            isBuiltinSelector(b.selector)) {
+        else if (!isBuiltinSelector(a.selector) && isBuiltinSelector(b.selector)) {
             return -1;
         }
         if (a._time < b._time) {
@@ -178,7 +177,7 @@ export class LanguageFeatureRegistry<T> {
     }
 }
 function isBuiltinSelector(selector: LanguageSelector): boolean {
-    if (typeof selector === "string") {
+    if (typeof selector === 'string') {
         return false;
     }
     if (Array.isArray(selector)) {

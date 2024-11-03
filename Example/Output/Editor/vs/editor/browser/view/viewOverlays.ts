@@ -2,17 +2,17 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { createFastDomNode, FastDomNode, } from "../../../base/browser/fastDomNode.js";
-import { EditorOption } from "../../common/config/editorOptions.js";
-import { StringBuilder } from "../../common/core/stringBuilder.js";
-import * as viewEvents from "../../common/viewEvents.js";
-import { ViewportData } from "../../common/viewLayout/viewLinesViewportData.js";
-import { ViewContext } from "../../common/viewModel/viewContext.js";
-import { applyFontInfo } from "../config/domFontInfo.js";
-import { DynamicViewOverlay } from "./dynamicViewOverlay.js";
-import { RenderingContext, RestrictedRenderingContext, } from "./renderingContext.js";
-import { IVisibleLine, VisibleLinesCollection } from "./viewLayer.js";
-import { ViewPart } from "./viewPart.js";
+import { FastDomNode, createFastDomNode } from '../../../base/browser/fastDomNode.js';
+import { applyFontInfo } from '../config/domFontInfo.js';
+import { DynamicViewOverlay } from './dynamicViewOverlay.js';
+import { IVisibleLine, VisibleLinesCollection } from './viewLayer.js';
+import { ViewPart } from './viewPart.js';
+import { StringBuilder } from '../../common/core/stringBuilder.js';
+import { RenderingContext, RestrictedRenderingContext } from './renderingContext.js';
+import { ViewContext } from '../../common/viewModel/viewContext.js';
+import * as viewEvents from '../../common/viewEvents.js';
+import { ViewportData } from '../../common/viewLayout/viewLinesViewportData.js';
+import { EditorOption } from '../../common/config/editorOptions.js';
 export class ViewOverlays extends ViewPart {
     private readonly _visibleLines: VisibleLinesCollection<ViewOverlayLine>;
     protected readonly domNode: FastDomNode<HTMLElement>;
@@ -21,13 +21,13 @@ export class ViewOverlays extends ViewPart {
     constructor(context: ViewContext) {
         super(context);
         this._visibleLines = new VisibleLinesCollection({
-            createLine: () => new ViewOverlayLine(this._dynamicOverlays),
+            createLine: () => new ViewOverlayLine(this._dynamicOverlays)
         });
         this.domNode = this._visibleLines.domNode;
         const options = this._context.configuration.options;
         const fontInfo = options.get(EditorOption.fontInfo);
         applyFontInfo(this.domNode, fontInfo);
-        this.domNode.setClassName("view-overlays");
+        this.domNode.setClassName('view-overlays');
     }
     public override shouldRender(): boolean {
         if (super.shouldRender()) {
@@ -90,7 +90,7 @@ export class ViewOverlays extends ViewPart {
     }
     // ----- end event handlers
     public prepareRender(ctx: RenderingContext): void {
-        const toRender = this._dynamicOverlays.filter((overlay) => overlay.shouldRender());
+        const toRender = this._dynamicOverlays.filter(overlay => overlay.shouldRender());
         for (let i = 0, len = toRender.length; i < len; i++) {
             const dynamicOverlay = toRender[i];
             dynamicOverlay.prepareRender(ctx);
@@ -100,7 +100,7 @@ export class ViewOverlays extends ViewPart {
     public render(ctx: RestrictedRenderingContext): void {
         // Overwriting to bypass `shouldRender` flag
         this._viewOverlaysRender(ctx);
-        this.domNode.toggleClassName("focused", this._isFocused);
+        this.domNode.toggleClassName('focused', this._isFocused);
     }
     _viewOverlaysRender(ctx: RestrictedRenderingContext): void {
         this._visibleLines.renderLines(ctx.viewportData);
@@ -131,7 +131,7 @@ export class ViewOverlayLine implements IVisibleLine {
         // Nothing
     }
     public renderLine(lineNumber: number, deltaTop: number, lineHeight: number, viewportData: ViewportData, sb: StringBuilder): boolean {
-        let result = "";
+        let result = '';
         for (let i = 0, len = this._dynamicOverlays.length; i < len; i++) {
             const dynamicOverlay = this._dynamicOverlays[i];
             result += dynamicOverlay.render(viewportData.startLineNumber, lineNumber);
@@ -143,11 +143,11 @@ export class ViewOverlayLine implements IVisibleLine {
         this._renderedContent = result;
         sb.appendString('<div style="top:');
         sb.appendString(String(deltaTop));
-        sb.appendString("px;height:");
+        sb.appendString('px;height:');
         sb.appendString(String(lineHeight));
         sb.appendString('px;">');
         sb.appendString(result);
-        sb.appendString("</div>");
+        sb.appendString('</div>');
         return true;
     }
     public layoutLine(lineNumber: number, deltaTop: number, lineHeight: number): void {
@@ -189,7 +189,7 @@ export class MarginViewOverlays extends ViewOverlays {
         const options = this._context.configuration.options;
         const layoutInfo = options.get(EditorOption.layoutInfo);
         this._contentLeft = layoutInfo.contentLeft;
-        this.domNode.setClassName("margin-view-overlays");
+        this.domNode.setClassName('margin-view-overlays');
         this.domNode.setWidth(1);
         applyFontInfo(this.domNode, options.get(EditorOption.fontInfo));
     }

@@ -2,26 +2,26 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { IStringDictionary } from "../../../base/common/collections.js";
-import { Event } from "../../../base/common/event.js";
-import { IPager } from "../../../base/common/paging.js";
-import { Platform } from "../../../base/common/platform.js";
-import { URI } from "../../../base/common/uri.js";
-import { localize2 } from "../../../nls.js";
-import { ExtensionType, IExtension, IExtensionManifest, TargetPlatform, } from "../../extensions/common/extensions.js";
-import { IFileService } from "../../files/common/files.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-export const EXTENSION_IDENTIFIER_PATTERN = "^([a-z0-9A-Z][a-z0-9-A-Z]*)\\.([a-z0-9A-Z][a-z0-9-A-Z]*)$";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { IStringDictionary } from '../../../base/common/collections.js';
+import { Event } from '../../../base/common/event.js';
+import { IPager } from '../../../base/common/paging.js';
+import { Platform } from '../../../base/common/platform.js';
+import { URI } from '../../../base/common/uri.js';
+import { localize2 } from '../../../nls.js';
+import { ExtensionType, IExtension, IExtensionManifest, TargetPlatform } from '../../extensions/common/extensions.js';
+import { IFileService } from '../../files/common/files.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+export const EXTENSION_IDENTIFIER_PATTERN = '^([a-z0-9A-Z][a-z0-9-A-Z]*)\\.([a-z0-9A-Z][a-z0-9-A-Z]*)$';
 export const EXTENSION_IDENTIFIER_REGEX = new RegExp(EXTENSION_IDENTIFIER_PATTERN);
-export const WEB_EXTENSION_TAG = "__web_extension";
-export const EXTENSION_INSTALL_SKIP_WALKTHROUGH_CONTEXT = "skipWalkthrough";
-export const EXTENSION_INSTALL_SOURCE_CONTEXT = "extensionInstallSource";
-export const EXTENSION_INSTALL_DEP_PACK_CONTEXT = "dependecyOrPackExtensionInstall";
-export const EXTENSION_INSTALL_CLIENT_TARGET_PLATFORM_CONTEXT = "clientTargetPlatform";
+export const WEB_EXTENSION_TAG = '__web_extension';
+export const EXTENSION_INSTALL_SKIP_WALKTHROUGH_CONTEXT = 'skipWalkthrough';
+export const EXTENSION_INSTALL_SOURCE_CONTEXT = 'extensionInstallSource';
+export const EXTENSION_INSTALL_DEP_PACK_CONTEXT = 'dependecyOrPackExtensionInstall';
+export const EXTENSION_INSTALL_CLIENT_TARGET_PLATFORM_CONTEXT = 'clientTargetPlatform';
 export const enum ExtensionInstallSource {
-    COMMAND = "command",
-    SETTINGS_SYNC = "settingsSync"
+    COMMAND = 'command',
+    SETTINGS_SYNC = 'settingsSync'
 }
 export interface IProductVersion {
     readonly version: string;
@@ -29,107 +29,80 @@ export interface IProductVersion {
 }
 export function TargetPlatformToString(targetPlatform: TargetPlatform) {
     switch (targetPlatform) {
-        case TargetPlatform.WIN32_X64:
-            return "Windows 64 bit";
-        case TargetPlatform.WIN32_ARM64:
-            return "Windows ARM";
-        case TargetPlatform.LINUX_X64:
-            return "Linux 64 bit";
-        case TargetPlatform.LINUX_ARM64:
-            return "Linux ARM 64";
-        case TargetPlatform.LINUX_ARMHF:
-            return "Linux ARM";
-        case TargetPlatform.ALPINE_X64:
-            return "Alpine Linux 64 bit";
-        case TargetPlatform.ALPINE_ARM64:
-            return "Alpine ARM 64";
-        case TargetPlatform.DARWIN_X64:
-            return "Mac";
-        case TargetPlatform.DARWIN_ARM64:
-            return "Mac Silicon";
-        case TargetPlatform.WEB:
-            return "Web";
-        case TargetPlatform.UNIVERSAL:
-            return TargetPlatform.UNIVERSAL;
-        case TargetPlatform.UNKNOWN:
-            return TargetPlatform.UNKNOWN;
-        case TargetPlatform.UNDEFINED:
-            return TargetPlatform.UNDEFINED;
+        case TargetPlatform.WIN32_X64: return 'Windows 64 bit';
+        case TargetPlatform.WIN32_ARM64: return 'Windows ARM';
+        case TargetPlatform.LINUX_X64: return 'Linux 64 bit';
+        case TargetPlatform.LINUX_ARM64: return 'Linux ARM 64';
+        case TargetPlatform.LINUX_ARMHF: return 'Linux ARM';
+        case TargetPlatform.ALPINE_X64: return 'Alpine Linux 64 bit';
+        case TargetPlatform.ALPINE_ARM64: return 'Alpine ARM 64';
+        case TargetPlatform.DARWIN_X64: return 'Mac';
+        case TargetPlatform.DARWIN_ARM64: return 'Mac Silicon';
+        case TargetPlatform.WEB: return 'Web';
+        case TargetPlatform.UNIVERSAL: return TargetPlatform.UNIVERSAL;
+        case TargetPlatform.UNKNOWN: return TargetPlatform.UNKNOWN;
+        case TargetPlatform.UNDEFINED: return TargetPlatform.UNDEFINED;
     }
 }
 export function toTargetPlatform(targetPlatform: string): TargetPlatform {
     switch (targetPlatform) {
-        case TargetPlatform.WIN32_X64:
-            return TargetPlatform.WIN32_X64;
-        case TargetPlatform.WIN32_ARM64:
-            return TargetPlatform.WIN32_ARM64;
-        case TargetPlatform.LINUX_X64:
-            return TargetPlatform.LINUX_X64;
-        case TargetPlatform.LINUX_ARM64:
-            return TargetPlatform.LINUX_ARM64;
-        case TargetPlatform.LINUX_ARMHF:
-            return TargetPlatform.LINUX_ARMHF;
-        case TargetPlatform.ALPINE_X64:
-            return TargetPlatform.ALPINE_X64;
-        case TargetPlatform.ALPINE_ARM64:
-            return TargetPlatform.ALPINE_ARM64;
-        case TargetPlatform.DARWIN_X64:
-            return TargetPlatform.DARWIN_X64;
-        case TargetPlatform.DARWIN_ARM64:
-            return TargetPlatform.DARWIN_ARM64;
-        case TargetPlatform.WEB:
-            return TargetPlatform.WEB;
-        case TargetPlatform.UNIVERSAL:
-            return TargetPlatform.UNIVERSAL;
-        default:
-            return TargetPlatform.UNKNOWN;
+        case TargetPlatform.WIN32_X64: return TargetPlatform.WIN32_X64;
+        case TargetPlatform.WIN32_ARM64: return TargetPlatform.WIN32_ARM64;
+        case TargetPlatform.LINUX_X64: return TargetPlatform.LINUX_X64;
+        case TargetPlatform.LINUX_ARM64: return TargetPlatform.LINUX_ARM64;
+        case TargetPlatform.LINUX_ARMHF: return TargetPlatform.LINUX_ARMHF;
+        case TargetPlatform.ALPINE_X64: return TargetPlatform.ALPINE_X64;
+        case TargetPlatform.ALPINE_ARM64: return TargetPlatform.ALPINE_ARM64;
+        case TargetPlatform.DARWIN_X64: return TargetPlatform.DARWIN_X64;
+        case TargetPlatform.DARWIN_ARM64: return TargetPlatform.DARWIN_ARM64;
+        case TargetPlatform.WEB: return TargetPlatform.WEB;
+        case TargetPlatform.UNIVERSAL: return TargetPlatform.UNIVERSAL;
+        default: return TargetPlatform.UNKNOWN;
     }
 }
-export function getTargetPlatform(platform: Platform | "alpine", arch: string | undefined): TargetPlatform {
+export function getTargetPlatform(platform: Platform | 'alpine', arch: string | undefined): TargetPlatform {
     switch (platform) {
         case Platform.Windows:
-            if (arch === "x64") {
+            if (arch === 'x64') {
                 return TargetPlatform.WIN32_X64;
             }
-            if (arch === "arm64") {
+            if (arch === 'arm64') {
                 return TargetPlatform.WIN32_ARM64;
             }
             return TargetPlatform.UNKNOWN;
         case Platform.Linux:
-            if (arch === "x64") {
+            if (arch === 'x64') {
                 return TargetPlatform.LINUX_X64;
             }
-            if (arch === "arm64") {
+            if (arch === 'arm64') {
                 return TargetPlatform.LINUX_ARM64;
             }
-            if (arch === "arm") {
+            if (arch === 'arm') {
                 return TargetPlatform.LINUX_ARMHF;
             }
             return TargetPlatform.UNKNOWN;
-        case "alpine":
-            if (arch === "x64") {
+        case 'alpine':
+            if (arch === 'x64') {
                 return TargetPlatform.ALPINE_X64;
             }
-            if (arch === "arm64") {
+            if (arch === 'arm64') {
                 return TargetPlatform.ALPINE_ARM64;
             }
             return TargetPlatform.UNKNOWN;
         case Platform.Mac:
-            if (arch === "x64") {
+            if (arch === 'x64') {
                 return TargetPlatform.DARWIN_X64;
             }
-            if (arch === "arm64") {
+            if (arch === 'arm64') {
                 return TargetPlatform.DARWIN_ARM64;
             }
             return TargetPlatform.UNKNOWN;
-        case Platform.Web:
-            return TargetPlatform.WEB;
+        case Platform.Web: return TargetPlatform.WEB;
     }
 }
 export function isNotWebExtensionInWebTargetPlatform(allTargetPlatforms: TargetPlatform[], productTargetPlatform: TargetPlatform): boolean {
     // Not a web extension in web target platform
-    return (productTargetPlatform === TargetPlatform.WEB &&
-        !allTargetPlatforms.includes(TargetPlatform.WEB));
+    return productTargetPlatform === TargetPlatform.WEB && !allTargetPlatforms.includes(TargetPlatform.WEB);
 }
 export function isTargetPlatformCompatible(extensionTargetPlatform: TargetPlatform, allTargetPlatforms: TargetPlatform[], productTargetPlatform: TargetPlatform): boolean {
     // Not compatible when extension is not a web extension in web target platform
@@ -183,10 +156,10 @@ export interface IGalleryExtensionAssets {
     ][];
 }
 export function isIExtensionIdentifier(thing: any): thing is IExtensionIdentifier {
-    return (thing &&
-        typeof thing === "object" &&
-        typeof thing.id === "string" &&
-        (!thing.uuid || typeof thing.uuid === "string"));
+    return thing
+        && typeof thing === 'object'
+        && typeof thing.id === 'string'
+        && (!thing.uuid || typeof thing.uuid === 'string');
 }
 export interface IExtensionIdentifier {
     id: string;
@@ -201,7 +174,7 @@ export interface IGalleryExtensionVersion {
     isPreReleaseVersion: boolean;
 }
 export interface IGalleryExtension {
-    type: "gallery";
+    type: 'gallery';
     name: string;
     identifier: IGalleryExtensionIdentifier;
     version: string;
@@ -233,7 +206,7 @@ export interface IGalleryExtension {
     queryContext?: IStringDictionary<any>;
     supportLink?: string;
 }
-export type InstallSource = "gallery" | "vsix" | "resource";
+export type InstallSource = 'gallery' | 'vsix' | 'resource';
 export interface IGalleryMetadata {
     id: string;
     publisherId: string;
@@ -295,8 +268,8 @@ export interface IQueryOptions {
     productVersion?: IProductVersion;
 }
 export const enum StatisticType {
-    Install = "install",
-    Uninstall = "uninstall"
+    Install = 'install',
+    Uninstall = 'uninstall'
 }
 export interface IDeprecationInfo {
     readonly disallowInstall?: boolean;
@@ -344,7 +317,7 @@ export interface IExtensionQueryOptions {
     queryAllVersions?: boolean;
     source?: string;
 }
-export const IExtensionGalleryService = createDecorator<IExtensionGalleryService>("extensionGalleryService");
+export const IExtensionGalleryService = createDecorator<IExtensionGalleryService>('extensionGalleryService');
 /**
  * Service to interact with the Visual Studio Code Marketplace to get extensions.
  * @throws Error if the Marketplace is not enabled or not reachable.
@@ -403,11 +376,11 @@ export interface DidUpdateExtensionMetadata {
     readonly local: ILocalExtension;
 }
 export const enum ExtensionGalleryErrorCode {
-    Timeout = "Timeout",
-    Cancelled = "Cancelled",
-    Failed = "Failed",
-    DownloadFailedWriting = "DownloadFailedWriting",
-    Offline = "Offline"
+    Timeout = 'Timeout',
+    Cancelled = 'Cancelled',
+    Failed = 'Failed',
+    DownloadFailedWriting = 'DownloadFailedWriting',
+    Offline = 'Offline'
 }
 export class ExtensionGalleryError extends Error {
     constructor(message: string, readonly code: ExtensionGalleryErrorCode) {
@@ -416,67 +389,67 @@ export class ExtensionGalleryError extends Error {
     }
 }
 export const enum ExtensionManagementErrorCode {
-    Unsupported = "Unsupported",
-    Deprecated = "Deprecated",
-    Malicious = "Malicious",
-    Incompatible = "Incompatible",
-    IncompatibleApi = "IncompatibleApi",
-    IncompatibleTargetPlatform = "IncompatibleTargetPlatform",
-    ReleaseVersionNotFound = "ReleaseVersionNotFound",
-    Invalid = "Invalid",
-    Download = "Download",
-    DownloadSignature = "DownloadSignature",
+    Unsupported = 'Unsupported',
+    Deprecated = 'Deprecated',
+    Malicious = 'Malicious',
+    Incompatible = 'Incompatible',
+    IncompatibleApi = 'IncompatibleApi',
+    IncompatibleTargetPlatform = 'IncompatibleTargetPlatform',
+    ReleaseVersionNotFound = 'ReleaseVersionNotFound',
+    Invalid = 'Invalid',
+    Download = 'Download',
+    DownloadSignature = 'DownloadSignature',
     DownloadFailedWriting = ExtensionGalleryErrorCode.DownloadFailedWriting,
-    UpdateMetadata = "UpdateMetadata",
-    Extract = "Extract",
-    Scanning = "Scanning",
-    ScanningExtension = "ScanningExtension",
-    ReadUninstalled = "ReadUninstalled",
-    UnsetUninstalled = "UnsetUninstalled",
-    Delete = "Delete",
-    Rename = "Rename",
-    IntializeDefaultProfile = "IntializeDefaultProfile",
-    AddToProfile = "AddToProfile",
-    InstalledExtensionNotFound = "InstalledExtensionNotFound",
-    PostInstall = "PostInstall",
-    CorruptZip = "CorruptZip",
-    IncompleteZip = "IncompleteZip",
-    PackageNotSigned = "PackageNotSigned",
-    SignatureVerificationInternal = "SignatureVerificationInternal",
-    SignatureVerificationFailed = "SignatureVerificationFailed",
-    NotAllowed = "NotAllowed",
-    Gallery = "Gallery",
-    Cancelled = "Cancelled",
-    Unknown = "Unknown",
-    Internal = "Internal"
+    UpdateMetadata = 'UpdateMetadata',
+    Extract = 'Extract',
+    Scanning = 'Scanning',
+    ScanningExtension = 'ScanningExtension',
+    ReadUninstalled = 'ReadUninstalled',
+    UnsetUninstalled = 'UnsetUninstalled',
+    Delete = 'Delete',
+    Rename = 'Rename',
+    IntializeDefaultProfile = 'IntializeDefaultProfile',
+    AddToProfile = 'AddToProfile',
+    InstalledExtensionNotFound = 'InstalledExtensionNotFound',
+    PostInstall = 'PostInstall',
+    CorruptZip = 'CorruptZip',
+    IncompleteZip = 'IncompleteZip',
+    PackageNotSigned = 'PackageNotSigned',
+    SignatureVerificationInternal = 'SignatureVerificationInternal',
+    SignatureVerificationFailed = 'SignatureVerificationFailed',
+    NotAllowed = 'NotAllowed',
+    Gallery = 'Gallery',
+    Cancelled = 'Cancelled',
+    Unknown = 'Unknown',
+    Internal = 'Internal'
 }
 export enum ExtensionSignatureVerificationCode {
-    "Success" = "Success",
-    "RequiredArgumentMissing" = "RequiredArgumentMissing",// A required argument is missing.
-    "InvalidArgument" = "InvalidArgument",// An argument is invalid.
-    "PackageIsUnreadable" = "PackageIsUnreadable",// The extension package is unreadable.
-    "UnhandledException" = "UnhandledException",// An unhandled exception occurred.
-    "SignatureManifestIsMissing" = "SignatureManifestIsMissing",// The extension is missing a signature manifest file (.signature.manifest).
-    "SignatureManifestIsUnreadable" = "SignatureManifestIsUnreadable",// The signature manifest is unreadable.
-    "SignatureIsMissing" = "SignatureIsMissing",// The extension is missing a signature file (.signature.p7s).
-    "SignatureIsUnreadable" = "SignatureIsUnreadable",// The signature is unreadable.
-    "CertificateIsUnreadable" = "CertificateIsUnreadable",// The certificate is unreadable.
-    "SignatureArchiveIsUnreadable" = "SignatureArchiveIsUnreadable",
-    "FileAlreadyExists" = "FileAlreadyExists",// The output file already exists.
-    "SignatureArchiveIsInvalidZip" = "SignatureArchiveIsInvalidZip",
-    "SignatureArchiveHasSameSignatureFile" = "SignatureArchiveHasSameSignatureFile",// The signature archive has the same signature file.
-    "PackageIntegrityCheckFailed" = "PackageIntegrityCheckFailed",// The package integrity check failed.
-    "SignatureIsInvalid" = "SignatureIsInvalid",// The extension has an invalid signature file (.signature.p7s).
-    "SignatureManifestIsInvalid" = "SignatureManifestIsInvalid",// The extension has an invalid signature manifest file (.signature.manifest).
-    "SignatureIntegrityCheckFailed" = "SignatureIntegrityCheckFailed",// The extension's signature integrity check failed.  Extension integrity is suspect.
-    "EntryIsMissing" = "EntryIsMissing",// An entry referenced in the signature manifest was not found in the extension.
-    "EntryIsTampered" = "EntryIsTampered",// The integrity check for an entry referenced in the signature manifest failed.
-    "Untrusted" = "Untrusted",// An X.509 certificate in the extension signature is untrusted.
-    "CertificateRevoked" = "CertificateRevoked",// An X.509 certificate in the extension signature has been revoked.
-    "SignatureIsNotValid" = "SignatureIsNotValid",// The extension signature is invalid.
-    "UnknownError" = "UnknownError",// An unknown error occurred.
-    "PackageIsInvalidZip" = "PackageIsInvalidZip",// The extension package is not valid ZIP format.
-    "SignatureArchiveHasTooManyEntries" = "SignatureArchiveHasTooManyEntries"
+    'Success' = 'Success',
+    'RequiredArgumentMissing' = 'RequiredArgumentMissing',// A required argument is missing.
+    'InvalidArgument' = 'InvalidArgument',// An argument is invalid.
+    'PackageIsUnreadable' = 'PackageIsUnreadable',// The extension package is unreadable.
+    'UnhandledException' = 'UnhandledException',// An unhandled exception occurred.
+    'SignatureManifestIsMissing' = 'SignatureManifestIsMissing',// The extension is missing a signature manifest file (.signature.manifest).
+    'SignatureManifestIsUnreadable' = 'SignatureManifestIsUnreadable',// The signature manifest is unreadable.
+    'SignatureIsMissing' = 'SignatureIsMissing',// The extension is missing a signature file (.signature.p7s).
+    'SignatureIsUnreadable' = 'SignatureIsUnreadable',// The signature is unreadable.
+    'CertificateIsUnreadable' = 'CertificateIsUnreadable',// The certificate is unreadable.
+    'SignatureArchiveIsUnreadable' = 'SignatureArchiveIsUnreadable',
+    'FileAlreadyExists' = 'FileAlreadyExists',// The output file already exists.
+    'SignatureArchiveIsInvalidZip' = 'SignatureArchiveIsInvalidZip',
+    'SignatureArchiveHasSameSignatureFile' = 'SignatureArchiveHasSameSignatureFile',// The signature archive has the same signature file.
+    'PackageIntegrityCheckFailed' = 'PackageIntegrityCheckFailed',// The package integrity check failed.
+    'SignatureIsInvalid' = 'SignatureIsInvalid',// The extension has an invalid signature file (.signature.p7s).
+    'SignatureManifestIsInvalid' = 'SignatureManifestIsInvalid',// The extension has an invalid signature manifest file (.signature.manifest).
+    'SignatureIntegrityCheckFailed' = 'SignatureIntegrityCheckFailed',// The extension's signature integrity check failed.  Extension integrity is suspect.
+    'EntryIsMissing' = 'EntryIsMissing',// An entry referenced in the signature manifest was not found in the extension.
+    'EntryIsTampered' = 'EntryIsTampered',// The integrity check for an entry referenced in the signature manifest failed.
+    'Untrusted' = 'Untrusted',// An X.509 certificate in the extension signature is untrusted.
+    'CertificateRevoked' = 'CertificateRevoked',// An X.509 certificate in the extension signature has been revoked.
+    'SignatureIsNotValid' = 'SignatureIsNotValid',// The extension signature is invalid.
+    'UnknownError' = 'UnknownError',// An unknown error occurred.
+    'PackageIsInvalidZip' = 'PackageIsInvalidZip',// The extension package is not valid ZIP format.
+    'SignatureArchiveHasTooManyEntries' = 'SignatureArchiveHasTooManyEntries'
 }
 export class ExtensionManagementError extends Error {
     constructor(message: string, readonly code: ExtensionManagementErrorCode) {
@@ -524,7 +497,7 @@ export type UninstallExtensionInfo = {
     readonly extension: ILocalExtension;
     readonly options?: UninstallOptions;
 };
-export const IExtensionManagementService = createDecorator<IExtensionManagementService>("extensionManagementService");
+export const IExtensionManagementService = createDecorator<IExtensionManagementService>('extensionManagementService');
 export interface IExtensionManagementService {
     readonly _serviceBrand: undefined;
     onInstallExtension: Event<InstallExtensionEvent>;
@@ -554,9 +527,9 @@ export interface IExtensionManagementService {
     getTargetPlatform(): Promise<TargetPlatform>;
     cleanUp(): Promise<void>;
 }
-export const DISABLED_EXTENSIONS_STORAGE_PATH = "extensionsIdentifiers/disabled";
-export const ENABLED_EXTENSIONS_STORAGE_PATH = "extensionsIdentifiers/enabled";
-export const IGlobalExtensionEnablementService = createDecorator<IGlobalExtensionEnablementService>("IGlobalExtensionEnablementService");
+export const DISABLED_EXTENSIONS_STORAGE_PATH = 'extensionsIdentifiers/disabled';
+export const ENABLED_EXTENSIONS_STORAGE_PATH = 'extensionsIdentifiers/enabled';
+export const IGlobalExtensionEnablementService = createDecorator<IGlobalExtensionEnablementService>('IGlobalExtensionEnablementService');
 export interface IGlobalExtensionEnablementService {
     readonly _serviceBrand: undefined;
     readonly onDidChangeEnablement: Event<{
@@ -584,7 +557,7 @@ export type IExecutableBasedExtensionTip = {
     readonly windowsPath?: string;
     readonly whenNotInstalled?: string[];
 };
-export const IExtensionTipsService = createDecorator<IExtensionTipsService>("IExtensionTipsService");
+export const IExtensionTipsService = createDecorator<IExtensionTipsService>('IExtensionTipsService');
 export interface IExtensionTipsService {
     readonly _serviceBrand: undefined;
     getConfigBasedTips(folder: URI): Promise<IConfigBasedExtensionTip[]>;
@@ -594,10 +567,10 @@ export interface IExtensionTipsService {
 export async function computeSize(location: URI, fileService: IFileService): Promise<number> {
     const stat = await fileService.resolve(location);
     if (stat.children) {
-        const sizes = await Promise.all(stat.children.map((c) => computeSize(c.resource, fileService)));
+        const sizes = await Promise.all(stat.children.map(c => computeSize(c.resource, fileService)));
         return sizes.reduce((r, s) => r + s, 0);
     }
     return stat.size ?? 0;
 }
-export const ExtensionsLocalizedLabel = localize2("extensions", "Extensions");
-export const PreferencesLocalizedLabel = localize2("preferences", "Preferences");
+export const ExtensionsLocalizedLabel = localize2('extensions', "Extensions");
+export const PreferencesLocalizedLabel = localize2('preferences', 'Preferences');

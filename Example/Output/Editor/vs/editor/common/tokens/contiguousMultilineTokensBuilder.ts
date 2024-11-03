@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { readUInt32BE, writeUInt32BE } from "../../../base/common/buffer.js";
-import { ContiguousMultilineTokens } from "./contiguousMultilineTokens.js";
+import { readUInt32BE, writeUInt32BE } from '../../../base/common/buffer.js';
+import { ContiguousMultilineTokens } from './contiguousMultilineTokens.js';
 export class ContiguousMultilineTokensBuilder {
     public static deserialize(buff: Uint8Array): ContiguousMultilineTokens[] {
         let offset = 0;

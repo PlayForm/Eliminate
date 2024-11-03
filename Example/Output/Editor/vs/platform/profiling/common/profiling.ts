@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { basename, isAbsolute, join } from "../../../base/common/path.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
+import { basename, isAbsolute, join } from '../../../base/common/path.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
 export interface IV8Profile {
     nodes: IV8ProfileNode[];
     samples?: number[];
@@ -29,7 +29,7 @@ export interface IV8CallFrame {
     lineNumber: number;
     columnNumber: number;
 }
-export const IV8InspectProfilingService = createDecorator<IV8InspectProfilingService>("IV8InspectProfilingService");
+export const IV8InspectProfilingService = createDecorator<IV8InspectProfilingService>('IV8InspectProfilingService');
 export interface IV8InspectProfilingService {
     _serviceBrand: undefined;
     startProfiling(options: {
@@ -42,11 +42,10 @@ export namespace Utils {
     export function isValidProfile(profile: IV8Profile): profile is Required<IV8Profile> {
         return Boolean(profile.samples && profile.timeDeltas);
     }
-    export function rewriteAbsolutePaths(profile: IV8Profile, replace: string = "noAbsolutePaths") {
+    export function rewriteAbsolutePaths(profile: IV8Profile, replace: string = 'noAbsolutePaths') {
         for (const node of profile.nodes) {
             if (node.callFrame && node.callFrame.url) {
-                if (isAbsolute(node.callFrame.url) ||
-                    /^\w[\w\d+.-]*:\/\/\/?/.test(node.callFrame.url)) {
+                if (isAbsolute(node.callFrame.url) || /^\w[\w\d+.-]*:\/\/\/?/.test(node.callFrame.url)) {
                     node.callFrame.url = join(replace, basename(node.callFrame.url));
                 }
             }

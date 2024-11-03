@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { toUint8 } from "../../../base/common/uint.js";
+import { toUint8 } from '../../../base/common/uint.js';
 /**
  * A fast character classifier that uses a compact array for ASCII values.
  */
@@ -62,7 +62,7 @@ export class CharacterSet {
         this._actual.set(charCode, Boolean.True);
     }
     public has(charCode: number): boolean {
-        return this._actual.get(charCode) === Boolean.True;
+        return (this._actual.get(charCode) === Boolean.True);
     }
     public clear(): void {
         return this._actual.clear();

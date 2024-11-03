@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { isFalsyOrEmpty, isNonEmptyArray, } from "../../../base/common/arrays.js";
-import { DebounceEmitter } from "../../../base/common/event.js";
-import { Iterable } from "../../../base/common/iterator.js";
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { ResourceMap } from "../../../base/common/map.js";
-import { Schemas } from "../../../base/common/network.js";
-import { URI } from "../../../base/common/uri.js";
-import { IMarker, IMarkerData, IMarkerService, IResourceMarker, MarkerSeverity, MarkerStatistics, } from "./markers.js";
+import { isFalsyOrEmpty, isNonEmptyArray } from '../../../base/common/arrays.js';
+import { DebounceEmitter } from '../../../base/common/event.js';
+import { Iterable } from '../../../base/common/iterator.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { ResourceMap } from '../../../base/common/map.js';
+import { Schemas } from '../../../base/common/network.js';
+import { URI } from '../../../base/common/uri.js';
+import { IMarker, IMarkerData, IMarkerService, IResourceMarker, MarkerSeverity, MarkerStatistics } from './markers.js';
 export const unsupportedSchemas = new Set([
     Schemas.inMemory,
     Schemas.vscodeSourceControl,
@@ -50,18 +50,18 @@ class DoubleResourceMap<V> {
             removedB = resourceMap.delete(resource);
         }
         if (removedA !== removedB) {
-            throw new Error("illegal state");
+            throw new Error('illegal state');
         }
         return removedA && removedB;
     }
     values(key?: URI | string): Iterable<V> {
-        if (typeof key === "string") {
+        if (typeof key === 'string') {
             return this._byOwner.get(key)?.values() ?? Iterable.empty();
         }
         if (URI.isUri(key)) {
             return this._byResource.get(key)?.values() ?? Iterable.empty();
         }
-        return Iterable.map(Iterable.concat(...this._byOwner.values()), (map) => map[1]);
+        return Iterable.map(Iterable.concat(...this._byOwner.values()), map => map[1]);
     }
 }
 class MarkerStats implements MarkerStatistics {
@@ -91,12 +91,7 @@ class MarkerStats implements MarkerStatistics {
         }
     }
     private _resourceStats(resource: URI): MarkerStatistics {
-        const result: MarkerStatistics = {
-            errors: 0,
-            warnings: 0,
-            infos: 0,
-            unknowns: 0,
-        };
+        const result: MarkerStatistics = { errors: 0, warnings: 0, infos: 0, unknowns: 0 };
         // TODO this is a hack
         if (unsupportedSchemas.has(resource.scheme)) {
             return result;
@@ -134,7 +129,7 @@ export class MarkerService implements IMarkerService {
     declare readonly _serviceBrand: undefined;
     private readonly _onMarkerChanged = new DebounceEmitter<readonly URI[]>({
         delay: 0,
-        merge: MarkerService._merge,
+        merge: MarkerService._merge
     });
     readonly onMarkerChanged = this._onMarkerChanged.event;
     private readonly _data = new DoubleResourceMap<IMarker[]>();
@@ -180,8 +175,7 @@ export class MarkerService implements IMarkerService {
         // santize data
         startLineNumber = startLineNumber > 0 ? startLineNumber : 1;
         startColumn = startColumn > 0 ? startColumn : 1;
-        endLineNumber =
-            endLineNumber >= startLineNumber ? endLineNumber : startLineNumber;
+        endLineNumber = endLineNumber >= startLineNumber ? endLineNumber : startLineNumber;
         endColumn = endColumn > 0 ? endColumn : startColumn;
         return {
             resource,
@@ -301,8 +295,7 @@ export class MarkerService implements IMarkerService {
         }
     }
     private static _accept(marker: IMarker, severities?: number): boolean {
-        return (severities === undefined ||
-            (severities & marker.severity) === marker.severity);
+        return severities === undefined || (severities & marker.severity) === marker.severity;
     }
     // --- event debounce logic
     private static _merge(all: (readonly URI[])[]): URI[] {

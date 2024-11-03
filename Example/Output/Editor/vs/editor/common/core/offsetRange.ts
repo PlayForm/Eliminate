@@ -2,24 +2,22 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { BugIndicatingError } from "../../../base/common/errors.js";
+import { BugIndicatingError } from '../../../base/common/errors.js';
 export interface IOffsetRange {
     readonly start: number;
     readonly endExclusive: number;
 }
 /**
  * A range of offsets (0-based).
- */
+*/
 export class OffsetRange implements IOffsetRange {
     public static addRange(range: OffsetRange, sortedRanges: OffsetRange[]): void {
         let i = 0;
-        while (i < sortedRanges.length &&
-            sortedRanges[i].endExclusive < range.start) {
+        while (i < sortedRanges.length && sortedRanges[i].endExclusive < range.start) {
             i++;
         }
         let j = i;
-        while (j < sortedRanges.length &&
-            sortedRanges[j].start <= range.endExclusive) {
+        while (j < sortedRanges.length && sortedRanges[j].start <= range.endExclusive) {
             j++;
         }
         if (i === j) {
@@ -70,11 +68,10 @@ export class OffsetRange implements IOffsetRange {
         return `[${this.start}, ${this.endExclusive})`;
     }
     public equals(other: OffsetRange): boolean {
-        return (this.start === other.start &&
-            this.endExclusive === other.endExclusive);
+        return this.start === other.start && this.endExclusive === other.endExclusive;
     }
     public containsRange(other: OffsetRange): boolean {
-        return (this.start <= other.start && other.endExclusive <= this.endExclusive);
+        return this.start <= other.start && other.endExclusive <= this.endExclusive;
     }
     public contains(offset: number): boolean {
         return this.start <= offset && offset < this.endExclusive;
@@ -172,13 +169,11 @@ export class OffsetRangeSet {
     private readonly _sortedRanges: OffsetRange[] = [];
     public addRange(range: OffsetRange): void {
         let i = 0;
-        while (i < this._sortedRanges.length &&
-            this._sortedRanges[i].endExclusive < range.start) {
+        while (i < this._sortedRanges.length && this._sortedRanges[i].endExclusive < range.start) {
             i++;
         }
         let j = i;
-        while (j < this._sortedRanges.length &&
-            this._sortedRanges[j].start <= range.endExclusive) {
+        while (j < this._sortedRanges.length && this._sortedRanges[j].start <= range.endExclusive) {
             j++;
         }
         if (i === j) {
@@ -191,7 +186,7 @@ export class OffsetRangeSet {
         }
     }
     public toString(): string {
-        return this._sortedRanges.map((r) => r.toString()).join(", ");
+        return this._sortedRanges.map(r => r.toString()).join(', ');
     }
     /**
      * Returns of there is a value that is contained in this instance and the given range.
@@ -199,12 +194,10 @@ export class OffsetRangeSet {
     public intersectsStrict(other: OffsetRange): boolean {
         // TODO use binary search
         let i = 0;
-        while (i < this._sortedRanges.length &&
-            this._sortedRanges[i].endExclusive <= other.start) {
+        while (i < this._sortedRanges.length && this._sortedRanges[i].endExclusive <= other.start) {
             i++;
         }
-        return (i < this._sortedRanges.length &&
-            this._sortedRanges[i].start < other.endExclusive);
+        return i < this._sortedRanges.length && this._sortedRanges[i].start < other.endExclusive;
     }
     public intersectWithRange(other: OffsetRange): OffsetRangeSet {
         // TODO use binary search + slice

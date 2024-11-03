@@ -23,21 +23,15 @@ export function fromNow(date: number | Date, appendAgoLabel?: boolean, useFullTi
         date = date.getTime();
     }
     const seconds = Math.round((new Date().getTime() - date) / 1000);
-    if (Math.round((new Date().getTime() - date) / 1000)
-        < -30) {
-        return localize('date.fromNow.in', 'in {0}', fromNow(new Date().getTime() + Math.round((new Date().getTime() - date) / 1000)
-            * 1000, false));
+    if (seconds < -30) {
+        return localize('date.fromNow.in', 'in {0}', fromNow(new Date().getTime() + seconds * 1000, false));
     }
-    if (!disallowNow && Math.round((new Date().getTime() - date) / 1000)
-        < 30) {
+    if (!disallowNow && seconds < 30) {
         return localize('date.fromNow.now', 'now');
     }
     let value: number;
-    if (Math.round((new Date().getTime() - date) / 1000)
-        <
-            60) {
-        value =
-            Math.round((new Date().getTime() - date) / 1000);
+    if (seconds < minute) {
+        value = seconds;
         if (appendAgoLabel) {
             if (value === 1) {
                 return useFullTimeWords
@@ -63,13 +57,8 @@ export function fromNow(date: number | Date, appendAgoLabel?: boolean, useFullTi
             }
         }
     }
-    if (Math.round((new Date().getTime() - date) / 1000)
-        <
-            60
-                * 60) {
-        value = Math.floor(Math.round((new Date().getTime() - date) / 1000)
-            /
-                60);
+    if (seconds < hour) {
+        value = Math.floor(seconds / minute);
         if (appendAgoLabel) {
             if (value === 1) {
                 return useFullTimeWords
@@ -95,15 +84,8 @@ export function fromNow(date: number | Date, appendAgoLabel?: boolean, useFullTi
             }
         }
     }
-    if (Math.round((new Date().getTime() - date) / 1000)
-        <
-            60
-                * 60
-                * 24) {
-        value = Math.floor(Math.round((new Date().getTime() - date) / 1000)
-            /
-                (60
-                    * 60));
+    if (seconds < day) {
+        value = Math.floor(seconds / hour);
         if (appendAgoLabel) {
             if (value === 1) {
                 return useFullTimeWords
@@ -129,17 +111,8 @@ export function fromNow(date: number | Date, appendAgoLabel?: boolean, useFullTi
             }
         }
     }
-    if (Math.round((new Date().getTime() - date) / 1000)
-        <
-            60
-                * 60
-                * 24
-                * 7) {
-        value = Math.floor(Math.round((new Date().getTime() - date) / 1000)
-            /
-                (60
-                    * 60
-                    * 24));
+    if (seconds < week) {
+        value = Math.floor(seconds / day);
         if (appendAgoLabel) {
             return value === 1
                 ? localize('date.fromNow.days.singular.ago', '{0} day ago', value)
@@ -151,18 +124,8 @@ export function fromNow(date: number | Date, appendAgoLabel?: boolean, useFullTi
                 : localize('date.fromNow.days.plural', '{0} days', value);
         }
     }
-    if (Math.round((new Date().getTime() - date) / 1000)
-        <
-            60
-                * 60
-                * 24
-                * 30) {
-        value = Math.floor(Math.round((new Date().getTime() - date) / 1000)
-            /
-                (60
-                    * 60
-                    * 24
-                    * 7));
+    if (seconds < month) {
+        value = Math.floor(seconds / week);
         if (appendAgoLabel) {
             if (value === 1) {
                 return useFullTimeWords
@@ -188,18 +151,8 @@ export function fromNow(date: number | Date, appendAgoLabel?: boolean, useFullTi
             }
         }
     }
-    if (Math.round((new Date().getTime() - date) / 1000)
-        <
-            60
-                * 60
-                * 24
-                * 365) {
-        value = Math.floor(Math.round((new Date().getTime() - date) / 1000)
-            /
-                (60
-                    * 60
-                    * 24
-                    * 30));
+    if (seconds < year) {
+        value = Math.floor(seconds / month);
         if (appendAgoLabel) {
             if (value === 1) {
                 return useFullTimeWords
@@ -225,12 +178,7 @@ export function fromNow(date: number | Date, appendAgoLabel?: boolean, useFullTi
             }
         }
     }
-    value = Math.floor(Math.round((new Date().getTime() - date) / 1000)
-        /
-            (60
-                * 60
-                * 24
-                * 365));
+    value = Math.floor(seconds / year);
     if (appendAgoLabel) {
         if (value === 1) {
             return useFullTimeWords
@@ -261,13 +209,13 @@ export function fromNowByDay(date: number | Date, appendAgoLabel?: boolean, useF
         date = date.getTime();
     }
     const todayMidnightTime = new Date();
-    new Date().setHours(0, 0, 0, 0);
+    todayMidnightTime.setHours(0, 0, 0, 0);
     const yesterdayMidnightTime = new Date(todayMidnightTime.getTime());
-    new Date(new Date().getTime()).setDate(new Date(new Date().getTime()).getDate() - 1);
-    if (date > new Date().getTime()) {
+    yesterdayMidnightTime.setDate(yesterdayMidnightTime.getDate() - 1);
+    if (date > todayMidnightTime.getTime()) {
         return localize('today', 'Today');
     }
-    if (date > new Date(new Date().getTime()).getTime()) {
+    if (date > yesterdayMidnightTime.getTime()) {
         return localize('yesterday', 'Yesterday');
     }
     return fromNow(date, appendAgoLabel, useFullTimeWords);
@@ -280,46 +228,27 @@ export function fromNowByDay(date: number | Date, appendAgoLabel?: boolean, useF
  */
 export function getDurationString(ms: number, useFullTimeWords?: boolean) {
     const seconds = Math.abs(ms / 1000);
-    if (Math.round((new Date().getTime() - date) / 1000)
-        < 1) {
+    if (seconds < 1) {
         return useFullTimeWords
             ? localize('duration.ms.full', '{0} milliseconds', ms)
             : localize('duration.ms', '{0}ms', ms);
     }
-    if (Math.round((new Date().getTime() - date) / 1000)
-        <
-            60) {
+    if (seconds < minute) {
         return useFullTimeWords
             ? localize('duration.s.full', '{0} seconds', Math.round(ms) / 1000)
             : localize('duration.s', '{0}s', Math.round(ms) / 1000);
     }
-    if (Math.round((new Date().getTime() - date) / 1000)
-        <
-            60
-                * 60) {
+    if (seconds < hour) {
         return useFullTimeWords
-            ? localize('duration.m.full', '{0} minutes', Math.round(ms / (1000 *
-                60)))
-            : localize('duration.m', '{0} mins', Math.round(ms / (1000 *
-                60)));
+            ? localize('duration.m.full', '{0} minutes', Math.round(ms / (1000 * minute)))
+            : localize('duration.m', '{0} mins', Math.round(ms / (1000 * minute)));
     }
-    if (Math.round((new Date().getTime() - date) / 1000)
-        <
-            60
-                * 60
-                * 24) {
+    if (seconds < day) {
         return useFullTimeWords
-            ? localize('duration.h.full', '{0} hours', Math.round(ms / (1000 *
-                60
-                    * 60)))
-            : localize('duration.h', '{0} hrs', Math.round(ms / (1000 *
-                60
-                    * 60)));
+            ? localize('duration.h.full', '{0} hours', Math.round(ms / (1000 * hour)))
+            : localize('duration.h', '{0} hrs', Math.round(ms / (1000 * hour)));
     }
-    return localize('duration.d', '{0} days', Math.round(ms / (1000 *
-        60
-            * 60
-            * 24)));
+    return localize('duration.d', '{0} days', Math.round(ms / (1000 * day)));
 }
 export function toLocalISOString(date: Date): string {
     return date.getFullYear() +

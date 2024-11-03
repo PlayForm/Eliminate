@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CharCode } from "../../../base/common/charCode.js";
-import { LRUCache } from "../../../base/common/map.js";
-import { CharacterClassifier } from "./characterClassifier.js";
+import { CharCode } from '../../../base/common/charCode.js';
+import { LRUCache } from '../../../base/common/map.js';
+import { CharacterClassifier } from './characterClassifier.js';
 export const enum WordCharacterClass {
     Regular = 0,
     Whitespace = 1,
@@ -19,9 +19,7 @@ export class WordCharacterClassifier extends CharacterClassifier<WordCharacterCl
         super(WordCharacterClass.Regular);
         this.intlSegmenterLocales = intlSegmenterLocales;
         if (this.intlSegmenterLocales.length > 0) {
-            this._segmenter = new Intl.Segmenter(this.intlSegmenterLocales, {
-                granularity: "word",
-            });
+            this._segmenter = new Intl.Segmenter(this.intlSegmenterLocales, { granularity: 'word' });
         }
         else {
             this._segmenter = null;
@@ -85,7 +83,7 @@ export interface IntlWordSegmentData extends Intl.SegmentData {
 }
 const wordClassifierCache = new LRUCache<string, WordCharacterClassifier>(10);
 export function getMapForWordSeparators(wordSeparators: string, intlSegmenterLocales: Intl.UnicodeBCP47LocaleIdentifier[]): WordCharacterClassifier {
-    const key = `${wordSeparators}/${intlSegmenterLocales.join(",")}`;
+    const key = `${wordSeparators}/${intlSegmenterLocales.join(',')}`;
     let result = wordClassifierCache.get(key)!;
     if (!result) {
         result = new WordCharacterClassifier(wordSeparators, intlSegmenterLocales);

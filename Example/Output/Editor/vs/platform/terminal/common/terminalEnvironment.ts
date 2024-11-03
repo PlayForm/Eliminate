@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { OperatingSystem, OS } from "../../../base/common/platform.js";
-import type { IShellLaunchConfig } from "./terminal.js";
+import { OperatingSystem, OS } from '../../../base/common/platform.js';
+import type { IShellLaunchConfig } from './terminal.js';
 /**
  * Aggressively escape non-windows paths to prepare for being sent to a shell. This will do some
  * escaping inaccurately to be careful about possible script injection via the file path. For
@@ -11,11 +11,11 @@ import type { IShellLaunchConfig } from "./terminal.js";
  */
 export function escapeNonWindowsPath(path: string): string {
     let newPath = path;
-    if (newPath.includes("\\")) {
-        newPath = newPath.replace(/\\/g, "\\\\");
+    if (newPath.includes('\\')) {
+        newPath = newPath.replace(/\\/g, '\\\\');
     }
     const bannedChars = /[\`\$\|\&\>\~\#\!\^\*\;\<\"\']/g;
-    newPath = newPath.replace(bannedChars, "");
+    newPath = newPath.replace(bannedChars, '');
     return `'${newPath}'`;
 }
 /**
@@ -24,7 +24,7 @@ export function escapeNonWindowsPath(path: string): string {
  */
 export function collapseTildePath(path: string | undefined, userHome: string | undefined, separator: string): string {
     if (!path) {
-        return "";
+        return '';
     }
     if (!userHome) {
         return path;
@@ -33,8 +33,8 @@ export function collapseTildePath(path: string | undefined, userHome: string | u
     if (userHome.match(/[\/\\]$/)) {
         userHome = userHome.slice(0, userHome.length - 1);
     }
-    const normalizedPath = path.replace(/\\/g, "/").toLowerCase();
-    const normalizedUserHome = userHome.replace(/\\/g, "/").toLowerCase();
+    const normalizedPath = path.replace(/\\/g, '/').toLowerCase();
+    const normalizedUserHome = userHome.replace(/\\/g, '/').toLowerCase();
     if (!normalizedPath.includes(normalizedUserHome)) {
         return path;
     }
@@ -51,7 +51,7 @@ export function sanitizeCwd(cwd: string): string {
         cwd = cwd.substring(1, cwd.length - 1);
     }
     // Make the drive letter uppercase on Windows (see #9448)
-    if (OS === OperatingSystem.Windows && cwd && cwd[1] === ":") {
+    if (OS === OperatingSystem.Windows && cwd && cwd[1] === ':') {
         return cwd[0].toUpperCase() + cwd.substring(1);
     }
     return cwd;

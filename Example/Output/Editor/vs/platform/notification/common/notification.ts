@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IAction } from "../../../base/common/actions.js";
-import { Event } from "../../../base/common/event.js";
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import BaseSeverity from "../../../base/common/severity.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
+import { IAction } from '../../../base/common/actions.js';
+import { Event } from '../../../base/common/event.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import BaseSeverity from '../../../base/common/severity.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
 export import Severity = BaseSeverity;
-export const INotificationService = createDecorator<INotificationService>("notificationService");
+export const INotificationService = createDecorator<INotificationService>('notificationService');
 export type NotificationMessage = string | Error;
 export enum NotificationPriority {
     /**
@@ -89,8 +89,7 @@ export interface INotificationSource {
 export function isNotificationSource(thing: unknown): thing is INotificationSource {
     if (thing) {
         const candidate = thing as INotificationSource;
-        return (typeof candidate.id === "string" &&
-            typeof candidate.label === "string");
+        return typeof candidate.id === 'string' && typeof candidate.label === 'string';
     }
     return false;
 }
@@ -273,7 +272,7 @@ export enum NotificationsFilter {
     OFF,
     /**
      * All notifications are silent except error notifications.
-     */
+    */
     ERROR
 }
 export interface INotificationSourceFilter extends INotificationSource {

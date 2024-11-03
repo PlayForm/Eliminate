@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Event } from "../../../base/common/event.js";
-import { GLOBSTAR, IRelativePattern, parse, ParsedPattern, } from "../../../base/common/glob.js";
-import { Disposable, DisposableStore, IDisposable, MutableDisposable, } from "../../../base/common/lifecycle.js";
-import { isAbsolute } from "../../../base/common/path.js";
-import { isLinux } from "../../../base/common/platform.js";
-import { URI } from "../../../base/common/uri.js";
-import { FileChangeFilter, FileChangeType, IFileChange, isParent, } from "./files.js";
+import { Event } from '../../../base/common/event.js';
+import { GLOBSTAR, IRelativePattern, parse, ParsedPattern } from '../../../base/common/glob.js';
+import { Disposable, DisposableStore, IDisposable, MutableDisposable } from '../../../base/common/lifecycle.js';
+import { isAbsolute } from '../../../base/common/path.js';
+import { isLinux } from '../../../base/common/platform.js';
+import { URI } from '../../../base/common/uri.js';
+import { FileChangeFilter, FileChangeType, IFileChange, isParent } from './files.js';
 interface IWatchRequest {
     /**
      * The path to watch.
@@ -47,7 +47,7 @@ export interface IWatchRequestWithCorrelation extends IWatchRequest {
     readonly correlationId: number;
 }
 export function isWatchRequestWithCorrelation(request: IWatchRequest): request is IWatchRequestWithCorrelation {
-    return typeof request.correlationId === "number";
+    return typeof request.correlationId === 'number';
 }
 export interface INonRecursiveWatchRequest extends IWatchRequest {
     /**
@@ -166,15 +166,14 @@ export abstract class AbstractWatcherClient extends Disposable {
         this.watcher = this.createWatcher(disposables);
         this.watcher.setVerboseLogging(this.verboseLogging);
         // Wire in event handlers
-        disposables.add(this.watcher.onDidChangeFile((changes) => this.onFileChanges(changes)));
-        disposables.add(this.watcher.onDidLogMessage((msg) => this.onLogMessage(msg)));
-        disposables.add(this.watcher.onDidError((e) => this.onError(e.error, e.request)));
+        disposables.add(this.watcher.onDidChangeFile(changes => this.onFileChanges(changes)));
+        disposables.add(this.watcher.onDidLogMessage(msg => this.onLogMessage(msg)));
+        disposables.add(this.watcher.onDidError(e => this.onError(e.error, e.request)));
     }
     protected onError(error: string, failedRequest?: IUniversalWatchRequest): void {
         // Restart on error (up to N times, if possible)
         if (this.canRestart(error, failedRequest)) {
-            if (this.restartCounter < AbstractWatcherClient.MAX_RESTARTS &&
-                this.requests) {
+            if (this.restartCounter < AbstractWatcherClient.MAX_RESTARTS && this.requests) {
                 this.error(`restarting watcher after unexpected error: ${error}`);
                 this.restart(this.requests);
             }
@@ -198,8 +197,8 @@ export abstract class AbstractWatcherClient extends Disposable {
             // of that. rather, continue the watcher and leave the failed request
             return false;
         }
-        if (error.indexOf("No space left on device") !== -1 ||
-            error.indexOf("EMFILE") !== -1) {
+        if (error.indexOf('No space left on device') !== -1 ||
+            error.indexOf('EMFILE') !== -1) {
             // do not restart when the error indicates that the system is running
             // out of handles for file watching. this is not recoverable anyway
             // and needs changes to the system before continuing
@@ -221,16 +220,10 @@ export abstract class AbstractWatcherClient extends Disposable {
         await this.watcher?.setVerboseLogging(verboseLogging);
     }
     private error(message: string) {
-        this.onLogMessage({
-            type: "error",
-            message: `[File Watcher (${this.options.type})] ${message}`,
-        });
+        this.onLogMessage({ type: 'error', message: `[File Watcher (${this.options.type})] ${message}` });
     }
     protected trace(message: string) {
-        this.onLogMessage({
-            type: "trace",
-            message: `[File Watcher (${this.options.type})] ${message}`,
-        });
+        this.onLogMessage({ type: 'trace', message: `[File Watcher (${this.options.type})] ${message}` });
     }
     override dispose(): void {
         // Render the watcher invalid from here
@@ -240,31 +233,25 @@ export abstract class AbstractWatcherClient extends Disposable {
 }
 export abstract class AbstractNonRecursiveWatcherClient extends AbstractWatcherClient {
     constructor(onFileChanges: (changes: IFileChange[]) => void, onLogMessage: (msg: ILogMessage) => void, verboseLogging: boolean) {
-        super(onFileChanges, onLogMessage, verboseLogging, {
-            type: "node.js",
-            restartOnError: false,
-        });
+        super(onFileChanges, onLogMessage, verboseLogging, { type: 'node.js', restartOnError: false });
     }
     protected abstract override createWatcher(disposables: DisposableStore): INonRecursiveWatcher;
 }
 export abstract class AbstractUniversalWatcherClient extends AbstractWatcherClient {
     constructor(onFileChanges: (changes: IFileChange[]) => void, onLogMessage: (msg: ILogMessage) => void, verboseLogging: boolean) {
-        super(onFileChanges, onLogMessage, verboseLogging, {
-            type: "universal",
-            restartOnError: true,
-        });
+        super(onFileChanges, onLogMessage, verboseLogging, { type: 'universal', restartOnError: true });
     }
     protected abstract override createWatcher(disposables: DisposableStore): IUniversalWatcher;
 }
 export interface ILogMessage {
-    readonly type: "trace" | "warn" | "error" | "info" | "debug";
+    readonly type: 'trace' | 'warn' | 'error' | 'info' | 'debug';
     readonly message: string;
 }
 export function reviveFileChanges(changes: IFileChange[]): IFileChange[] {
-    return changes.map((change) => ({
+    return changes.map(change => ({
         type: change.type,
         resource: URI.revive(change.resource),
-        cId: change.cId,
+        cId: change.cId
     }));
 }
 export function coalesceEvents(changes: IFileChange[]): IFileChange[] {
@@ -281,9 +268,7 @@ export function normalizeWatcherPattern(path: string, pattern: string | IRelativ
     // and is a string and does not start with a leading
     // `**`, we have to convert it to a relative pattern with
     // the given `base`
-    if (typeof pattern === "string" &&
-        !pattern.startsWith(GLOBSTAR) &&
-        !isAbsolute(pattern)) {
+    if (typeof pattern === 'string' && !pattern.startsWith(GLOBSTAR) && !isAbsolute(pattern)) {
         return { base: path, pattern };
     }
     return pattern;
@@ -313,26 +298,20 @@ class EventCoalescer {
             const newChangeType = event.type;
             // macOS/Windows: track renames to different case
             // by keeping both CREATE and DELETE events
-            if (existingEvent.resource.fsPath !== event.resource.fsPath &&
-                (event.type === FileChangeType.DELETED ||
-                    event.type === FileChangeType.ADDED)) {
+            if (existingEvent.resource.fsPath !== event.resource.fsPath && (event.type === FileChangeType.DELETED || event.type === FileChangeType.ADDED)) {
                 keepEvent = true;
             }
             // Ignore CREATE followed by DELETE in one go
-            else if (currentChangeType === FileChangeType.ADDED &&
-                newChangeType === FileChangeType.DELETED) {
+            else if (currentChangeType === FileChangeType.ADDED && newChangeType === FileChangeType.DELETED) {
                 this.mapPathToChange.delete(this.toKey(event));
                 this.coalesced.delete(existingEvent);
             }
             // Flatten DELETE followed by CREATE into CHANGE
-            else if (currentChangeType === FileChangeType.DELETED &&
-                newChangeType === FileChangeType.ADDED) {
+            else if (currentChangeType === FileChangeType.DELETED && newChangeType === FileChangeType.ADDED) {
                 existingEvent.type = FileChangeType.UPDATED;
             }
             // Do nothing. Keep the created event
-            else if (currentChangeType === FileChangeType.ADDED &&
-                newChangeType === FileChangeType.UPDATED) {
-            }
+            else if (currentChangeType === FileChangeType.ADDED && newChangeType === FileChangeType.UPDATED) { }
             // Otherwise apply change type
             else {
                 existingEvent.type = newChangeType;
@@ -357,30 +336,26 @@ class EventCoalescer {
         // 1.) split ADD/CHANGE and DELETED events
         // 2.) sort short deleted paths to the top
         // 3.) for each DELETE, check if there is a deleted parent and ignore the event in that case
-        return Array.from(this.coalesced)
-            .filter((e) => {
+        return Array.from(this.coalesced).filter(e => {
             if (e.type !== FileChangeType.DELETED) {
                 addOrChangeEvents.push(e);
                 return false; // remove ADD / CHANGE
             }
             return true; // keep DELETE
-        })
-            .sort((e1, e2) => {
+        }).sort((e1, e2) => {
             return e1.resource.fsPath.length - e2.resource.fsPath.length; // shortest path first
-        })
-            .filter((e) => {
-            if (deletedPaths.some((deletedPath) => isParent(e.resource.fsPath, deletedPath, !isLinux /* ignorecase */))) {
+        }).filter(e => {
+            if (deletedPaths.some(deletedPath => isParent(e.resource.fsPath, deletedPath, !isLinux /* ignorecase */))) {
                 return false; // DELETE is ignored if parent is deleted already
             }
             // otherwise mark as deleted
             deletedPaths.push(e.resource.fsPath);
             return true;
-        })
-            .concat(addOrChangeEvents);
+        }).concat(addOrChangeEvents);
     }
 }
 export function isFiltered(event: IFileChange, filter: FileChangeFilter | undefined): boolean {
-    if (typeof filter === "number") {
+    if (typeof filter === 'number') {
         switch (event.type) {
             case FileChangeType.ADDED:
                 return (filter & FileChangeFilter.ADDED) === 0;
@@ -393,21 +368,21 @@ export function isFiltered(event: IFileChange, filter: FileChangeFilter | undefi
     return false;
 }
 export function requestFilterToString(filter: FileChangeFilter | undefined): string {
-    if (typeof filter === "number") {
+    if (typeof filter === 'number') {
         const filters = [];
         if (filter & FileChangeFilter.ADDED) {
-            filters.push("Added");
+            filters.push('Added');
         }
         if (filter & FileChangeFilter.DELETED) {
-            filters.push("Deleted");
+            filters.push('Deleted');
         }
         if (filter & FileChangeFilter.UPDATED) {
-            filters.push("Updated");
+            filters.push('Updated');
         }
         if (filters.length === 0) {
-            return "<all>";
+            return '<all>';
         }
-        return `[${filters.join(", ")}]`;
+        return `[${filters.join(', ')}]`;
     }
-    return "<none>";
+    return '<none>';
 }

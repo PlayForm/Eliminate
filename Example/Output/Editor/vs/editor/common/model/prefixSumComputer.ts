@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { arrayInsert } from "../../../base/common/arrays.js";
-import { toUint32 } from "../../../base/common/uint.js";
+import { arrayInsert } from '../../../base/common/arrays.js';
+import { toUint32 } from '../../../base/common/uint.js';
 export class PrefixSumComputer {
     /**
      * values[i] is the value at index i
@@ -131,7 +131,7 @@ export class PrefixSumComputer {
         let midStop = 0;
         let midStart = 0;
         while (low <= high) {
-            mid = (low + (high - low) / 2) | 0;
+            mid = low + ((high - low) / 2) | 0;
             midStop = this.prefixSum[mid];
             midStart = midStop - this.values[mid];
             if (sum < midStart) {
@@ -151,7 +151,7 @@ export class PrefixSumComputer {
  * {@link getIndexOf} has an amortized runtime complexity of O(1).
  *
  * ({@link PrefixSumComputer.getIndexOf} is just  O(log n))
- */
+*/
 export class ConstantTimePrefixSumComputer {
     private _values: number[];
     private _isValid: boolean;
@@ -162,7 +162,7 @@ export class ConstantTimePrefixSumComputer {
     private _prefixSum: number[];
     /**
      * _indexBySum[sum] = idx => _prefixSum[idx - 1] <= sum < _prefixSum[idx]
-     */
+    */
     private _indexBySum: number[];
     constructor(values: number[]) {
         this._values = values;

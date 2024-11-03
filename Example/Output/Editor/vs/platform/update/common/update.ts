@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Event } from "../../../base/common/event.js";
-import { upcast } from "../../../base/common/types.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
+import { Event } from '../../../base/common/event.js';
+import { upcast } from '../../../base/common/types.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
 export interface IUpdate {
     // Windows and Linux: 9a19815253d91900be5ec1016e0ecc7cc9a6950 (Commit Hash). Mac: 1.54.0 (Product Version)
     version: string;
@@ -31,15 +31,15 @@ export interface IUpdate {
  * Downloaded: There is an update ready to be installed in the background (win32).
  */
 export const enum StateType {
-    Uninitialized = "uninitialized",
-    Idle = "idle",
-    Disabled = "disabled",
-    CheckingForUpdates = "checking for updates",
-    AvailableForDownload = "available for download",
-    Downloading = "downloading",
-    Downloaded = "downloaded",
-    Updating = "updating",
-    Ready = "ready"
+    Uninitialized = 'uninitialized',
+    Idle = 'idle',
+    Disabled = 'disabled',
+    CheckingForUpdates = 'checking for updates',
+    AvailableForDownload = 'available for download',
+    Downloading = 'downloading',
+    Downloaded = 'downloaded',
+    Updating = 'updating',
+    Ready = 'ready'
 }
 export const enum UpdateType {
     Setup,
@@ -92,32 +92,13 @@ export type Ready = {
 export type State = Uninitialized | Disabled | Idle | CheckingForUpdates | AvailableForDownload | Downloading | Downloaded | Updating | Ready;
 export const State = {
     Uninitialized: upcast<Uninitialized>({ type: StateType.Uninitialized }),
-    Disabled: (reason: DisablementReason): Disabled => ({
-        type: StateType.Disabled,
-        reason,
-    }),
-    Idle: (updateType: UpdateType, error?: string): Idle => ({
-        type: StateType.Idle,
-        updateType,
-        error,
-    }),
-    CheckingForUpdates: (explicit: boolean): CheckingForUpdates => ({
-        type: StateType.CheckingForUpdates,
-        explicit,
-    }),
-    AvailableForDownload: (update: IUpdate): AvailableForDownload => ({
-        type: StateType.AvailableForDownload,
-        update,
-    }),
+    Disabled: (reason: DisablementReason): Disabled => ({ type: StateType.Disabled, reason }),
+    Idle: (updateType: UpdateType, error?: string): Idle => ({ type: StateType.Idle, updateType, error }),
+    CheckingForUpdates: (explicit: boolean): CheckingForUpdates => ({ type: StateType.CheckingForUpdates, explicit }),
+    AvailableForDownload: (update: IUpdate): AvailableForDownload => ({ type: StateType.AvailableForDownload, update }),
     Downloading: upcast<Downloading>({ type: StateType.Downloading }),
-    Downloaded: (update: IUpdate): Downloaded => ({
-        type: StateType.Downloaded,
-        update,
-    }),
-    Updating: (update: IUpdate): Updating => ({
-        type: StateType.Updating,
-        update,
-    }),
+    Downloaded: (update: IUpdate): Downloaded => ({ type: StateType.Downloaded, update }),
+    Updating: (update: IUpdate): Updating => ({ type: StateType.Updating, update }),
     Ready: (update: IUpdate): Ready => ({ type: StateType.Ready, update }),
 };
 export interface IAutoUpdater extends Event.NodeEventEmitter {
@@ -126,7 +107,7 @@ export interface IAutoUpdater extends Event.NodeEventEmitter {
     applyUpdate?(): Promise<void>;
     quitAndInstall(): void;
 }
-export const IUpdateService = createDecorator<IUpdateService>("updateService");
+export const IUpdateService = createDecorator<IUpdateService>('updateService');
 export interface IUpdateService {
     readonly _serviceBrand: undefined;
     readonly onStateChange: Event<State>;

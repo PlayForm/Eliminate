@@ -2,24 +2,24 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { $, addDisposableListener, Dimension, EventHelper, EventType, getWindow, isAncestor, } from "../../../base/browser/dom.js";
-import { StandardMouseEvent } from "../../../base/browser/mouseEvent.js";
-import { Gesture, GestureEvent, EventType as TouchEventType, } from "../../../base/browser/touch.js";
-import { ActionBar, ActionsOrientation, } from "../../../base/browser/ui/actionbar/actionbar.js";
-import { Widget } from "../../../base/browser/ui/widget.js";
-import { IAction, toAction } from "../../../base/common/actions.js";
-import { Emitter } from "../../../base/common/event.js";
-import { isUndefinedOrNull } from "../../../base/common/types.js";
-import { localize } from "../../../nls.js";
-import { IContextMenuService } from "../../../platform/contextview/browser/contextView.js";
-import { IInstantiationService } from "../../../platform/instantiation/common/instantiation.js";
-import { IColorTheme } from "../../../platform/theme/common/themeService.js";
-import { IComposite } from "../../common/composite.js";
-import { IPaneComposite } from "../../common/panecomposite.js";
-import { IViewDescriptorService, ViewContainerLocation, } from "../../common/views.js";
-import { IActivity } from "../../services/activity/common/activity.js";
-import { Before2D, CompositeDragAndDropData, CompositeDragAndDropObserver, ICompositeDragAndDrop, ICompositeDragAndDropObserverCallbacks, IDraggedCompositeData, toggleDropEffect, } from "../dnd.js";
-import { CompositeActionViewItem, CompositeBarAction, CompositeOverflowActivityAction, CompositeOverflowActivityActionViewItem, IActivityHoverOptions, ICompositeBar, ICompositeBarColors, } from "./compositeBarActions.js";
+import { localize } from '../../../nls.js';
+import { IAction, toAction } from '../../../base/common/actions.js';
+import { IActivity } from '../../services/activity/common/activity.js';
+import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
+import { ActionBar, ActionsOrientation } from '../../../base/browser/ui/actionbar/actionbar.js';
+import { CompositeActionViewItem, CompositeOverflowActivityAction, CompositeOverflowActivityActionViewItem, CompositeBarAction, ICompositeBar, ICompositeBarColors, IActivityHoverOptions } from './compositeBarActions.js';
+import { Dimension, $, addDisposableListener, EventType, EventHelper, isAncestor, getWindow } from '../../../base/browser/dom.js';
+import { StandardMouseEvent } from '../../../base/browser/mouseEvent.js';
+import { IContextMenuService } from '../../../platform/contextview/browser/contextView.js';
+import { Widget } from '../../../base/browser/ui/widget.js';
+import { isUndefinedOrNull } from '../../../base/common/types.js';
+import { IColorTheme } from '../../../platform/theme/common/themeService.js';
+import { Emitter } from '../../../base/common/event.js';
+import { ViewContainerLocation, IViewDescriptorService } from '../../common/views.js';
+import { IPaneComposite } from '../../common/panecomposite.js';
+import { IComposite } from '../../common/composite.js';
+import { CompositeDragAndDropData, CompositeDragAndDropObserver, IDraggedCompositeData, ICompositeDragAndDrop, Before2D, toggleDropEffect, ICompositeDragAndDropObserverCallbacks } from '../dnd.js';
+import { Gesture, EventType as TouchEventType, GestureEvent } from '../../../base/browser/touch.js';
 export interface ICompositeBarItem {
     readonly id: string;
     name?: string;
@@ -31,7 +31,7 @@ export class CompositeDragAndDrop implements ICompositeDragAndDrop {
     constructor(private viewDescriptorService: IViewDescriptorService, private targetContainerLocation: ViewContainerLocation, private orientation: ActionsOrientation, private openComposite: (id: string, focus?: boolean) => Promise<IPaneComposite | null>, private moveComposite: (from: string, to: string, before?: Before2D) => void, private getItems: () => ICompositeBarItem[]) { }
     drop(data: CompositeDragAndDropData, targetCompositeId: string | undefined, originalEvent: DragEvent, before?: Before2D): void {
         const dragData = data.getData();
-        if (dragData.type === "composite") {
+        if (dragData.type === 'composite') {
             const currentContainer = this.viewDescriptorService.getViewContainerById(dragData.id)!;
             const currentLocation = this.viewDescriptorService.getViewContainerLocation(currentContainer);
             let moved = false;
@@ -44,22 +44,22 @@ export class CompositeDragAndDrop implements ICompositeDragAndDrop {
             }
             // ... on a different composite bar
             else {
-                this.viewDescriptorService.moveViewContainerToLocation(currentContainer, this.targetContainerLocation, this.getTargetIndex(targetCompositeId, before), "dnd");
+                this.viewDescriptorService.moveViewContainerToLocation(currentContainer, this.targetContainerLocation, this.getTargetIndex(targetCompositeId, before), 'dnd');
                 moved = true;
             }
             if (moved) {
                 this.openComposite(currentContainer.id, true);
             }
         }
-        if (dragData.type === "view") {
+        if (dragData.type === 'view') {
             const viewToMove = this.viewDescriptorService.getViewDescriptorById(dragData.id)!;
             if (viewToMove && viewToMove.canMoveView) {
-                this.viewDescriptorService.moveViewToLocation(viewToMove, this.targetContainerLocation, "dnd");
+                this.viewDescriptorService.moveViewToLocation(viewToMove, this.targetContainerLocation, 'dnd');
                 const newContainer = this.viewDescriptorService.getViewContainerByViewId(viewToMove.id)!;
                 if (targetCompositeId) {
                     this.moveComposite(newContainer.id, targetCompositeId, before);
                 }
-                this.openComposite(newContainer.id, true).then((composite) => {
+                this.openComposite(newContainer.id, true).then(composite => {
                     composite?.openView(viewToMove.id, true);
                 });
             }
@@ -76,16 +76,12 @@ export class CompositeDragAndDrop implements ICompositeDragAndDrop {
             return undefined;
         }
         const items = this.getItems();
-        const before = this.orientation === ActionsOrientation.HORIZONTAL
-            ? before2d?.horizontallyBefore
-            : before2d?.verticallyBefore;
-        return (items
-            .filter((item) => item.visible)
-            .findIndex((item) => item.id === targetId) + (before ? 0 : 1));
+        const before = this.orientation === ActionsOrientation.HORIZONTAL ? before2d?.horizontallyBefore : before2d?.verticallyBefore;
+        return items.filter(item => item.visible).findIndex(item => item.id === targetId) + (before ? 0 : 1);
     }
     private canDrop(data: CompositeDragAndDropData, targetCompositeId: string | undefined): boolean {
         const dragData = data.getData();
-        if (dragData.type === "composite") {
+        if (dragData.type === 'composite') {
             // Dragging a composite
             const currentContainer = this.viewDescriptorService.getViewContainerById(dragData.id)!;
             const currentLocation = this.viewDescriptorService.getViewContainerLocation(currentContainer);
@@ -132,18 +128,14 @@ class CompositeBarDndCallbacks implements ICompositeDragAndDropObserverCallbacks
     onDragOver(e: IDraggedCompositeData) {
         // don't add feedback if this is over the composite bar actions or there are no actions
         const visibleItems = this.compositeBarModel.visibleItems;
-        if (!visibleItems.length ||
-            (e.eventData.target &&
-                isAncestor(e.eventData.target as HTMLElement, this.actionBarContainer))) {
+        if (!visibleItems.length || (e.eventData.target && isAncestor(e.eventData.target as HTMLElement, this.actionBarContainer))) {
             this.insertDropBefore = this.updateFromDragging(this.compositeBarContainer, false, false, true);
             return;
         }
         const insertAtFront = this.insertAtFront(this.actionBarContainer, e.eventData);
-        const target = insertAtFront
-            ? visibleItems[0]
-            : visibleItems[visibleItems.length - 1];
+        const target = insertAtFront ? visibleItems[0] : visibleItems[visibleItems.length - 1];
         const validDropTarget = this.dndHandler.onDragOver(e.dragAndDropData, target.id, e.eventData);
-        toggleDropEffect(e.eventData.dataTransfer, "move", validDropTarget);
+        toggleDropEffect(e.eventData.dataTransfer, 'move', validDropTarget);
         this.insertDropBefore = this.updateFromDragging(this.compositeBarContainer, validDropTarget, insertAtFront, true);
     }
     onDragLeave(e: IDraggedCompositeData) {
@@ -156,9 +148,7 @@ class CompositeBarDndCallbacks implements ICompositeDragAndDropObserverCallbacks
         const visibleItems = this.compositeBarModel.visibleItems;
         let targetId = undefined;
         if (visibleItems.length) {
-            targetId = this.insertAtFront(this.actionBarContainer, e.eventData)
-                ? visibleItems[0].id
-                : visibleItems[visibleItems.length - 1].id;
+            targetId = this.insertAtFront(this.actionBarContainer, e.eventData) ? visibleItems[0].id : visibleItems[visibleItems.length - 1].id;
         }
         this.dndHandler.drop(e.dragAndDropData, targetId, e.eventData, this.insertDropBefore);
         this.insertDropBefore = this.updateFromDragging(this.compositeBarContainer, false, false, false);
@@ -175,9 +165,9 @@ class CompositeBarDndCallbacks implements ICompositeDragAndDropObserverCallbacks
         }
     }
     private updateFromDragging(element: HTMLElement, showFeedback: boolean, front: boolean, isDragging: boolean): Before2D | undefined {
-        element.classList.toggle("dragged-over", isDragging);
-        element.classList.toggle("dragged-over-head", showFeedback && front);
-        element.classList.toggle("dragged-over-tail", showFeedback && !front);
+        element.classList.toggle('dragged-over', isDragging);
+        element.classList.toggle('dragged-over-head', showFeedback && front);
+        element.classList.toggle('dragged-over-tail', showFeedback && !front);
         if (!showFeedback) {
             return undefined;
         }
@@ -218,39 +208,31 @@ export class CompositeBar extends Widget implements ICompositeBar {
         return this.model.pinnedItems;
     }
     getPinnedCompositeIds(): string[] {
-        return this.getPinnedComposites().map((c) => c.id);
+        return this.getPinnedComposites().map(c => c.id);
     }
     getVisibleComposites(): ICompositeBarItem[] {
         return this.model.visibleItems;
     }
     create(parent: HTMLElement): HTMLElement {
-        const actionBarDiv = parent.appendChild($(".composite-bar"));
+        const actionBarDiv = parent.appendChild($('.composite-bar'));
         this.compositeSwitcherBar = this._register(new ActionBar(actionBarDiv, {
             actionViewItemProvider: (action, options) => {
                 if (action instanceof CompositeOverflowActivityAction) {
                     return this.compositeOverflowActionViewItem;
                 }
                 const item = this.model.findItem(action.id);
-                return (item &&
-                    this.instantiationService.createInstance(CompositeActionViewItem, {
-                        ...options,
-                        draggable: true,
-                        colors: this.options.colors,
-                        icon: this.options.icon,
-                        hoverOptions: this.options.activityHoverOptions,
-                        compact: this.options.compact,
-                    }, action as CompositeBarAction, item.pinnedAction, item.toggleBadgeAction, (compositeId) => this.options.getContextMenuActionsForComposite(compositeId), () => this.getContextMenuActions(), this.options.dndHandler, this));
+                return item && this.instantiationService.createInstance(CompositeActionViewItem, { ...options, draggable: true, colors: this.options.colors, icon: this.options.icon, hoverOptions: this.options.activityHoverOptions, compact: this.options.compact }, action as CompositeBarAction, item.pinnedAction, item.toggleBadgeAction, compositeId => this.options.getContextMenuActionsForComposite(compositeId), () => this.getContextMenuActions(), this.options.dndHandler, this);
             },
             orientation: this.options.orientation,
-            ariaLabel: localize("activityBarAriaLabel", "Active View Switcher"),
-            ariaRole: "tablist",
+            ariaLabel: localize('activityBarAriaLabel', "Active View Switcher"),
+            ariaRole: 'tablist',
             preventLoopNavigation: this.options.preventLoopNavigation,
-            triggerKeys: { keyDown: true },
+            triggerKeys: { keyDown: true }
         }));
         // Contextmenu for composites
-        this._register(addDisposableListener(parent, EventType.CONTEXT_MENU, (e) => this.showContextMenu(getWindow(parent), e)));
+        this._register(addDisposableListener(parent, EventType.CONTEXT_MENU, e => this.showContextMenu(getWindow(parent), e)));
         this._register(Gesture.addTarget(parent));
-        this._register(addDisposableListener(parent, TouchEventType.Contextmenu, (e) => this.showContextMenu(getWindow(parent), e)));
+        this._register(addDisposableListener(parent, TouchEventType.Contextmenu, e => this.showContextMenu(getWindow(parent), e)));
         // Register a drop target on the whole bar to prevent forbidden feedback
         const dndCallback = new CompositeBarDndCallbacks(parent, actionBarDiv, this.model, this.options.dndHandler, this.options.orientation);
         this._register(CompositeDragAndDropObserver.INSTANCE.registerTarget(parent, dndCallback));
@@ -276,7 +258,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
         }
         this.updateCompositeSwitcher();
     }
-    addComposite({ id, name, order, requestedIndex, }: {
+    addComposite({ id, name, order, requestedIndex }: {
         id: string;
         name: string;
         order?: number;
@@ -308,9 +290,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
         if (this.model.activate(id)) {
             // Update if current composite is neither visible nor pinned
             // or previous active composite is not pinned
-            if (this.visibleComposites.indexOf(id) === -1 ||
-                (!!this.model.activeItem && !this.model.activeItem.pinned) ||
-                (previousActiveItem && !previousActiveItem.pinned)) {
+            if (this.visibleComposites.indexOf(id) === -1 || (!!this.model.activeItem && !this.model.activeItem.pinned) || (previousActiveItem && !previousActiveItem.pinned)) {
                 this.updateCompositeSwitcher();
             }
         }
@@ -355,23 +335,20 @@ export class CompositeBar extends Widget implements ICompositeBar {
         const defaultCompositeId = this.options.getDefaultCompositeId();
         // Case: composite is not the active one or the active one is a different one
         // Solv: we do nothing
-        if (!this.model.activeItem ||
-            this.model.activeItem.id !== compositeId) {
+        if (!this.model.activeItem || this.model.activeItem.id !== compositeId) {
             return;
         }
         // Deactivate itself
         this.deactivateComposite(compositeId);
         // Case: composite is not the default composite and default composite is still showing
         // Solv: we open the default composite
-        if (defaultCompositeId &&
-            defaultCompositeId !== compositeId &&
-            this.isPinned(defaultCompositeId)) {
+        if (defaultCompositeId && defaultCompositeId !== compositeId && this.isPinned(defaultCompositeId)) {
             this.options.openComposite(defaultCompositeId, true);
         }
         // Case: we closed the default composite
         // Solv: we open the next visible composite from top
         else {
-            const visibleComposite = this.visibleComposites.find((cid) => cid !== compositeId);
+            const visibleComposite = this.visibleComposites.find(cid => cid !== compositeId);
             if (visibleComposite) {
                 this.options.openComposite(visibleComposite);
             }
@@ -383,8 +360,8 @@ export class CompositeBar extends Widget implements ICompositeBar {
     }
     move(compositeId: string, toCompositeId: string, before?: boolean): void {
         if (before !== undefined) {
-            const fromIndex = this.model.items.findIndex((c) => c.id === compositeId);
-            let toIndex = this.model.items.findIndex((c) => c.id === toCompositeId);
+            const fromIndex = this.model.items.findIndex(c => c.id === compositeId);
+            let toIndex = this.model.items.findIndex(c => c.id === toCompositeId);
             if (fromIndex >= 0 && toIndex >= 0) {
                 if (!before && fromIndex > toIndex) {
                     toIndex++;
@@ -392,9 +369,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
                 if (before && fromIndex < toIndex) {
                     toIndex--;
                 }
-                if (toIndex < this.model.items.length &&
-                    toIndex >= 0 &&
-                    toIndex !== fromIndex) {
+                if (toIndex < this.model.items.length && toIndex >= 0 && toIndex !== fromIndex) {
                     if (this.model.move(this.model.items[fromIndex].id, this.model.items[toIndex].id)) {
                         // timeout helps to prevent artifacts from showing up
                         setTimeout(() => this.updateCompositeSwitcher(), 0);
@@ -416,17 +391,14 @@ export class CompositeBar extends Widget implements ICompositeBar {
     private computeSizes(items: ICompositeBarModelItem[]): void {
         const size = this.options.compositeSize;
         if (size) {
-            items.forEach((composite) => this.compositeSizeInBar.set(composite.id, size));
+            items.forEach(composite => this.compositeSizeInBar.set(composite.id, size));
         }
         else {
             const compositeSwitcherBar = this.compositeSwitcherBar;
-            if (compositeSwitcherBar &&
-                this.dimension &&
-                this.dimension.height !== 0 &&
-                this.dimension.width !== 0) {
+            if (compositeSwitcherBar && this.dimension && this.dimension.height !== 0 && this.dimension.width !== 0) {
                 // Compute sizes only if visible. Otherwise the size measurment would be computed wrongly.
                 const currentItemsLength = compositeSwitcherBar.viewItems.length;
-                compositeSwitcherBar.push(items.map((composite) => composite.activityAction));
+                compositeSwitcherBar.push(items.map(composite => composite.activityAction));
                 items.map((composite, index) => this.compositeSizeInBar.set(composite.id, this.options.orientation === ActionsOrientation.VERTICAL
                     ? compositeSwitcherBar.getHeight(currentItemsLength + index)
                     : compositeSwitcherBar.getWidth(currentItemsLength + index)));
@@ -439,19 +411,13 @@ export class CompositeBar extends Widget implements ICompositeBar {
         if (!compositeSwitcherBar || !this.dimension) {
             return; // We have not been rendered yet so there is nothing to update.
         }
-        let compositesToShow = this.model.visibleItems
-            .filter((item) => item.pinned ||
-            (this.model.activeItem &&
-                this.model.activeItem.id ===
-                    item.id) /* Show the active composite even if it is not pinned */)
-            .map((item) => item.id);
+        let compositesToShow = this.model.visibleItems.filter(item => item.pinned
+            || (this.model.activeItem && this.model.activeItem.id === item.id) /* Show the active composite even if it is not pinned */).map(item => item.id);
         // Ensure we are not showing more composites than we have height for
         let maxVisible = compositesToShow.length;
         const totalComposites = compositesToShow.length;
         let size = 0;
-        const limit = this.options.orientation === ActionsOrientation.VERTICAL
-            ? this.dimension.height
-            : this.dimension.width;
+        const limit = this.options.orientation === ActionsOrientation.VERTICAL ? this.dimension.height : this.dimension.width;
         // Add composites while they fit
         for (let i = 0; i < compositesToShow.length; i++) {
             const compositeSize = this.compositeSizeInBar.get(compositesToShow[i])!;
@@ -467,9 +433,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
             compositesToShow = compositesToShow.slice(0, maxVisible);
         }
         // We always try show the active composite, so re-add it if it was sliced out
-        if (this.model.activeItem &&
-            compositesToShow.every((compositeId) => !!this.model.activeItem &&
-                compositeId !== this.model.activeItem.id)) {
+        if (this.model.activeItem && compositesToShow.every(compositeId => !!this.model.activeItem && compositeId !== this.model.activeItem.id)) {
             size += this.compositeSizeInBar.get(this.model.activeItem.id)!;
             compositesToShow.push(this.model.activeItem.id);
         }
@@ -477,9 +441,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
         // Keep popping the composite before the active one until it fits
         // If even the active one doesn't fit, we will resort to overflow
         while (size > limit && compositesToShow.length) {
-            const removedComposite = compositesToShow.length > 1
-                ? compositesToShow.splice(compositesToShow.length - 2, 1)[0]
-                : compositesToShow.pop();
+            const removedComposite = compositesToShow.length > 1 ? compositesToShow.splice(compositesToShow.length - 2, 1)[0] : compositesToShow.pop();
             size -= this.compositeSizeInBar.get(removedComposite!)!;
         }
         // We are overflowing, add the overflow size
@@ -488,16 +450,12 @@ export class CompositeBar extends Widget implements ICompositeBar {
         }
         // Check if we need to make extra room for the overflow action
         while (size > limit && compositesToShow.length) {
-            const removedComposite = compositesToShow.length > 1 &&
-                compositesToShow[compositesToShow.length - 1] ===
-                    this.model.activeItem?.id
-                ? compositesToShow.splice(compositesToShow.length - 2, 1)[0]
-                : compositesToShow.pop();
+            const removedComposite = compositesToShow.length > 1 && compositesToShow[compositesToShow.length - 1] === this.model.activeItem?.id ?
+                compositesToShow.splice(compositesToShow.length - 2, 1)[0] : compositesToShow.pop();
             size -= this.compositeSizeInBar.get(removedComposite!)!;
         }
         // Remove the overflow action if there are no overflows
-        if (totalComposites === compositesToShow.length &&
-            this.compositeOverflowAction) {
+        if (totalComposites === compositesToShow.length && this.compositeOverflowAction) {
             compositeSwitcherBar.pull(compositeSwitcherBar.length() - 1);
             this.compositeOverflowAction.dispose();
             this.compositeOverflowAction = undefined;
@@ -511,7 +469,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
                 compositesToRemove.push(index);
             }
         });
-        compositesToRemove.reverse().forEach((index) => {
+        compositesToRemove.reverse().forEach(index => {
             compositeSwitcherBar.pull(index);
             this.visibleComposites.splice(index, 1);
         });
@@ -528,21 +486,15 @@ export class CompositeBar extends Widget implements ICompositeBar {
             }
         });
         // Add overflow action as needed
-        if (totalComposites > compositesToShow.length &&
-            !this.compositeOverflowAction) {
+        if (totalComposites > compositesToShow.length && !this.compositeOverflowAction) {
             this.compositeOverflowAction = this._register(this.instantiationService.createInstance(CompositeOverflowActivityAction, () => {
                 this.compositeOverflowActionViewItem?.showMenu();
             }));
-            this.compositeOverflowActionViewItem = this._register(this.instantiationService.createInstance(CompositeOverflowActivityActionViewItem, this.compositeOverflowAction, () => this.getOverflowingComposites(), () => this.model.activeItem
-                ? this.model.activeItem.id
-                : undefined, (compositeId) => {
+            this.compositeOverflowActionViewItem = this._register(this.instantiationService.createInstance(CompositeOverflowActivityActionViewItem, this.compositeOverflowAction, () => this.getOverflowingComposites(), () => this.model.activeItem ? this.model.activeItem.id : undefined, compositeId => {
                 const item = this.model.findItem(compositeId);
                 return item?.activity[0]?.badge;
             }, this.options.getOnCompositeClickAction, this.options.colors, this.options.activityHoverOptions));
-            compositeSwitcherBar.push(this.compositeOverflowAction, {
-                label: false,
-                icon: true,
-            });
+            compositeSwitcherBar.push(this.compositeOverflowAction, { label: false, icon: true });
         }
         if (!donotTrigger) {
             this._onDidChange.fire();
@@ -552,40 +504,31 @@ export class CompositeBar extends Widget implements ICompositeBar {
         id: string;
         name?: string;
     }[] {
-        let overflowingIds = this.model.visibleItems
-            .filter((item) => item.pinned)
-            .map((item) => item.id);
+        let overflowingIds = this.model.visibleItems.filter(item => item.pinned).map(item => item.id);
         // Show the active composite even if it is not pinned
         if (this.model.activeItem && !this.model.activeItem.pinned) {
             overflowingIds.push(this.model.activeItem.id);
         }
-        overflowingIds = overflowingIds.filter((compositeId) => !this.visibleComposites.includes(compositeId));
-        return this.model.visibleItems
-            .filter((c) => overflowingIds.includes(c.id))
-            .map((item) => {
-            return {
-                id: item.id,
-                name: this.getAction(item.id)?.label || item.name,
-            };
-        });
+        overflowingIds = overflowingIds.filter(compositeId => !this.visibleComposites.includes(compositeId));
+        return this.model.visibleItems.filter(c => overflowingIds.includes(c.id)).map(item => { return { id: item.id, name: this.getAction(item.id)?.label || item.name }; });
     }
     private showContextMenu(targetWindow: Window, e: MouseEvent | GestureEvent): void {
         EventHelper.stop(e, true);
         const event = new StandardMouseEvent(targetWindow, e);
         this.contextMenuService.showContextMenu({
             getAnchor: () => event,
-            getActions: () => this.getContextMenuActions(e),
+            getActions: () => this.getContextMenuActions(e)
         });
     }
     getContextMenuActions(e?: MouseEvent | GestureEvent): IAction[] {
-        const actions: IAction[] = this.model.visibleItems.map(({ id, name, activityAction }) => {
+        const actions: IAction[] = this.model.visibleItems
+            .map(({ id, name, activityAction }) => {
             const isPinned = this.isPinned(id);
             return toAction({
                 id,
                 label: this.getAction(id).label || name || id,
                 checked: isPinned,
-                enabled: activityAction.enabled &&
-                    (!isPinned || this.getPinnedCompositeIds().length > 1),
+                enabled: activityAction.enabled && (!isPinned || this.getPinnedCompositeIds().length > 1),
                 run: () => {
                     if (this.isPinned(id)) {
                         this.unpin(id);
@@ -593,7 +536,7 @@ export class CompositeBar extends Widget implements ICompositeBar {
                     else {
                         this.pin(id, true);
                     }
-                },
+                }
             });
         });
         this.options.fillExtraContextMenuActions(actions, e);
@@ -608,9 +551,7 @@ interface ICompositeBarModelItem extends ICompositeBarItem {
 }
 class CompositeBarModel {
     private _items: ICompositeBarModelItem[] = [];
-    get items(): ICompositeBarModelItem[] {
-        return this._items;
-    }
+    get items(): ICompositeBarModelItem[] { return this._items; }
     private readonly options: ICompositeBarOptions;
     activeItem?: ICompositeBarModelItem;
     constructor(items: ICompositeBarItem[], options: ICompositeBarOptions) {
@@ -619,22 +560,19 @@ class CompositeBarModel {
     }
     setItems(items: ICompositeBarItem[]): void {
         this._items = [];
-        this._items = items.map((i) => this.createCompositeBarItem(i.id, i.name, i.order, i.pinned, i.visible));
+        this._items = items
+            .map(i => this.createCompositeBarItem(i.id, i.name, i.order, i.pinned, i.visible));
     }
     get visibleItems(): ICompositeBarModelItem[] {
-        return this.items.filter((item) => item.visible);
+        return this.items.filter(item => item.visible);
     }
     get pinnedItems(): ICompositeBarModelItem[] {
-        return this.items.filter((item) => item.visible && item.pinned);
+        return this.items.filter(item => item.visible && item.pinned);
     }
     private createCompositeBarItem(id: string, name: string | undefined, order: number | undefined, pinned: boolean, visible: boolean): ICompositeBarModelItem {
         const options = this.options;
         return {
-            id,
-            name,
-            pinned,
-            order,
-            visible,
+            id, name, pinned, order, visible,
             activity: [],
             get activityAction() {
                 return options.getActivityAction(id);
@@ -644,7 +582,7 @@ class CompositeBarModel {
             },
             get toggleBadgeAction() {
                 return options.getCompositeBadgeAction(id);
-            },
+            }
         };
     }
     add(id: string, name: string, order: number | undefined, requestedIndex: number | undefined): boolean {
@@ -679,9 +617,7 @@ class CompositeBarModel {
             }
             else {
                 let index = 0;
-                while (index < this.items.length &&
-                    typeof this.items[index].order === "number" &&
-                    this.items[index].order! < order) {
+                while (index < this.items.length && typeof this.items[index].order === 'number' && this.items[index].order! < order) {
                     index++;
                 }
                 this.items.splice(index, 0, item);
@@ -759,7 +695,7 @@ class CompositeBarModel {
         return false;
     }
     findItem(id: string): ICompositeBarModelItem {
-        return this.items.filter((item) => item.id === id)[0];
+        return this.items.filter(item => item.id === id)[0];
     }
     private findIndex(id: string): number {
         for (let index = 0; index < this.items.length; index++) {

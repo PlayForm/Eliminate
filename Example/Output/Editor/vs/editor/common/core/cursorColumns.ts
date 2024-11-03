@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CharCode } from "../../../base/common/charCode.js";
-import * as strings from "../../../base/common/strings.js";
+import { CharCode } from '../../../base/common/charCode.js';
+import * as strings from '../../../base/common/strings.js';
 /**
  * A column in a position is the gap between two adjacent characters. The methods here
  * work with a concept called "visible column". A visible column is a very rough approximation
@@ -25,8 +25,7 @@ export class CursorColumns {
         if (codePoint === CharCode.Tab) {
             return CursorColumns.nextRenderTabStop(visibleColumn, tabSize);
         }
-        if (strings.isFullWidthCharacter(codePoint) ||
-            strings.isEmojiImprecise(codePoint)) {
+        if (strings.isFullWidthCharacter(codePoint) || strings.isEmojiImprecise(codePoint)) {
             return visibleColumn + 2;
         }
         return visibleColumn + 1;
@@ -104,7 +103,7 @@ export class CursorColumns {
      * @see {@link CursorColumns}
      */
     public static nextRenderTabStop(visibleColumn: number, tabSize: number): number {
-        return visibleColumn + tabSize - (visibleColumn % tabSize);
+        return visibleColumn + tabSize - visibleColumn % tabSize;
     }
     /**
      * ATTENTION: This works with 0-based columns (as opposed to the regular 1-based columns)
@@ -118,7 +117,7 @@ export class CursorColumns {
      * @see {@link CursorColumns}
      */
     public static prevRenderTabStop(column: number, tabSize: number): number {
-        return Math.max(0, column - 1 - ((column - 1) % tabSize));
+        return Math.max(0, column - 1 - (column - 1) % tabSize);
     }
     /**
      * ATTENTION: This works with 0-based columns (as opposed to the regular 1-based columns)

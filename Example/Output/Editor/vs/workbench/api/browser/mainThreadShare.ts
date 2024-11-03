@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { dispose, IDisposable } from "../../../base/common/lifecycle.js";
-import { URI } from "../../../base/common/uri.js";
-import { IShareableItem, IShareProvider, IShareService, } from "../../contrib/share/common/share.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { ExtHostContext, ExtHostShareShape, IDocumentFilterDto, MainContext, MainThreadShareShape, } from "../common/extHost.protocol.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { IDisposable, dispose } from '../../../base/common/lifecycle.js';
+import { URI } from '../../../base/common/uri.js';
+import { ExtHostContext, ExtHostShareShape, IDocumentFilterDto, MainContext, MainThreadShareShape } from '../common/extHost.protocol.js';
+import { IShareProvider, IShareService, IShareableItem } from '../../contrib/share/common/share.js';
+import { IExtHostContext, extHostNamedCustomer } from '../../services/extensions/common/extHostCustomers.js';
 @extHostNamedCustomer(MainContext.MainThreadShare)
 export class MainThreadShare implements MainThreadShareShape {
     private readonly proxy: ExtHostShareShape;
@@ -26,8 +26,8 @@ export class MainThreadShare implements MainThreadShareShape {
             priority,
             provideShare: async (item: IShareableItem) => {
                 const result = await this.proxy.$provideShare(handle, item, CancellationToken.None);
-                return typeof result === "string" ? result : URI.revive(result);
-            },
+                return typeof result === 'string' ? result : URI.revive(result);
+            }
         };
         this.providers.set(handle, provider);
         const disposable = this.shareService.registerShareProvider(provider);

@@ -2,19 +2,19 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IContextMenuDelegate } from "../../../base/browser/contextmenu.js";
-import { ModifierKeyEmitter } from "../../../base/browser/dom.js";
-import { IAction, Separator } from "../../../base/common/actions.js";
-import { Emitter } from "../../../base/common/event.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { createAndFillInContextMenuActions } from "../../actions/browser/menuEntryActionViewItem.js";
-import { IMenuService, MenuId } from "../../actions/common/actions.js";
-import { IContextKeyService } from "../../contextkey/common/contextkey.js";
-import { IKeybindingService } from "../../keybinding/common/keybinding.js";
-import { INotificationService } from "../../notification/common/notification.js";
-import { ITelemetryService } from "../../telemetry/common/telemetry.js";
-import { ContextMenuHandler, IContextMenuHandlerOptions, } from "./contextMenuHandler.js";
-import { IContextMenuMenuDelegate, IContextMenuService, IContextViewService, } from "./contextView.js";
+import { IContextMenuDelegate } from '../../../base/browser/contextmenu.js';
+import { ModifierKeyEmitter } from '../../../base/browser/dom.js';
+import { IAction, Separator } from '../../../base/common/actions.js';
+import { Emitter } from '../../../base/common/event.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { createAndFillInContextMenuActions } from '../../actions/browser/menuEntryActionViewItem.js';
+import { IMenuService, MenuId } from '../../actions/common/actions.js';
+import { IContextKeyService } from '../../contextkey/common/contextkey.js';
+import { IKeybindingService } from '../../keybinding/common/keybinding.js';
+import { INotificationService } from '../../notification/common/notification.js';
+import { ITelemetryService } from '../../telemetry/common/telemetry.js';
+import { ContextMenuHandler, IContextMenuHandlerOptions } from './contextMenuHandler.js';
+import { IContextMenuMenuDelegate, IContextMenuService, IContextViewService } from './contextView.js';
 export class ContextMenuService extends Disposable implements IContextMenuService {
     declare readonly _serviceBrand: undefined;
     private _contextMenuHandler: ContextMenuHandler | undefined = undefined;
@@ -54,7 +54,7 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
             onHide: (didCancel) => {
                 delegate.onHide?.(didCancel);
                 this._onDidHideContextMenu.fire();
-            },
+            }
         });
         ModifierKeyEmitter.getInstance().resetKeyStatus();
         this._onDidShowContextMenu.fire();
@@ -62,25 +62,28 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
 }
 export namespace ContextMenuMenuDelegate {
     function is(thing: IContextMenuDelegate | IContextMenuMenuDelegate): thing is IContextMenuMenuDelegate {
-        return (thing && (<IContextMenuMenuDelegate>thing).menuId instanceof MenuId);
+        return thing && (<IContextMenuMenuDelegate>thing).menuId instanceof MenuId;
     }
     export function transform(delegate: IContextMenuDelegate | IContextMenuMenuDelegate, menuService: IMenuService, globalContextKeyService: IContextKeyService): IContextMenuDelegate {
         if (!is(delegate)) {
             return delegate;
         }
         const { menuId, menuActionOptions, contextKeyService } = delegate;
-        return { ...delegate, getActions: () => {
+        return {
+            ...delegate,
+            getActions: () => {
                 const target: IAction[] = [];
                 if (menuId) {
-                    ;
-                    createAndFillInContextMenuActions(menuService.getMenuActions(menuId, contextKeyService ?? globalContextKeyService, menuActionOptions), []);
+                    const menu = menuService.getMenuActions(menuId, contextKeyService ?? globalContextKeyService, menuActionOptions);
+                    createAndFillInContextMenuActions(menu, target);
                 }
                 if (!delegate.getActions) {
-                    return [];
+                    return target;
                 }
                 else {
-                    return Separator.join(delegate.getActions(), []);
+                    return Separator.join(delegate.getActions(), target);
                 }
-            } };
+            }
+        };
     }
 }

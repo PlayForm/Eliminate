@@ -2,10 +2,10 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { illegalArgument } from "../../../base/common/errors.js";
-import { AriaLabelProvider, ElectronAcceleratorLabelProvider, UILabelProvider, UserSettingsLabelProvider, } from "../../../base/common/keybindingLabels.js";
-import { Chord, ResolvedChord, ResolvedKeybinding, SingleModifierChord, } from "../../../base/common/keybindings.js";
-import { OperatingSystem } from "../../../base/common/platform.js";
+import { illegalArgument } from '../../../base/common/errors.js';
+import { AriaLabelProvider, ElectronAcceleratorLabelProvider, UILabelProvider, UserSettingsLabelProvider } from '../../../base/common/keybindingLabels.js';
+import { Chord, SingleModifierChord, ResolvedKeybinding, ResolvedChord } from '../../../base/common/keybindings.js';
+import { OperatingSystem } from '../../../base/common/platform.js';
 export abstract class BaseResolvedKeybinding<T extends Chord> extends ResolvedKeybinding {
     protected readonly _os: OperatingSystem;
     protected readonly _chords: readonly T[];
@@ -42,7 +42,7 @@ export abstract class BaseResolvedKeybinding<T extends Chord> extends ResolvedKe
         return this._chords.every((keybinding) => this._isWYSIWYG(keybinding));
     }
     public hasMultipleChords(): boolean {
-        return this._chords.length > 1;
+        return (this._chords.length > 1);
     }
     public getChords(): ResolvedChord[] {
         return this._chords.map((keybinding) => this._getChord(keybinding));

@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import type { IV8Profile, IV8ProfileNode } from "./profiling.js";
+import type { IV8Profile, IV8ProfileNode } from './profiling.js';
 // #region
 // https://github.com/microsoft/vscode-js-profile-visualizer/blob/6e7401128ee860be113a916f80fcfe20ac99418e/packages/vscode-js-profile-core/src/cpu/model.ts#L4
 export interface IProfileModel {
@@ -93,7 +93,7 @@ const ensureSourceLocations = (profile: ICpuProfileRaw): ReadonlyArray<IAnnotati
             callFrame.scriptId,
             callFrame.lineNumber,
             callFrame.columnNumber,
-        ].join(":");
+        ].join(':');
         const existing = locationsByRef.get(ref);
         if (existing) {
             return existing.id;
@@ -116,7 +116,7 @@ const ensureSourceLocations = (profile: ICpuProfileRaw): ReadonlyArray<IAnnotati
     };
     for (const node of profile.nodes) {
         node.locationId = getLocationIdFor(node.callFrame);
-        node.positionTicks = node.positionTicks?.map((tick) => ({
+        node.positionTicks = node.positionTicks?.map(tick => ({
             ...tick,
             // weirdly, line numbers here are 1-based, not 0-based. The position tick
             // only gives line-level granularity, so 'mark' the entire range of source
@@ -135,7 +135,7 @@ const ensureSourceLocations = (profile: ICpuProfileRaw): ReadonlyArray<IAnnotati
     }
     return [...locationsByRef.values()]
         .sort((a, b) => a.id - b.id)
-        .map((l) => ({ locations: [l.location], callFrame: l.callFrame }));
+        .map(l => ({ locations: [l.location], callFrame: l.callFrame }));
 };
 /**
  * Computes the model for the given profile.
@@ -240,11 +240,11 @@ export class BottomUpNode {
             aggregateTime: 0,
             ticks: 0,
             callFrame: {
-                functionName: "(root)",
+                functionName: '(root)',
                 lineNumber: -1,
                 columnNumber: -1,
-                scriptId: "0",
-                url: "",
+                scriptId: '0',
+                url: '',
             },
         });
     }

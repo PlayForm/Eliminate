@@ -2,20 +2,20 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { shell } from "electron";
-import { toErrorMessage } from "../../../base/common/errorMessage.js";
-import { Emitter } from "../../../base/common/event.js";
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { basename, normalize } from "../../../base/common/path.js";
-import { isWindows } from "../../../base/common/platform.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { DefaultURITransformer, IURITransformer, } from "../../../base/common/uriIpc.js";
-import { localize } from "../../../nls.js";
-import { IEnvironmentService } from "../../environment/common/environment.js";
-import { ILogService } from "../../log/common/log.js";
-import { createFileSystemProviderError, FileSystemProviderErrorCode, IFileChange, IFileDeleteOptions, IWatchOptions, } from "../common/files.js";
-import { DiskFileSystemProvider } from "../node/diskFileSystemProvider.js";
-import { AbstractDiskFileSystemProviderChannel, AbstractSessionFileWatcher, ISessionFileWatcher, } from "../node/diskFileSystemProviderServer.js";
+import { shell } from 'electron';
+import { localize } from '../../../nls.js';
+import { isWindows } from '../../../base/common/platform.js';
+import { Emitter } from '../../../base/common/event.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { IFileDeleteOptions, IFileChange, IWatchOptions, createFileSystemProviderError, FileSystemProviderErrorCode } from '../common/files.js';
+import { DiskFileSystemProvider } from '../node/diskFileSystemProvider.js';
+import { basename, normalize } from '../../../base/common/path.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { ILogService } from '../../log/common/log.js';
+import { AbstractDiskFileSystemProviderChannel, AbstractSessionFileWatcher, ISessionFileWatcher } from '../node/diskFileSystemProviderServer.js';
+import { DefaultURITransformer, IURITransformer } from '../../../base/common/uriIpc.js';
+import { IEnvironmentService } from '../../environment/common/environment.js';
+import { toErrorMessage } from '../../../base/common/errorMessage.js';
 export class DiskFileSystemProviderChannel extends AbstractDiskFileSystemProviderChannel<unknown> {
     constructor(provider: DiskFileSystemProvider, logService: ILogService, private readonly environmentService: IEnvironmentService) {
         super(provider, logService);
@@ -37,9 +37,7 @@ export class DiskFileSystemProviderChannel extends AbstractDiskFileSystemProvide
             await shell.trashItem(filePath);
         }
         catch (error) {
-            throw createFileSystemProviderError(isWindows
-                ? localize("binFailed", "Failed to move '{0}' to the recycle bin ({1})", basename(filePath), toErrorMessage(error))
-                : localize("trashFailed", "Failed to move '{0}' to the trash ({1})", basename(filePath), toErrorMessage(error)), FileSystemProviderErrorCode.Unknown);
+            throw createFileSystemProviderError(isWindows ? localize('binFailed', "Failed to move '{0}' to the recycle bin ({1})", basename(filePath), toErrorMessage(error)) : localize('trashFailed', "Failed to move '{0}' to the trash ({1})", basename(filePath), toErrorMessage(error)), FileSystemProviderErrorCode.Unknown);
         }
     }
     //#endregion
@@ -51,7 +49,7 @@ export class DiskFileSystemProviderChannel extends AbstractDiskFileSystemProvide
 class SessionFileWatcher extends AbstractSessionFileWatcher {
     override watch(req: number, resource: URI, opts: IWatchOptions): IDisposable {
         if (opts.recursive) {
-            throw createFileSystemProviderError("Recursive file watching is not supported from main process for performance reasons.", FileSystemProviderErrorCode.Unavailable);
+            throw createFileSystemProviderError('Recursive file watching is not supported from main process for performance reasons.', FileSystemProviderErrorCode.Unavailable);
         }
         return super.watch(req, resource, opts);
     }

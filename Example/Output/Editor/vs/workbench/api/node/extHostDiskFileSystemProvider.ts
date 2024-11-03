@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import type * as vscode from "vscode";
-import { Schemas } from "../../../base/common/network.js";
-import { isLinux } from "../../../base/common/platform.js";
-import { FilePermission } from "../../../platform/files/common/files.js";
-import { DiskFileSystemProvider } from "../../../platform/files/node/diskFileSystemProvider.js";
-import { ILogService } from "../../../platform/log/common/log.js";
-import { IExtHostConsumerFileSystem } from "../common/extHostFileSystemConsumer.js";
+import type * as vscode from 'vscode';
+import { IExtHostConsumerFileSystem } from '../common/extHostFileSystemConsumer.js';
+import { Schemas } from '../../../base/common/network.js';
+import { ILogService } from '../../../platform/log/common/log.js';
+import { DiskFileSystemProvider } from '../../../platform/files/node/diskFileSystemProvider.js';
+import { FilePermission } from '../../../platform/files/common/files.js';
+import { isLinux } from '../../../base/common/platform.js';
 export class ExtHostDiskFileSystemProvider {
     constructor(
     @IExtHostConsumerFileSystem
@@ -31,7 +31,7 @@ class DiskFileSystemProviderAdapter implements vscode.FileSystemProvider {
             ctime: stat.ctime,
             mtime: stat.mtime,
             size: stat.size,
-            permissions: stat.permissions === FilePermission.Readonly ? 1 : undefined,
+            permissions: stat.permissions === FilePermission.Readonly ? 1 : undefined
         };
     }
     readDirectory(uri: vscode.Uri): Promise<[
@@ -50,20 +50,12 @@ class DiskFileSystemProviderAdapter implements vscode.FileSystemProvider {
         readonly create: boolean;
         readonly overwrite: boolean;
     }): Promise<void> {
-        return this.impl.writeFile(uri, content, {
-            ...options,
-            unlock: false,
-            atomic: false,
-        });
+        return this.impl.writeFile(uri, content, { ...options, unlock: false, atomic: false });
     }
     delete(uri: vscode.Uri, options: {
         readonly recursive: boolean;
     }): Promise<void> {
-        return this.impl.delete(uri, {
-            ...options,
-            useTrash: false,
-            atomic: false,
-        });
+        return this.impl.delete(uri, { ...options, useTrash: false, atomic: false });
     }
     rename(oldUri: vscode.Uri, newUri: vscode.Uri, options: {
         readonly overwrite: boolean;
@@ -76,13 +68,9 @@ class DiskFileSystemProviderAdapter implements vscode.FileSystemProvider {
         return this.impl.copy(source, destination, options);
     }
     // --- Not Implemented ---
-    get onDidChangeFile(): never {
-        throw new Error("Method not implemented.");
-    }
+    get onDidChangeFile(): never { throw new Error('Method not implemented.'); }
     watch(uri: vscode.Uri, options: {
         readonly recursive: boolean;
         readonly excludes: readonly string[];
-    }): vscode.Disposable {
-        throw new Error("Method not implemented.");
-    }
+    }): vscode.Disposable { throw new Error('Method not implemented.'); }
 }

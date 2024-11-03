@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IRange } from "./core/range.js";
-import { Selection } from "./core/selection.js";
-import { IModelDecoration, InjectedTextOptions } from "./model.js";
+import { IRange } from './core/range.js';
+import { Selection } from './core/selection.js';
+import { IModelDecoration, InjectedTextOptions } from './model.js';
 /**
  * An event describing that the current language associated with a model has changed.
  */
@@ -137,7 +137,7 @@ export class LineInjectedText {
         if (!injectedTexts || injectedTexts.length === 0) {
             return lineText;
         }
-        let result = "";
+        let result = '';
         let lastOriginalOffset = 0;
         for (const injectedText of injectedTexts) {
             result += lineText.substring(lastOriginalOffset, injectedText.column - 1);
@@ -150,12 +150,10 @@ export class LineInjectedText {
     public static fromDecorations(decorations: IModelDecoration[]): LineInjectedText[] {
         const result: LineInjectedText[] = [];
         for (const decoration of decorations) {
-            if (decoration.options.before &&
-                decoration.options.before.content.length > 0) {
+            if (decoration.options.before && decoration.options.before.content.length > 0) {
                 result.push(new LineInjectedText(decoration.ownerId, decoration.range.startLineNumber, decoration.range.startColumn, decoration.options.before, 0));
             }
-            if (decoration.options.after &&
-                decoration.options.after.content.length > 0) {
+            if (decoration.options.after && decoration.options.after.content.length > 0) {
                 result.push(new LineInjectedText(decoration.ownerId, decoration.range.endLineNumber, decoration.range.endColumn, decoration.options.after, 1));
             }
         }
@@ -294,12 +292,10 @@ export class ModelRawContentChangedEvent {
         return false;
     }
     public static merge(a: ModelRawContentChangedEvent, b: ModelRawContentChangedEvent): ModelRawContentChangedEvent {
-        const changes = ([] as ModelRawChange[])
-            .concat(a.changes)
-            .concat(b.changes);
+        const changes = ([] as ModelRawChange[]).concat(a.changes).concat(b.changes);
         const versionId = b.versionId;
-        const isUndoing = a.isUndoing || b.isUndoing;
-        const isRedoing = a.isRedoing || b.isRedoing;
+        const isUndoing = (a.isUndoing || b.isUndoing);
+        const isRedoing = (a.isRedoing || b.isRedoing);
         return new ModelRawContentChangedEvent(changes, versionId, isUndoing, isRedoing);
     }
 }
@@ -324,14 +320,12 @@ export class InternalModelContentChangeEvent {
         return new InternalModelContentChangeEvent(rawContentChangedEvent, contentChangedEvent);
     }
     private static _mergeChangeEvents(a: IModelContentChangedEvent, b: IModelContentChangedEvent): IModelContentChangedEvent {
-        const changes = ([] as IModelContentChange[])
-            .concat(a.changes)
-            .concat(b.changes);
+        const changes = ([] as IModelContentChange[]).concat(a.changes).concat(b.changes);
         const eol = b.eol;
         const versionId = b.versionId;
-        const isUndoing = a.isUndoing || b.isUndoing;
-        const isRedoing = a.isRedoing || b.isRedoing;
-        const isFlush = a.isFlush || b.isFlush;
+        const isUndoing = (a.isUndoing || b.isUndoing);
+        const isRedoing = (a.isRedoing || b.isRedoing);
+        const isFlush = (a.isFlush || b.isFlush);
         const isEolChange = a.isEolChange && b.isEolChange; // both must be true to not confuse listeners who skip such edits
         return {
             changes: changes,

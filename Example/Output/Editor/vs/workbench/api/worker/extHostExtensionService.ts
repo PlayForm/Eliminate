@@ -2,30 +2,27 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { timeout } from "../../../base/common/async.js";
-import { URI } from "../../../base/common/uri.js";
-import { IExtensionDescription } from "../../../platform/extensions/common/extensions.js";
-import { createApiFactoryAndRegisterActors } from "../common/extHost.api.impl.js";
-import { ExtensionActivationTimesBuilder } from "../common/extHostExtensionActivator.js";
-import { AbstractExtHostExtensionService } from "../common/extHostExtensionService.js";
-import { RequireInterceptor } from "../common/extHostRequireInterceptor.js";
-import { ExtensionRuntime } from "../common/extHostTypes.js";
-import { ExtHostConsoleForwarder } from "./extHostConsoleForwarder.js";
+import { createApiFactoryAndRegisterActors } from '../common/extHost.api.impl.js';
+import { ExtensionActivationTimesBuilder } from '../common/extHostExtensionActivator.js';
+import { AbstractExtHostExtensionService } from '../common/extHostExtensionService.js';
+import { URI } from '../../../base/common/uri.js';
+import { RequireInterceptor } from '../common/extHostRequireInterceptor.js';
+import { IExtensionDescription } from '../../../platform/extensions/common/extensions.js';
+import { ExtensionRuntime } from '../common/extHostTypes.js';
+import { timeout } from '../../../base/common/async.js';
+import { ExtHostConsoleForwarder } from './extHostConsoleForwarder.js';
 class WorkerRequireInterceptor extends RequireInterceptor {
     protected _installInterceptor() { }
     getModule(request: string, parent: URI): undefined | any {
         for (const alternativeModuleName of this._alternatives) {
             const alternative = alternativeModuleName(request);
-            if (alternativeModuleName(request)) {
-                request =
-                    alternativeModuleName(request);
+            if (alternative) {
+                request = alternative;
                 break;
             }
         }
         if (this._factories.has(request)) {
-            return this._factories.get(request)!.load(request, parent, () => {
-                throw new Error("CANNOT LOAD MODULE from here.");
-            });
+            return this._factories.get(request)!.load(request, parent, () => { throw new Error('CANNOT LOAD MODULE from here.'); });
         }
         return undefined;
     }
@@ -38,49 +35,49 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
         this._instaService.createInstance(ExtHostConsoleForwarder);
         // initialize API and register actors
         const apiFactory = this._instaService.invokeFunction(createApiFactoryAndRegisterActors);
-        this._fakeModules = this._instaService.createInstance(WorkerRequireInterceptor, this._instaService.invokeFunction(createApiFactoryAndRegisterActors), { mine: this._myRegistry, all: this._globalRegistry });
+        this._fakeModules = this._instaService.createInstance(WorkerRequireInterceptor, apiFactory, { mine: this._myRegistry, all: this._globalRegistry });
         await this._fakeModules.install();
-        performance.mark("code/extHost/didInitAPI");
+        performance.mark('code/extHost/didInitAPI');
         await this._waitForDebuggerAttachment();
     }
     protected _getEntryPoint(extensionDescription: IExtensionDescription): string | undefined {
         return extensionDescription.browser;
     }
     protected async _loadCommonJSModule<T extends object | undefined>(extension: IExtensionDescription | null, module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
-        module = module.with({ path: ensureSuffix(module.path, ".js") });
+        module = module.with({ path: ensureSuffix(module.path, '.js') });
         const extensionId = extension?.identifier.value;
-        if (extension?.identifier.value) {
-            performance.mark(`code/extHost/willFetchExtensionCode/${extension?.identifier.value}`);
+        if (extensionId) {
+            performance.mark(`code/extHost/willFetchExtensionCode/${extensionId}`);
         }
         // First resolve the extension entry point URI to something we can load using `fetch`
         // This needs to be done on the main thread due to a potential `resourceUriProvider` (workbench api)
         // which is only available in the main thread
         const browserUri = URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module));
-        const response = await fetch(URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module)).toString(true));
-        if (extension?.identifier.value) {
-            performance.mark(`code/extHost/didFetchExtensionCode/${extension?.identifier.value}`);
+        const response = await fetch(browserUri.toString(true));
+        if (extensionId) {
+            performance.mark(`code/extHost/didFetchExtensionCode/${extensionId}`);
         }
-        if ((await fetch(URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module)).toString(true))).status !== 200) {
-            throw new Error((await fetch(URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module)).toString(true))).statusText);
+        if (response.status !== 200) {
+            throw new Error(response.statusText);
         }
         // fetch JS sources as text and create a new function around it
-        const source = await (await fetch(URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module)).toString(true))).text();
+        const source = await response.text();
         // Here we append #vscode-extension to serve as a marker, such that source maps
         // can be adjusted for the extra wrapping function.
         const sourceURL = `${module.toString(true)}#vscode-extension`;
-        const fullSource = `${await (await fetch(URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module)).toString(true))).text()}\n//# sourceURL=${`${module.toString(true)}#vscode-extension`}`;
+        const fullSource = `${source}\n//# sourceURL=${sourceURL}`;
         let initFn: Function;
         try {
-            initFn = new Function("module", "exports", "require", `${await (await fetch(URI.revive(await this._mainThreadExtensionsProxy.$asBrowserUri(module)).toString(true))).text()}\n//# sourceURL=${`${module.toString(true)}#vscode-extension`}`); // CodeQL [SM01632] js/eval-call there is no alternative until we move to ESM
+            initFn = new Function('module', 'exports', 'require', fullSource); // CodeQL [SM01632] js/eval-call there is no alternative until we move to ESM
         }
         catch (err) {
-            if (extension?.identifier.value) {
-                console.error(`Loading code for extension ${extension?.identifier.value} failed: ${err.message}`);
+            if (extensionId) {
+                console.error(`Loading code for extension ${extensionId} failed: ${err.message}`);
             }
             else {
                 console.error(`Loading code failed: ${err.message}`);
             }
-            console.error(`${module.toString(true)}${typeof err.line === "number" ? ` line ${err.line}` : ""}${typeof err.column === "number" ? ` column ${err.column}` : ""}`);
+            console.error(`${module.toString(true)}${typeof err.line === 'number' ? ` line ${err.line}` : ''}${typeof err.column === 'number' ? ` column ${err.column}` : ''}`);
             console.error(err);
             throw err;
         }
@@ -89,35 +86,25 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
         }
         // define commonjs globals: `module`, `exports`, and `require`
         const _exports = {};
-        const _module = { exports: {} };
+        const _module = { exports: _exports };
         const _require = (request: string) => {
             const result = this._fakeModules!.getModule(request, module);
-            if (this._fakeModules!.getModule(request, module)
-                === undefined) {
+            if (result === undefined) {
                 throw new Error(`Cannot load module '${request}'`);
             }
-            return this._fakeModules!.getModule(request, module);
+            return result;
         };
         try {
             activationTimesBuilder.codeLoadingStart();
-            if (extension?.identifier.value) {
-                performance.mark(`code/extHost/willLoadExtensionCode/${extension?.identifier.value}`);
+            if (extensionId) {
+                performance.mark(`code/extHost/willLoadExtensionCode/${extensionId}`);
             }
-            initFn({ exports: {} }, {}, (request: string) => {
-                const result = this._fakeModules!.getModule(request, module);
-                if (this._fakeModules!.getModule(request, module)
-                    === undefined) {
-                    throw new Error(`Cannot load module '${request}'`);
-                }
-                return this._fakeModules!.getModule(request, module);
-            });
-            return <T>(({ exports: {} }.exports !==
-                {} ? { exports: {} }.exports :
-                {}));
+            initFn(_module, _exports, _require);
+            return <T>(_module.exports !== _exports ? _module.exports : _exports);
         }
         finally {
-            if (extension?.identifier.value) {
-                performance.mark(`code/extHost/didLoadExtensionCode/${extension?.identifier.value}`);
+            if (extensionId) {
+                performance.mark(`code/extHost/didLoadExtensionCode/${extensionId}`);
             }
             activationTimesBuilder.codeLoadingStop();
         }
@@ -133,8 +120,7 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
             return;
         }
         const deadline = Date.now() + waitTimeout;
-        while (Date.now() <
-            Date.now() + waitTimeout && !("__jsDebugIsReady" in globalThis)) {
+        while (Date.now() < deadline && !('__jsDebugIsReady' in globalThis)) {
             await timeout(10);
         }
     }

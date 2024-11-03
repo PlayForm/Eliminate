@@ -7,8 +7,8 @@ export type CodeWindow = Window & typeof globalThis & {
 };
 export function ensureCodeWindow(targetWindow: Window, fallbackWindowId: number): asserts targetWindow is CodeWindow {
     const codeWindow = targetWindow as Partial<CodeWindow>;
-    if (typeof (targetWindow as Partial<CodeWindow>).vscodeWindowId !== 'number') {
-        Object.defineProperty(targetWindow as Partial<CodeWindow>, 'vscodeWindowId', {
+    if (typeof codeWindow.vscodeWindowId !== 'number') {
+        Object.defineProperty(codeWindow, 'vscodeWindowId', {
             get: () => fallbackWindowId
         });
     }
@@ -16,11 +16,9 @@ export function ensureCodeWindow(targetWindow: Window, fallbackWindowId: number)
 // eslint-disable-next-line no-restricted-globals
 export const mainWindow = window as CodeWindow;
 export function isAuxiliaryWindow(obj: Window): obj is CodeWindow {
-    if (obj ===
-        window as CodeWindow) {
+    if (obj === mainWindow) {
         return false;
     }
-    ;
-    return typeof (obj as CodeWindow | undefined)
-        ?.vscodeWindowId === 'number';
+    const candidate = obj as CodeWindow | undefined;
+    return typeof candidate?.vscodeWindowId === 'number';
 }

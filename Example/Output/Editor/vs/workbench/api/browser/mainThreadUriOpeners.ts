@@ -2,22 +2,22 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Action } from "../../../base/common/actions.js";
-import { isCancellationError } from "../../../base/common/errors.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { Schemas } from "../../../base/common/network.js";
-import { URI } from "../../../base/common/uri.js";
-import { localize } from "../../../nls.js";
-import { ExtensionIdentifier } from "../../../platform/extensions/common/extensions.js";
-import { INotificationService, Severity, } from "../../../platform/notification/common/notification.js";
-import { IOpenerService } from "../../../platform/opener/common/opener.js";
-import { IStorageService } from "../../../platform/storage/common/storage.js";
-import { defaultExternalUriOpenerId } from "../../contrib/externalUriOpener/common/configuration.js";
-import { ContributedExternalUriOpenersStore } from "../../contrib/externalUriOpener/common/contributedOpeners.js";
-import { IExternalOpenerProvider, IExternalUriOpener, IExternalUriOpenerService, } from "../../contrib/externalUriOpener/common/externalUriOpenerService.js";
-import { IExtensionService } from "../../services/extensions/common/extensions.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { ExtHostContext, ExtHostUriOpenersShape, MainContext, MainThreadUriOpenersShape, } from "../common/extHost.protocol.js";
+import { Action } from '../../../base/common/actions.js';
+import { isCancellationError } from '../../../base/common/errors.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { Schemas } from '../../../base/common/network.js';
+import { URI } from '../../../base/common/uri.js';
+import { localize } from '../../../nls.js';
+import { ExtensionIdentifier } from '../../../platform/extensions/common/extensions.js';
+import { INotificationService, Severity } from '../../../platform/notification/common/notification.js';
+import { IOpenerService } from '../../../platform/opener/common/opener.js';
+import { IStorageService } from '../../../platform/storage/common/storage.js';
+import { ExtHostContext, ExtHostUriOpenersShape, MainContext, MainThreadUriOpenersShape } from '../common/extHost.protocol.js';
+import { defaultExternalUriOpenerId } from '../../contrib/externalUriOpener/common/configuration.js';
+import { ContributedExternalUriOpenersStore } from '../../contrib/externalUriOpener/common/contributedOpeners.js';
+import { IExternalOpenerProvider, IExternalUriOpener, IExternalUriOpenerService } from '../../contrib/externalUriOpener/common/externalUriOpenerService.js';
+import { IExtensionService } from '../../services/extensions/common/extensions.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
 interface RegisteredOpenerMetadata {
     readonly schemes: ReadonlySet<string>;
     readonly extensionId: ExtensionIdentifier;
@@ -46,8 +46,7 @@ export class MainThreadUriOpeners extends Disposable implements MainThreadUriOpe
     }
     public async *getOpeners(targetUri: URI): AsyncIterable<IExternalUriOpener> {
         // Currently we only allow openers for http and https urls
-        if (targetUri.scheme !== Schemas.http &&
-            targetUri.scheme !== Schemas.https) {
+        if (targetUri.scheme !== Schemas.http && targetUri.scheme !== Schemas.https) {
             return;
         }
         await this.extensionService.activateByEvent(`onOpenExternalUri:${targetUri.scheme}`);
@@ -70,7 +69,7 @@ export class MainThreadUriOpeners extends Disposable implements MainThreadUriOpe
                 }
                 catch (e) {
                     if (!isCancellationError(e)) {
-                        const openDefaultAction = new Action("default", localize("openerFailedUseDefault", "Open using default opener"), undefined, undefined, async () => {
+                        const openDefaultAction = new Action('default', localize('openerFailedUseDefault', "Open using default opener"), undefined, undefined, async () => {
                             await this.openerService.open(uri, {
                                 allowTunneling: false,
                                 allowContributedOpeners: defaultExternalUriOpenerId,
@@ -80,14 +79,14 @@ export class MainThreadUriOpeners extends Disposable implements MainThreadUriOpe
                         this.notificationService.notify({
                             severity: Severity.Error,
                             message: localize({
-                                key: "openerFailedMessage",
-                                comment: [
-                                    "{0} is the id of the opener. {1} is the url being opened.",
-                                ],
-                            }, "Could not open uri with '{0}': {1}", id, e.toString()),
+                                key: 'openerFailedMessage',
+                                comment: ['{0} is the id of the opener. {1} is the url being opened.'],
+                            }, 'Could not open uri with \'{0}\': {1}', id, e.toString()),
                             actions: {
-                                primary: [openDefaultAction],
-                            },
+                                primary: [
+                                    openDefaultAction
+                                ]
+                            }
                         });
                     }
                 }

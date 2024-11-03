@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as arrays from "../../../base/common/arrays.js";
-import { IRange, Range } from "../core/range.js";
-import { MetadataConsts } from "../encodedTokenAttributes.js";
-import { ILanguageIdCodec } from "../languages.js";
-import { LineTokens } from "./lineTokens.js";
-import { SparseMultilineTokens } from "./sparseMultilineTokens.js";
+import * as arrays from '../../../base/common/arrays.js';
+import { IRange, Range } from '../core/range.js';
+import { LineTokens } from './lineTokens.js';
+import { SparseMultilineTokens } from './sparseMultilineTokens.js';
+import { ILanguageIdCodec } from '../languages.js';
+import { MetadataConsts } from '../encodedTokenAttributes.js';
 /**
  * Represents sparse tokens in a text model.
  */
@@ -25,7 +25,7 @@ export class SparseTokensStore {
         this._isComplete = false;
     }
     public isEmpty(): boolean {
-        return this._pieces.length === 0;
+        return (this._pieces.length === 0);
     }
     public set(pieces: SparseMultilineTokens[] | null, isComplete: boolean): void {
         this._pieces = pieces || [];
@@ -134,40 +134,24 @@ export class SparseTokensStore {
             const bStartCharacter = bTokens.getStartCharacter(bIndex);
             const bEndCharacter = bTokens.getEndCharacter(bIndex);
             const bMetadata = bTokens.getMetadata(bIndex);
-            const bMask = ((bMetadata & MetadataConsts.SEMANTIC_USE_ITALIC
-                ? MetadataConsts.ITALIC_MASK
-                : 0) |
-                (bMetadata & MetadataConsts.SEMANTIC_USE_BOLD
-                    ? MetadataConsts.BOLD_MASK
-                    : 0) |
-                (bMetadata & MetadataConsts.SEMANTIC_USE_UNDERLINE
-                    ? MetadataConsts.UNDERLINE_MASK
-                    : 0) |
-                (bMetadata & MetadataConsts.SEMANTIC_USE_STRIKETHROUGH
-                    ? MetadataConsts.STRIKETHROUGH_MASK
-                    : 0) |
-                (bMetadata & MetadataConsts.SEMANTIC_USE_FOREGROUND
-                    ? MetadataConsts.FOREGROUND_MASK
-                    : 0) |
-                (bMetadata & MetadataConsts.SEMANTIC_USE_BACKGROUND
-                    ? MetadataConsts.BACKGROUND_MASK
-                    : 0)) >>>
-                0;
-            const aMask = ~bMask >>> 0;
+            const bMask = (((bMetadata & MetadataConsts.SEMANTIC_USE_ITALIC) ? MetadataConsts.ITALIC_MASK : 0)
+                | ((bMetadata & MetadataConsts.SEMANTIC_USE_BOLD) ? MetadataConsts.BOLD_MASK : 0)
+                | ((bMetadata & MetadataConsts.SEMANTIC_USE_UNDERLINE) ? MetadataConsts.UNDERLINE_MASK : 0)
+                | ((bMetadata & MetadataConsts.SEMANTIC_USE_STRIKETHROUGH) ? MetadataConsts.STRIKETHROUGH_MASK : 0)
+                | ((bMetadata & MetadataConsts.SEMANTIC_USE_FOREGROUND) ? MetadataConsts.FOREGROUND_MASK : 0)
+                | ((bMetadata & MetadataConsts.SEMANTIC_USE_BACKGROUND) ? MetadataConsts.BACKGROUND_MASK : 0)) >>> 0;
+            const aMask = (~bMask) >>> 0;
             // push any token from `a` that is before `b`
-            while (aIndex < aLen &&
-                aTokens.getEndOffset(aIndex) <= bStartCharacter) {
+            while (aIndex < aLen && aTokens.getEndOffset(aIndex) <= bStartCharacter) {
                 emitToken(aTokens.getEndOffset(aIndex), aTokens.getMetadata(aIndex));
                 aIndex++;
             }
             // push the token from `a` if it intersects the token from `b`
-            if (aIndex < aLen &&
-                aTokens.getStartOffset(aIndex) < bStartCharacter) {
+            if (aIndex < aLen && aTokens.getStartOffset(aIndex) < bStartCharacter) {
                 emitToken(bStartCharacter, aTokens.getMetadata(aIndex));
             }
             // skip any tokens from `a` that are contained inside `b`
-            while (aIndex < aLen &&
-                aTokens.getEndOffset(aIndex) < bEndCharacter) {
+            while (aIndex < aLen && aTokens.getEndOffset(aIndex) < bEndCharacter) {
                 emitToken(aTokens.getEndOffset(aIndex), (aTokens.getMetadata(aIndex) & aMask) | (bMetadata & bMask));
                 aIndex++;
             }
@@ -181,8 +165,7 @@ export class SparseTokensStore {
             else {
                 const aMergeIndex = Math.min(Math.max(0, aIndex - 1), aLen - 1);
                 // push the token from `b`
-                emitToken(bEndCharacter, (aTokens.getMetadata(aMergeIndex) & aMask) |
-                    (bMetadata & bMask));
+                emitToken(bEndCharacter, (aTokens.getMetadata(aMergeIndex) & aMask) | (bMetadata & bMask));
             }
         }
         // push the remaining tokens from `a`
@@ -204,9 +187,7 @@ export class SparseTokensStore {
                 high = mid - 1;
             }
             else {
-                while (mid > low &&
-                    pieces[mid - 1].startLineNumber <= lineNumber &&
-                    lineNumber <= pieces[mid - 1].endLineNumber) {
+                while (mid > low && pieces[mid - 1].startLineNumber <= lineNumber && lineNumber <= pieces[mid - 1].endLineNumber) {
                     mid--;
                 }
                 return mid;

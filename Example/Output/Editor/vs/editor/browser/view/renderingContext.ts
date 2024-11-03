@@ -2,10 +2,10 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Position } from "../../common/core/position.js";
-import { Range } from "../../common/core/range.js";
-import { ViewportData } from "../../common/viewLayout/viewLinesViewportData.js";
-import { IViewLayout, ViewModelDecoration } from "../../common/viewModel.js";
+import { Position } from '../../common/core/position.js';
+import { Range } from '../../common/core/range.js';
+import { ViewportData } from '../../common/viewLayout/viewLinesViewportData.js';
+import { IViewLayout, ViewModelDecoration } from '../../common/viewModel.js';
 export interface IViewLines {
     linesVisibleRangesForRange(range: Range, includeNewLines: boolean): LineVisibleRanges[] | null;
     visibleRangeForPosition(position: Position): HorizontalPosition | null;
@@ -58,14 +58,10 @@ export class RenderingContext extends RestrictedRenderingContext {
         this._viewLinesGpu = viewLinesGpu;
     }
     public linesVisibleRangesForRange(range: Range, includeNewLines: boolean): LineVisibleRanges[] | null {
-        return (this._viewLines.linesVisibleRangesForRange(range, includeNewLines) ??
-            this._viewLinesGpu?.linesVisibleRangesForRange(range, includeNewLines) ??
-            null);
+        return this._viewLines.linesVisibleRangesForRange(range, includeNewLines) ?? this._viewLinesGpu?.linesVisibleRangesForRange(range, includeNewLines) ?? null;
     }
     public visibleRangeForPosition(position: Position): HorizontalPosition | null {
-        return (this._viewLines.visibleRangeForPosition(position) ??
-            this._viewLinesGpu?.visibleRangeForPosition(position) ??
-            null);
+        return this._viewLines.visibleRangeForPosition(position) ?? this._viewLinesGpu?.visibleRangeForPosition(position) ?? null;
     }
 }
 export class LineVisibleRanges {
@@ -154,5 +150,6 @@ export class HorizontalPosition {
     }
 }
 export class VisibleRanges {
-    constructor(public readonly outsideRenderedLine: boolean, public readonly ranges: FloatHorizontalRange[]) { }
+    constructor(public readonly outsideRenderedLine: boolean, public readonly ranges: FloatHorizontalRange[]) {
+    }
 }

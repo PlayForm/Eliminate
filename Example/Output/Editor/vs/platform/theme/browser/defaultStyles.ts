@@ -2,21 +2,21 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IBreadcrumbsWidgetStyles } from "../../../base/browser/ui/breadcrumbs/breadcrumbsWidget.js";
-import { IButtonStyles } from "../../../base/browser/ui/button/button.js";
-import { ICountBadgeStyles } from "../../../base/browser/ui/countBadge/countBadge.js";
-import { IDialogStyles } from "../../../base/browser/ui/dialog/dialog.js";
-import { IInputBoxStyles } from "../../../base/browser/ui/inputbox/inputBox.js";
-import { IKeybindingLabelStyles } from "../../../base/browser/ui/keybindingLabel/keybindingLabel.js";
-import { IListStyles } from "../../../base/browser/ui/list/listWidget.js";
-import { IMenuStyles } from "../../../base/browser/ui/menu/menu.js";
-import { IProgressBarStyles } from "../../../base/browser/ui/progressbar/progressbar.js";
-import { IRadioStyles } from "../../../base/browser/ui/radio/radio.js";
-import { ISelectBoxStyles } from "../../../base/browser/ui/selectBox/selectBox.js";
-import { ICheckboxStyles, IToggleStyles, } from "../../../base/browser/ui/toggle/toggle.js";
-import { IFindWidgetStyles } from "../../../base/browser/ui/tree/abstractTree.js";
-import { Color } from "../../../base/common/color.js";
-import { activeContrastBorder, asCssVariable, asCssVariableWithDefault, badgeBackground, badgeForeground, breadcrumbsActiveSelectionForeground, breadcrumbsBackground, breadcrumbsFocusForeground, breadcrumbsForeground, buttonBackground, buttonBorder, buttonForeground, buttonHoverBackground, buttonSecondaryBackground, buttonSecondaryForeground, buttonSecondaryHoverBackground, buttonSeparator, checkboxBackground, checkboxBorder, checkboxForeground, ColorIdentifier, contrastBorder, editorWidgetBackground, editorWidgetBorder, editorWidgetForeground, focusBorder, inputActiveOptionBackground, inputActiveOptionBorder, inputActiveOptionForeground, inputBackground, inputBorder, inputForeground, inputValidationErrorBackground, inputValidationErrorBorder, inputValidationErrorForeground, inputValidationInfoBackground, inputValidationInfoBorder, inputValidationInfoForeground, inputValidationWarningBackground, inputValidationWarningBorder, inputValidationWarningForeground, keybindingLabelBackground, keybindingLabelBorder, keybindingLabelBottomBorder, keybindingLabelForeground, listActiveSelectionBackground, listActiveSelectionForeground, listActiveSelectionIconForeground, listDropBetweenBackground, listDropOverBackground, listFilterWidgetBackground, listFilterWidgetNoMatchesOutline, listFilterWidgetOutline, listFilterWidgetShadow, listFocusAndSelectionOutline, listFocusBackground, listFocusForeground, listFocusOutline, listHoverBackground, listHoverForeground, listInactiveFocusBackground, listInactiveFocusOutline, listInactiveSelectionBackground, listInactiveSelectionForeground, listInactiveSelectionIconForeground, menuBackground, menuBorder, menuForeground, menuSelectionBackground, menuSelectionBorder, menuSelectionForeground, menuSeparatorBackground, pickerGroupForeground, problemsErrorIconForeground, problemsInfoIconForeground, problemsWarningIconForeground, progressBarBackground, quickInputListFocusBackground, quickInputListFocusForeground, quickInputListFocusIconForeground, radioActiveBackground, radioActiveBorder, radioActiveForeground, radioInactiveBackground, radioInactiveBorder, radioInactiveForeground, radioInactiveHoverBackground, scrollbarShadow, scrollbarSliderActiveBackground, scrollbarSliderBackground, scrollbarSliderHoverBackground, selectBackground, selectBorder, selectForeground, selectListBackground, tableColumnsBorder, tableOddRowsBackgroundColor, textLinkForeground, treeInactiveIndentGuidesStroke, treeIndentGuidesStroke, widgetShadow, } from "../common/colorRegistry.js";
+import { IButtonStyles } from '../../../base/browser/ui/button/button.js';
+import { IKeybindingLabelStyles } from '../../../base/browser/ui/keybindingLabel/keybindingLabel.js';
+import { ColorIdentifier, keybindingLabelBackground, keybindingLabelBorder, keybindingLabelBottomBorder, keybindingLabelForeground, asCssVariable, widgetShadow, buttonForeground, buttonSeparator, buttonBackground, buttonHoverBackground, buttonSecondaryForeground, buttonSecondaryBackground, buttonSecondaryHoverBackground, buttonBorder, progressBarBackground, inputActiveOptionBorder, inputActiveOptionForeground, inputActiveOptionBackground, editorWidgetBackground, editorWidgetForeground, contrastBorder, checkboxBorder, checkboxBackground, checkboxForeground, problemsErrorIconForeground, problemsWarningIconForeground, problemsInfoIconForeground, inputBackground, inputForeground, inputBorder, textLinkForeground, inputValidationInfoBorder, inputValidationInfoBackground, inputValidationInfoForeground, inputValidationWarningBorder, inputValidationWarningBackground, inputValidationWarningForeground, inputValidationErrorBorder, inputValidationErrorBackground, inputValidationErrorForeground, listFilterWidgetBackground, listFilterWidgetNoMatchesOutline, listFilterWidgetOutline, listFilterWidgetShadow, badgeBackground, badgeForeground, breadcrumbsBackground, breadcrumbsForeground, breadcrumbsFocusForeground, breadcrumbsActiveSelectionForeground, activeContrastBorder, listActiveSelectionBackground, listActiveSelectionForeground, listActiveSelectionIconForeground, listDropOverBackground, listFocusAndSelectionOutline, listFocusBackground, listFocusForeground, listFocusOutline, listHoverBackground, listHoverForeground, listInactiveFocusBackground, listInactiveFocusOutline, listInactiveSelectionBackground, listInactiveSelectionForeground, listInactiveSelectionIconForeground, tableColumnsBorder, tableOddRowsBackgroundColor, treeIndentGuidesStroke, asCssVariableWithDefault, editorWidgetBorder, focusBorder, pickerGroupForeground, quickInputListFocusBackground, quickInputListFocusForeground, quickInputListFocusIconForeground, selectBackground, selectBorder, selectForeground, selectListBackground, treeInactiveIndentGuidesStroke, menuBorder, menuForeground, menuBackground, menuSelectionForeground, menuSelectionBackground, menuSelectionBorder, menuSeparatorBackground, scrollbarShadow, scrollbarSliderActiveBackground, scrollbarSliderBackground, scrollbarSliderHoverBackground, listDropBetweenBackground, radioActiveBackground, radioActiveForeground, radioInactiveBackground, radioInactiveForeground, radioInactiveBorder, radioInactiveHoverBackground, radioActiveBorder } from '../common/colorRegistry.js';
+import { IProgressBarStyles } from '../../../base/browser/ui/progressbar/progressbar.js';
+import { ICheckboxStyles, IToggleStyles } from '../../../base/browser/ui/toggle/toggle.js';
+import { IDialogStyles } from '../../../base/browser/ui/dialog/dialog.js';
+import { IInputBoxStyles } from '../../../base/browser/ui/inputbox/inputBox.js';
+import { IFindWidgetStyles } from '../../../base/browser/ui/tree/abstractTree.js';
+import { ICountBadgeStyles } from '../../../base/browser/ui/countBadge/countBadge.js';
+import { IBreadcrumbsWidgetStyles } from '../../../base/browser/ui/breadcrumbs/breadcrumbsWidget.js';
+import { IListStyles } from '../../../base/browser/ui/list/listWidget.js';
+import { ISelectBoxStyles } from '../../../base/browser/ui/selectBox/selectBox.js';
+import { Color } from '../../../base/common/color.js';
+import { IMenuStyles } from '../../../base/browser/ui/menu/menu.js';
+import { IRadioStyles } from '../../../base/browser/ui/radio/radio.js';
 export type IStyleOverride<T> = {
     [P in keyof T]?: ColorIdentifier | undefined;
 };
@@ -37,7 +37,7 @@ export const defaultKeybindingLabelStyles: IKeybindingLabelStyles = {
     keybindingLabelForeground: asCssVariable(keybindingLabelForeground),
     keybindingLabelBorder: asCssVariable(keybindingLabelBorder),
     keybindingLabelBottomBorder: asCssVariable(keybindingLabelBottomBorder),
-    keybindingLabelShadow: asCssVariable(widgetShadow),
+    keybindingLabelShadow: asCssVariable(widgetShadow)
 };
 export function getKeybindingLabelStyles(override: IStyleOverride<IKeybindingLabelStyles>): IKeybindingLabelStyles {
     return overrideStyles(override, defaultKeybindingLabelStyles);
@@ -56,7 +56,7 @@ export function getButtonStyles(override: IStyleOverride<IButtonStyles>): IButto
     return overrideStyles(override, defaultButtonStyles);
 }
 export const defaultProgressBarStyles: IProgressBarStyles = {
-    progressBarBackground: asCssVariable(progressBarBackground),
+    progressBarBackground: asCssVariable(progressBarBackground)
 };
 export function getProgressBarStyles(override: IStyleOverride<IProgressBarStyles>): IProgressBarStyles {
     return overrideStyles(override, defaultProgressBarStyles);
@@ -64,7 +64,7 @@ export function getProgressBarStyles(override: IStyleOverride<IProgressBarStyles
 export const defaultToggleStyles: IToggleStyles = {
     inputActiveOptionBorder: asCssVariable(inputActiveOptionBorder),
     inputActiveOptionForeground: asCssVariable(inputActiveOptionForeground),
-    inputActiveOptionBackground: asCssVariable(inputActiveOptionBackground),
+    inputActiveOptionBackground: asCssVariable(inputActiveOptionBackground)
 };
 export const defaultRadioStyles: IRadioStyles = {
     activeForeground: asCssVariable(radioActiveForeground),
@@ -81,7 +81,7 @@ export function getToggleStyles(override: IStyleOverride<IToggleStyles>): IToggl
 export const defaultCheckboxStyles: ICheckboxStyles = {
     checkboxBackground: asCssVariable(checkboxBackground),
     checkboxBorder: asCssVariable(checkboxBorder),
-    checkboxForeground: asCssVariable(checkboxForeground),
+    checkboxForeground: asCssVariable(checkboxForeground)
 };
 export function getCheckboxStyles(override: IStyleOverride<ICheckboxStyles>): ICheckboxStyles {
     return overrideStyles(override, defaultCheckboxStyles);
@@ -94,7 +94,7 @@ export const defaultDialogStyles: IDialogStyles = {
     errorIconForeground: asCssVariable(problemsErrorIconForeground),
     warningIconForeground: asCssVariable(problemsWarningIconForeground),
     infoIconForeground: asCssVariable(problemsInfoIconForeground),
-    textLinkForeground: asCssVariable(textLinkForeground),
+    textLinkForeground: asCssVariable(textLinkForeground)
 };
 export function getDialogStyle(override: IStyleOverride<IDialogStyles>): IDialogStyles {
     return overrideStyles(override, defaultDialogStyles);
@@ -111,7 +111,7 @@ export const defaultInputBoxStyles: IInputBoxStyles = {
     inputValidationWarningForeground: asCssVariable(inputValidationWarningForeground),
     inputValidationErrorBorder: asCssVariable(inputValidationErrorBorder),
     inputValidationErrorBackground: asCssVariable(inputValidationErrorBackground),
-    inputValidationErrorForeground: asCssVariable(inputValidationErrorForeground),
+    inputValidationErrorForeground: asCssVariable(inputValidationErrorForeground)
 };
 export function getInputBoxStyle(override: IStyleOverride<IInputBoxStyles>): IInputBoxStyles {
     return overrideStyles(override, defaultInputBoxStyles);
@@ -122,12 +122,12 @@ export const defaultFindWidgetStyles: IFindWidgetStyles = {
     listFilterWidgetNoMatchesOutline: asCssVariable(listFilterWidgetNoMatchesOutline),
     listFilterWidgetShadow: asCssVariable(listFilterWidgetShadow),
     inputBoxStyles: defaultInputBoxStyles,
-    toggleStyles: defaultToggleStyles,
+    toggleStyles: defaultToggleStyles
 };
 export const defaultCountBadgeStyles: ICountBadgeStyles = {
     badgeBackground: asCssVariable(badgeBackground),
     badgeForeground: asCssVariable(badgeForeground),
-    badgeBorder: asCssVariable(contrastBorder),
+    badgeBorder: asCssVariable(contrastBorder)
 };
 export function getCountBadgeStyle(override: IStyleOverride<ICountBadgeStyles>): ICountBadgeStyles {
     return overrideStyles(override, defaultCountBadgeStyles);
@@ -137,7 +137,7 @@ export const defaultBreadcrumbsWidgetStyles: IBreadcrumbsWidgetStyles = {
     breadcrumbsForeground: asCssVariable(breadcrumbsForeground),
     breadcrumbsHoverForeground: asCssVariable(breadcrumbsFocusForeground),
     breadcrumbsFocusForeground: asCssVariable(breadcrumbsFocusForeground),
-    breadcrumbsFocusAndSelectionForeground: asCssVariable(breadcrumbsActiveSelectionForeground),
+    breadcrumbsFocusAndSelectionForeground: asCssVariable(breadcrumbsActiveSelectionForeground)
 };
 export function getBreadcrumbsWidgetStyles(override: IStyleOverride<IBreadcrumbsWidgetStyles>): IBreadcrumbsWidgetStyles {
     return overrideStyles(override, defaultBreadcrumbsWidgetStyles);
@@ -212,7 +212,7 @@ export const defaultSelectBoxStyles: ISelectBoxStyles = {
     treeInactiveIndentGuidesStroke: undefined,
     treeStickyScrollBackground: undefined,
     treeStickyScrollBorder: undefined,
-    treeStickyScrollShadow: undefined,
+    treeStickyScrollShadow: undefined
 };
 export function getSelectBoxStyles(override: IStyleOverride<ISelectBoxStyles>): ISelectBoxStyles {
     return overrideStyles(override, defaultSelectBoxStyles);
@@ -229,7 +229,7 @@ export const defaultMenuStyles: IMenuStyles = {
     scrollbarShadow: asCssVariable(scrollbarShadow),
     scrollbarSliderBackground: asCssVariable(scrollbarSliderBackground),
     scrollbarSliderHoverBackground: asCssVariable(scrollbarSliderHoverBackground),
-    scrollbarSliderActiveBackground: asCssVariable(scrollbarSliderActiveBackground),
+    scrollbarSliderActiveBackground: asCssVariable(scrollbarSliderActiveBackground)
 };
 export function getMenuStyles(override: IStyleOverride<IMenuStyles>): IMenuStyles {
     return overrideStyles(override, defaultMenuStyles);

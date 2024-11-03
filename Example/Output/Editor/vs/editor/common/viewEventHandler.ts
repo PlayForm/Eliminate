@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Disposable } from "../../base/common/lifecycle.js";
-import * as viewEvents from "./viewEvents.js";
+import { Disposable } from '../../base/common/lifecycle.js';
+import * as viewEvents from './viewEvents.js';
 export class ViewEventHandler extends Disposable {
     private _shouldRender: boolean;
     constructor() {
@@ -174,7 +174,7 @@ export class ViewEventHandler extends Disposable {
                     }
                     break;
                 default:
-                    console.info("View received unknown event: ");
+                    console.info('View received unknown event: ');
                     console.info(e);
             }
         }

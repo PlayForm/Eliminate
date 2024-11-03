@@ -12,9 +12,9 @@ enum Severity {
 namespace Severity {
     const _error = 'error';
     const _warning = 'warning';
-    ;
+    const _warn = 'warn';
     const _info = 'info';
-    ;
+    const _ignore = 'ignore';
     /**
      * Parses 'error', 'warning', 'warn', 'info' in call casings
      * and falls back to ignore.
@@ -23,23 +23,23 @@ namespace Severity {
         if (!value) {
             return Severity.Ignore;
         }
-        if (strings.equalsIgnoreCase('error', value)) {
+        if (strings.equalsIgnoreCase(_error, value)) {
             return Severity.Error;
         }
-        if (strings.equalsIgnoreCase('warning', value) || strings.equalsIgnoreCase('warn', value)) {
+        if (strings.equalsIgnoreCase(_warning, value) || strings.equalsIgnoreCase(_warn, value)) {
             return Severity.Warning;
         }
-        if (strings.equalsIgnoreCase('info', value)) {
+        if (strings.equalsIgnoreCase(_info, value)) {
             return Severity.Info;
         }
         return Severity.Ignore;
     }
     export function toString(severity: Severity): string {
         switch (severity) {
-            case Severity.Error: return 'error';
-            case Severity.Warning: return 'warning';
-            case Severity.Info: return 'info';
-            default: return 'ignore';
+            case Severity.Error: return _error;
+            case Severity.Warning: return _warning;
+            case Severity.Info: return _info;
+            default: return _ignore;
         }
     }
 }

@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IStringDictionary } from "../../../base/common/collections.js";
+import { IStringDictionary } from '../../../base/common/collections.js';
 export interface IMergeResult {
     local: {
         added: IStringDictionary<string>;
@@ -22,28 +22,18 @@ export function merge(local: IStringDictionary<string>, remote: IStringDictionar
     const localRemoved: Set<string> = new Set<string>();
     if (!remote) {
         return {
-            local: {
-                added: localAdded,
-                updated: localUpdated,
-                removed: [...localRemoved.values()],
-            },
+            local: { added: localAdded, updated: localUpdated, removed: [...localRemoved.values()] },
             remote: { added: local, updated: {}, removed: [] },
-            conflicts: [],
+            conflicts: []
         };
     }
     const localToRemote = compare(local, remote);
-    if (localToRemote.added.size === 0 &&
-        localToRemote.removed.size === 0 &&
-        localToRemote.updated.size === 0) {
+    if (localToRemote.added.size === 0 && localToRemote.removed.size === 0 && localToRemote.updated.size === 0) {
         // No changes found between local and remote.
         return {
-            local: {
-                added: localAdded,
-                updated: localUpdated,
-                removed: [...localRemoved.values()],
-            },
+            local: { added: localAdded, updated: localUpdated, removed: [...localRemoved.values()] },
             remote: { added: {}, updated: {}, removed: [] },
-            conflicts: [],
+            conflicts: []
         };
     }
     const baseToLocal = compare(base, local);
@@ -143,16 +133,8 @@ export function merge(local: IStringDictionary<string>, remote: IStringDictionar
         }
     }
     return {
-        local: {
-            added: localAdded,
-            removed: [...localRemoved.values()],
-            updated: localUpdated,
-        },
-        remote: {
-            added: remoteAdded,
-            removed: [...remoteRemoved.values()],
-            updated: remoteUpdated,
-        },
+        local: { added: localAdded, removed: [...localRemoved.values()], updated: localUpdated },
+        remote: { added: remoteAdded, removed: [...remoteRemoved.values()], updated: remoteUpdated },
         conflicts: [...conflicts.values()],
     };
 }
@@ -163,18 +145,8 @@ function compare(from: IStringDictionary<string> | null, to: IStringDictionary<s
 } {
     const fromKeys = from ? Object.keys(from) : [];
     const toKeys = to ? Object.keys(to) : [];
-    const added = toKeys
-        .filter((key) => !fromKeys.includes(key))
-        .reduce((r, key) => {
-        r.add(key);
-        return r;
-    }, new Set<string>());
-    const removed = fromKeys
-        .filter((key) => !toKeys.includes(key))
-        .reduce((r, key) => {
-        r.add(key);
-        return r;
-    }, new Set<string>());
+    const added = toKeys.filter(key => !fromKeys.includes(key)).reduce((r, key) => { r.add(key); return r; }, new Set<string>());
+    const removed = fromKeys.filter(key => !toKeys.includes(key)).reduce((r, key) => { r.add(key); return r; }, new Set<string>());
     const updated: Set<string> = new Set<string>();
     for (const key of fromKeys) {
         if (removed.has(key)) {

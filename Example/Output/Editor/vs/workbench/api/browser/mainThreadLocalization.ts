@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { IFileService } from "../../../platform/files/common/files.js";
-import { ILanguagePackService } from "../../../platform/languagePacks/common/languagePacks.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { MainContext, MainThreadLocalizationShape, } from "../common/extHost.protocol.js";
+import { MainContext, MainThreadLocalizationShape } from '../common/extHost.protocol.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { IFileService } from '../../../platform/files/common/files.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { ILanguagePackService } from '../../../platform/languagePacks/common/languagePacks.js';
 @extHostNamedCustomer(MainContext.MainThreadLocalization)
 export class MainThreadLocalization extends Disposable implements MainThreadLocalizationShape {
     constructor(extHostContext: IExtHostContext, 

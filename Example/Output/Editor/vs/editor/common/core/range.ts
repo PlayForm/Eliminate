@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IPosition, Position } from "./position.js";
+import { IPosition, Position } from './position.js';
 /**
  * A range in the editor. This interface is suitable for serialization.
  */
@@ -45,8 +45,7 @@ export class Range {
      */
     public readonly endColumn: number;
     constructor(startLineNumber: number, startColumn: number, endLineNumber: number, endColumn: number) {
-        if (startLineNumber > endLineNumber ||
-            (startLineNumber === endLineNumber && startColumn > endColumn)) {
+        if ((startLineNumber > endLineNumber) || (startLineNumber === endLineNumber && startColumn > endColumn)) {
             this.startLineNumber = endLineNumber;
             this.startColumn = endColumn;
             this.endLineNumber = startLineNumber;
@@ -69,8 +68,7 @@ export class Range {
      * Test if `range` is empty.
      */
     public static isEmpty(range: IRange): boolean {
-        return (range.startLineNumber === range.endLineNumber &&
-            range.startColumn === range.endColumn);
+        return (range.startLineNumber === range.endLineNumber && range.startColumn === range.endColumn);
     }
     /**
      * Test if position is in this range. If the position is at the edges, will return true.
@@ -82,16 +80,13 @@ export class Range {
      * Test if `position` is in `range`. If the position is at the edges, will return true.
      */
     public static containsPosition(range: IRange, position: IPosition): boolean {
-        if (position.lineNumber < range.startLineNumber ||
-            position.lineNumber > range.endLineNumber) {
+        if (position.lineNumber < range.startLineNumber || position.lineNumber > range.endLineNumber) {
             return false;
         }
-        if (position.lineNumber === range.startLineNumber &&
-            position.column < range.startColumn) {
+        if (position.lineNumber === range.startLineNumber && position.column < range.startColumn) {
             return false;
         }
-        if (position.lineNumber === range.endLineNumber &&
-            position.column > range.endColumn) {
+        if (position.lineNumber === range.endLineNumber && position.column > range.endColumn) {
             return false;
         }
         return true;
@@ -101,16 +96,13 @@ export class Range {
      * @internal
      */
     public static strictContainsPosition(range: IRange, position: IPosition): boolean {
-        if (position.lineNumber < range.startLineNumber ||
-            position.lineNumber > range.endLineNumber) {
+        if (position.lineNumber < range.startLineNumber || position.lineNumber > range.endLineNumber) {
             return false;
         }
-        if (position.lineNumber === range.startLineNumber &&
-            position.column <= range.startColumn) {
+        if (position.lineNumber === range.startLineNumber && position.column <= range.startColumn) {
             return false;
         }
-        if (position.lineNumber === range.endLineNumber &&
-            position.column >= range.endColumn) {
+        if (position.lineNumber === range.endLineNumber && position.column >= range.endColumn) {
             return false;
         }
         return true;
@@ -125,20 +117,16 @@ export class Range {
      * Test if `otherRange` is in `range`. If the ranges are equal, will return true.
      */
     public static containsRange(range: IRange, otherRange: IRange): boolean {
-        if (otherRange.startLineNumber < range.startLineNumber ||
-            otherRange.endLineNumber < range.startLineNumber) {
+        if (otherRange.startLineNumber < range.startLineNumber || otherRange.endLineNumber < range.startLineNumber) {
             return false;
         }
-        if (otherRange.startLineNumber > range.endLineNumber ||
-            otherRange.endLineNumber > range.endLineNumber) {
+        if (otherRange.startLineNumber > range.endLineNumber || otherRange.endLineNumber > range.endLineNumber) {
             return false;
         }
-        if (otherRange.startLineNumber === range.startLineNumber &&
-            otherRange.startColumn < range.startColumn) {
+        if (otherRange.startLineNumber === range.startLineNumber && otherRange.startColumn < range.startColumn) {
             return false;
         }
-        if (otherRange.endLineNumber === range.endLineNumber &&
-            otherRange.endColumn > range.endColumn) {
+        if (otherRange.endLineNumber === range.endLineNumber && otherRange.endColumn > range.endColumn) {
             return false;
         }
         return true;
@@ -153,20 +141,16 @@ export class Range {
      * Test if `otherRange` is strictly in `range` (must start after, and end before). If the ranges are equal, will return false.
      */
     public static strictContainsRange(range: IRange, otherRange: IRange): boolean {
-        if (otherRange.startLineNumber < range.startLineNumber ||
-            otherRange.endLineNumber < range.startLineNumber) {
+        if (otherRange.startLineNumber < range.startLineNumber || otherRange.endLineNumber < range.startLineNumber) {
             return false;
         }
-        if (otherRange.startLineNumber > range.endLineNumber ||
-            otherRange.endLineNumber > range.endLineNumber) {
+        if (otherRange.startLineNumber > range.endLineNumber || otherRange.endLineNumber > range.endLineNumber) {
             return false;
         }
-        if (otherRange.startLineNumber === range.startLineNumber &&
-            otherRange.startColumn <= range.startColumn) {
+        if (otherRange.startLineNumber === range.startLineNumber && otherRange.startColumn <= range.startColumn) {
             return false;
         }
-        if (otherRange.endLineNumber === range.endLineNumber &&
-            otherRange.endColumn >= range.endColumn) {
+        if (otherRange.endLineNumber === range.endLineNumber && otherRange.endColumn >= range.endColumn) {
             return false;
         }
         return true;
@@ -231,53 +215,28 @@ export class Range {
         const otherStartColumn = b.startColumn;
         const otherEndLineNumber = b.endLineNumber;
         const otherEndColumn = b.endColumn;
-        if (a.startLineNumber
-            <
-                b.startLineNumber) {
-            a.startLineNumber
-                =
-                    b.startLineNumber;
-            a.startColumn
-                =
-                    b.startColumn;
+        if (resultStartLineNumber < otherStartLineNumber) {
+            resultStartLineNumber = otherStartLineNumber;
+            resultStartColumn = otherStartColumn;
         }
-        else if (a.startLineNumber
-            ===
-                b.startLineNumber) {
-            a.startColumn
-                = Math.max(a.startColumn, b.startColumn);
+        else if (resultStartLineNumber === otherStartLineNumber) {
+            resultStartColumn = Math.max(resultStartColumn, otherStartColumn);
         }
-        if (a.endLineNumber
-            >
-                b.endLineNumber) {
-            a.endLineNumber
-                =
-                    b.endLineNumber;
-            a.endColumn
-                =
-                    b.endColumn;
+        if (resultEndLineNumber > otherEndLineNumber) {
+            resultEndLineNumber = otherEndLineNumber;
+            resultEndColumn = otherEndColumn;
         }
-        else if (a.endLineNumber
-            ===
-                b.endLineNumber) {
-            a.endColumn
-                = Math.min(a.endColumn, b.endColumn);
+        else if (resultEndLineNumber === otherEndLineNumber) {
+            resultEndColumn = Math.min(resultEndColumn, otherEndColumn);
         }
         // Check if selection is now empty
-        if (a.startLineNumber
-            >
-                a.endLineNumber) {
+        if (resultStartLineNumber > resultEndLineNumber) {
             return null;
         }
-        if (a.startLineNumber
-            ===
-                a.endLineNumber &&
-            a.startColumn
-                >
-                    a.endColumn) {
+        if (resultStartLineNumber === resultEndLineNumber && resultStartColumn > resultEndColumn) {
             return null;
         }
-        return new Range(a.startLineNumber, a.startColumn, a.endLineNumber, a.endColumn);
+        return new Range(resultStartLineNumber, resultStartColumn, resultEndLineNumber, resultEndColumn);
     }
     /**
      * Test if this range equals other.
@@ -327,15 +286,7 @@ export class Range {
      * Transform to a user presentable string representation.
      */
     public toString(): string {
-        return ("[" +
-            this.startLineNumber +
-            "," +
-            this.startColumn +
-            " -> " +
-            this.endLineNumber +
-            "," +
-            this.endColumn +
-            "]");
+        return '[' + this.startLineNumber + ',' + this.startColumn + ' -> ' + this.endLineNumber + ',' + this.endColumn + ']';
     }
     /**
      * Create a new range using this range's start position, and using endLineNumber and endColumn as the end position.
@@ -399,26 +350,22 @@ export class Range {
      * Test if `obj` is an `IRange`.
      */
     public static isIRange(obj: any): obj is IRange {
-        return (obj &&
-            typeof obj.startLineNumber === "number" &&
-            typeof obj.startColumn === "number" &&
-            typeof obj.endLineNumber === "number" &&
-            typeof obj.endColumn === "number");
+        return (obj
+            && (typeof obj.startLineNumber === 'number')
+            && (typeof obj.startColumn === 'number')
+            && (typeof obj.endLineNumber === 'number')
+            && (typeof obj.endColumn === 'number'));
     }
     /**
      * Test if the two ranges are touching in any way.
      */
     public static areIntersectingOrTouching(a: IRange, b: IRange): boolean {
         // Check if `a` is before `b`
-        if (a.endLineNumber < b.startLineNumber ||
-            (a.endLineNumber === b.startLineNumber &&
-                a.endColumn < b.startColumn)) {
+        if (a.endLineNumber < b.startLineNumber || (a.endLineNumber === b.startLineNumber && a.endColumn < b.startColumn)) {
             return false;
         }
         // Check if `b` is before `a`
-        if (b.endLineNumber < a.startLineNumber ||
-            (b.endLineNumber === a.startLineNumber &&
-                b.endColumn < a.startColumn)) {
+        if (b.endLineNumber < a.startLineNumber || (b.endLineNumber === a.startLineNumber && b.endColumn < a.startColumn)) {
             return false;
         }
         // These ranges must intersect
@@ -429,15 +376,11 @@ export class Range {
      */
     public static areIntersecting(a: IRange, b: IRange): boolean {
         // Check if `a` is before `b`
-        if (a.endLineNumber < b.startLineNumber ||
-            (a.endLineNumber === b.startLineNumber &&
-                a.endColumn <= b.startColumn)) {
+        if (a.endLineNumber < b.startLineNumber || (a.endLineNumber === b.startLineNumber && a.endColumn <= b.startColumn)) {
             return false;
         }
         // Check if `b` is before `a`
-        if (b.endLineNumber < a.startLineNumber ||
-            (b.endLineNumber === a.startLineNumber &&
-                b.endColumn <= a.startColumn)) {
+        if (b.endLineNumber < a.startLineNumber || (b.endLineNumber === a.startLineNumber && b.endColumn <= a.startColumn)) {
             return false;
         }
         // These ranges must intersect
@@ -468,8 +411,8 @@ export class Range {
             }
             return aStartLineNumber - bStartLineNumber;
         }
-        const aExists = a ? 1 : 0;
-        const bExists = b ? 1 : 0;
+        const aExists = (a ? 1 : 0);
+        const bExists = (b ? 1 : 0);
         return aExists - bExists;
     }
     /**

@@ -2,18 +2,18 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Emitter } from "../../base/common/event.js";
-import { getDriveLetter } from "../../base/common/extpath.js";
-import { IExpression, parse, ParsedExpression, } from "../../base/common/glob.js";
-import { Disposable } from "../../base/common/lifecycle.js";
-import { ResourceSet } from "../../base/common/map.js";
-import { Schemas } from "../../base/common/network.js";
-import { equals } from "../../base/common/objects.js";
-import { isAbsolute } from "../../base/common/path.js";
-import { relativePath } from "../../base/common/resources.js";
-import { URI } from "../../base/common/uri.js";
-import { IConfigurationChangeEvent, IConfigurationService, } from "../../platform/configuration/common/configuration.js";
-import { IWorkspaceContextService } from "../../platform/workspace/common/workspace.js";
+import { URI } from '../../base/common/uri.js';
+import { equals } from '../../base/common/objects.js';
+import { isAbsolute } from '../../base/common/path.js';
+import { Emitter } from '../../base/common/event.js';
+import { relativePath } from '../../base/common/resources.js';
+import { Disposable } from '../../base/common/lifecycle.js';
+import { ParsedExpression, IExpression, parse } from '../../base/common/glob.js';
+import { IWorkspaceContextService } from '../../platform/workspace/common/workspace.js';
+import { IConfigurationService, IConfigurationChangeEvent } from '../../platform/configuration/common/configuration.js';
+import { Schemas } from '../../base/common/network.js';
+import { ResourceSet } from '../../base/common/map.js';
+import { getDriveLetter } from '../../base/common/extpath.js';
 interface IConfiguredExpression {
     readonly expression: IExpression;
     readonly hasAbsolutePath: boolean;
@@ -34,7 +34,7 @@ export class ResourceGlobMatcher extends Disposable {
         this.registerListeners();
     }
     private registerListeners(): void {
-        this._register(this.configurationService.onDidChangeConfiguration((e) => {
+        this._register(this.configurationService.onDidChangeConfiguration(e => {
             if (this.shouldUpdate(e)) {
                 this.updateExpressions(true);
             }
@@ -49,8 +49,7 @@ export class ResourceGlobMatcher extends Disposable {
             const newExpression = this.doGetExpression(folder.uri);
             const currentExpression = this.mapFolderToConfiguredExpression.get(folderUriStr);
             if (newExpression) {
-                if (!currentExpression ||
-                    !equals(currentExpression.expression, newExpression.expression)) {
+                if (!currentExpression || !equals(currentExpression.expression, newExpression.expression)) {
                     changed = true;
                     this.mapFolderToParsedExpression.set(folderUriStr, parse(newExpression.expression));
                     this.mapFolderToConfiguredExpression.set(folderUriStr, newExpression);
@@ -65,9 +64,7 @@ export class ResourceGlobMatcher extends Disposable {
             }
         }
         // Remove expressions per workspace no longer present
-        const foldersMap = new ResourceSet(this.contextService
-            .getWorkspace()
-            .folders.map((folder) => folder.uri));
+        const foldersMap = new ResourceSet(this.contextService.getWorkspace().folders.map(folder => folder.uri));
         for (const [folder] of this.mapFolderToConfiguredExpression) {
             if (folder === ResourceGlobMatcher.NO_FOLDER) {
                 continue; // always keep this one
@@ -82,8 +79,7 @@ export class ResourceGlobMatcher extends Disposable {
         const globalNewExpression = this.doGetExpression(undefined);
         const globalCurrentExpression = this.mapFolderToConfiguredExpression.get(ResourceGlobMatcher.NO_FOLDER);
         if (globalNewExpression) {
-            if (!globalCurrentExpression ||
-                !equals(globalCurrentExpression.expression, globalNewExpression.expression)) {
+            if (!globalCurrentExpression || !equals(globalCurrentExpression.expression, globalNewExpression.expression)) {
                 changed = true;
                 this.mapFolderToParsedExpression.set(ResourceGlobMatcher.NO_FOLDER, parse(globalNewExpression.expression));
                 this.mapFolderToConfiguredExpression.set(ResourceGlobMatcher.NO_FOLDER, globalNewExpression);
@@ -132,7 +128,7 @@ export class ResourceGlobMatcher extends Disposable {
         }
         return {
             expression: massagedExpression,
-            hasAbsolutePath,
+            hasAbsolutePath
         };
     }
     matches(resource: URI, hasSibling?: (name: string) => boolean): boolean {
@@ -142,16 +138,13 @@ export class ResourceGlobMatcher extends Disposable {
         const folder = this.contextService.getWorkspaceFolder(resource);
         let expressionForFolder: ParsedExpression | undefined;
         let expressionConfigForFolder: IConfiguredExpression | undefined;
-        if (folder &&
-            this.mapFolderToParsedExpression.has(folder.uri.toString())) {
+        if (folder && this.mapFolderToParsedExpression.has(folder.uri.toString())) {
             expressionForFolder = this.mapFolderToParsedExpression.get(folder.uri.toString());
-            expressionConfigForFolder =
-                this.mapFolderToConfiguredExpression.get(folder.uri.toString());
+            expressionConfigForFolder = this.mapFolderToConfiguredExpression.get(folder.uri.toString());
         }
         else {
             expressionForFolder = this.mapFolderToParsedExpression.get(ResourceGlobMatcher.NO_FOLDER);
-            expressionConfigForFolder =
-                this.mapFolderToConfiguredExpression.get(ResourceGlobMatcher.NO_FOLDER);
+            expressionConfigForFolder = this.mapFolderToConfiguredExpression.get(ResourceGlobMatcher.NO_FOLDER);
         }
         if (!expressionForFolder) {
             return false; // return early: no expression for this resource
@@ -167,15 +160,13 @@ export class ResourceGlobMatcher extends Disposable {
         else {
             resourcePathToMatch = this.uriToPath(resource);
         }
-        if (typeof resourcePathToMatch === "string" &&
-            !!expressionForFolder(resourcePathToMatch, undefined, hasSibling)) {
+        if (typeof resourcePathToMatch === 'string' && !!expressionForFolder(resourcePathToMatch, undefined, hasSibling)) {
             return true;
         }
         // If the configured expression has an absolute path, we also check for absolute paths
         // to match, otherwise we potentially miss out on matches. We only do that if we previously
         // matched on the relative path.
-        if (resourcePathToMatch !== this.uriToPath(resource) &&
-            expressionConfigForFolder?.hasAbsolutePath) {
+        if (resourcePathToMatch !== this.uriToPath(resource) && expressionConfigForFolder?.hasAbsolutePath) {
             return !!expressionForFolder(this.uriToPath(resource), undefined, hasSibling);
         }
         return false;

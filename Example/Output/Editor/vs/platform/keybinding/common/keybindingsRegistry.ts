@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { decodeKeybinding, Keybinding, } from "../../../base/common/keybindings.js";
-import { combinedDisposable, DisposableStore, IDisposable, toDisposable, } from "../../../base/common/lifecycle.js";
-import { LinkedList } from "../../../base/common/linkedList.js";
-import { OperatingSystem, OS } from "../../../base/common/platform.js";
-import { CommandsRegistry, ICommandHandler, ICommandMetadata, } from "../../commands/common/commands.js";
-import { ContextKeyExpression } from "../../contextkey/common/contextkey.js";
-import { Registry } from "../../registry/common/platform.js";
+import { decodeKeybinding, Keybinding } from '../../../base/common/keybindings.js';
+import { OperatingSystem, OS } from '../../../base/common/platform.js';
+import { CommandsRegistry, ICommandHandler, ICommandMetadata } from '../../commands/common/commands.js';
+import { ContextKeyExpression } from '../../contextkey/common/contextkey.js';
+import { Registry } from '../../registry/common/platform.js';
+import { combinedDisposable, DisposableStore, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { LinkedList } from '../../../base/common/linkedList.js';
 export interface IKeybindingItem {
     keybinding: Keybinding | null;
     command: string | null;
@@ -139,7 +139,7 @@ class KeybindingsRegistryImpl implements IKeybindingsRegistry {
                     weight1: rule.weight,
                     weight2: 0,
                     extensionId: rule.extensionId || null,
-                    isBuiltinExtension: rule.isBuiltinExtension || false,
+                    isBuiltinExtension: rule.isBuiltinExtension || false
                 };
             }
         }
@@ -158,7 +158,7 @@ class KeybindingsRegistryImpl implements IKeybindingsRegistry {
             weight1: weight1,
             weight2: weight2,
             extensionId: null,
-            isBuiltinExtension: false,
+            isBuiltinExtension: false
         });
         this._cachedMergedKeybindings = null;
         return toDisposable(() => {
@@ -177,7 +177,7 @@ class KeybindingsRegistryImpl implements IKeybindingsRegistry {
 export const KeybindingsRegistry: IKeybindingsRegistry = new KeybindingsRegistryImpl();
 // Define extension point ids
 export const Extensions = {
-    EditorModes: "platform.keybindingsRegistry",
+    EditorModes: 'platform.keybindingsRegistry'
 };
 Registry.add(Extensions.EditorModes, KeybindingsRegistry);
 function sorter(a: IKeybindingItem, b: IKeybindingItem): number {

@@ -2,18 +2,18 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Position } from "../core/position.js";
-import { IRange } from "../core/range.js";
-import { EndOfLinePreference, ITextModel, PositionAffinity } from "../model.js";
-import { InjectedText, ModelLineProjectionData, } from "../modelLineProjectionData.js";
-import { LineInjectedText } from "../textModelEvents.js";
-import { LineTokens } from "../tokens/lineTokens.js";
-import { SingleLineInlineDecoration, ViewLineData } from "../viewModel.js";
+import { LineTokens } from '../tokens/lineTokens.js';
+import { Position } from '../core/position.js';
+import { IRange } from '../core/range.js';
+import { EndOfLinePreference, ITextModel, PositionAffinity } from '../model.js';
+import { LineInjectedText } from '../textModelEvents.js';
+import { InjectedText, ModelLineProjectionData } from '../modelLineProjectionData.js';
+import { SingleLineInlineDecoration, ViewLineData } from '../viewModel.js';
 export interface IModelLineProjection {
     isVisible(): boolean;
     /**
      * This invalidates the current instance (potentially reuses and returns it again).
-     */
+    */
     setVisible(isVisible: boolean): IModelLineProjection;
     getProjectionData(): ModelLineProjectionData | null;
     getViewLineCount(): number;
@@ -81,9 +81,7 @@ class ModelLineProjection implements IModelLineProjection {
     }
     public getViewLineContent(model: ISimpleModel, modelLineNumber: number, outputLineIndex: number): string {
         this._assertVisible();
-        const startOffsetInInputWithInjections = outputLineIndex > 0
-            ? this._projectionData.breakOffsets[outputLineIndex - 1]
-            : 0;
+        const startOffsetInInputWithInjections = outputLineIndex > 0 ? this._projectionData.breakOffsets[outputLineIndex - 1] : 0;
         const endOffsetInInputWithInjections = this._projectionData.breakOffsets[outputLineIndex];
         let r: string;
         if (this._projectionData.injectionOffsets !== null) {
@@ -96,7 +94,7 @@ class ModelLineProjection implements IModelLineProjection {
                 startLineNumber: modelLineNumber,
                 startColumn: startOffsetInInputWithInjections + 1,
                 endLineNumber: modelLineNumber,
-                endColumn: endOffsetInInputWithInjections + 1,
+                endColumn: endOffsetInInputWithInjections + 1
             });
         }
         if (outputLineIndex > 0) {
@@ -118,7 +116,7 @@ class ModelLineProjection implements IModelLineProjection {
     }
     /**
      * Try using {@link getViewLinesData} instead.
-     */
+    */
     public getViewLineData(model: ISimpleModel, modelLineNumber: number, outputLineIndex: number): ViewLineData {
         const arr = new Array<ViewLineData>();
         this.getViewLinesData(model, modelLineNumber, outputLineIndex, 1, 0, [true], arr);
@@ -136,44 +134,30 @@ class ModelLineProjection implements IModelLineProjection {
             let currentInjectedOffset = 0;
             for (let outputLineIndex = 0; outputLineIndex < lineBreakData.getOutputLineCount(); outputLineIndex++) {
                 const inlineDecorations = new Array<SingleLineInlineDecoration>();
-                inlineDecorationsPerOutputLine[outputLineIndex] =
-                    inlineDecorations;
-                const lineStartOffsetInInputWithInjections = outputLineIndex > 0
-                    ? lineBreakData.breakOffsets[outputLineIndex - 1]
-                    : 0;
+                inlineDecorationsPerOutputLine[outputLineIndex] = inlineDecorations;
+                const lineStartOffsetInInputWithInjections = outputLineIndex > 0 ? lineBreakData.breakOffsets[outputLineIndex - 1] : 0;
                 const lineEndOffsetInInputWithInjections = lineBreakData.breakOffsets[outputLineIndex];
                 while (currentInjectedOffset < injectionOffsets.length) {
                     const length = injectionOptions![currentInjectedOffset].content.length;
-                    const injectedTextStartOffsetInInputWithInjections = injectionOffsets[currentInjectedOffset] +
-                        totalInjectedTextLengthBefore;
+                    const injectedTextStartOffsetInInputWithInjections = injectionOffsets[currentInjectedOffset] + totalInjectedTextLengthBefore;
                     const injectedTextEndOffsetInInputWithInjections = injectedTextStartOffsetInInputWithInjections + length;
-                    if (injectedTextStartOffsetInInputWithInjections >
-                        lineEndOffsetInInputWithInjections) {
+                    if (injectedTextStartOffsetInInputWithInjections > lineEndOffsetInInputWithInjections) {
                         // Injected text only starts in later wrapped lines.
                         break;
                     }
-                    if (lineStartOffsetInInputWithInjections <
-                        injectedTextEndOffsetInInputWithInjections) {
+                    if (lineStartOffsetInInputWithInjections < injectedTextEndOffsetInInputWithInjections) {
                         // Injected text ends after or in this line (but also starts in or before this line).
                         const options = injectionOptions![currentInjectedOffset];
                         if (options.inlineClassName) {
-                            const offset = outputLineIndex > 0
-                                ? lineBreakData.wrappedTextIndentLength
-                                : 0;
-                            const start = offset +
-                                Math.max(injectedTextStartOffsetInInputWithInjections -
-                                    lineStartOffsetInInputWithInjections, 0);
-                            const end = offset +
-                                Math.min(injectedTextEndOffsetInInputWithInjections -
-                                    lineStartOffsetInInputWithInjections, lineEndOffsetInInputWithInjections -
-                                    lineStartOffsetInInputWithInjections);
+                            const offset = (outputLineIndex > 0 ? lineBreakData.wrappedTextIndentLength : 0);
+                            const start = offset + Math.max(injectedTextStartOffsetInInputWithInjections - lineStartOffsetInInputWithInjections, 0);
+                            const end = offset + Math.min(injectedTextEndOffsetInInputWithInjections - lineStartOffsetInInputWithInjections, lineEndOffsetInInputWithInjections - lineStartOffsetInInputWithInjections);
                             if (start !== end) {
                                 inlineDecorations.push(new SingleLineInlineDecoration(start, end, options.inlineClassName, options.inlineClassNameAffectsLetterSpacing!));
                             }
                         }
                     }
-                    if (injectedTextEndOffsetInInputWithInjections <=
-                        lineEndOffsetInInputWithInjections) {
+                    if (injectedTextEndOffsetInInputWithInjections <= lineEndOffsetInInputWithInjections) {
                         totalInjectedTextLengthBefore += length;
                         currentInjectedOffset++;
                     }
@@ -211,13 +195,10 @@ class ModelLineProjection implements IModelLineProjection {
                     });
                 }
             }
-            lineWithInjections = model.tokenization
-                .getLineTokens(modelLineNumber)
-                .withInserted(tokensToInsert);
+            lineWithInjections = model.tokenization.getLineTokens(modelLineNumber).withInserted(tokensToInsert);
         }
         else {
-            lineWithInjections =
-                model.tokenization.getLineTokens(modelLineNumber);
+            lineWithInjections = model.tokenization.getLineTokens(modelLineNumber);
         }
         for (let outputLineIndex = outputLineIdx; outputLineIndex < outputLineIdx + lineCount; outputLineIndex++) {
             const globalIndex = globalStartIndex + outputLineIndex - outputLineIdx;
@@ -225,36 +206,29 @@ class ModelLineProjection implements IModelLineProjection {
                 result[globalIndex] = null;
                 continue;
             }
-            result[globalIndex] = this._getViewLineData(lineWithInjections, inlineDecorationsPerOutputLine
-                ? inlineDecorationsPerOutputLine[outputLineIndex]
-                : null, outputLineIndex);
+            result[globalIndex] = this._getViewLineData(lineWithInjections, inlineDecorationsPerOutputLine ? inlineDecorationsPerOutputLine[outputLineIndex] : null, outputLineIndex);
         }
     }
     private _getViewLineData(lineWithInjections: LineTokens, inlineDecorations: null | SingleLineInlineDecoration[], outputLineIndex: number): ViewLineData {
         this._assertVisible();
         const lineBreakData = this._projectionData;
-        const deltaStartIndex = outputLineIndex > 0 ? lineBreakData.wrappedTextIndentLength : 0;
-        const lineStartOffsetInInputWithInjections = outputLineIndex > 0
-            ? lineBreakData.breakOffsets[outputLineIndex - 1]
-            : 0;
+        const deltaStartIndex = (outputLineIndex > 0 ? lineBreakData.wrappedTextIndentLength : 0);
+        const lineStartOffsetInInputWithInjections = outputLineIndex > 0 ? lineBreakData.breakOffsets[outputLineIndex - 1] : 0;
         const lineEndOffsetInInputWithInjections = lineBreakData.breakOffsets[outputLineIndex];
         const tokens = lineWithInjections.sliceAndInflate(lineStartOffsetInInputWithInjections, lineEndOffsetInInputWithInjections, deltaStartIndex);
         let lineContent = tokens.getLineContent();
         if (outputLineIndex > 0) {
-            lineContent =
-                spaces(lineBreakData.wrappedTextIndentLength) + lineContent;
+            lineContent = spaces(lineBreakData.wrappedTextIndentLength) + lineContent;
         }
         const minColumn = this._projectionData.getMinOutputOffset(outputLineIndex) + 1;
         const maxColumn = lineContent.length + 1;
-        const continuesWithWrappedLine = outputLineIndex + 1 < this.getViewLineCount();
-        const startVisibleColumn = outputLineIndex === 0
-            ? 0
-            : lineBreakData.breakOffsetsVisibleColumn[outputLineIndex - 1];
+        const continuesWithWrappedLine = (outputLineIndex + 1 < this.getViewLineCount());
+        const startVisibleColumn = (outputLineIndex === 0 ? 0 : lineBreakData.breakOffsetsVisibleColumn[outputLineIndex - 1]);
         return new ViewLineData(lineContent, continuesWithWrappedLine, minColumn, maxColumn, startVisibleColumn, tokens, inlineDecorations);
     }
     public getModelColumnOfViewPosition(outputLineIndex: number, outputColumn: number): number {
         this._assertVisible();
-        return (this._projectionData.translateToInputOffset(outputLineIndex, outputColumn - 1) + 1);
+        return this._projectionData.translateToInputOffset(outputLineIndex, outputColumn - 1) + 1;
     }
     public getViewPositionOfModelPosition(deltaLineNumber: number, inputColumn: number, affinity: PositionAffinity = PositionAffinity.None): Position {
         this._assertVisible();
@@ -277,13 +251,13 @@ class ModelLineProjection implements IModelLineProjection {
     }
     private _assertVisible() {
         if (!this._isVisible) {
-            throw new Error("Not supported");
+            throw new Error('Not supported');
         }
     }
 }
 /**
  * This projection does not change the model line.
- */
+*/
 class IdentityModelLineProjection implements IModelLineProjection {
     public static readonly INSTANCE = new IdentityModelLineProjection();
     private constructor() { }
@@ -364,40 +338,40 @@ class HiddenModelLineProjection implements IModelLineProjection {
         return 0;
     }
     public getViewLineContent(_model: ISimpleModel, _modelLineNumber: number, _outputLineIndex: number): string {
-        throw new Error("Not supported");
+        throw new Error('Not supported');
     }
     public getViewLineLength(_model: ISimpleModel, _modelLineNumber: number, _outputLineIndex: number): number {
-        throw new Error("Not supported");
+        throw new Error('Not supported');
     }
     public getViewLineMinColumn(_model: ISimpleModel, _modelLineNumber: number, _outputLineIndex: number): number {
-        throw new Error("Not supported");
+        throw new Error('Not supported');
     }
     public getViewLineMaxColumn(_model: ISimpleModel, _modelLineNumber: number, _outputLineIndex: number): number {
-        throw new Error("Not supported");
+        throw new Error('Not supported');
     }
     public getViewLineData(_model: ISimpleModel, _modelLineNumber: number, _outputLineIndex: number): ViewLineData {
-        throw new Error("Not supported");
+        throw new Error('Not supported');
     }
     public getViewLinesData(_model: ISimpleModel, _modelLineNumber: number, _fromOuputLineIndex: number, _toOutputLineIndex: number, _globalStartIndex: number, _needed: boolean[], _result: ViewLineData[]): void {
-        throw new Error("Not supported");
+        throw new Error('Not supported');
     }
     public getModelColumnOfViewPosition(_outputLineIndex: number, _outputColumn: number): number {
-        throw new Error("Not supported");
+        throw new Error('Not supported');
     }
     public getViewPositionOfModelPosition(_deltaLineNumber: number, _inputColumn: number): Position {
-        throw new Error("Not supported");
+        throw new Error('Not supported');
     }
     public getViewLineNumberOfModelPosition(_deltaLineNumber: number, _inputColumn: number): number {
-        throw new Error("Not supported");
+        throw new Error('Not supported');
     }
     public normalizePosition(outputLineIndex: number, outputPosition: Position, affinity: PositionAffinity): Position {
-        throw new Error("Not supported");
+        throw new Error('Not supported');
     }
     public getInjectedTextAt(_outputLineIndex: number, _outputColumn: number): InjectedText | null {
-        throw new Error("Not supported");
+        throw new Error('Not supported');
     }
 }
-const _spaces: string[] = [""];
+const _spaces: string[] = [''];
 function spaces(count: number): string {
     if (count >= _spaces.length) {
         for (let i = 1; i <= count; i++) {
@@ -407,5 +381,5 @@ function spaces(count: number): string {
     return _spaces[count];
 }
 function _makeSpaces(count: number): string {
-    return new Array(count + 1).join(" ");
+    return new Array(count + 1).join(' ');
 }

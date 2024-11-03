@@ -2,18 +2,18 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { isAndroid, isChrome, isEdge, isFirefox, isSafari, isWeb, Platform, platform, PlatformToString, } from "../../../base/common/platform.js";
-import { escapeRegExpCharacters } from "../../../base/common/strings.js";
-import { localize } from "../../../nls.js";
-import { IEnvironmentService } from "../../environment/common/environment.js";
-import { getServiceMachineId } from "../../externalServices/common/serviceMachineId.js";
-import { IFileService } from "../../files/common/files.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { IProductService } from "../../product/common/productService.js";
-import { IStorageService, StorageScope, StorageTarget, } from "../../storage/common/storage.js";
-import { IUserData, IUserDataManifest, IUserDataSyncLogService, IUserDataSyncStoreService, } from "./userDataSync.js";
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { isAndroid, isChrome, isEdge, isFirefox, isSafari, isWeb, Platform, platform, PlatformToString } from '../../../base/common/platform.js';
+import { escapeRegExpCharacters } from '../../../base/common/strings.js';
+import { localize } from '../../../nls.js';
+import { IEnvironmentService } from '../../environment/common/environment.js';
+import { IFileService } from '../../files/common/files.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { IProductService } from '../../product/common/productService.js';
+import { getServiceMachineId } from '../../externalServices/common/serviceMachineId.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../storage/common/storage.js';
+import { IUserData, IUserDataManifest, IUserDataSyncLogService, IUserDataSyncStoreService } from './userDataSync.js';
 export interface IMachineData {
     id: string;
     name: string;
@@ -27,7 +27,7 @@ export interface IMachinesData {
 export type IUserDataSyncMachine = Readonly<IMachineData> & {
     readonly isCurrent: boolean;
 };
-export const IUserDataSyncMachinesService = createDecorator<IUserDataSyncMachinesService>("IUserDataSyncMachinesService");
+export const IUserDataSyncMachinesService = createDecorator<IUserDataSyncMachinesService>('IUserDataSyncMachinesService');
 export interface IUserDataSyncMachinesService {
     _serviceBrand: any;
     readonly onDidChange: Event<void>;
@@ -40,12 +40,12 @@ export interface IUserDataSyncMachinesService {
         boolean
     ][]): Promise<void>;
 }
-const currentMachineNameKey = "sync.currentMachineName";
-const Safari = "Safari";
-const Chrome = "Chrome";
-const Edge = "Edge";
-const Firefox = "Firefox";
-const Android = "Android";
+const currentMachineNameKey = 'sync.currentMachineName';
+const Safari = 'Safari';
+const Chrome = 'Chrome';
+const Edge = 'Edge';
+const Firefox = 'Firefox';
+const Android = 'Android';
 export function isWebPlatform(platform: string) {
     switch (platform) {
         case Safari:
@@ -78,7 +78,7 @@ function getPlatformName(): string {
 }
 export class UserDataSyncMachinesService extends Disposable implements IUserDataSyncMachinesService {
     private static readonly VERSION = 1;
-    private static readonly RESOURCE = "machines";
+    private static readonly RESOURCE = 'machines';
     _serviceBrand: any;
     private readonly _onDidChange = this._register(new Emitter<void>());
     readonly onDidChange = this._onDidChange.event;
@@ -103,20 +103,13 @@ export class UserDataSyncMachinesService extends Disposable implements IUserData
     async getMachines(manifest?: IUserDataManifest): Promise<IUserDataSyncMachine[]> {
         const currentMachineId = await this.currentMachineIdPromise;
         const machineData = await this.readMachinesData(manifest);
-        return machineData.machines.map<IUserDataSyncMachine>((machine) => ({
-            ...machine,
-            ...{ isCurrent: machine.id === currentMachineId },
-        }));
+        return machineData.machines.map<IUserDataSyncMachine>(machine => ({ ...machine, ...{ isCurrent: machine.id === currentMachineId } }));
     }
     async addCurrentMachine(manifest?: IUserDataManifest): Promise<void> {
         const currentMachineId = await this.currentMachineIdPromise;
         const machineData = await this.readMachinesData(manifest);
         if (!machineData.machines.some(({ id }) => id === currentMachineId)) {
-            machineData.machines.push({
-                id: currentMachineId,
-                name: this.computeCurrentMachineName(machineData.machines),
-                platform: getPlatformName(),
-            });
+            machineData.machines.push({ id: currentMachineId, name: this.computeCurrentMachineName(machineData.machines), platform: getPlatformName() });
             await this.writeMachinesData(machineData);
         }
     }
@@ -147,7 +140,7 @@ export class UserDataSyncMachinesService extends Disposable implements IUserData
     ][]): Promise<void> {
         const machineData = await this.readMachinesData();
         for (const [machineId, enabled] of enablements) {
-            const machine = machineData.machines.find((machine) => machine.id === machineId);
+            const machine = machineData.machines.find(machine => machine.id === machineId);
             if (machine) {
                 machine.disabled = enabled ? undefined : true;
             }
@@ -159,7 +152,7 @@ export class UserDataSyncMachinesService extends Disposable implements IUserData
         if (previousName) {
             return previousName;
         }
-        const namePrefix = `${this.productService.embedderIdentifier ? `${this.productService.embedderIdentifier} - ` : ""}${getPlatformName()} (${this.productService.nameShort})`;
+        const namePrefix = `${this.productService.embedderIdentifier ? `${this.productService.embedderIdentifier} - ` : ''}${getPlatformName()} (${this.productService.nameShort})`;
         const nameRegEx = new RegExp(`${escapeRegExpCharacters(namePrefix)}\\s#(\\d+)`);
         let nameIndex = 0;
         for (const machine of machines) {
@@ -173,7 +166,7 @@ export class UserDataSyncMachinesService extends Disposable implements IUserData
         this.userData = await this.readUserData(manifest);
         const machinesData = this.parse(this.userData);
         if (machinesData.version !== UserDataSyncMachinesService.VERSION) {
-            throw new Error(localize("error incompatible", "Cannot read machines data as the current version is incompatible. Please update {0} and try again.", this.productService.nameLong));
+            throw new Error(localize('error incompatible', "Cannot read machines data as the current version is incompatible. Please update {0} and try again.", this.productService.nameLong));
         }
         return machinesData;
     }
@@ -185,9 +178,7 @@ export class UserDataSyncMachinesService extends Disposable implements IUserData
     }
     private async readUserData(manifest?: IUserDataManifest): Promise<IUserData> {
         if (this.userData) {
-            const latestRef = manifest && manifest.latest
-                ? manifest.latest[UserDataSyncMachinesService.RESOURCE]
-                : undefined;
+            const latestRef = manifest && manifest.latest ? manifest.latest[UserDataSyncMachinesService.RESOURCE] : undefined;
             // Last time synced resource and latest resource on server are same
             if (this.userData.ref === latestRef) {
                 return this.userData;
@@ -210,7 +201,7 @@ export class UserDataSyncMachinesService extends Disposable implements IUserData
         }
         return {
             version: UserDataSyncMachinesService.VERSION,
-            machines: [],
+            machines: []
         };
     }
 }

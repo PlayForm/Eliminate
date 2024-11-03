@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IActionViewItemProvider } from "../../../base/browser/ui/actionbar/actionbar.js";
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable, IDisposable, toDisposable, } from "../../../base/common/lifecycle.js";
-import { InstantiationType, registerSingleton, } from "../../instantiation/common/extensions.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { MenuId } from "../common/actions.js";
-export const IActionViewItemService = createDecorator<IActionViewItemService>("IActionViewItemService");
+import { IActionViewItemProvider } from '../../../base/browser/ui/actionbar/actionbar.js';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { InstantiationType, registerSingleton } from '../../instantiation/common/extensions.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { MenuId } from '../common/actions.js';
+export const IActionViewItemService = createDecorator<IActionViewItemService>('IActionViewItemService');
 export interface IActionViewItemService {
     _serviceBrand: undefined;
     onDidChange: Event<MenuId>;
@@ -53,7 +53,7 @@ class ActionViewItemService implements IActionViewItemService {
         return this._providers.get(this._makeKey(menu, commandOrMenuId));
     }
     private _makeKey(menu: MenuId, commandOrMenuId: string | MenuId) {
-        return `${menu.id}/${commandOrMenuId instanceof MenuId ? commandOrMenuId.id : commandOrMenuId}`;
+        return `${menu.id}/${(commandOrMenuId instanceof MenuId ? commandOrMenuId.id : commandOrMenuId)}`;
     }
 }
 registerSingleton(IActionViewItemService, ActionViewItemService, InstantiationType.Delayed);

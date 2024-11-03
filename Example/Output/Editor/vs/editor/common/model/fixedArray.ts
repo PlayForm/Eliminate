@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { arrayInsert } from "../../../base/common/arrays.js";
+import { arrayInsert } from '../../../base/common/arrays.js';
 /**
  * An array that avoids being sparse by always
  * filling up unused indices with a default value.

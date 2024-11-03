@@ -2,16 +2,16 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { revive } from "../../../base/common/marshalling.js";
-import { IServerChannel } from "../../../base/parts/ipc/common/ipc.js";
-import { ILogService } from "../../log/common/log.js";
-import { IUserDataProfile } from "../../userDataProfile/common/userDataProfile.js";
-import { IAnyWorkspaceIdentifier, reviveIdentifier, } from "../../workspace/common/workspace.js";
-import { IBaseSerializableStorageRequest, ISerializableItemsChangeEvent, ISerializableUpdateRequest, Key, Value, } from "../common/storageIpc.js";
-import { IStorageChangeEvent, IStorageMain } from "./storageMain.js";
-import { IStorageMainService } from "./storageMainService.js";
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { revive } from '../../../base/common/marshalling.js';
+import { IServerChannel } from '../../../base/parts/ipc/common/ipc.js';
+import { ILogService } from '../../log/common/log.js';
+import { IBaseSerializableStorageRequest, ISerializableItemsChangeEvent, ISerializableUpdateRequest, Key, Value } from '../common/storageIpc.js';
+import { IStorageChangeEvent, IStorageMain } from './storageMain.js';
+import { IStorageMainService } from './storageMainService.js';
+import { IUserDataProfile } from '../../userDataProfile/common/userDataProfile.js';
+import { reviveIdentifier, IAnyWorkspaceIdentifier } from '../../workspace/common/workspace.js';
 export class StorageDatabaseChannel extends Disposable implements IServerChannel {
     private static readonly STORAGE_CHANGE_DEBOUNCE_TIME = 100;
     private readonly onDidChangeApplicationStorageEmitter = this._register(new Emitter<ISerializableItemsChangeEvent>());
@@ -32,7 +32,7 @@ export class StorageDatabaseChannel extends Disposable implements IServerChannel
                 prev.push(cur);
             }
             return prev;
-        }, StorageDatabaseChannel.STORAGE_CHANGE_DEBOUNCE_TIME)((events) => {
+        }, StorageDatabaseChannel.STORAGE_CHANGE_DEBOUNCE_TIME)(events => {
             if (events.length) {
                 emitter.fire(this.serializeStorageChangeEvents(events, storage));
             }
@@ -41,9 +41,9 @@ export class StorageDatabaseChannel extends Disposable implements IServerChannel
     private serializeStorageChangeEvents(events: IStorageChangeEvent[], storage: IStorageMain): ISerializableItemsChangeEvent {
         const changed = new Map<Key, Value>();
         const deleted = new Set<Key>();
-        events.forEach((event) => {
+        events.forEach(event => {
             const existing = storage.get(event.key);
-            if (typeof existing === "string") {
+            if (typeof existing === 'string') {
                 changed.set(event.key, existing);
             }
             else {
@@ -52,15 +52,13 @@ export class StorageDatabaseChannel extends Disposable implements IServerChannel
         });
         return {
             changed: Array.from(changed.entries()),
-            deleted: Array.from(deleted.values()),
+            deleted: Array.from(deleted.values())
         };
     }
     listen(_: unknown, event: string, arg: IBaseSerializableStorageRequest): Event<any> {
         switch (event) {
-            case "onDidChangeStorage": {
-                const profile = arg.profile
-                    ? revive<IUserDataProfile>(arg.profile)
-                    : undefined;
+            case 'onDidChangeStorage': {
+                const profile = arg.profile ? revive<IUserDataProfile>(arg.profile) : undefined;
                 // Without profile: application scope
                 if (!profile) {
                     return this.onDidChangeApplicationStorageEmitter.event;
@@ -79,33 +77,31 @@ export class StorageDatabaseChannel extends Disposable implements IServerChannel
     }
     //#endregion
     async call(_: unknown, command: string, arg: IBaseSerializableStorageRequest): Promise<any> {
-        const profile = arg.profile
-            ? revive<IUserDataProfile>(arg.profile)
-            : undefined;
+        const profile = arg.profile ? revive<IUserDataProfile>(arg.profile) : undefined;
         const workspace = reviveIdentifier(arg.workspace);
         // Get storage to be ready
         const storage = await this.withStorageInitialized(profile, workspace);
         // handle call
         switch (command) {
-            case "getItems": {
+            case 'getItems': {
                 return Array.from(storage.items.entries());
             }
-            case "updateItems": {
+            case 'updateItems': {
                 const items: ISerializableUpdateRequest = arg;
                 if (items.insert) {
                     for (const [key, value] of items.insert) {
                         storage.set(key, value);
                     }
                 }
-                items.delete?.forEach((key) => storage.delete(key));
+                items.delete?.forEach(key => storage.delete(key));
                 break;
             }
-            case "optimize": {
+            case 'optimize': {
                 return storage.optimize();
             }
-            case "isUsed": {
+            case 'isUsed': {
                 const path = arg.payload as string | undefined;
-                if (typeof path === "string") {
+                if (typeof path === 'string') {
                     return this.storageMainService.isUsed(path);
                 }
             }
@@ -128,7 +124,7 @@ export class StorageDatabaseChannel extends Disposable implements IServerChannel
             await storage.init();
         }
         catch (error) {
-            this.logService.error(`StorageIPC#init: Unable to init ${workspace ? "workspace" : profile ? "profile" : "application"} storage due to ${error}`);
+            this.logService.error(`StorageIPC#init: Unable to init ${workspace ? 'workspace' : profile ? 'profile' : 'application'} storage due to ${error}`);
         }
         return storage;
     }

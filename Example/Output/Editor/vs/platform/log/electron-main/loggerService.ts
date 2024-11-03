@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Event } from "../../../base/common/event.js";
-import { ResourceMap } from "../../../base/common/map.js";
-import { URI } from "../../../base/common/uri.js";
-import { refineServiceDecorator } from "../../instantiation/common/instantiation.js";
-import { DidChangeLoggersEvent, ILogger, ILoggerOptions, ILoggerResource, ILoggerService, isLogLevel, LogLevel, } from "../common/log.js";
-import { LoggerService } from "../node/loggerService.js";
+import { ResourceMap } from '../../../base/common/map.js';
+import { URI } from '../../../base/common/uri.js';
+import { Event } from '../../../base/common/event.js';
+import { refineServiceDecorator } from '../../instantiation/common/instantiation.js';
+import { DidChangeLoggersEvent, ILogger, ILoggerOptions, ILoggerResource, ILoggerService, LogLevel, isLogLevel } from '../common/log.js';
+import { LoggerService } from '../node/loggerService.js';
 export const ILoggerMainService = refineServiceDecorator<ILoggerService, ILoggerMainService>(ILoggerService);
 export interface ILoggerMainService extends ILoggerService {
     getOnDidChangeLogLevelEvent(windowId: number): Event<LogLevel | [
@@ -20,7 +20,7 @@ export interface ILoggerMainService extends ILoggerService {
     ]>;
     getOnDidChangeLoggersEvent(windowId: number): Event<DidChangeLoggersEvent>;
     createLogger(resource: URI, options?: ILoggerOptions, windowId?: number): ILogger;
-    createLogger(id: string, options?: Omit<ILoggerOptions, "id">, windowId?: number): ILogger;
+    createLogger(id: string, options?: Omit<ILoggerOptions, 'id'>, windowId?: number): ILogger;
     registerLogger(resource: ILoggerResource, windowId?: number): void;
     getRegisteredLoggers(windowId?: number): ILoggerResource[];
     deregisterLoggers(windowId: number): void;
@@ -62,8 +62,7 @@ export class LoggerMainService extends LoggerService implements ILoggerMainServi
         URI,
         LogLevel
     ]> {
-        return Event.filter(this.onDidChangeLogLevel, (arg) => isLogLevel(arg) ||
-            this.isInterestedLoggerResource(arg[0], windowId));
+        return Event.filter(this.onDidChangeLogLevel, arg => isLogLevel(arg) || this.isInterestedLoggerResource(arg[0], windowId));
     }
     getOnDidChangeVisibilityEvent(windowId: number): Event<[
         URI,
@@ -72,13 +71,13 @@ export class LoggerMainService extends LoggerService implements ILoggerMainServi
         return Event.filter(this.onDidChangeVisibility, ([resource]) => this.isInterestedLoggerResource(resource, windowId));
     }
     getOnDidChangeLoggersEvent(windowId: number): Event<DidChangeLoggersEvent> {
-        return Event.filter(Event.map(this.onDidChangeLoggers, (e) => {
+        return Event.filter(Event.map(this.onDidChangeLoggers, e => {
             const r = {
-                added: [...e.added].filter((loggerResource) => this.isInterestedLoggerResource(loggerResource.resource, windowId)),
-                removed: [...e.removed].filter((loggerResource) => this.isInterestedLoggerResource(loggerResource.resource, windowId)),
+                added: [...e.added].filter(loggerResource => this.isInterestedLoggerResource(loggerResource.resource, windowId)),
+                removed: [...e.removed].filter(loggerResource => this.isInterestedLoggerResource(loggerResource.resource, windowId)),
             };
             return r;
-        }), (e) => e.added.length > 0 || e.removed.length > 0);
+        }), e => e.added.length > 0 || e.removed.length > 0);
     }
     deregisterLoggers(windowId: number): void {
         for (const [resource, resourceWindow] of this.loggerResourcesByWindow) {

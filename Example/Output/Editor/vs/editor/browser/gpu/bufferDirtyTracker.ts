@@ -35,9 +35,7 @@ export class BufferDirtyTracker implements IBufferDirtyTrackerReader {
         }
         return this._endIndex - this._startIndex + 1;
     }
-    get isDirty(): boolean {
-        return this._startIndex !== undefined;
-    }
+    get isDirty(): boolean { return this._startIndex !== undefined; }
     /**
      * Flag the index(es) as modified. Returns the index flagged.
      * @param index An index to flag.

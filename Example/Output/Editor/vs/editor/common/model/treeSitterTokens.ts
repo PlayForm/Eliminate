@@ -2,15 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IDisposable, MutableDisposable, } from "../../../base/common/lifecycle.js";
-import { StandardTokenType } from "../encodedTokenAttributes.js";
-import { ILanguageIdCodec, ITreeSitterTokenizationSupport, TreeSitterTokenizationRegistry, } from "../languages.js";
-import { ITreeSitterParserService } from "../services/treeSitterParserService.js";
-import { IModelContentChangedEvent } from "../textModelEvents.js";
-import { ITokenizeLineWithEditResult, LineEditWithAdditionalLines, } from "../tokenizationTextModelPart.js";
-import { LineTokens } from "../tokens/lineTokens.js";
-import { TextModel } from "./textModel.js";
-import { AbstractTokens } from "./tokens.js";
+import { ILanguageIdCodec, ITreeSitterTokenizationSupport, TreeSitterTokenizationRegistry } from '../languages.js';
+import { LineTokens } from '../tokens/lineTokens.js';
+import { StandardTokenType } from '../encodedTokenAttributes.js';
+import { TextModel } from './textModel.js';
+import { ITreeSitterParserService } from '../services/treeSitterParserService.js';
+import { IModelContentChangedEvent } from '../textModelEvents.js';
+import { AbstractTokens } from './tokens.js';
+import { ITokenizeLineWithEditResult, LineEditWithAdditionalLines } from '../tokenizationTextModelPart.js';
+import { IDisposable, MutableDisposable } from '../../../base/common/lifecycle.js';
 export class TreeSitterTokens extends AbstractTokens {
     private _tokenizationSupport: ITreeSitterTokenizationSupport | null = null;
     private _lastLanguageId: string | undefined;
@@ -21,30 +21,25 @@ export class TreeSitterTokens extends AbstractTokens {
     }
     private _initialize() {
         const newLanguage = this.getLanguageId();
-        if (!this._tokenizationSupport ||
-            this._lastLanguageId !==
-                this.getLanguageId()) {
-            this._lastLanguageId =
-                this.getLanguageId();
-            this._tokenizationSupport =
-                TreeSitterTokenizationRegistry.get(this.getLanguageId());
-            this._tokensChangedListener.value =
-                this._tokenizationSupport?.onDidChangeTokens((e) => {
-                    if (e.textModel === this._textModel) {
-                        this._onDidChangeTokens.fire(e.changes);
-                    }
-                });
+        if (!this._tokenizationSupport || this._lastLanguageId !== newLanguage) {
+            this._lastLanguageId = newLanguage;
+            this._tokenizationSupport = TreeSitterTokenizationRegistry.get(newLanguage);
+            this._tokensChangedListener.value = this._tokenizationSupport?.onDidChangeTokens((e) => {
+                if (e.textModel === this._textModel) {
+                    this._onDidChangeTokens.fire(e.changes);
+                }
+            });
         }
     }
     public getLineTokens(lineNumber: number): LineTokens {
         const content = this._textModel.getLineContent(lineNumber);
         if (this._tokenizationSupport) {
             const rawTokens = this._tokenizationSupport.tokenizeEncoded(lineNumber, this._textModel);
-            if (this._tokenizationSupport.tokenizeEncoded(lineNumber, this._textModel)) {
-                return new LineTokens(this._tokenizationSupport.tokenizeEncoded(lineNumber, this._textModel), this._textModel.getLineContent(lineNumber), this._languageIdCodec);
+            if (rawTokens) {
+                return new LineTokens(rawTokens, content, this._languageIdCodec);
             }
         }
-        return LineTokens.createEmpty(this._textModel.getLineContent(lineNumber), this._languageIdCodec);
+        return LineTokens.createEmpty(content, this._languageIdCodec);
     }
     public resetTokenization(fireTokenChangeEvent: boolean = true): void {
         if (fireTokenChangeEvent) {
@@ -89,8 +84,8 @@ export class TreeSitterTokens extends AbstractTokens {
         return { mainLineTokens: null, additionalLines: null };
     }
     public override get hasTokens(): boolean {
-        ;
-        return this._treeSitterService.getParseResult(this._textModel) !==
-            undefined;
+        // TODO @alexr00 once we have a token store, implement properly
+        const hasTree = this._treeSitterService.getParseResult(this._textModel) !== undefined;
+        return hasTree;
     }
 }

@@ -2,20 +2,20 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { UriComponents } from "../../../base/common/uri.js";
-import { ISerializableEnvironmentVariableCollection, ISerializableEnvironmentVariableCollections, } from "./environmentVariable.js";
-import { IFixedTerminalDimensions, IRawTerminalTabLayoutInfo, IReconnectionProperties, ITerminalEnvironment, ITerminalTabLayoutInfoById, TerminalIcon, TerminalType, TitleEventSource, WaitOnExitValue, } from "./terminal.js";
+import { UriComponents } from '../../../base/common/uri.js';
+import { ISerializableEnvironmentVariableCollection, ISerializableEnvironmentVariableCollections } from './environmentVariable.js';
+import { IFixedTerminalDimensions, IRawTerminalTabLayoutInfo, IReconnectionProperties, ITerminalEnvironment, ITerminalTabLayoutInfoById, TerminalIcon, TerminalType, TitleEventSource, WaitOnExitValue } from './terminal.js';
 export interface ISingleTerminalConfiguration<T> {
     userValue: T | undefined;
     value: T | undefined;
     defaultValue: T | undefined;
 }
 export interface ICompleteTerminalConfiguration {
-    "terminal.integrated.env.windows": ISingleTerminalConfiguration<ITerminalEnvironment>;
-    "terminal.integrated.env.osx": ISingleTerminalConfiguration<ITerminalEnvironment>;
-    "terminal.integrated.env.linux": ISingleTerminalConfiguration<ITerminalEnvironment>;
-    "terminal.integrated.cwd": string;
-    "terminal.integrated.detectLocale": "auto" | "off" | "on";
+    'terminal.integrated.env.windows': ISingleTerminalConfiguration<ITerminalEnvironment>;
+    'terminal.integrated.env.osx': ISingleTerminalConfiguration<ITerminalEnvironment>;
+    'terminal.integrated.env.linux': ISingleTerminalConfiguration<ITerminalEnvironment>;
+    'terminal.integrated.cwd': string;
+    'terminal.integrated.detectLocale': 'auto' | 'off' | 'on';
 }
 export type ITerminalEnvironmentVariableCollections = [
     string,
@@ -82,7 +82,7 @@ export function chunkInput(data: string): string[] {
         i - nextChunkStartIndex + 1 >= Constants.WriteMaxChunkSize ||
             // If the next character is ESC, send the pending data to avoid splitting the escape
             // sequence.
-            data[i + 1] === "\x1b") {
+            data[i + 1] === '\x1b') {
             chunks.push(data.substring(nextChunkStartIndex, i + 1));
             nextChunkStartIndex = i + 1;
             // Skip the next character as the chunk would be a single character

@@ -2,10 +2,10 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CharCode } from "../../../base/common/charCode.js";
-import { countEOL } from "../core/eolCounter.js";
-import { Position } from "../core/position.js";
-import { IRange, Range } from "../core/range.js";
+import { CharCode } from '../../../base/common/charCode.js';
+import { Position } from '../core/position.js';
+import { IRange, Range } from '../core/range.js';
+import { countEOL } from '../core/eolCounter.js';
 /**
  * Represents sparse tokens over a contiguous range of lines.
  */
@@ -31,22 +31,19 @@ export class SparseMultilineTokens {
     private constructor(startLineNumber: number, tokens: SparseMultilineTokensStorage) {
         this._startLineNumber = startLineNumber;
         this._tokens = tokens;
-        this._endLineNumber =
-            this._startLineNumber + this._tokens.getMaxDeltaLine();
+        this._endLineNumber = this._startLineNumber + this._tokens.getMaxDeltaLine();
     }
     public toString(): string {
         return this._tokens.toString(this._startLineNumber);
     }
     private _updateEndLineNumber(): void {
-        this._endLineNumber =
-            this._startLineNumber + this._tokens.getMaxDeltaLine();
+        this._endLineNumber = this._startLineNumber + this._tokens.getMaxDeltaLine();
     }
     public isEmpty(): boolean {
         return this._tokens.isEmpty();
     }
     public getLineTokens(lineNumber: number): SparseLineTokens | null {
-        if (this._startLineNumber <= lineNumber &&
-            lineNumber <= this._endLineNumber) {
+        if (this._startLineNumber <= lineNumber && lineNumber <= this._endLineNumber) {
             return this._tokens.getLineTokens(lineNumber - this._startLineNumber);
         }
         return null;
@@ -74,10 +71,7 @@ export class SparseMultilineTokens {
         const startLineIndex = range.startLineNumber - this._startLineNumber;
         const endLineIndex = range.endLineNumber - this._startLineNumber;
         const [a, b, bDeltaLine] = this._tokens.split(startLineIndex, range.startColumn - 1, endLineIndex, range.endColumn - 1);
-        return [
-            new SparseMultilineTokens(this._startLineNumber, a),
-            new SparseMultilineTokens(this._startLineNumber + bDeltaLine, b),
-        ];
+        return [new SparseMultilineTokens(this._startLineNumber, a), new SparseMultilineTokens(this._startLineNumber + bDeltaLine, b)];
     }
     public applyEdit(range: IRange, text: string): void {
         const [eolCount, firstLineLength, lastLineLength] = countEOL(text);
@@ -89,8 +83,7 @@ export class SparseMultilineTokens {
         this._updateEndLineNumber();
     }
     private _acceptDeleteRange(range: IRange): void {
-        if (range.startLineNumber === range.endLineNumber &&
-            range.startColumn === range.endColumn) {
+        if (range.startLineNumber === range.endLineNumber && range.startColumn === range.endColumn) {
             // Nothing to delete
             return;
         }
@@ -160,7 +153,7 @@ class SparseMultilineTokensStorage {
         for (let i = 0; i < this._tokenCount; i++) {
             pieces.push(`(${this._getDeltaLine(i) + startLineNumber},${this._getStartCharacter(i)}-${this._getEndCharacter(i)})`);
         }
-        return `[${pieces.join(",")}]`;
+        return `[${pieces.join(',')}]`;
     }
     public getMaxDeltaLine(): number {
         const tokenCount = this._getTokenCount();
@@ -192,7 +185,7 @@ class SparseMultilineTokensStorage {
         return this._tokens[4 * tokenIndex + 2];
     }
     public isEmpty(): boolean {
-        return this._getTokenCount() === 0;
+        return (this._getTokenCount() === 0);
     }
     public getLineTokens(deltaLine: number): SparseLineTokens | null {
         let low = 0;
@@ -212,8 +205,7 @@ class SparseMultilineTokensStorage {
                     min--;
                 }
                 let max = mid;
-                while (max < high &&
-                    this._getDeltaLine(max + 1) === deltaLine) {
+                while (max < high && this._getDeltaLine(max + 1) === deltaLine) {
                     max++;
                 }
                 return new SparseLineTokens(this._tokens.subarray(4 * min, 4 * max + 4));
@@ -239,12 +231,8 @@ class SparseMultilineTokensStorage {
             const tokenStartCharacter = tokens[srcOffset + 1];
             const tokenEndCharacter = tokens[srcOffset + 2];
             const tokenMetadata = tokens[srcOffset + 3];
-            if ((tokenDeltaLine > startDeltaLine ||
-                (tokenDeltaLine === startDeltaLine &&
-                    tokenEndCharacter >= startChar)) &&
-                (tokenDeltaLine < endDeltaLine ||
-                    (tokenDeltaLine === endDeltaLine &&
-                        tokenStartCharacter <= endChar))) {
+            if ((tokenDeltaLine > startDeltaLine || (tokenDeltaLine === startDeltaLine && tokenEndCharacter >= startChar))
+                && (tokenDeltaLine < endDeltaLine || (tokenDeltaLine === endDeltaLine && tokenStartCharacter <= endChar))) {
                 hasDeletedTokens = true;
             }
             else {
@@ -283,12 +271,8 @@ class SparseMultilineTokensStorage {
             const tokenStartCharacter = tokens[srcOffset + 1];
             const tokenEndCharacter = tokens[srcOffset + 2];
             const tokenMetadata = tokens[srcOffset + 3];
-            if (tokenDeltaLine > startDeltaLine ||
-                (tokenDeltaLine === startDeltaLine &&
-                    tokenEndCharacter >= startChar)) {
-                if (tokenDeltaLine < endDeltaLine ||
-                    (tokenDeltaLine === endDeltaLine &&
-                        tokenStartCharacter <= endChar)) {
+            if ((tokenDeltaLine > startDeltaLine || (tokenDeltaLine === startDeltaLine && tokenEndCharacter >= startChar))) {
+                if ((tokenDeltaLine < endDeltaLine || (tokenDeltaLine === endDeltaLine && tokenStartCharacter <= endChar))) {
                     // this token is touching the range
                     continue;
                 }
@@ -307,11 +291,7 @@ class SparseMultilineTokensStorage {
             destTokens[destOffset++] = tokenEndCharacter;
             destTokens[destOffset++] = tokenMetadata;
         }
-        return [
-            new SparseMultilineTokensStorage(new Uint32Array(aTokens)),
-            new SparseMultilineTokensStorage(new Uint32Array(bTokens)),
-            destFirstDeltaLine,
-        ];
+        return [new SparseMultilineTokensStorage(new Uint32Array(aTokens)), new SparseMultilineTokensStorage(new Uint32Array(bTokens)), destFirstDeltaLine];
     }
     public acceptDeleteRange(horizontalShiftForFirstLineTokens: number, startDeltaLine: number, startCharacter: number, endDeltaLine: number, endCharacter: number): void {
         // This is a bit complex, here are the cases I used to think about this:
@@ -358,7 +338,7 @@ class SparseMultilineTokensStorage {
         //
         const tokens = this._tokens;
         const tokenCount = this._tokenCount;
-        const deletedLineCount = endDeltaLine - startDeltaLine;
+        const deletedLineCount = (endDeltaLine - startDeltaLine);
         let newTokenCount = 0;
         let hasDeletedTokens = false;
         for (let i = 0; i < tokenCount; i++) {
@@ -367,23 +347,19 @@ class SparseMultilineTokensStorage {
             let tokenStartCharacter = tokens[srcOffset + 1];
             let tokenEndCharacter = tokens[srcOffset + 2];
             const tokenMetadata = tokens[srcOffset + 3];
-            if (tokenDeltaLine < startDeltaLine ||
-                (tokenDeltaLine === startDeltaLine &&
-                    tokenEndCharacter <= startCharacter)) {
+            if (tokenDeltaLine < startDeltaLine || (tokenDeltaLine === startDeltaLine && tokenEndCharacter <= startCharacter)) {
                 // 1a. The token is completely before the deletion range
                 // => nothing to do
                 newTokenCount++;
                 continue;
             }
-            else if (tokenDeltaLine === startDeltaLine &&
-                tokenStartCharacter < startCharacter) {
+            else if (tokenDeltaLine === startDeltaLine && tokenStartCharacter < startCharacter) {
                 // 1b, 1c, 1d
                 // => the token survives, but it needs to shrink
-                if (tokenDeltaLine === endDeltaLine &&
-                    tokenEndCharacter > endCharacter) {
+                if (tokenDeltaLine === endDeltaLine && tokenEndCharacter > endCharacter) {
                     // 1d. The token starts before, the deletion range is inside the token
                     // => the token shrinks by the deletion character count
-                    tokenEndCharacter -= endCharacter - startCharacter;
+                    tokenEndCharacter -= (endCharacter - startCharacter);
                 }
                 else {
                     // 1b. The token starts before, the deletion range ends after the token
@@ -392,14 +368,12 @@ class SparseMultilineTokensStorage {
                     tokenEndCharacter = startCharacter;
                 }
             }
-            else if (tokenDeltaLine === startDeltaLine &&
-                tokenStartCharacter === startCharacter) {
+            else if (tokenDeltaLine === startDeltaLine && tokenStartCharacter === startCharacter) {
                 // 2a, 2b, 2c
-                if (tokenDeltaLine === endDeltaLine &&
-                    tokenEndCharacter > endCharacter) {
+                if (tokenDeltaLine === endDeltaLine && tokenEndCharacter > endCharacter) {
                     // 2c. The token starts at the same position, and ends after the deletion range
                     // => the token shrinks by the deletion character count
-                    tokenEndCharacter -= endCharacter - startCharacter;
+                    tokenEndCharacter -= (endCharacter - startCharacter);
                 }
                 else {
                     // 2a. The token starts at the same position, and ends inside the deletion range
@@ -409,19 +383,14 @@ class SparseMultilineTokensStorage {
                     continue;
                 }
             }
-            else if (tokenDeltaLine < endDeltaLine ||
-                (tokenDeltaLine === endDeltaLine &&
-                    tokenStartCharacter < endCharacter)) {
+            else if (tokenDeltaLine < endDeltaLine || (tokenDeltaLine === endDeltaLine && tokenStartCharacter < endCharacter)) {
                 // 3a, 3b, 3c
-                if (tokenDeltaLine === endDeltaLine &&
-                    tokenEndCharacter > endCharacter) {
+                if (tokenDeltaLine === endDeltaLine && tokenEndCharacter > endCharacter) {
                     // 3c. The token starts inside the deletion range, and ends after the deletion range
                     // => the token moves to continue right after the deletion
                     tokenDeltaLine = startDeltaLine;
                     tokenStartCharacter = startCharacter;
-                    tokenEndCharacter =
-                        tokenStartCharacter +
-                            (tokenEndCharacter - endCharacter);
+                    tokenEndCharacter = tokenStartCharacter + (tokenEndCharacter - endCharacter);
                 }
                 else {
                     // 3a. The token is inside the deletion range
@@ -440,16 +409,15 @@ class SparseMultilineTokensStorage {
                 }
                 tokenDeltaLine -= deletedLineCount;
             }
-            else if (tokenDeltaLine === endDeltaLine &&
-                tokenStartCharacter >= endCharacter) {
+            else if (tokenDeltaLine === endDeltaLine && tokenStartCharacter >= endCharacter) {
                 // 4. (continued) The token starts after the deletion range, on the last line where a deletion occurs
                 if (horizontalShiftForFirstLineTokens && tokenDeltaLine === 0) {
                     tokenStartCharacter += horizontalShiftForFirstLineTokens;
                     tokenEndCharacter += horizontalShiftForFirstLineTokens;
                 }
                 tokenDeltaLine -= deletedLineCount;
-                tokenStartCharacter -= endCharacter - startCharacter;
-                tokenEndCharacter -= endCharacter - startCharacter;
+                tokenStartCharacter -= (endCharacter - startCharacter);
+                tokenEndCharacter -= (endCharacter - startCharacter);
             }
             else {
                 throw new Error(`Not possible!`);
@@ -477,12 +445,11 @@ class SparseMultilineTokensStorage {
         // 5. The token is completely after the insertion point
         //            |   -----------
         //
-        const isInsertingPreciselyOneWordCharacter = eolCount === 0 &&
-            firstLineLength === 1 &&
-            ((firstCharCode >= CharCode.Digit0 &&
-                firstCharCode <= CharCode.Digit9) ||
-                (firstCharCode >= CharCode.A && firstCharCode <= CharCode.Z) ||
-                (firstCharCode >= CharCode.a && firstCharCode <= CharCode.z));
+        const isInsertingPreciselyOneWordCharacter = (eolCount === 0
+            && firstLineLength === 1
+            && ((firstCharCode >= CharCode.Digit0 && firstCharCode <= CharCode.Digit9)
+                || (firstCharCode >= CharCode.A && firstCharCode <= CharCode.Z)
+                || (firstCharCode >= CharCode.a && firstCharCode <= CharCode.z)));
         const tokens = this._tokens;
         const tokenCount = this._tokenCount;
         for (let i = 0; i < tokenCount; i++) {
@@ -490,14 +457,12 @@ class SparseMultilineTokensStorage {
             let tokenDeltaLine = tokens[offset];
             let tokenStartCharacter = tokens[offset + 1];
             let tokenEndCharacter = tokens[offset + 2];
-            if (tokenDeltaLine < deltaLine ||
-                (tokenDeltaLine === deltaLine && tokenEndCharacter < character)) {
+            if (tokenDeltaLine < deltaLine || (tokenDeltaLine === deltaLine && tokenEndCharacter < character)) {
                 // 1. The token is completely before the insertion point
                 // => nothing to do
                 continue;
             }
-            else if (tokenDeltaLine === deltaLine &&
-                tokenEndCharacter === character) {
+            else if (tokenDeltaLine === deltaLine && tokenEndCharacter === character) {
                 // 2. The token ends precisely at the insertion point
                 // => expand the end character only if inserting precisely one character that is a word character
                 if (isInsertingPreciselyOneWordCharacter) {
@@ -507,9 +472,7 @@ class SparseMultilineTokensStorage {
                     continue;
                 }
             }
-            else if (tokenDeltaLine === deltaLine &&
-                tokenStartCharacter < character &&
-                character < tokenEndCharacter) {
+            else if (tokenDeltaLine === deltaLine && tokenStartCharacter < character && character < tokenEndCharacter) {
                 // 3. The token contains the insertion point
                 if (eolCount === 0) {
                     // => just expand the end character
@@ -522,8 +485,7 @@ class SparseMultilineTokensStorage {
             }
             else {
                 // 4. or 5.
-                if (tokenDeltaLine === deltaLine &&
-                    tokenStartCharacter === character) {
+                if (tokenDeltaLine === deltaLine && tokenStartCharacter === character) {
                     // 4. The token starts precisely at the insertion point
                     // => grow the token (by keeping its start constant) only if inserting precisely one character that is a word character
                     // => otherwise behave as in case 5.
@@ -541,8 +503,7 @@ class SparseMultilineTokensStorage {
                     }
                     else {
                         const tokenLength = tokenEndCharacter - tokenStartCharacter;
-                        tokenStartCharacter =
-                            lastLineLength + (tokenStartCharacter - character);
+                        tokenStartCharacter = lastLineLength + (tokenStartCharacter - character);
                         tokenEndCharacter = tokenStartCharacter + tokenLength;
                     }
                 }

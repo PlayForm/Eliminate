@@ -56,7 +56,7 @@ export interface IUtilityProcessWorkerCreateConfiguration extends IUtilityProces
         readonly nonce: string;
     };
 }
-export const ipcUtilityProcessWorkerChannelName = "utilityProcessWorker";
+export const ipcUtilityProcessWorkerChannelName = 'utilityProcessWorker';
 export interface IUtilityProcessWorkerService {
     readonly _serviceBrand: undefined;
     /**

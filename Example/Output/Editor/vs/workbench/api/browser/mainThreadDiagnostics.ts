@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { IMarkerData, IMarkerService, } from "../../../platform/markers/common/markers.js";
-import { IUriIdentityService } from "../../../platform/uriIdentity/common/uriIdentity.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { ExtHostContext, ExtHostDiagnosticsShape, MainContext, MainThreadDiagnosticsShape, } from "../common/extHost.protocol.js";
+import { IMarkerService, IMarkerData } from '../../../platform/markers/common/markers.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { MainThreadDiagnosticsShape, MainContext, ExtHostDiagnosticsShape, ExtHostContext } from '../common/extHost.protocol.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { IUriIdentityService } from '../../../platform/uriIdentity/common/uriIdentity.js';
 @extHostNamedCustomer(MainContext.MainThreadDiagnostics)
 export class MainThreadDiagnostics implements MainThreadDiagnosticsShape {
     private readonly _activeOwners = new Set<string>();
@@ -23,7 +23,7 @@ export class MainThreadDiagnostics implements MainThreadDiagnosticsShape {
     }
     dispose(): void {
         this._markerListener.dispose();
-        this._activeOwners.forEach((owner) => this._markerService.changeAll(owner, []));
+        this._activeOwners.forEach(owner => this._markerService.changeAll(owner, []));
         this._activeOwners.clear();
     }
     private _forwardMarkers(resources: readonly URI[]): void {
@@ -37,7 +37,7 @@ export class MainThreadDiagnostics implements MainThreadDiagnosticsShape {
                 data.push([resource, []]);
             }
             else {
-                const forgeinMarkerData = allMarkerData.filter((marker) => !this._activeOwners.has(marker.owner));
+                const forgeinMarkerData = allMarkerData.filter(marker => !this._activeOwners.has(marker.owner));
                 if (forgeinMarkerData.length > 0) {
                     data.push([resource, forgeinMarkerData]);
                 }
@@ -60,7 +60,7 @@ export class MainThreadDiagnostics implements MainThreadDiagnosticsShape {
                             relatedInformation.resource = URI.revive(relatedInformation.resource);
                         }
                     }
-                    if (marker.code && typeof marker.code !== "string") {
+                    if (marker.code && typeof marker.code !== 'string') {
                         marker.code.target = URI.revive(marker.code.target);
                     }
                 }

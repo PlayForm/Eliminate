@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Event } from "../../../base/common/event.js";
-import { IJSONSchema } from "../../../base/common/jsonSchema.js";
-import { Keybinding, ResolvedKeybinding, } from "../../../base/common/keybindings.js";
-import { KeyCode } from "../../../base/common/keyCodes.js";
-import { IContextKeyService, IContextKeyServiceTarget, } from "../../contextkey/common/contextkey.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { ResolutionResult } from "./keybindingResolver.js";
-import { ResolvedKeybindingItem } from "./resolvedKeybindingItem.js";
+import { Event } from '../../../base/common/event.js';
+import { IJSONSchema } from '../../../base/common/jsonSchema.js';
+import { KeyCode } from '../../../base/common/keyCodes.js';
+import { ResolvedKeybinding, Keybinding } from '../../../base/common/keybindings.js';
+import { IContextKeyService, IContextKeyServiceTarget } from '../../contextkey/common/contextkey.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { ResolutionResult } from './keybindingResolver.js';
+import { ResolvedKeybindingItem } from './resolvedKeybindingItem.js';
 export interface IUserFriendlyKeybinding {
     key: string;
     command: string;
@@ -30,7 +30,7 @@ export interface KeybindingsSchemaContribution {
     readonly onDidChange?: Event<void>;
     getSchemaAdditions(): IJSONSchema[];
 }
-export const IKeybindingService = createDecorator<IKeybindingService>("keybindingService");
+export const IKeybindingService = createDecorator<IKeybindingService>('keybindingService');
 export interface IKeybindingService {
     readonly _serviceBrand: undefined;
     readonly inChordMode: boolean;

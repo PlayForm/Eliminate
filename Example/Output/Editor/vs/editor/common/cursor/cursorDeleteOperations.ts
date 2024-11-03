@@ -2,24 +2,24 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as strings from "../../../base/common/strings.js";
-import { ReplaceCommand } from "../commands/replaceCommand.js";
-import { EditorAutoClosingEditStrategy, EditorAutoClosingStrategy, } from "../config/editorOptions.js";
-import { CursorColumns } from "../core/cursorColumns.js";
-import { Position } from "../core/position.js";
-import { Range } from "../core/range.js";
-import { Selection } from "../core/selection.js";
-import { CursorConfiguration, EditOperationResult, EditOperationType, ICursorSimpleModel, isQuote, } from "../cursorCommon.js";
-import { ICommand } from "../editorCommon.js";
-import { StandardAutoClosingPairConditional } from "../languages/languageConfiguration.js";
-import { MoveOperations } from "./cursorMoveOperations.js";
+import * as strings from '../../../base/common/strings.js';
+import { ReplaceCommand } from '../commands/replaceCommand.js';
+import { EditorAutoClosingEditStrategy, EditorAutoClosingStrategy } from '../config/editorOptions.js';
+import { CursorConfiguration, EditOperationResult, EditOperationType, ICursorSimpleModel, isQuote } from '../cursorCommon.js';
+import { CursorColumns } from '../core/cursorColumns.js';
+import { MoveOperations } from './cursorMoveOperations.js';
+import { Range } from '../core/range.js';
+import { Selection } from '../core/selection.js';
+import { ICommand } from '../editorCommon.js';
+import { StandardAutoClosingPairConditional } from '../languages/languageConfiguration.js';
+import { Position } from '../core/position.js';
 export class DeleteOperations {
     public static deleteRight(prevEditOperationType: EditOperationType, config: CursorConfiguration, model: ICursorSimpleModel, selections: Selection[]): [
         boolean,
         Array<ICommand | null>
     ] {
         const commands: Array<ICommand | null> = [];
-        let shouldPushStackElementBefore = prevEditOperationType !== EditOperationType.DeletingRight;
+        let shouldPushStackElementBefore = (prevEditOperationType !== EditOperationType.DeletingRight);
         for (let i = 0, len = selections.length; i < len; i++) {
             const selection = selections[i];
             let deleteSelection: Range = selection;
@@ -33,19 +33,18 @@ export class DeleteOperations {
                 commands[i] = null;
                 continue;
             }
-            if (deleteSelection.startLineNumber !==
-                deleteSelection.endLineNumber) {
+            if (deleteSelection.startLineNumber !== deleteSelection.endLineNumber) {
                 shouldPushStackElementBefore = true;
             }
-            commands[i] = new ReplaceCommand(deleteSelection, "");
+            commands[i] = new ReplaceCommand(deleteSelection, '');
         }
         return [shouldPushStackElementBefore, commands];
     }
     public static isAutoClosingPairDelete(autoClosingDelete: EditorAutoClosingEditStrategy, autoClosingBrackets: EditorAutoClosingStrategy, autoClosingQuotes: EditorAutoClosingStrategy, autoClosingPairsOpen: Map<string, StandardAutoClosingPairConditional[]>, model: ICursorSimpleModel, selections: Selection[], autoClosedCharacters: Range[]): boolean {
-        if (autoClosingBrackets === "never" && autoClosingQuotes === "never") {
+        if (autoClosingBrackets === 'never' && autoClosingQuotes === 'never') {
             return false;
         }
-        if (autoClosingDelete === "never") {
+        if (autoClosingDelete === 'never') {
             return false;
         }
         for (let i = 0, len = selections.length; i < len; i++) {
@@ -64,20 +63,19 @@ export class DeleteOperations {
                 return false;
             }
             if (isQuote(character)) {
-                if (autoClosingQuotes === "never") {
+                if (autoClosingQuotes === 'never') {
                     return false;
                 }
             }
             else {
-                if (autoClosingBrackets === "never") {
+                if (autoClosingBrackets === 'never') {
                     return false;
                 }
             }
             const afterCharacter = lineText.charAt(position.column - 1);
             let foundAutoClosingPair = false;
             for (const autoClosingPairCandidate of autoClosingPairCandidates) {
-                if (autoClosingPairCandidate.open === character &&
-                    autoClosingPairCandidate.close === afterCharacter) {
+                if (autoClosingPairCandidate.open === character && autoClosingPairCandidate.close === afterCharacter) {
                     foundAutoClosingPair = true;
                 }
             }
@@ -85,13 +83,11 @@ export class DeleteOperations {
                 return false;
             }
             // Must delete the pair only if it was automatically inserted by the editor
-            if (autoClosingDelete === "auto") {
+            if (autoClosingDelete === 'auto') {
                 let found = false;
                 for (let j = 0, lenJ = autoClosedCharacters.length; j < lenJ; j++) {
                     const autoClosedCharacter = autoClosedCharacters[j];
-                    if (position.lineNumber ===
-                        autoClosedCharacter.startLineNumber &&
-                        position.column === autoClosedCharacter.startColumn) {
+                    if (position.lineNumber === autoClosedCharacter.startLineNumber && position.column === autoClosedCharacter.startColumn) {
                         found = true;
                         break;
                     }
@@ -111,7 +107,7 @@ export class DeleteOperations {
         for (let i = 0, len = selections.length; i < len; i++) {
             const position = selections[i].getPosition();
             const deleteSelection = new Range(position.lineNumber, position.column - 1, position.lineNumber, position.column + 1);
-            commands[i] = new ReplaceCommand(deleteSelection, "");
+            commands[i] = new ReplaceCommand(deleteSelection, '');
         }
         return [true, commands];
     }
@@ -123,7 +119,7 @@ export class DeleteOperations {
             return this._runAutoClosingPairDelete(config, model, selections);
         }
         const commands: Array<ICommand | null> = [];
-        let shouldPushStackElementBefore = prevEditOperationType !== EditOperationType.DeletingLeft;
+        let shouldPushStackElementBefore = (prevEditOperationType !== EditOperationType.DeletingLeft);
         for (let i = 0, len = selections.length; i < len; i++) {
             const deleteRange = DeleteOperations.getDeleteRange(selections[i], model, config);
             // Ignore empty delete ranges, as they have no effect
@@ -135,7 +131,7 @@ export class DeleteOperations {
             if (deleteRange.startLineNumber !== deleteRange.endLineNumber) {
                 shouldPushStackElementBefore = true;
             }
-            commands[i] = new ReplaceCommand(deleteRange, "");
+            commands[i] = new ReplaceCommand(deleteRange, '');
         }
         return [shouldPushStackElementBefore, commands];
     }
@@ -148,9 +144,9 @@ export class DeleteOperations {
         if (config.useTabStops && position.column > 1) {
             const lineContent = model.getLineContent(position.lineNumber);
             const firstNonWhitespaceIndex = strings.firstNonWhitespaceIndex(lineContent);
-            const lastIndentationColumn = firstNonWhitespaceIndex === -1
+            const lastIndentationColumn = (firstNonWhitespaceIndex === -1
                 ? /* entire string is whitespace */ lineContent.length + 1
-                : firstNonWhitespaceIndex + 1;
+                : firstNonWhitespaceIndex + 1);
             if (position.column <= lastIndentationColumn) {
                 const fromVisibleColumn = config.visibleColumnFromColumn(model, position);
                 const toVisibleColumn = CursorColumns.prevIndentTabStop(fromVisibleColumn, config.indentSize);
@@ -192,8 +188,7 @@ export class DeleteOperations {
                         endLineNumber = position.lineNumber + 1;
                         endColumn = 1;
                     }
-                    else if (position.lineNumber > 1 &&
-                        lastCutRange?.endLineNumber !== position.lineNumber) {
+                    else if (position.lineNumber > 1 && lastCutRange?.endLineNumber !== position.lineNumber) {
                         // Cutting the last line & there are more than 1 lines in the model & a previous cut operation does not touch the current cut operation
                         startLineNumber = position.lineNumber - 1;
                         startColumn = model.getLineMaxColumn(position.lineNumber - 1);
@@ -210,7 +205,7 @@ export class DeleteOperations {
                     const deleteSelection = new Range(startLineNumber, startColumn, endLineNumber, endColumn);
                     lastCutRange = deleteSelection;
                     if (!deleteSelection.isEmpty()) {
-                        commands[i] = new ReplaceCommand(deleteSelection, "");
+                        commands[i] = new ReplaceCommand(deleteSelection, '');
                     }
                     else {
                         commands[i] = null;
@@ -222,12 +217,12 @@ export class DeleteOperations {
                 }
             }
             else {
-                commands[i] = new ReplaceCommand(selection, "");
+                commands[i] = new ReplaceCommand(selection, '');
             }
         }
         return new EditOperationResult(EditOperationType.Other, commands, {
             shouldPushStackElementBefore: true,
-            shouldPushStackElementAfter: true,
+            shouldPushStackElementAfter: true
         });
     }
 }

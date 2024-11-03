@@ -2,31 +2,31 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import type { Parser } from "@vscode/tree-sitter-wasm";
-import { VSBuffer } from "../../base/common/buffer.js";
-import { CancellationToken } from "../../base/common/cancellation.js";
-import { Codicon } from "../../base/common/codicons.js";
-import { Color } from "../../base/common/color.js";
-import { IReadonlyVSDataTransfer } from "../../base/common/dataTransfer.js";
-import { Event } from "../../base/common/event.js";
-import { HierarchicalKind } from "../../base/common/hierarchicalKind.js";
-import { IMarkdownString } from "../../base/common/htmlContent.js";
-import { IDisposable } from "../../base/common/lifecycle.js";
-import { ThemeIcon } from "../../base/common/themables.js";
-import { URI, UriComponents } from "../../base/common/uri.js";
-import { localize } from "../../nls.js";
-import { ExtensionIdentifier } from "../../platform/extensions/common/extensions.js";
-import { IMarkerData } from "../../platform/markers/common/markers.js";
-import { EditOperation, ISingleEditOperation } from "./core/editOperation.js";
-import { IPosition, Position } from "./core/position.js";
-import { IRange, Range } from "./core/range.js";
-import { Selection } from "./core/selection.js";
-import { LanguageId } from "./encodedTokenAttributes.js";
-import { LanguageSelector } from "./languageSelector.js";
-import * as model from "./model.js";
-import { IModelTokensChangedEvent } from "./textModelEvents.js";
-import { TokenizationRegistry as TokenizationRegistryImpl } from "./tokenizationRegistry.js";
-import { ContiguousMultilineTokens } from "./tokens/contiguousMultilineTokens.js";
+import { VSBuffer } from '../../base/common/buffer.js';
+import { CancellationToken } from '../../base/common/cancellation.js';
+import { Codicon } from '../../base/common/codicons.js';
+import { Color } from '../../base/common/color.js';
+import { IReadonlyVSDataTransfer } from '../../base/common/dataTransfer.js';
+import { Event } from '../../base/common/event.js';
+import { HierarchicalKind } from '../../base/common/hierarchicalKind.js';
+import { IMarkdownString } from '../../base/common/htmlContent.js';
+import { IDisposable } from '../../base/common/lifecycle.js';
+import { ThemeIcon } from '../../base/common/themables.js';
+import { URI, UriComponents } from '../../base/common/uri.js';
+import { EditOperation, ISingleEditOperation } from './core/editOperation.js';
+import { IPosition, Position } from './core/position.js';
+import { IRange, Range } from './core/range.js';
+import { Selection } from './core/selection.js';
+import { LanguageId } from './encodedTokenAttributes.js';
+import { LanguageSelector } from './languageSelector.js';
+import * as model from './model.js';
+import { TokenizationRegistry as TokenizationRegistryImpl } from './tokenizationRegistry.js';
+import { ContiguousMultilineTokens } from './tokens/contiguousMultilineTokens.js';
+import { localize } from '../../nls.js';
+import { ExtensionIdentifier } from '../../platform/extensions/common/extensions.js';
+import { IMarkerData } from '../../platform/markers/common/markers.js';
+import { IModelTokensChangedEvent } from './textModelEvents.js';
+import type { Parser } from '@vscode/tree-sitter-wasm';
 /**
  * @internal
  */
@@ -36,9 +36,10 @@ export interface ILanguageIdCodec {
 }
 export class Token {
     _tokenBrand: void = undefined;
-    constructor(public readonly offset: number, public readonly type: string, public readonly language: string) { }
+    constructor(public readonly offset: number, public readonly type: string, public readonly language: string) {
+    }
     public toString(): string {
-        return "(" + this.offset + ", " + this.type + ")";
+        return '(' + this.offset + ', ' + this.type + ')';
     }
 }
 /**
@@ -46,7 +47,8 @@ export class Token {
  */
 export class TokenizationResult {
     _tokenizationResultBrand: void = undefined;
-    constructor(public readonly tokens: Token[], public readonly endState: IState) { }
+    constructor(public readonly tokens: Token[], public readonly endState: IState) {
+    }
 }
 /**
  * @internal
@@ -60,7 +62,8 @@ export class EncodedTokenizationResult {
      *  - at offset 2*i + 1 => metadata
      *
      */
-    public readonly tokens: Uint32Array, public readonly endState: IState) { }
+    public readonly tokens: Uint32Array, public readonly endState: IState) {
+    }
 }
 /**
  * An intermediate interface for scaffolding the new tree sitter tokenization support. Not final.
@@ -236,7 +239,7 @@ export interface InlineValueContext {
  * @internal
  */
 export interface InlineValueText {
-    type: "text";
+    type: 'text';
     range: IRange;
     text: string;
 }
@@ -245,7 +248,7 @@ export interface InlineValueText {
  * @internal
  */
 export interface InlineValueVariableLookup {
-    type: "variable";
+    type: 'variable';
     range: IRange;
     variableName?: string;
     caseSensitiveLookup: boolean;
@@ -255,7 +258,7 @@ export interface InlineValueVariableLookup {
  * @internal
  */
 export interface InlineValueExpression {
-    type: "expression";
+    type: 'expression';
     range: IRange;
     expression?: string;
 }
@@ -354,42 +357,42 @@ export namespace CompletionItemKinds {
     export function toIcon(kind: CompletionItemKind): ThemeIcon {
         let codicon = byKind.get(kind);
         if (!codicon) {
-            console.info("No codicon found for CompletionItemKind " + kind);
+            console.info('No codicon found for CompletionItemKind ' + kind);
             codicon = Codicon.symbolProperty;
         }
         return codicon;
     }
     const data = new Map<string, CompletionItemKind>();
-    data.set("method", CompletionItemKind.Method);
-    data.set("function", CompletionItemKind.Function);
-    data.set("constructor", <any>CompletionItemKind.Constructor);
-    data.set("field", CompletionItemKind.Field);
-    data.set("variable", CompletionItemKind.Variable);
-    data.set("class", CompletionItemKind.Class);
-    data.set("struct", CompletionItemKind.Struct);
-    data.set("interface", CompletionItemKind.Interface);
-    data.set("module", CompletionItemKind.Module);
-    data.set("property", CompletionItemKind.Property);
-    data.set("event", CompletionItemKind.Event);
-    data.set("operator", CompletionItemKind.Operator);
-    data.set("unit", CompletionItemKind.Unit);
-    data.set("value", CompletionItemKind.Value);
-    data.set("constant", CompletionItemKind.Constant);
-    data.set("enum", CompletionItemKind.Enum);
-    data.set("enum-member", CompletionItemKind.EnumMember);
-    data.set("enumMember", CompletionItemKind.EnumMember);
-    data.set("keyword", CompletionItemKind.Keyword);
-    data.set("snippet", CompletionItemKind.Snippet);
-    data.set("text", CompletionItemKind.Text);
-    data.set("color", CompletionItemKind.Color);
-    data.set("file", CompletionItemKind.File);
-    data.set("reference", CompletionItemKind.Reference);
-    data.set("customcolor", CompletionItemKind.Customcolor);
-    data.set("folder", CompletionItemKind.Folder);
-    data.set("type-parameter", CompletionItemKind.TypeParameter);
-    data.set("typeParameter", CompletionItemKind.TypeParameter);
-    data.set("account", CompletionItemKind.User);
-    data.set("issue", CompletionItemKind.Issue);
+    data.set('method', CompletionItemKind.Method);
+    data.set('function', CompletionItemKind.Function);
+    data.set('constructor', <any>CompletionItemKind.Constructor);
+    data.set('field', CompletionItemKind.Field);
+    data.set('variable', CompletionItemKind.Variable);
+    data.set('class', CompletionItemKind.Class);
+    data.set('struct', CompletionItemKind.Struct);
+    data.set('interface', CompletionItemKind.Interface);
+    data.set('module', CompletionItemKind.Module);
+    data.set('property', CompletionItemKind.Property);
+    data.set('event', CompletionItemKind.Event);
+    data.set('operator', CompletionItemKind.Operator);
+    data.set('unit', CompletionItemKind.Unit);
+    data.set('value', CompletionItemKind.Value);
+    data.set('constant', CompletionItemKind.Constant);
+    data.set('enum', CompletionItemKind.Enum);
+    data.set('enum-member', CompletionItemKind.EnumMember);
+    data.set('enumMember', CompletionItemKind.EnumMember);
+    data.set('keyword', CompletionItemKind.Keyword);
+    data.set('snippet', CompletionItemKind.Snippet);
+    data.set('text', CompletionItemKind.Text);
+    data.set('color', CompletionItemKind.Color);
+    data.set('file', CompletionItemKind.File);
+    data.set('reference', CompletionItemKind.Reference);
+    data.set('customcolor', CompletionItemKind.Customcolor);
+    data.set('folder', CompletionItemKind.Folder);
+    data.set('type-parameter', CompletionItemKind.TypeParameter);
+    data.set('typeParameter', CompletionItemKind.TypeParameter);
+    data.set('account', CompletionItemKind.User);
+    data.set('issue', CompletionItemKind.Issue);
     /**
      * @internal
      */
@@ -403,7 +406,7 @@ export namespace CompletionItemKinds {
      */
     export function fromString(value: string, strict?: boolean): CompletionItemKind | undefined {
         let res = data.get(value);
-        if (typeof res === "undefined" && !strict) {
+        if (typeof res === 'undefined' && !strict) {
             res = CompletionItemKind.Property;
         }
         return res;
@@ -632,18 +635,19 @@ export interface InlineCompletionContext {
     /**
      * @experimental
      * @internal
-     */
+    */
     readonly userPrompt?: string | undefined;
     readonly includeInlineEdits: boolean;
     readonly includeInlineCompletions: boolean;
 }
 export class SelectedSuggestionInfo {
-    constructor(public readonly range: IRange, public readonly text: string, public readonly completionKind: CompletionItemKind, public readonly isSnippetText: boolean) { }
+    constructor(public readonly range: IRange, public readonly text: string, public readonly completionKind: CompletionItemKind, public readonly isSnippetText: boolean) {
+    }
     public equals(other: SelectedSuggestionInfo) {
-        return (Range.lift(this.range).equalsRange(other.range) &&
-            this.text === other.text &&
-            this.completionKind === other.completionKind &&
-            this.isSnippetText === other.isSnippetText);
+        return Range.lift(this.range).equalsRange(other.range)
+            && this.text === other.text
+            && this.completionKind === other.completionKind
+            && this.isSnippetText === other.isSnippetText;
     }
 }
 export interface InlineCompletion {
@@ -654,7 +658,7 @@ export interface InlineCompletion {
      *
      * The text can also be a snippet. In that case, a preview with default parameters is shown.
      * When accepting the suggestion, the full snippet is inserted.
-     */
+    */
     readonly insertText: string | {
         snippet: string;
     };
@@ -672,13 +676,13 @@ export interface InlineCompletion {
     /**
      * The range to replace.
      * Must begin and end on the same line.
-     */
+    */
     readonly range?: IRange;
     readonly command?: Command;
     /**
      * If set to `true`, unopened closing brackets are removed and unclosed opening brackets are closed.
      * Defaults to `false`.
-     */
+    */
     readonly completeBracketPairs?: boolean;
     readonly isInlineEdit?: boolean;
 }
@@ -700,21 +704,21 @@ export interface InlineCompletionsProvider<T extends InlineCompletions = InlineC
     /**
      * @experimental
      * @internal
-     */
+    */
     provideInlineEditsForRange?(model: model.ITextModel, range: Range, context: InlineCompletionContext, token: CancellationToken): ProviderResult<T>;
     /**
      * Will be called when an item is shown.
      * @param updatedInsertText Is useful to understand bracket completion.
-     */
-    handleItemDidShow?(completions: T, item: T["items"][number], updatedInsertText: string): void;
+    */
+    handleItemDidShow?(completions: T, item: T['items'][number], updatedInsertText: string): void;
     /**
      * Will be called when an item is partially accepted. TODO: also handle full acceptance here!
      */
-    handlePartialAccept?(completions: T, item: T["items"][number], acceptedCharacters: number, info: PartialAcceptInfo): void;
-    handleRejection?(completions: T, item: T["items"][number]): void;
+    handlePartialAccept?(completions: T, item: T['items'][number], acceptedCharacters: number, info: PartialAcceptInfo): void;
+    handleRejection?(completions: T, item: T['items'][number]): void;
     /**
      * Will be called when a completions list is no longer in use and can be garbage-collected.
-     */
+    */
     freeInlineCompletions(completions: T): void;
     /**
      * Only used for {@link yieldsToGroupIds}.
@@ -1077,19 +1081,18 @@ export interface LocationLink {
  * @internal
  */
 export function isLocationLink(thing: any): thing is LocationLink {
-    return (thing &&
-        URI.isUri((thing as LocationLink).uri) &&
-        Range.isIRange((thing as LocationLink).range) &&
-        (Range.isIRange((thing as LocationLink).originSelectionRange) ||
-            Range.isIRange((thing as LocationLink).targetSelectionRange)));
+    return thing
+        && URI.isUri((thing as LocationLink).uri)
+        && Range.isIRange((thing as LocationLink).range)
+        && (Range.isIRange((thing as LocationLink).originSelectionRange) || Range.isIRange((thing as LocationLink).targetSelectionRange));
 }
 /**
  * @internal
  */
 export function isLocation(thing: any): thing is Location {
-    return (thing &&
-        URI.isUri((thing as Location).uri) &&
-        Range.isIRange((thing as Location).range));
+    return thing
+        && URI.isUri((thing as Location).uri)
+        && Range.isIRange((thing as Location).range);
 }
 export type Definition = Location | Location[] | LocationLink[];
 /**
@@ -1171,38 +1174,38 @@ export const enum SymbolKind {
 export const symbolKindNames: {
     [symbol: number]: string;
 } = {
-    [SymbolKind.Array]: localize("Array", "array"),
-    [SymbolKind.Boolean]: localize("Boolean", "boolean"),
-    [SymbolKind.Class]: localize("Class", "class"),
-    [SymbolKind.Constant]: localize("Constant", "constant"),
-    [SymbolKind.Constructor]: localize("Constructor", "constructor"),
-    [SymbolKind.Enum]: localize("Enum", "enumeration"),
-    [SymbolKind.EnumMember]: localize("EnumMember", "enumeration member"),
-    [SymbolKind.Event]: localize("Event", "event"),
-    [SymbolKind.Field]: localize("Field", "field"),
-    [SymbolKind.File]: localize("File", "file"),
-    [SymbolKind.Function]: localize("Function", "function"),
-    [SymbolKind.Interface]: localize("Interface", "interface"),
-    [SymbolKind.Key]: localize("Key", "key"),
-    [SymbolKind.Method]: localize("Method", "method"),
-    [SymbolKind.Module]: localize("Module", "module"),
-    [SymbolKind.Namespace]: localize("Namespace", "namespace"),
-    [SymbolKind.Null]: localize("Null", "null"),
-    [SymbolKind.Number]: localize("Number", "number"),
-    [SymbolKind.Object]: localize("Object", "object"),
-    [SymbolKind.Operator]: localize("Operator", "operator"),
-    [SymbolKind.Package]: localize("Package", "package"),
-    [SymbolKind.Property]: localize("Property", "property"),
-    [SymbolKind.String]: localize("String", "string"),
-    [SymbolKind.Struct]: localize("Struct", "struct"),
-    [SymbolKind.TypeParameter]: localize("TypeParameter", "type parameter"),
-    [SymbolKind.Variable]: localize("Variable", "variable"),
+    [SymbolKind.Array]: localize('Array', "array"),
+    [SymbolKind.Boolean]: localize('Boolean', "boolean"),
+    [SymbolKind.Class]: localize('Class', "class"),
+    [SymbolKind.Constant]: localize('Constant', "constant"),
+    [SymbolKind.Constructor]: localize('Constructor', "constructor"),
+    [SymbolKind.Enum]: localize('Enum', "enumeration"),
+    [SymbolKind.EnumMember]: localize('EnumMember', "enumeration member"),
+    [SymbolKind.Event]: localize('Event', "event"),
+    [SymbolKind.Field]: localize('Field', "field"),
+    [SymbolKind.File]: localize('File', "file"),
+    [SymbolKind.Function]: localize('Function', "function"),
+    [SymbolKind.Interface]: localize('Interface', "interface"),
+    [SymbolKind.Key]: localize('Key', "key"),
+    [SymbolKind.Method]: localize('Method', "method"),
+    [SymbolKind.Module]: localize('Module', "module"),
+    [SymbolKind.Namespace]: localize('Namespace', "namespace"),
+    [SymbolKind.Null]: localize('Null', "null"),
+    [SymbolKind.Number]: localize('Number', "number"),
+    [SymbolKind.Object]: localize('Object', "object"),
+    [SymbolKind.Operator]: localize('Operator', "operator"),
+    [SymbolKind.Package]: localize('Package', "package"),
+    [SymbolKind.Property]: localize('Property', "property"),
+    [SymbolKind.String]: localize('String', "string"),
+    [SymbolKind.Struct]: localize('Struct', "struct"),
+    [SymbolKind.TypeParameter]: localize('TypeParameter', "type parameter"),
+    [SymbolKind.Variable]: localize('Variable', "variable"),
 };
 /**
  * @internal
  */
 export function getAriaLabelForSymbol(symbolName: string, kind: SymbolKind): string {
-    return localize("symbolAriaLabel", "{0} ({1})", symbolName, symbolKindNames[kind]);
+    return localize('symbolAriaLabel', '{0} ({1})', symbolName, symbolKindNames[kind]);
 }
 export const enum SymbolTag {
     Deprecated = 1
@@ -1244,7 +1247,7 @@ export namespace SymbolKinds {
     export function toIcon(kind: SymbolKind): ThemeIcon {
         let icon = byKind.get(kind);
         if (!icon) {
-            console.info("No codicon found for SymbolKind " + kind);
+            console.info('No codicon found for SymbolKind ' + kind);
             icon = Codicon.symbolProperty;
         }
         return icon;
@@ -1492,16 +1495,16 @@ export class FoldingRangeKind {
     /**
      * Kind for folding range representing a comment. The value of the kind is 'comment'.
      */
-    static readonly Comment = new FoldingRangeKind("comment");
+    static readonly Comment = new FoldingRangeKind('comment');
     /**
      * Kind for folding range representing a import. The value of the kind is 'imports'.
      */
-    static readonly Imports = new FoldingRangeKind("imports");
+    static readonly Imports = new FoldingRangeKind('imports');
     /**
      * Kind for folding range representing regions (for example marked by `#region`, `#endregion`).
      * The value of the kind is 'region'.
      */
-    static readonly Region = new FoldingRangeKind("region");
+    static readonly Region = new FoldingRangeKind('region');
     /**
      * Returns a {@link FoldingRangeKind} for the given value.
      *
@@ -1509,12 +1512,9 @@ export class FoldingRangeKind {
      */
     static fromValue(value: string) {
         switch (value) {
-            case "comment":
-                return FoldingRangeKind.Comment;
-            case "imports":
-                return FoldingRangeKind.Imports;
-            case "region":
-                return FoldingRangeKind.Region;
+            case 'comment': return FoldingRangeKind.Comment;
+            case 'imports': return FoldingRangeKind.Imports;
+            case 'region': return FoldingRangeKind.Region;
         }
         return new FoldingRangeKind(value);
     }
@@ -1523,7 +1523,8 @@ export class FoldingRangeKind {
      *
      * @param value of the kind.
      */
-    public constructor(public value: string) { }
+    public constructor(public value: string) {
+    }
 }
 export interface WorkspaceEditMetadata {
     needsConfirmation: boolean;
@@ -1608,11 +1609,11 @@ export namespace Command {
      * @internal
      */
     export function is(obj: any): obj is Command {
-        if (!obj || typeof obj !== "object") {
+        if (!obj || typeof obj !== 'object') {
             return false;
         }
-        return (typeof (<Command>obj).id === "string" &&
-            typeof (<Command>obj).title === "string");
+        return typeof (<Command>obj).id === 'string' &&
+            typeof (<Command>obj).title === 'string';
     }
 }
 /**
@@ -1907,8 +1908,9 @@ export interface ILazyTokenizationSupport<TSupport> {
  * @internal
  */
 export class LazyTokenizationSupport<TSupport = ITokenizationSupport> implements IDisposable, ILazyTokenizationSupport<TSupport> {
-    private _tokenizationSupport: Promise<(TSupport & IDisposable) | null> | null = null;
-    constructor(private readonly createSupport: () => Promise<(TSupport & IDisposable) | null>) { }
+    private _tokenizationSupport: Promise<TSupport & IDisposable | null> | null = null;
+    constructor(private readonly createSupport: () => Promise<TSupport & IDisposable | null>) {
+    }
     dispose(): void {
         if (this._tokenizationSupport) {
             this._tokenizationSupport.then((support) => {
@@ -2040,14 +2042,14 @@ export interface MappedEditsContext {
  * @internal
  */
 export interface ConversationRequest {
-    readonly type: "request";
+    readonly type: 'request';
     readonly message: string;
 }
 /**
  * @internal
  */
 export interface ConversationResponse {
-    readonly type: "response";
+    readonly type: 'response';
     readonly message: string;
     readonly references?: DocumentContextItem[];
 }

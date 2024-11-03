@@ -2,65 +2,65 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as dom from "../../base/browser/dom.js";
-import { createFastDomNode, FastDomNode, } from "../../base/browser/fastDomNode.js";
-import { IMouseWheelEvent } from "../../base/browser/mouseEvent.js";
-import { inputLatency } from "../../base/browser/performance.js";
-import { CodeWindow } from "../../base/browser/window.js";
-import { BugIndicatingError, onUnexpectedError, } from "../../base/common/errors.js";
-import { IDisposable } from "../../base/common/lifecycle.js";
-import { IInstantiationService } from "../../platform/instantiation/common/instantiation.js";
-import { getThemeTypeSelector, IColorTheme, } from "../../platform/theme/common/themeService.js";
-import { IEditorConfiguration } from "../common/config/editorConfiguration.js";
-import { EditorOption } from "../common/config/editorOptions.js";
-import { Position } from "../common/core/position.js";
-import { Range } from "../common/core/range.js";
-import { Selection } from "../common/core/selection.js";
-import { ScrollType } from "../common/editorCommon.js";
-import { GlyphMarginLane, IGlyphMarginLanesModel } from "../common/model.js";
-import { ViewEventHandler } from "../common/viewEventHandler.js";
-import * as viewEvents from "../common/viewEvents.js";
-import { ViewportData } from "../common/viewLayout/viewLinesViewportData.js";
-import { IViewModel } from "../common/viewModel.js";
-import { ViewContext } from "../common/viewModel/viewContext.js";
-import { AbstractEditContext } from "./controller/editContext/editContext.js";
-import { EditContext } from "./controller/editContext/native/editContextFactory.js";
-import { NativeEditContext } from "./controller/editContext/native/nativeEditContext.js";
-import { IVisibleRangeProvider, TextAreaEditContext, } from "./controller/editContext/textArea/textAreaEditContext.js";
-import { IPointerHandlerHelper } from "./controller/mouseHandler.js";
-import { PointerHandlerLastRenderData } from "./controller/mouseTarget.js";
-import { PointerHandler } from "./controller/pointerHandler.js";
-import { IContentWidget, IContentWidgetPosition, IEditorAriaOptions, IGlyphMarginWidget, IGlyphMarginWidgetPosition, IMouseTarget, IOverlayWidget, IOverlayWidgetPosition, IViewZoneChangeAccessor, } from "./editorBrowser.js";
-import { ViewGpuContext } from "./gpu/viewGpuContext.js";
-import { LineVisibleRanges, RenderingContext, RestrictedRenderingContext, } from "./view/renderingContext.js";
-import { ICommandDelegate, ViewController } from "./view/viewController.js";
-import { ContentViewOverlays, MarginViewOverlays, } from "./view/viewOverlays.js";
-import { PartFingerprint, PartFingerprints, ViewPart, } from "./view/viewPart.js";
-import { ViewUserInputEvents } from "./view/viewUserInputEvents.js";
-import { BlockDecorations } from "./viewParts/blockDecorations/blockDecorations.js";
-import { ViewContentWidgets } from "./viewParts/contentWidgets/contentWidgets.js";
-import { CurrentLineHighlightOverlay, CurrentLineMarginHighlightOverlay, } from "./viewParts/currentLineHighlight/currentLineHighlight.js";
-import { DecorationsOverlay } from "./viewParts/decorations/decorations.js";
-import { EditorScrollbar } from "./viewParts/editorScrollbar/editorScrollbar.js";
-import { GlyphMarginWidgets } from "./viewParts/glyphMargin/glyphMargin.js";
-import { IndentGuidesOverlay } from "./viewParts/indentGuides/indentGuides.js";
-import { LineNumbersOverlay } from "./viewParts/lineNumbers/lineNumbers.js";
-import { LinesDecorationsOverlay } from "./viewParts/linesDecorations/linesDecorations.js";
-import { Margin } from "./viewParts/margin/margin.js";
-import { MarginViewLineDecorationsOverlay } from "./viewParts/marginDecorations/marginDecorations.js";
-import { Minimap } from "./viewParts/minimap/minimap.js";
-import { ViewOverlayWidgets } from "./viewParts/overlayWidgets/overlayWidgets.js";
-import { DecorationsOverviewRuler } from "./viewParts/overviewRuler/decorationsOverviewRuler.js";
-import { OverviewRuler } from "./viewParts/overviewRuler/overviewRuler.js";
-import { Rulers } from "./viewParts/rulers/rulers.js";
-import { RulersGpu } from "./viewParts/rulersGpu/rulersGpu.js";
-import { ScrollDecorationViewPart } from "./viewParts/scrollDecoration/scrollDecoration.js";
-import { SelectionsOverlay } from "./viewParts/selections/selections.js";
-import { ViewCursors } from "./viewParts/viewCursors/viewCursors.js";
-import { ViewLines } from "./viewParts/viewLines/viewLines.js";
-import { ViewLinesGpu } from "./viewParts/viewLinesGpu/viewLinesGpu.js";
-import { ViewZones } from "./viewParts/viewZones/viewZones.js";
-import { WhitespaceOverlay } from "./viewParts/whitespace/whitespace.js";
+import * as dom from '../../base/browser/dom.js';
+import { FastDomNode, createFastDomNode } from '../../base/browser/fastDomNode.js';
+import { IMouseWheelEvent } from '../../base/browser/mouseEvent.js';
+import { inputLatency } from '../../base/browser/performance.js';
+import { CodeWindow } from '../../base/browser/window.js';
+import { BugIndicatingError, onUnexpectedError } from '../../base/common/errors.js';
+import { IDisposable } from '../../base/common/lifecycle.js';
+import { IPointerHandlerHelper } from './controller/mouseHandler.js';
+import { PointerHandlerLastRenderData } from './controller/mouseTarget.js';
+import { PointerHandler } from './controller/pointerHandler.js';
+import { IContentWidget, IContentWidgetPosition, IEditorAriaOptions, IGlyphMarginWidget, IGlyphMarginWidgetPosition, IMouseTarget, IOverlayWidget, IOverlayWidgetPosition, IViewZoneChangeAccessor } from './editorBrowser.js';
+import { LineVisibleRanges, RenderingContext, RestrictedRenderingContext } from './view/renderingContext.js';
+import { ICommandDelegate, ViewController } from './view/viewController.js';
+import { ContentViewOverlays, MarginViewOverlays } from './view/viewOverlays.js';
+import { PartFingerprint, PartFingerprints, ViewPart } from './view/viewPart.js';
+import { ViewUserInputEvents } from './view/viewUserInputEvents.js';
+import { BlockDecorations } from './viewParts/blockDecorations/blockDecorations.js';
+import { ViewContentWidgets } from './viewParts/contentWidgets/contentWidgets.js';
+import { CurrentLineHighlightOverlay, CurrentLineMarginHighlightOverlay } from './viewParts/currentLineHighlight/currentLineHighlight.js';
+import { DecorationsOverlay } from './viewParts/decorations/decorations.js';
+import { EditorScrollbar } from './viewParts/editorScrollbar/editorScrollbar.js';
+import { GlyphMarginWidgets } from './viewParts/glyphMargin/glyphMargin.js';
+import { IndentGuidesOverlay } from './viewParts/indentGuides/indentGuides.js';
+import { LineNumbersOverlay } from './viewParts/lineNumbers/lineNumbers.js';
+import { ViewLines } from './viewParts/viewLines/viewLines.js';
+import { LinesDecorationsOverlay } from './viewParts/linesDecorations/linesDecorations.js';
+import { Margin } from './viewParts/margin/margin.js';
+import { MarginViewLineDecorationsOverlay } from './viewParts/marginDecorations/marginDecorations.js';
+import { Minimap } from './viewParts/minimap/minimap.js';
+import { ViewOverlayWidgets } from './viewParts/overlayWidgets/overlayWidgets.js';
+import { DecorationsOverviewRuler } from './viewParts/overviewRuler/decorationsOverviewRuler.js';
+import { OverviewRuler } from './viewParts/overviewRuler/overviewRuler.js';
+import { Rulers } from './viewParts/rulers/rulers.js';
+import { ScrollDecorationViewPart } from './viewParts/scrollDecoration/scrollDecoration.js';
+import { SelectionsOverlay } from './viewParts/selections/selections.js';
+import { ViewCursors } from './viewParts/viewCursors/viewCursors.js';
+import { ViewZones } from './viewParts/viewZones/viewZones.js';
+import { WhitespaceOverlay } from './viewParts/whitespace/whitespace.js';
+import { IEditorConfiguration } from '../common/config/editorConfiguration.js';
+import { EditorOption } from '../common/config/editorOptions.js';
+import { Position } from '../common/core/position.js';
+import { Range } from '../common/core/range.js';
+import { Selection } from '../common/core/selection.js';
+import { ScrollType } from '../common/editorCommon.js';
+import { GlyphMarginLane, IGlyphMarginLanesModel } from '../common/model.js';
+import { ViewEventHandler } from '../common/viewEventHandler.js';
+import * as viewEvents from '../common/viewEvents.js';
+import { ViewportData } from '../common/viewLayout/viewLinesViewportData.js';
+import { IViewModel } from '../common/viewModel.js';
+import { ViewContext } from '../common/viewModel/viewContext.js';
+import { IInstantiationService } from '../../platform/instantiation/common/instantiation.js';
+import { IColorTheme, getThemeTypeSelector } from '../../platform/theme/common/themeService.js';
+import { ViewGpuContext } from './gpu/viewGpuContext.js';
+import { ViewLinesGpu } from './viewParts/viewLinesGpu/viewLinesGpu.js';
+import { AbstractEditContext } from './controller/editContext/editContext.js';
+import { IVisibleRangeProvider, TextAreaEditContext } from './controller/editContext/textArea/textAreaEditContext.js';
+import { NativeEditContext } from './controller/editContext/native/nativeEditContext.js';
+import { RulersGpu } from './viewParts/rulersGpu/rulersGpu.js';
+import { EditContext } from './controller/editContext/native/editContextFactory.js';
 export interface IContentWidgetData {
     widget: IContentWidget;
     position: IContentWidgetPosition | null;
@@ -105,9 +105,9 @@ export class View extends ViewEventHandler {
         super();
         this._selections = [new Selection(1, 1, 1, 1)];
         this._renderAnimationFrame = null;
-        this._overflowGuardContainer = createFastDomNode(document.createElement("div"));
+        this._overflowGuardContainer = createFastDomNode(document.createElement('div'));
         PartFingerprints.write(this._overflowGuardContainer, PartFingerprint.OverflowGuard);
-        this._overflowGuardContainer.setClassName("overflow-guard");
+        this._overflowGuardContainer.setClassName('overflow-guard');
         this._viewController = new ViewController(configuration, model, userInputEvents, commandDelegate);
         // The view context is passed on to most classes (basically to reduce param. counts in ctors)
         this._context = new ViewContext(configuration, colorTheme, model);
@@ -115,19 +115,18 @@ export class View extends ViewEventHandler {
         this._context.addEventHandler(this);
         this._viewParts = [];
         // Keyboard handler
-        this._experimentalEditContextEnabled =
-            this._context.configuration.options.get(EditorOption.experimentalEditContextEnabled);
+        this._experimentalEditContextEnabled = this._context.configuration.options.get(EditorOption.experimentalEditContextEnabled);
         this._editContext = this._instantiateEditContext(this._experimentalEditContextEnabled);
         this._viewParts.push(this._editContext);
         // These two dom nodes must be constructed up front, since references are needed in the layout provider (scrolling & co.)
-        this._linesContent = createFastDomNode(document.createElement("div"));
-        this._linesContent.setClassName("lines-content" + " monaco-editor-background");
-        this._linesContent.setPosition("absolute");
-        this.domNode = createFastDomNode(document.createElement("div"));
+        this._linesContent = createFastDomNode(document.createElement('div'));
+        this._linesContent.setClassName('lines-content' + ' monaco-editor-background');
+        this._linesContent.setPosition('absolute');
+        this.domNode = createFastDomNode(document.createElement('div'));
         this.domNode.setClassName(this._getEditorClassName());
         // Set role 'code' for better screen reader support https://github.com/microsoft/vscode/issues/93438
-        this.domNode.setAttribute("role", "code");
-        if (this._context.configuration.options.get(EditorOption.experimentalGpuAcceleration) === "on") {
+        this.domNode.setAttribute('role', 'code');
+        if (this._context.configuration.options.get(EditorOption.experimentalGpuAcceleration) === 'on') {
             this._viewGpuContext = this._instantiationService.createInstance(ViewGpuContext, this._context);
         }
         this._scrollbar = new EditorScrollbar(this._context, this._linesContent, this.domNode, this._overflowGuardContainer);
@@ -142,16 +141,16 @@ export class View extends ViewEventHandler {
         this._viewParts.push(this._viewZones);
         // Decorations overview ruler
         const decorationsOverviewRuler = new DecorationsOverviewRuler(this._context);
-        this._viewParts.push(new DecorationsOverviewRuler(this._context));
+        this._viewParts.push(decorationsOverviewRuler);
         const scrollDecoration = new ScrollDecorationViewPart(this._context);
-        this._viewParts.push(new ScrollDecorationViewPart(this._context));
+        this._viewParts.push(scrollDecoration);
         const contentViewOverlays = new ContentViewOverlays(this._context);
-        this._viewParts.push(new ContentViewOverlays(this._context));
-        new ContentViewOverlays(this._context).addDynamicOverlay(new CurrentLineHighlightOverlay(this._context));
-        new ContentViewOverlays(this._context).addDynamicOverlay(new SelectionsOverlay(this._context));
-        new ContentViewOverlays(this._context).addDynamicOverlay(new IndentGuidesOverlay(this._context));
-        new ContentViewOverlays(this._context).addDynamicOverlay(new DecorationsOverlay(this._context));
-        new ContentViewOverlays(this._context).addDynamicOverlay(new WhitespaceOverlay(this._context));
+        this._viewParts.push(contentViewOverlays);
+        contentViewOverlays.addDynamicOverlay(new CurrentLineHighlightOverlay(this._context));
+        contentViewOverlays.addDynamicOverlay(new SelectionsOverlay(this._context));
+        contentViewOverlays.addDynamicOverlay(new IndentGuidesOverlay(this._context));
+        contentViewOverlays.addDynamicOverlay(new DecorationsOverlay(this._context));
+        contentViewOverlays.addDynamicOverlay(new WhitespaceOverlay(this._context));
         const marginViewOverlays = new MarginViewOverlays(this._context);
         this._viewParts.push(marginViewOverlays);
         marginViewOverlays.addDynamicOverlay(new CurrentLineMarginHighlightOverlay(this._context));
@@ -188,7 +187,7 @@ export class View extends ViewEventHandler {
             overviewRulerData.parent.insertBefore(decorationsOverviewRuler.getDomNode(), overviewRulerData.insertBefore);
         }
         this._linesContent.appendChild(contentViewOverlays.getDomNode());
-        if ("domNode" in rulers) {
+        if ('domNode' in rulers) {
             this._linesContent.appendChild(rulers.domNode);
         }
         this._linesContent.appendChild(this._viewZones.domNode);
@@ -220,15 +219,12 @@ export class View extends ViewEventHandler {
     private _instantiateEditContext(experimentalEditContextEnabled: boolean): AbstractEditContext {
         const domNode = dom.getWindow(this._overflowGuardContainer.domNode);
         const isEditContextSupported = EditContext.supported(domNode);
-        const EditContextType = experimentalEditContextEnabled && isEditContextSupported
-            ? NativeEditContext
-            : TextAreaEditContext;
+        const EditContextType = (experimentalEditContextEnabled && isEditContextSupported) ? NativeEditContext : TextAreaEditContext;
         return this._instantiationService.createInstance(EditContextType, this._context, this._overflowGuardContainer, this._viewController, this._createTextAreaHandlerHelper());
     }
     private _updateEditContext(): void {
         const experimentalEditContextEnabled = this._context.configuration.options.get(EditorOption.experimentalEditContextEnabled);
-        if (this._experimentalEditContextEnabled ===
-            experimentalEditContextEnabled) {
+        if (this._experimentalEditContextEnabled === experimentalEditContextEnabled) {
             return;
         }
         this._experimentalEditContextEnabled = experimentalEditContextEnabled;
@@ -252,14 +248,9 @@ export class View extends ViewEventHandler {
         let maxLineNumber = 0;
         // Add all margin decorations
         glyphs = glyphs.concat(model.getAllMarginDecorations().map((decoration) => {
-            const lane = decoration.options.glyphMargin?.position ??
-                GlyphMarginLane.Center;
+            const lane = decoration.options.glyphMargin?.position ?? GlyphMarginLane.Center;
             maxLineNumber = Math.max(maxLineNumber, decoration.range.endLineNumber);
-            return {
-                range: decoration.range,
-                lane,
-                persist: decoration.options.glyphMargin?.persistLane,
-            };
+            return { range: decoration.range, lane, persist: decoration.options.glyphMargin?.persistLane };
         }));
         // Add all glyph margin widgets
         glyphs = glyphs.concat(this._glyphMarginWidgets.getWidgets().map((widget) => {
@@ -311,7 +302,7 @@ export class View extends ViewEventHandler {
             getLineWidth: (lineNumber: number) => {
                 this._flushAccumulatedAndRenderNow();
                 return this._viewLines.getLineWidth(lineNumber);
-            },
+            }
         };
     }
     private _createTextAreaHandlerHelper(): IVisibleRangeProvider {
@@ -323,7 +314,7 @@ export class View extends ViewEventHandler {
             linesVisibleRangesForRange: (range: Range, includeNewLines: boolean): LineVisibleRanges[] | null => {
                 this._flushAccumulatedAndRenderNow();
                 return this._viewLines.linesVisibleRangesForRange(range, includeNewLines);
-            },
+            }
         };
     }
     private _applyLayout(): void {
@@ -338,11 +329,8 @@ export class View extends ViewEventHandler {
         this._linesContent.setHeight(16777216);
     }
     private _getEditorClassName() {
-        const focused = this._editContext.isFocused() ? " focused" : "";
-        return (this._context.configuration.options.get(EditorOption.editorClassName) +
-            " " +
-            getThemeTypeSelector(this._context.theme.type) +
-            focused);
+        const focused = this._editContext.isFocused() ? ' focused' : '';
+        return this._context.configuration.options.get(EditorOption.editorClassName) + ' ' + getThemeTypeSelector(this._context.theme.type) + focused;
     }
     // --- begin event handlers
     public override handleEvents(events: viewEvents.ViewEvent[]): void {
@@ -402,39 +390,38 @@ export class View extends ViewEventHandler {
                 this._editContext.setEditContextOnDomNode();
             }
             const rendering = this._createCoordinatedRendering();
-            this._renderAnimationFrame =
-                EditorRenderingCoordinator.INSTANCE.scheduleCoordinatedRendering({
-                    window: dom.getWindow(this.domNode?.domNode),
-                    prepareRenderText: () => {
-                        if (this._store.isDisposed) {
-                            throw new BugIndicatingError();
-                        }
-                        try {
-                            return rendering.prepareRenderText();
-                        }
-                        finally {
-                            this._renderAnimationFrame = null;
-                        }
-                    },
-                    renderText: () => {
-                        if (this._store.isDisposed) {
-                            throw new BugIndicatingError();
-                        }
-                        return rendering.renderText();
-                    },
-                    prepareRender: (viewParts: ViewPart[], ctx: RenderingContext) => {
-                        if (this._store.isDisposed) {
-                            throw new BugIndicatingError();
-                        }
-                        return rendering.prepareRender(viewParts, ctx);
-                    },
-                    render: (viewParts: ViewPart[], ctx: RestrictedRenderingContext) => {
-                        if (this._store.isDisposed) {
-                            throw new BugIndicatingError();
-                        }
-                        return rendering.render(viewParts, ctx);
-                    },
-                });
+            this._renderAnimationFrame = EditorRenderingCoordinator.INSTANCE.scheduleCoordinatedRendering({
+                window: dom.getWindow(this.domNode?.domNode),
+                prepareRenderText: () => {
+                    if (this._store.isDisposed) {
+                        throw new BugIndicatingError();
+                    }
+                    try {
+                        return rendering.prepareRenderText();
+                    }
+                    finally {
+                        this._renderAnimationFrame = null;
+                    }
+                },
+                renderText: () => {
+                    if (this._store.isDisposed) {
+                        throw new BugIndicatingError();
+                    }
+                    return rendering.renderText();
+                },
+                prepareRender: (viewParts: ViewPart[], ctx: RenderingContext) => {
+                    if (this._store.isDisposed) {
+                        throw new BugIndicatingError();
+                    }
+                    return rendering.prepareRender(viewParts, ctx);
+                },
+                render: (viewParts: ViewPart[], ctx: RestrictedRenderingContext) => {
+                    if (this._store.isDisposed) {
+                        throw new BugIndicatingError();
+                    }
+                    return rendering.render(viewParts, ctx);
+                }
+            });
         }
     }
     private _flushAccumulatedAndRenderNow(): void {
@@ -475,8 +462,7 @@ export class View extends ViewEventHandler {
                     return null;
                 }
                 let viewPartsToRender = this._getViewPartsToRender();
-                if (!this._viewLines.shouldRender() &&
-                    viewPartsToRender.length === 0) {
+                if (!this._viewLines.shouldRender() && viewPartsToRender.length === 0) {
                     // Nothing to render
                     return null;
                 }
@@ -497,10 +483,7 @@ export class View extends ViewEventHandler {
                     this._viewLinesGpu.renderText(viewportData);
                     this._viewLinesGpu.onDidRender();
                 }
-                return [
-                    viewPartsToRender,
-                    new RenderingContext(this._context.viewLayout, viewportData, this._viewLines, this._viewLinesGpu),
-                ];
+                return [viewPartsToRender, new RenderingContext(this._context.viewLayout, viewportData, this._viewLines, this._viewLinesGpu)];
             },
             prepareRender: (viewPartsToRender: ViewPart[], ctx: RenderingContext) => {
                 for (const viewPart of viewPartsToRender) {
@@ -512,7 +495,7 @@ export class View extends ViewEventHandler {
                     viewPart.render(ctx);
                     viewPart.onDidRender();
                 }
-            },
+            }
         };
     }
     // --- BEGIN CodeEditor helpers
@@ -528,14 +511,14 @@ export class View extends ViewEventHandler {
     }): void {
         this._context.viewModel.viewLayout.setScrollPosition({
             scrollTop: scrollPosition.scrollTop,
-            scrollLeft: scrollPosition.scrollLeft,
+            scrollLeft: scrollPosition.scrollLeft
         }, ScrollType.Immediate);
         this._context.viewModel.visibleLinesStabilized();
     }
     public getOffsetForColumn(modelLineNumber: number, modelColumn: number): number {
         const modelPosition = this._context.viewModel.model.validatePosition({
             lineNumber: modelLineNumber,
-            column: modelColumn,
+            column: modelColumn
         });
         const viewPosition = this._context.viewModel.coordinatesConverter.convertModelPositionToViewPosition(modelPosition);
         this._flushAccumulatedAndRenderNow();
@@ -677,7 +660,7 @@ class EditorRenderingCoordinator {
                     }
                     this._animationFrameRunners.clear();
                 }
-            },
+            }
         };
     }
     private _scheduleRender(window: CodeWindow): void {

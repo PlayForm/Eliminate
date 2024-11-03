@@ -2,20 +2,20 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Event } from "../../../base/common/event.js";
-import { IMarkdownString } from "../../../base/common/htmlContent.js";
-import { mnemonicButtonLabel } from "../../../base/common/labels.js";
-import { deepClone } from "../../../base/common/objects.js";
-import { isLinux, isMacintosh, isWindows, } from "../../../base/common/platform.js";
-import { basename } from "../../../base/common/resources.js";
-import Severity from "../../../base/common/severity.js";
-import { ThemeIcon } from "../../../base/common/themables.js";
-import { URI } from "../../../base/common/uri.js";
-import { MessageBoxOptions } from "../../../base/parts/sandbox/common/electronTypes.js";
-import { localize } from "../../../nls.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { IProductService } from "../../product/common/productService.js";
-import { ITelemetryData } from "../../telemetry/common/telemetry.js";
+import { Event } from '../../../base/common/event.js';
+import { ThemeIcon } from '../../../base/common/themables.js';
+import { IMarkdownString } from '../../../base/common/htmlContent.js';
+import { basename } from '../../../base/common/resources.js';
+import Severity from '../../../base/common/severity.js';
+import { URI } from '../../../base/common/uri.js';
+import { localize } from '../../../nls.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { ITelemetryData } from '../../telemetry/common/telemetry.js';
+import { MessageBoxOptions } from '../../../base/parts/sandbox/common/electronTypes.js';
+import { mnemonicButtonLabel } from '../../../base/common/labels.js';
+import { isLinux, isMacintosh, isWindows } from '../../../base/common/platform.js';
+import { IProductService } from '../../product/common/productService.js';
+import { deepClone } from '../../../base/common/objects.js';
 export interface IDialogArgs {
     readonly confirmArgs?: IConfirmDialogArgs;
     readonly inputArgs?: IInputDialogArgs;
@@ -62,7 +62,7 @@ export interface IInput extends IConfirmation {
     readonly primaryButton?: string;
 }
 export interface IInputElement {
-    readonly type?: "text" | "password";
+    readonly type?: 'text' | 'password';
     readonly value?: string;
     readonly placeholder?: string;
 }
@@ -129,7 +129,7 @@ export interface IAsyncPromptResultWithCancel<T> extends IAsyncPromptResult<T> {
     readonly result: Promise<T>;
 }
 export type IDialogResult = IConfirmationResult | IInputResult | IAsyncPromptResult<unknown>;
-export type DialogType = "none" | "info" | "error" | "question" | "warning";
+export type DialogType = 'none' | 'info' | 'error' | 'question' | 'warning';
 export interface ICheckbox {
     readonly label: string;
     readonly checked?: boolean;
@@ -212,7 +212,7 @@ export interface IOpenDialogOptions {
      */
     availableFileSystems?: readonly string[];
 }
-export const IDialogService = createDecorator<IDialogService>("dialogService");
+export const IDialogService = createDecorator<IDialogService>('dialogService');
 export interface ICustomDialogOptions {
     readonly buttonDetails?: string[];
     readonly markdownDetails?: ICustomDialogMarkdown[];
@@ -275,30 +275,26 @@ export abstract class AbstractDialogHandler implements IDialogHandler {
                     buttons.push(confirmationDialog.primaryButton);
                 }
                 else {
-                    buttons.push(localize({
-                        key: "yesButton",
-                        comment: ["&& denotes a mnemonic"],
-                    }, "&&Yes"));
+                    buttons.push(localize({ key: 'yesButton', comment: ['&& denotes a mnemonic'] }, "&&Yes"));
                 }
                 if (confirmationDialog.cancelButton) {
                     buttons.push(confirmationDialog.cancelButton);
                 }
                 else {
-                    buttons.push(localize("cancelButton", "Cancel"));
+                    buttons.push(localize('cancelButton', "Cancel"));
                 }
                 break;
             }
             case DialogKind.Prompt: {
                 const promptDialog = dialog as IPrompt<unknown>;
-                if (Array.isArray(promptDialog.buttons) &&
-                    promptDialog.buttons.length > 0) {
-                    buttons.push(...promptDialog.buttons.map((button) => button.label));
+                if (Array.isArray(promptDialog.buttons) && promptDialog.buttons.length > 0) {
+                    buttons.push(...promptDialog.buttons.map(button => button.label));
                 }
                 if (promptDialog.cancelButton) {
                     if (promptDialog.cancelButton === true) {
-                        buttons.push(localize("cancelButton", "Cancel"));
+                        buttons.push(localize('cancelButton', "Cancel"));
                     }
-                    else if (typeof promptDialog.cancelButton === "string") {
+                    else if (typeof promptDialog.cancelButton === 'string') {
                         buttons.push(promptDialog.cancelButton);
                     }
                     else {
@@ -306,15 +302,12 @@ export abstract class AbstractDialogHandler implements IDialogHandler {
                             buttons.push(promptDialog.cancelButton.label);
                         }
                         else {
-                            buttons.push(localize("cancelButton", "Cancel"));
+                            buttons.push(localize('cancelButton', "Cancel"));
                         }
                     }
                 }
                 if (buttons.length === 0) {
-                    buttons.push(localize({
-                        key: "okButton",
-                        comment: ["&& denotes a mnemonic"],
-                    }, "&&OK"));
+                    buttons.push(localize({ key: 'okButton', comment: ['&& denotes a mnemonic'] }, "&&OK"));
                 }
                 break;
             }
@@ -324,16 +317,13 @@ export abstract class AbstractDialogHandler implements IDialogHandler {
                     buttons.push(inputDialog.primaryButton);
                 }
                 else {
-                    buttons.push(localize({
-                        key: "okButton",
-                        comment: ["&& denotes a mnemonic"],
-                    }, "&&OK"));
+                    buttons.push(localize({ key: 'okButton', comment: ['&& denotes a mnemonic'] }, "&&OK"));
                 }
                 if (inputDialog.cancelButton) {
                     buttons.push(inputDialog.cancelButton);
                 }
                 else {
-                    buttons.push(localize("cancelButton", "Cancel"));
+                    buttons.push(localize('cancelButton', "Cancel"));
                 }
                 break;
             }
@@ -341,27 +331,17 @@ export abstract class AbstractDialogHandler implements IDialogHandler {
         return buttons;
     }
     protected getDialogType(type: Severity | DialogType | undefined): DialogType | undefined {
-        if (typeof type === "string") {
+        if (typeof type === 'string') {
             return type;
         }
-        if (typeof type === "number") {
-            return type === Severity.Info
-                ? "info"
-                : type === Severity.Error
-                    ? "error"
-                    : type === Severity.Warning
-                        ? "warning"
-                        : "none";
+        if (typeof type === 'number') {
+            return (type === Severity.Info) ? 'info' : (type === Severity.Error) ? 'error' : (type === Severity.Warning) ? 'warning' : 'none';
         }
         return undefined;
     }
     protected getPromptResult<T>(prompt: IPrompt<T>, buttonIndex: number, checkboxChecked: boolean | undefined): IAsyncPromptResult<T> {
-        const promptButtons: IPromptBaseButton<T>[] = [
-            ...(prompt.buttons ?? []),
-        ];
-        if (prompt.cancelButton &&
-            typeof prompt.cancelButton !== "string" &&
-            typeof prompt.cancelButton !== "boolean") {
+        const promptButtons: IPromptBaseButton<T>[] = [...(prompt.buttons ?? [])];
+        if (prompt.cancelButton && typeof prompt.cancelButton !== 'string' && typeof prompt.cancelButton !== 'boolean') {
             promptButtons.push(prompt.cancelButton);
         }
         let result = promptButtons[buttonIndex]?.run({ checkboxChecked });
@@ -429,7 +409,7 @@ export interface IDialogService {
      */
     about(): Promise<void>;
 }
-export const IFileDialogService = createDecorator<IFileDialogService>("fileDialogService");
+export const IFileDialogService = createDecorator<IFileDialogService>('fileDialogService');
 /**
  * A service to bring up file dialogs.
  */
@@ -500,21 +480,17 @@ export const enum ConfirmResult {
 const MAX_CONFIRM_FILES = 10;
 export function getFileNamesMessage(fileNamesOrResources: readonly (string | URI)[]): string {
     const message: string[] = [];
-    message.push(...fileNamesOrResources
-        .slice(0, MAX_CONFIRM_FILES)
-        .map((fileNameOrResource) => typeof fileNameOrResource === "string"
-        ? fileNameOrResource
-        : basename(fileNameOrResource)));
+    message.push(...fileNamesOrResources.slice(0, MAX_CONFIRM_FILES).map(fileNameOrResource => typeof fileNameOrResource === 'string' ? fileNameOrResource : basename(fileNameOrResource)));
     if (fileNamesOrResources.length > MAX_CONFIRM_FILES) {
         if (fileNamesOrResources.length - MAX_CONFIRM_FILES === 1) {
-            message.push(localize("moreFile", "...1 additional file not shown"));
+            message.push(localize('moreFile', "...1 additional file not shown"));
         }
         else {
-            message.push(localize("moreFiles", "...{0} additional files not shown", fileNamesOrResources.length - MAX_CONFIRM_FILES));
+            message.push(localize('moreFiles', "...{0} additional files not shown", fileNamesOrResources.length - MAX_CONFIRM_FILES));
         }
     }
-    message.push("");
-    return message.join("\n");
+    message.push('');
+    return message.join('\n');
 }
 export interface INativeOpenDialogOptions {
     readonly forceNewWindow?: boolean;
@@ -541,13 +517,13 @@ export interface IMassagedMessageBoxOptions {
  */
 export function massageMessageBoxOptions(options: MessageBoxOptions, productService: IProductService): IMassagedMessageBoxOptions {
     const massagedOptions = deepClone(options);
-    let buttons = (massagedOptions.buttons ?? []).map((button) => mnemonicButtonLabel(button));
+    let buttons = (massagedOptions.buttons ?? []).map(button => mnemonicButtonLabel(button));
     let buttonIndeces = (options.buttons || []).map((button, index) => index);
     let defaultId = 0; // by default the first button is default button
     let cancelId = massagedOptions.cancelId ?? buttons.length - 1; // by default the last button is cancel button
     // Apply HIG per OS when more than one button is used
     if (buttons.length > 1) {
-        const cancelButton = typeof cancelId === "number" ? buttons[cancelId] : undefined;
+        const cancelButton = typeof cancelId === 'number' ? buttons[cancelId] : undefined;
         if (isLinux || isMacintosh) {
             // Linux: the GNOME HIG (https://developer.gnome.org/hig/patterns/feedback/dialogs.html?highlight=dialog)
             // recommend the following:
@@ -568,9 +544,7 @@ export function massageMessageBoxOptions(options: MessageBoxOptions, productServ
             // buttons on the far left. To support these older macOS versions we have to manually shuffle the cancel
             // button in the same way as we do on Linux. This will not have any impact on newer macOS versions where
             // shuffling is done for us.
-            if (typeof cancelButton === "string" &&
-                buttons.length > 1 &&
-                cancelId !== 1) {
+            if (typeof cancelButton === 'string' && buttons.length > 1 && cancelId !== 1) {
                 buttons.splice(cancelId, 1);
                 buttons.splice(1, 0, cancelButton);
                 const cancelButtonIndex = buttonIndeces[cancelId];
@@ -582,7 +556,7 @@ export function massageMessageBoxOptions(options: MessageBoxOptions, productServ
                 buttons = buttons.reverse();
                 buttonIndeces = buttonIndeces.reverse();
                 defaultId = buttons.length - 1;
-                if (typeof cancelButton === "string") {
+                if (typeof cancelButton === 'string') {
                     cancelId = defaultId - 1;
                 }
             }
@@ -595,9 +569,7 @@ export function massageMessageBoxOptions(options: MessageBoxOptions, productServ
             //
             // Electron APIs do not reorder buttons for us, so we ensure the position of the cancel button
             // (if provided) that matches the HIG
-            if (typeof cancelButton === "string" &&
-                buttons.length > 1 &&
-                cancelId !== buttons.length - 1 /* last action */) {
+            if (typeof cancelButton === 'string' && buttons.length > 1 && cancelId !== buttons.length - 1 /* last action */) {
                 buttons.splice(cancelId, 1);
                 buttons.push(cancelButton);
                 const buttonIndex = buttonIndeces[cancelId];
@@ -614,6 +586,6 @@ export function massageMessageBoxOptions(options: MessageBoxOptions, productServ
     massagedOptions.title = massagedOptions.title || productService.nameLong;
     return {
         options: massagedOptions,
-        buttonIndeces,
+        buttonIndeces
     };
 }

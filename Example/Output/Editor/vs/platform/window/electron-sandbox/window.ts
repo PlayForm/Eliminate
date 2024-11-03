@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { getZoomLevel, setZoomFactor, setZoomLevel, } from "../../../base/browser/browser.js";
-import { getActiveWindow, getWindows } from "../../../base/browser/dom.js";
-import { mainWindow } from "../../../base/browser/window.js";
-import { ISandboxConfiguration } from "../../../base/parts/sandbox/common/sandboxTypes.js";
-import { ipcRenderer, ISandboxGlobals, webFrame, } from "../../../base/parts/sandbox/electron-sandbox/globals.js";
-import { zoomLevelToZoomFactor } from "../common/window.js";
+import { getZoomLevel, setZoomFactor, setZoomLevel } from '../../../base/browser/browser.js';
+import { getActiveWindow, getWindows } from '../../../base/browser/dom.js';
+import { mainWindow } from '../../../base/browser/window.js';
+import { ISandboxConfiguration } from '../../../base/parts/sandbox/common/sandboxTypes.js';
+import { ISandboxGlobals, ipcRenderer, webFrame } from '../../../base/parts/sandbox/electron-sandbox/globals.js';
+import { zoomLevelToZoomFactor } from '../common/window.js';
 export enum ApplyZoomTarget {
     ACTIVE_WINDOW = 1,
     ALL_WINDOWS
@@ -46,20 +46,17 @@ function getGlobals(win: Window): ISandboxGlobals | undefined {
         const auxiliaryWindow = win as unknown as {
             vscode: ISandboxGlobals;
         };
-        if (auxiliaryWindow?.vscode?.ipcRenderer &&
-            auxiliaryWindow?.vscode?.webFrame) {
+        if (auxiliaryWindow?.vscode?.ipcRenderer && auxiliaryWindow?.vscode?.webFrame) {
             return auxiliaryWindow.vscode;
         }
     }
     return undefined;
 }
 export function zoomIn(target: ApplyZoomTarget | Window): void {
-    applyZoom(getZoomLevel(typeof target === "number" ? getActiveWindow() : target) +
-        1, target);
+    applyZoom(getZoomLevel(typeof target === 'number' ? getActiveWindow() : target) + 1, target);
 }
 export function zoomOut(target: ApplyZoomTarget | Window): void {
-    applyZoom(getZoomLevel(typeof target === "number" ? getActiveWindow() : target) -
-        1, target);
+    applyZoom(getZoomLevel(typeof target === 'number' ? getActiveWindow() : target) - 1, target);
 }
 //#region Bootstrap Window
 export interface ILoadOptions<T extends ISandboxConfiguration = ISandboxConfiguration> {

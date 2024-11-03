@@ -2,15 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as arrays from "../../../base/common/arrays.js";
-import { Position } from "../core/position.js";
-import { IRange } from "../core/range.js";
-import { ColorId, FontStyle, LanguageId, MetadataConsts, StandardTokenType, TokenMetadata, } from "../encodedTokenAttributes.js";
-import { ILanguageIdCodec } from "../languages.js";
-import { ITextModel } from "../model.js";
-import { ContiguousMultilineTokens } from "./contiguousMultilineTokens.js";
-import { ContiguousTokensEditing, EMPTY_LINE_TOKENS, toUint32Array, } from "./contiguousTokensEditing.js";
-import { LineTokens } from "./lineTokens.js";
+import * as arrays from '../../../base/common/arrays.js';
+import { Position } from '../core/position.js';
+import { IRange } from '../core/range.js';
+import { ContiguousTokensEditing, EMPTY_LINE_TOKENS, toUint32Array } from './contiguousTokensEditing.js';
+import { LineTokens } from './lineTokens.js';
+import { ILanguageIdCodec } from '../languages.js';
+import { LanguageId, FontStyle, ColorId, StandardTokenType, MetadataConsts, TokenMetadata } from '../encodedTokenAttributes.js';
+import { ITextModel } from '../model.js';
+import { ContiguousMultilineTokens } from './contiguousMultilineTokens.js';
 /**
  * Represents contiguous tokens in a text model.
  */
@@ -48,9 +48,7 @@ export class ContiguousTokensStore {
         if (lineTextLength === 0) {
             let hasDifferentLanguageId = false;
             if (tokens && tokens.length > 1) {
-                hasDifferentLanguageId =
-                    TokenMetadata.getLanguageId(tokens[1]) !==
-                        topLevelLanguageId;
+                hasDifferentLanguageId = (TokenMetadata.getLanguageId(tokens[1]) !== topLevelLanguageId);
             }
             if (!hasDifferentLanguageId) {
                 return EMPTY_LINE_TOKENS;
@@ -64,8 +62,7 @@ export class ContiguousTokensStore {
         }
         // Ensure the last token covers the end of the text
         tokens[tokens.length - 2] = lineTextLength;
-        if (tokens.byteOffset === 0 &&
-            tokens.byteLength === tokens.buffer.byteLength) {
+        if (tokens.byteOffset === 0 && tokens.byteLength === tokens.buffer.byteLength) {
             // Store directly the ArrayBuffer pointer to save an object
             return tokens.buffer;
         }
@@ -205,22 +202,18 @@ export class ContiguousTokensStore {
                 }
             }
             if (hasChange) {
-                ranges.push({
-                    fromLineNumber: minChangedLineNumber,
-                    toLineNumber: maxChangedLineNumber,
-                });
+                ranges.push({ fromLineNumber: minChangedLineNumber, toLineNumber: maxChangedLineNumber, });
             }
         }
         return { changes: ranges };
     }
 }
 function getDefaultMetadata(topLevelLanguageId: LanguageId): number {
-    return (((topLevelLanguageId << MetadataConsts.LANGUAGEID_OFFSET) |
-        (StandardTokenType.Other << MetadataConsts.TOKEN_TYPE_OFFSET) |
-        (FontStyle.None << MetadataConsts.FONT_STYLE_OFFSET) |
-        (ColorId.DefaultForeground << MetadataConsts.FOREGROUND_OFFSET) |
-        (ColorId.DefaultBackground << MetadataConsts.BACKGROUND_OFFSET) |
+    return ((topLevelLanguageId << MetadataConsts.LANGUAGEID_OFFSET)
+        | (StandardTokenType.Other << MetadataConsts.TOKEN_TYPE_OFFSET)
+        | (FontStyle.None << MetadataConsts.FONT_STYLE_OFFSET)
+        | (ColorId.DefaultForeground << MetadataConsts.FOREGROUND_OFFSET)
+        | (ColorId.DefaultBackground << MetadataConsts.BACKGROUND_OFFSET)
         // If there is no grammar, we just take a guess and try to match brackets.
-        MetadataConsts.BALANCED_BRACKETS_MASK) >>>
-        0);
+        | (MetadataConsts.BALANCED_BRACKETS_MASK)) >>> 0;
 }

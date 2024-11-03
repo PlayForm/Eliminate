@@ -2,23 +2,23 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { isSafari, isWebkitWebView } from "../../../base/browser/browser.js";
-import { $, addDisposableListener, getActiveDocument, getActiveWindow, isHTMLElement, onDidRegisterWindow, } from "../../../base/browser/dom.js";
-import { mainWindow } from "../../../base/browser/window.js";
-import { DeferredPromise } from "../../../base/common/async.js";
-import { Event } from "../../../base/common/event.js";
-import { hash } from "../../../base/common/hash.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { URI } from "../../../base/common/uri.js";
-import { ILayoutService } from "../../layout/browser/layoutService.js";
-import { ILogService } from "../../log/common/log.js";
-import { IClipboardService } from "../common/clipboardService.js";
+import { isSafari, isWebkitWebView } from '../../../base/browser/browser.js';
+import { $, addDisposableListener, getActiveDocument, getActiveWindow, isHTMLElement, onDidRegisterWindow } from '../../../base/browser/dom.js';
+import { mainWindow } from '../../../base/browser/window.js';
+import { DeferredPromise } from '../../../base/common/async.js';
+import { Event } from '../../../base/common/event.js';
+import { hash } from '../../../base/common/hash.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { URI } from '../../../base/common/uri.js';
+import { IClipboardService } from '../common/clipboardService.js';
+import { ILayoutService } from '../../layout/browser/layoutService.js';
+import { ILogService } from '../../log/common/log.js';
 /**
  * Custom mime type used for storing a list of uris in the clipboard.
  *
  * Requires support for custom web clipboards https://github.com/w3c/clipboard-apis/pull/175
  */
-const vscodeResourcesMime = "application/vnd.code.resources";
+const vscodeResourcesMime = 'application/vnd.code.resources';
 export class BrowserClipboardService extends Disposable implements IClipboardService {
     declare readonly _serviceBrand: undefined;
     constructor(
@@ -35,32 +35,26 @@ export class BrowserClipboardService extends Disposable implements IClipboardSer
         // and not in the clipboard, we have to invalidate
         // that state when the user copies other data.
         this._register(Event.runAndSubscribe(onDidRegisterWindow, ({ window, disposables }) => {
-            disposables.add(addDisposableListener(window.document, "copy", () => this.clearResourcesState()));
+            disposables.add(addDisposableListener(window.document, 'copy', () => this.clearResourcesState()));
         }, { window: mainWindow, disposables: this._store }));
     }
     async readImage(): Promise<Uint8Array> {
         try {
             const clipboardItems = await navigator.clipboard.read();
             const clipboardItem = clipboardItems[0];
-            const supportedImageTypes = [
-                "image/png",
-                "image/jpeg",
-                "image/gif",
-                "image/tiff",
-                "image/bmp",
-            ];
-            const mimeType = supportedImageTypes.find((type) => clipboardItem.types.includes(type));
+            const supportedImageTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/tiff', 'image/bmp'];
+            const mimeType = supportedImageTypes.find(type => clipboardItem.types.includes(type));
             if (mimeType) {
                 const blob = await clipboardItem.getType(mimeType);
                 const buffer = await blob.arrayBuffer();
                 return new Uint8Array(buffer);
             }
             else {
-                console.error("No supported image type found in the clipboard");
+                console.error('No supported image type found in the clipboard');
             }
         }
         catch (error) {
-            console.error("Error reading image from clipboard:", error);
+            console.error('Error reading image from clipboard:', error);
         }
         // Return an empty Uint8Array if no image is found or an error occurs
         return new Uint8Array(0);
@@ -82,8 +76,7 @@ export class BrowserClipboardService extends Disposable implements IClipboardSer
         const handler = () => {
             const currentWritePromise = new DeferredPromise<string>();
             // Cancel the previous promise since we just created a new one in response to this new event
-            if (this.webKitPendingClipboardWritePromise &&
-                !this.webKitPendingClipboardWritePromise.isSettled) {
+            if (this.webKitPendingClipboardWritePromise && !this.webKitPendingClipboardWritePromise.isSettled) {
                 this.webKitPendingClipboardWritePromise.cancel();
             }
             this.webKitPendingClipboardWritePromise = currentWritePromise;
@@ -91,27 +84,18 @@ export class BrowserClipboardService extends Disposable implements IClipboardSer
             // This allows us to pass in a Promise that will either be cancelled by another event or
             // resolved with the contents of the first call to this.writeText.
             // see https://developer.mozilla.org/en-US/docs/Web/API/ClipboardItem/ClipboardItem#parameters
-            getActiveWindow()
-                .navigator.clipboard.write([
-                new ClipboardItem({
-                    "text/plain": currentWritePromise.p,
-                }),
-            ])
-                .catch(async (err) => {
-                if (!(err instanceof Error) ||
-                    err.name !== "NotAllowedError" ||
-                    !currentWritePromise.isRejected) {
+            getActiveWindow().navigator.clipboard.write([new ClipboardItem({
+                    'text/plain': currentWritePromise.p,
+                })]).catch(async (err) => {
+                if (!(err instanceof Error) || err.name !== 'NotAllowedError' || !currentWritePromise.isRejected) {
                     this.logService.error(err);
                 }
             });
         };
         this._register(Event.runAndSubscribe(this.layoutService.onDidAddContainer, ({ container, disposables }) => {
-            disposables.add(addDisposableListener(container, "click", handler));
-            disposables.add(addDisposableListener(container, "keydown", handler));
-        }, {
-            container: this.layoutService.mainContainer,
-            disposables: this._store,
-        }));
+            disposables.add(addDisposableListener(container, 'click', handler));
+            disposables.add(addDisposableListener(container, 'keydown', handler));
+        }, { container: this.layoutService.mainContainer, disposables: this._store }));
     }
     private readonly mapTextToType = new Map<string, string>(); // unsupported in web (only in-memory)
     async writeText(text: string, type?: string): Promise<void> {
@@ -143,14 +127,14 @@ export class BrowserClipboardService extends Disposable implements IClipboardSer
     private fallbackWriteText(text: string): void {
         const activeDocument = getActiveDocument();
         const activeElement = activeDocument.activeElement;
-        const textArea: HTMLTextAreaElement = activeDocument.body.appendChild($("textarea", { "aria-hidden": true }));
-        textArea.style.height = "1px";
-        textArea.style.width = "1px";
-        textArea.style.position = "absolute";
+        const textArea: HTMLTextAreaElement = activeDocument.body.appendChild($('textarea', { 'aria-hidden': true }));
+        textArea.style.height = '1px';
+        textArea.style.width = '1px';
+        textArea.style.position = 'absolute';
         textArea.value = text;
         textArea.focus();
         textArea.select();
-        activeDocument.execCommand("copy");
+        activeDocument.execCommand('copy');
         if (isHTMLElement(activeElement)) {
             activeElement.focus();
         }
@@ -159,7 +143,7 @@ export class BrowserClipboardService extends Disposable implements IClipboardSer
     async readText(type?: string): Promise<string> {
         // With type: only in-memory is supported
         if (type) {
-            return this.mapTextToType.get(type) || "";
+            return this.mapTextToType.get(type) || '';
         }
         // Guard access to navigator.clipboard with try/catch
         // as we have seen DOMExceptions in certain browsers
@@ -170,9 +154,9 @@ export class BrowserClipboardService extends Disposable implements IClipboardSer
         catch (error) {
             console.error(error);
         }
-        return "";
+        return '';
     }
-    private findText = ""; // unsupported in web (only in-memory)
+    private findText = ''; // unsupported in web (only in-memory)
     async readFindText(): Promise<string> {
         return this.findText;
     }
@@ -189,10 +173,12 @@ export class BrowserClipboardService extends Disposable implements IClipboardSer
         try {
             await getActiveWindow().navigator.clipboard.write([
                 new ClipboardItem({
-                    [`web ${vscodeResourcesMime}`]: new Blob([JSON.stringify(resources.map((x) => x.toJSON()))], {
-                        type: vscodeResourcesMime,
-                    }),
-                }),
+                    [`web ${vscodeResourcesMime}`]: new Blob([
+                        JSON.stringify(resources.map(x => x.toJSON()))
+                    ], {
+                        type: vscodeResourcesMime
+                    })
+                })
             ]);
             // Continue to write to the in-memory clipboard as well.
             // This is needed because some browsers allow the paste but then can't read the custom resources.
@@ -217,7 +203,7 @@ export class BrowserClipboardService extends Disposable implements IClipboardSer
             for (const item of items) {
                 if (item.types.includes(`web ${vscodeResourcesMime}`)) {
                     const blob = await item.getType(`web ${vscodeResourcesMime}`);
-                    const resources = (JSON.parse(await blob.text()) as URI[]).map((x) => URI.from(x));
+                    const resources = (JSON.parse(await blob.text()) as URI[]).map(x => URI.from(x));
                     return resources;
                 }
             }

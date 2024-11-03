@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { ScrollEvent } from "../../base/common/scrollable.js";
-import { IColorTheme } from "../../platform/theme/common/themeService.js";
-import { ConfigurationChangedEvent, EditorOption, } from "./config/editorOptions.js";
-import { Range } from "./core/range.js";
-import { Selection } from "./core/selection.js";
-import { CursorChangeReason } from "./cursorEvents.js";
-import { ScrollType } from "./editorCommon.js";
-import { IModelDecorationsChangedEvent } from "./textModelEvents.js";
+import { ScrollEvent } from '../../base/common/scrollable.js';
+import { ConfigurationChangedEvent, EditorOption } from './config/editorOptions.js';
+import { Range } from './core/range.js';
+import { Selection } from './core/selection.js';
+import { CursorChangeReason } from './cursorEvents.js';
+import { ScrollType } from './editorCommon.js';
+import { IModelDecorationsChangedEvent } from './textModelEvents.js';
+import { IColorTheme } from '../../platform/theme/common/themeService.js';
 export const enum ViewEventType {
     ViewCompositionStart,
     ViewCompositionEnd,
@@ -235,4 +235,4 @@ export class ViewZonesChangedEvent {
         // Nothing to do
     }
 }
-export type ViewEvent = ViewCompositionStartEvent | ViewCompositionEndEvent | ViewConfigurationChangedEvent | ViewCursorStateChangedEvent | ViewDecorationsChangedEvent | ViewFlushedEvent | ViewFocusChangedEvent | ViewLanguageConfigurationEvent | ViewLineMappingChangedEvent | ViewLinesChangedEvent | ViewLinesDeletedEvent | ViewLinesInsertedEvent | ViewRevealRangeRequestEvent | ViewScrollChangedEvent | ViewThemeChangedEvent | ViewTokensChangedEvent | ViewTokensColorsChangedEvent | ViewZonesChangedEvent;
+export type ViewEvent = (ViewCompositionStartEvent | ViewCompositionEndEvent | ViewConfigurationChangedEvent | ViewCursorStateChangedEvent | ViewDecorationsChangedEvent | ViewFlushedEvent | ViewFocusChangedEvent | ViewLanguageConfigurationEvent | ViewLineMappingChangedEvent | ViewLinesChangedEvent | ViewLinesDeletedEvent | ViewLinesInsertedEvent | ViewRevealRangeRequestEvent | ViewScrollChangedEvent | ViewThemeChangedEvent | ViewTokensChangedEvent | ViewTokensColorsChangedEvent | ViewZonesChangedEvent);

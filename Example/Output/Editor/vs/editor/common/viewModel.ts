@@ -2,21 +2,21 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as arrays from "../../base/common/arrays.js";
-import { IScrollPosition, Scrollable } from "../../base/common/scrollable.js";
-import * as strings from "../../base/common/strings.js";
-import { IPosition, Position } from "./core/position.js";
-import { Range } from "./core/range.js";
-import { CursorConfiguration, CursorState, EditOperationType, IColumnSelectData, ICursorSimpleModel, PartialCursorState, } from "./cursorCommon.js";
-import { CursorChangeReason } from "./cursorEvents.js";
-import { INewScrollPosition, ScrollType } from "./editorCommon.js";
-import { EditorTheme } from "./editorTheme.js";
-import { EndOfLinePreference, IGlyphMarginLanesModel, IModelDecorationOptions, ITextModel, PositionAffinity, } from "./model.js";
-import { ILineBreaksComputer, InjectedText, } from "./modelLineProjectionData.js";
-import { BracketGuideOptions, IActiveIndentGuideInfo, IndentGuide, } from "./textModelGuides.js";
-import { IViewLineTokens } from "./tokens/lineTokens.js";
-import { ViewEventHandler } from "./viewEventHandler.js";
-import { VerticalRevealType } from "./viewEvents.js";
+import * as arrays from '../../base/common/arrays.js';
+import { IScrollPosition, Scrollable } from '../../base/common/scrollable.js';
+import * as strings from '../../base/common/strings.js';
+import { IPosition, Position } from './core/position.js';
+import { Range } from './core/range.js';
+import { CursorConfiguration, CursorState, EditOperationType, IColumnSelectData, ICursorSimpleModel, PartialCursorState } from './cursorCommon.js';
+import { CursorChangeReason } from './cursorEvents.js';
+import { INewScrollPosition, ScrollType } from './editorCommon.js';
+import { EditorTheme } from './editorTheme.js';
+import { EndOfLinePreference, IGlyphMarginLanesModel, IModelDecorationOptions, ITextModel, PositionAffinity } from './model.js';
+import { ILineBreaksComputer, InjectedText } from './modelLineProjectionData.js';
+import { BracketGuideOptions, IActiveIndentGuideInfo, IndentGuide } from './textModelGuides.js';
+import { IViewLineTokens } from './tokens/lineTokens.js';
+import { ViewEventHandler } from './viewEventHandler.js';
+import { VerticalRevealType } from './viewEvents.js';
 export interface IViewModel extends ICursorSimpleModel {
     readonly model: ITextModel;
     readonly coordinatesConverter: ICoordinatesConverter;
@@ -193,7 +193,7 @@ export interface ICoordinatesConverter {
     convertModelPositionToViewPosition(modelPosition: Position, affinity?: PositionAffinity, allowZeroLineNumber?: boolean, belowHiddenRanges?: boolean): Position;
     /**
      * @param affinity Only has an effect if the range is empty.
-     */
+    */
     convertModelRangeToViewRange(modelRange: Range, affinity?: PositionAffinity): Range;
     modelPositionIsVisible(modelPosition: Position): boolean;
     getModelLineViewLineCount(modelLineNumber: number): number;
@@ -235,7 +235,7 @@ export class ViewLineData {
     public readonly tokens: IViewLineTokens;
     /**
      * Additional inline decorations for this line.
-     */
+    */
     public readonly inlineDecorations: readonly SingleLineInlineDecoration[] | null;
     constructor(content: string, continuesWithWrappedLine: boolean, minColumn: number, maxColumn: number, startVisibleColumn: number, tokens: IViewLineTokens, inlineDecorations: readonly SingleLineInlineDecoration[] | null) {
         this.content = content;
@@ -320,14 +320,14 @@ export const enum InlineDecorationType {
     RegularAffectingLetterSpacing = 3
 }
 export class InlineDecoration {
-    constructor(public readonly range: Range, public readonly inlineClassName: string, public readonly type: InlineDecorationType) { }
+    constructor(public readonly range: Range, public readonly inlineClassName: string, public readonly type: InlineDecorationType) {
+    }
 }
 export class SingleLineInlineDecoration {
-    constructor(public readonly startOffset: number, public readonly endOffset: number, public readonly inlineClassName: string, public readonly inlineClassNameAffectsLetterSpacing: boolean) { }
+    constructor(public readonly startOffset: number, public readonly endOffset: number, public readonly inlineClassName: string, public readonly inlineClassNameAffectsLetterSpacing: boolean) {
+    }
     toInlineDecoration(lineNumber: number): InlineDecoration {
-        return new InlineDecoration(new Range(lineNumber, this.startOffset + 1, lineNumber, this.endOffset + 1), this.inlineClassName, this.inlineClassNameAffectsLetterSpacing
-            ? InlineDecorationType.RegularAffectingLetterSpacing
-            : InlineDecorationType.Regular);
+        return new InlineDecoration(new Range(lineNumber, this.startOffset + 1, lineNumber, this.endOffset + 1), this.inlineClassName, this.inlineClassNameAffectsLetterSpacing ? InlineDecorationType.RegularAffectingLetterSpacing : InlineDecorationType.Regular);
     }
 }
 export class ViewModelDecoration {
@@ -361,9 +361,9 @@ export class OverviewRulerDecorationsGroup {
         return a.zIndex - b.zIndex;
     }
     public static equals(a: OverviewRulerDecorationsGroup, b: OverviewRulerDecorationsGroup): boolean {
-        return (a.color === b.color &&
-            a.zIndex === b.zIndex &&
-            arrays.equals(a.data, b.data));
+        return (a.color === b.color
+            && a.zIndex === b.zIndex
+            && arrays.equals(a.data, b.data));
     }
     public static equalsArr(a: OverviewRulerDecorationsGroup[], b: OverviewRulerDecorationsGroup[]): boolean {
         return arrays.equals(a, b, OverviewRulerDecorationsGroup.equals);

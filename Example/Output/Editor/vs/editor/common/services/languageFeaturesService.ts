@@ -2,11 +2,11 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { URI } from "../../../base/common/uri.js";
-import { InstantiationType, registerSingleton, } from "../../../platform/instantiation/common/extensions.js";
-import { LanguageFeatureRegistry, NotebookInfo, NotebookInfoResolver, } from "../languageFeatureRegistry.js";
-import { CodeActionProvider, CodeLensProvider, CompletionItemProvider, DeclarationProvider, DefinitionProvider, DocumentColorProvider, DocumentDropEditProvider, DocumentFormattingEditProvider, DocumentHighlightProvider, DocumentPasteEditProvider, DocumentRangeFormattingEditProvider, DocumentRangeSemanticTokensProvider, DocumentSemanticTokensProvider, DocumentSymbolProvider, EvaluatableExpressionProvider, FoldingRangeProvider, HoverProvider, ImplementationProvider, InlayHintsProvider, InlineCompletionsProvider, InlineEditProvider, InlineValuesProvider, LinkedEditingRangeProvider, LinkProvider, MappedEditsProvider, MultiDocumentHighlightProvider, NewSymbolNamesProvider, OnTypeFormattingEditProvider, ReferenceProvider, RenameProvider, SelectionRangeProvider, SignatureHelpProvider, TypeDefinitionProvider, } from "../languages.js";
-import { ILanguageFeaturesService } from "./languageFeatures.js";
+import { URI } from '../../../base/common/uri.js';
+import { LanguageFeatureRegistry, NotebookInfo, NotebookInfoResolver } from '../languageFeatureRegistry.js';
+import { CodeActionProvider, CodeLensProvider, CompletionItemProvider, DocumentPasteEditProvider, DeclarationProvider, DefinitionProvider, DocumentColorProvider, DocumentFormattingEditProvider, MultiDocumentHighlightProvider, DocumentHighlightProvider, DocumentDropEditProvider, DocumentRangeFormattingEditProvider, DocumentRangeSemanticTokensProvider, DocumentSemanticTokensProvider, DocumentSymbolProvider, EvaluatableExpressionProvider, FoldingRangeProvider, HoverProvider, ImplementationProvider, InlayHintsProvider, InlineCompletionsProvider, InlineValuesProvider, LinkedEditingRangeProvider, LinkProvider, OnTypeFormattingEditProvider, ReferenceProvider, RenameProvider, SelectionRangeProvider, SignatureHelpProvider, TypeDefinitionProvider, MappedEditsProvider, NewSymbolNamesProvider, InlineEditProvider } from '../languages.js';
+import { ILanguageFeaturesService } from './languageFeatures.js';
+import { InstantiationType, registerSingleton } from '../../../platform/instantiation/common/extensions.js';
 export class LanguageFeaturesService implements ILanguageFeaturesService {
     declare _serviceBrand: undefined;
     readonly referenceProvider = new LanguageFeatureRegistry<ReferenceProvider>(this._score.bind(this));

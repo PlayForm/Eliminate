@@ -42,23 +42,21 @@ class PixelRatioMonitorImpl extends Disposable implements IPixelRatioMonitor {
     constructor(targetWindow: Window) {
         super();
         this._value = this._getPixelRatio(targetWindow);
-        ;
-        this._register(this._register(new DevicePixelRatioMonitor(targetWindow)).onDidChange(() => {
+        const dprMonitor = this._register(new DevicePixelRatioMonitor(targetWindow));
+        this._register(dprMonitor.onDidChange(() => {
             this._value = this._getPixelRatio(targetWindow);
             this._onDidChange.fire(this._value);
         }));
     }
     private _getPixelRatio(targetWindow: Window): number {
         const ctx: any = document.createElement('canvas').getContext('2d');
-        ;
-        ;
-        return (targetWindow.devicePixelRatio || 1)
-            /
-                (document.createElement('canvas').getContext('2d').webkitBackingStorePixelRatio ||
-                    document.createElement('canvas').getContext('2d').mozBackingStorePixelRatio ||
-                    document.createElement('canvas').getContext('2d').msBackingStorePixelRatio ||
-                    document.createElement('canvas').getContext('2d').oBackingStorePixelRatio ||
-                    document.createElement('canvas').getContext('2d').backingStorePixelRatio || 1);
+        const dpr = targetWindow.devicePixelRatio || 1;
+        const bsr = ctx.webkitBackingStorePixelRatio ||
+            ctx.mozBackingStorePixelRatio ||
+            ctx.msBackingStorePixelRatio ||
+            ctx.oBackingStorePixelRatio ||
+            ctx.backingStorePixelRatio || 1;
+        return dpr / bsr;
     }
 }
 class PixelRatioMonitorFacade {
@@ -66,20 +64,17 @@ class PixelRatioMonitorFacade {
     private _getOrCreatePixelRatioMonitor(targetWindow: Window): PixelRatioMonitorImpl {
         const targetWindowId = getWindowId(targetWindow);
         let pixelRatioMonitor = this.mapWindowIdToPixelRatioMonitor.get(targetWindowId);
-        if (!this.mapWindowIdToPixelRatioMonitor.get(getWindowId(targetWindow))) {
-            this.mapWindowIdToPixelRatioMonitor.get(getWindowId(targetWindow))
-                = markAsSingleton(new PixelRatioMonitorImpl(targetWindow));
-            this.mapWindowIdToPixelRatioMonitor.set(getWindowId(targetWindow), this.mapWindowIdToPixelRatioMonitor.get(getWindowId(targetWindow)));
+        if (!pixelRatioMonitor) {
+            pixelRatioMonitor = markAsSingleton(new PixelRatioMonitorImpl(targetWindow));
+            this.mapWindowIdToPixelRatioMonitor.set(targetWindowId, pixelRatioMonitor);
             markAsSingleton(Event.once(onDidUnregisterWindow)(({ vscodeWindowId }) => {
-                if (vscodeWindowId ===
-                    getWindowId(targetWindow)) {
-                    this.mapWindowIdToPixelRatioMonitor.get(getWindowId(targetWindow))
-                        ?.dispose();
-                    this.mapWindowIdToPixelRatioMonitor.delete(getWindowId(targetWindow));
+                if (vscodeWindowId === targetWindowId) {
+                    pixelRatioMonitor?.dispose();
+                    this.mapWindowIdToPixelRatioMonitor.delete(targetWindowId);
                 }
             }));
         }
-        return this.mapWindowIdToPixelRatioMonitor.get(getWindowId(targetWindow));
+        return pixelRatioMonitor;
     }
     getInstance(targetWindow: Window): IPixelRatioMonitor {
         return this._getOrCreatePixelRatioMonitor(targetWindow);

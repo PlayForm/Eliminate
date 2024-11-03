@@ -2,20 +2,20 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { compareBy } from "../../../base/common/arrays.js";
-import { findFirstMin, findLastMax } from "../../../base/common/arraysFind.js";
-import { Position } from "../core/position.js";
-import { Range } from "../core/range.js";
-import { ISelection, Selection } from "../core/selection.js";
-import { CursorState, PartialCursorState } from "../cursorCommon.js";
-import { CursorContext } from "./cursorContext.js";
-import { Cursor } from "./oneCursor.js";
+import { compareBy } from '../../../base/common/arrays.js';
+import { findLastMax, findFirstMin } from '../../../base/common/arraysFind.js';
+import { CursorState, PartialCursorState } from '../cursorCommon.js';
+import { CursorContext } from './cursorContext.js';
+import { Cursor } from './oneCursor.js';
+import { Position } from '../core/position.js';
+import { Range } from '../core/range.js';
+import { ISelection, Selection } from '../core/selection.js';
 export class CursorCollection {
     private context: CursorContext;
     /**
      * `cursors[0]` is the primary cursor, thus `cursors.length >= 1` is always true.
      * `cursors.slice(1)` are secondary cursors.
-     */
+    */
     private cursors: Cursor[];
     // An index which identifies the last cursor that was added / moved (think Ctrl+drag)
     // This index refers to `cursors.slice(1)`, i.e. after removing the primary cursor.
@@ -49,25 +49,25 @@ export class CursorCollection {
         }
     }
     public readSelectionFromMarkers(): Selection[] {
-        return this.cursors.map((c) => c.readSelectionFromMarkers(this.context));
+        return this.cursors.map(c => c.readSelectionFromMarkers(this.context));
     }
     public getAll(): CursorState[] {
-        return this.cursors.map((c) => c.asCursorState());
+        return this.cursors.map(c => c.asCursorState());
     }
     public getViewPositions(): Position[] {
-        return this.cursors.map((c) => c.viewState.position);
+        return this.cursors.map(c => c.viewState.position);
     }
     public getTopMostViewPosition(): Position {
-        return findFirstMin(this.cursors, compareBy((c) => c.viewState.position, Position.compare))!.viewState.position;
+        return findFirstMin(this.cursors, compareBy(c => c.viewState.position, Position.compare))!.viewState.position;
     }
     public getBottomMostViewPosition(): Position {
-        return findLastMax(this.cursors, compareBy((c) => c.viewState.position, Position.compare))!.viewState.position;
+        return findLastMax(this.cursors, compareBy(c => c.viewState.position, Position.compare))!.viewState.position;
     }
     public getSelections(): Selection[] {
-        return this.cursors.map((c) => c.modelState.selection);
+        return this.cursors.map(c => c.modelState.selection);
     }
     public getViewSelections(): Selection[] {
-        return this.cursors.map((c) => c.viewState.selection);
+        return this.cursors.map(c => c.viewState.selection);
     }
     public setSelections(selections: ISelection[]): void {
         this.setStates(CursorState.fromModelSelections(selections));
@@ -140,7 +140,7 @@ export class CursorCollection {
                 selection: cursors[i].modelState.selection,
             });
         }
-        sortedCursors.sort(compareBy((s) => s.selection, Range.compareRangesUsingStarts));
+        sortedCursors.sort(compareBy(s => s.selection, Range.compareRangesUsingStarts));
         for (let sortedCursorIndex = 0; sortedCursorIndex < sortedCursors.length - 1; sortedCursorIndex++) {
             const current = sortedCursors[sortedCursorIndex];
             const next = sortedCursors[sortedCursorIndex + 1];
@@ -152,37 +152,23 @@ export class CursorCollection {
             let shouldMergeCursors: boolean;
             if (nextSelection.isEmpty() || currentSelection.isEmpty()) {
                 // Merge touching cursors if one of them is collapsed
-                shouldMergeCursors = nextSelection
-                    .getStartPosition()
-                    .isBeforeOrEqual(currentSelection.getEndPosition());
+                shouldMergeCursors = nextSelection.getStartPosition().isBeforeOrEqual(currentSelection.getEndPosition());
             }
             else {
                 // Merge only overlapping cursors (i.e. allow touching ranges)
-                shouldMergeCursors = nextSelection
-                    .getStartPosition()
-                    .isBefore(currentSelection.getEndPosition());
+                shouldMergeCursors = nextSelection.getStartPosition().isBefore(currentSelection.getEndPosition());
             }
             if (shouldMergeCursors) {
-                const winnerSortedCursorIndex = current.index < next.index
-                    ? sortedCursorIndex
-                    : sortedCursorIndex + 1;
-                const looserSortedCursorIndex = current.index < next.index
-                    ? sortedCursorIndex + 1
-                    : sortedCursorIndex;
+                const winnerSortedCursorIndex = current.index < next.index ? sortedCursorIndex : sortedCursorIndex + 1;
+                const looserSortedCursorIndex = current.index < next.index ? sortedCursorIndex + 1 : sortedCursorIndex;
                 const looserIndex = sortedCursors[looserSortedCursorIndex].index;
                 const winnerIndex = sortedCursors[winnerSortedCursorIndex].index;
                 const looserSelection = sortedCursors[looserSortedCursorIndex].selection;
                 const winnerSelection = sortedCursors[winnerSortedCursorIndex].selection;
                 if (!looserSelection.equalsSelection(winnerSelection)) {
                     const resultingRange = looserSelection.plusRange(winnerSelection);
-                    const looserSelectionIsLTR = looserSelection.selectionStartLineNumber ===
-                        looserSelection.startLineNumber &&
-                        looserSelection.selectionStartColumn ===
-                            looserSelection.startColumn;
-                    const winnerSelectionIsLTR = winnerSelection.selectionStartLineNumber ===
-                        winnerSelection.startLineNumber &&
-                        winnerSelection.selectionStartColumn ===
-                            winnerSelection.startColumn;
+                    const looserSelectionIsLTR = (looserSelection.selectionStartLineNumber === looserSelection.startLineNumber && looserSelection.selectionStartColumn === looserSelection.startColumn);
+                    const winnerSelectionIsLTR = (winnerSelection.selectionStartLineNumber === winnerSelection.startLineNumber && winnerSelection.selectionStartColumn === winnerSelection.startColumn);
                     // Give more importance to the last added cursor (think Ctrl-dragging + hitting another cursor)
                     let resultingSelectionIsLTR: boolean;
                     if (looserIndex === this.lastAddedCursorIndex) {
@@ -200,8 +186,7 @@ export class CursorCollection {
                     else {
                         resultingSelection = new Selection(resultingRange.endLineNumber, resultingRange.endColumn, resultingRange.startLineNumber, resultingRange.startColumn);
                     }
-                    sortedCursors[winnerSortedCursorIndex].selection =
-                        resultingSelection;
+                    sortedCursors[winnerSortedCursorIndex].selection = resultingSelection;
                     const resultingState = CursorState.fromModelSelection(resultingSelection);
                     cursors[winnerIndex].setState(this.context, resultingState.modelState, resultingState.viewState);
                 }

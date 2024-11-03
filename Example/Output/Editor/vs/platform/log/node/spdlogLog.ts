@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import type * as spdlog from "@vscode/spdlog";
-import { ByteSize } from "../../files/common/files.js";
-import { AbstractMessageLogger, ILogger, LogLevel } from "../common/log.js";
+import type * as spdlog from '@vscode/spdlog';
+import { ByteSize } from '../../files/common/files.js';
+import { AbstractMessageLogger, ILogger, LogLevel } from '../common/log.js';
 enum SpdLogLevel {
     Trace,
     Debug,
@@ -17,14 +17,14 @@ enum SpdLogLevel {
 async function createSpdLogLogger(name: string, logfilePath: string, filesize: number, filecount: number, donotUseFormatters: boolean): Promise<spdlog.Logger | null> {
     // Do not crash if spdlog cannot be loaded
     try {
-        const _spdlog = await import("@vscode/spdlog");
+        const _spdlog = await import('@vscode/spdlog');
         _spdlog.setFlushOn(SpdLogLevel.Trace);
         const logger = await _spdlog.createAsyncRotatingLogger(name, logfilePath, filesize, filecount);
         if (donotUseFormatters) {
             logger.clearFormatters();
         }
         else {
-            logger.setPattern("%Y-%m-%d %H:%M:%S.%e [%l] %v");
+            logger.setPattern('%Y-%m-%d %H:%M:%S.%e [%l] %v');
         }
         return logger;
     }
@@ -54,10 +54,8 @@ function log(logger: spdlog.Logger, level: LogLevel, message: string): void {
         case LogLevel.Error:
             logger.error(message);
             break;
-        case LogLevel.Off:
-            /* do nothing */ break;
-        default:
-            throw new Error(`Invalid log level ${level}`);
+        case LogLevel.Off: /* do nothing */ break;
+        default: throw new Error(`Invalid log level ${level}`);
     }
 }
 function setLogLevel(logger: spdlog.Logger, level: LogLevel): void {
@@ -80,8 +78,7 @@ function setLogLevel(logger: spdlog.Logger, level: LogLevel): void {
         case LogLevel.Off:
             logger.setLevel(SpdLogLevel.Off);
             break;
-        default:
-            throw new Error(`Invalid log level ${level}`);
+        default: throw new Error(`Invalid log level ${level}`);
     }
 }
 export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
@@ -92,7 +89,7 @@ export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
         super();
         this.setLevel(level);
         this._loggerCreationPromise = this._createSpdLogLogger(name, filepath, rotating, donotUseFormatters);
-        this._register(this.onDidChangeLogLevel((level) => {
+        this._register(this.onDidChangeLogLevel(level => {
             if (this._logger) {
                 setLogLevel(this._logger, level);
             }

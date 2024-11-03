@@ -2,16 +2,16 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import "./media/part.css";
-import { Dimension, getActiveDocument, IDimension, IDomPosition, prepend, size, } from "../../base/browser/dom.js";
-import { ISerializableView, IViewSize, } from "../../base/browser/ui/grid/grid.js";
-import { Emitter, Event } from "../../base/common/event.js";
-import { IDisposable, toDisposable } from "../../base/common/lifecycle.js";
-import { assertIsDefined } from "../../base/common/types.js";
-import { IStorageService } from "../../platform/storage/common/storage.js";
-import { IColorTheme, IThemeService, } from "../../platform/theme/common/themeService.js";
-import { Component } from "../common/component.js";
-import { IWorkbenchLayoutService } from "../services/layout/browser/layoutService.js";
+import './media/part.css';
+import { Component } from '../common/component.js';
+import { IThemeService, IColorTheme } from '../../platform/theme/common/themeService.js';
+import { Dimension, size, IDimension, getActiveDocument, prepend, IDomPosition } from '../../base/browser/dom.js';
+import { IStorageService } from '../../platform/storage/common/storage.js';
+import { ISerializableView, IViewSize } from '../../base/browser/ui/grid/grid.js';
+import { Event, Emitter } from '../../base/common/event.js';
+import { IWorkbenchLayoutService } from '../services/layout/browser/layoutService.js';
+import { assertIsDefined } from '../../base/common/types.js';
+import { IDisposable, toDisposable } from '../../base/common/lifecycle.js';
 export interface IPartOptions {
     readonly hasTitle?: boolean;
     readonly borderWidth?: () => number;
@@ -28,13 +28,9 @@ export interface ILayoutContentResult {
  */
 export abstract class Part extends Component implements ISerializableView {
     private _dimension: Dimension | undefined;
-    get dimension(): Dimension | undefined {
-        return this._dimension;
-    }
+    get dimension(): Dimension | undefined { return this._dimension; }
     private _contentPosition: IDomPosition | undefined;
-    get contentPosition(): IDomPosition | undefined {
-        return this._contentPosition;
-    }
+    get contentPosition(): IDomPosition | undefined { return this._contentPosition; }
     protected _onDidVisibilityChange = this._register(new Emitter<boolean>());
     readonly onDidVisibilityChange = this._onDidVisibilityChange.event;
     private parent: HTMLElement | undefined;
@@ -101,14 +97,14 @@ export abstract class Part extends Component implements ISerializableView {
      */
     protected setHeaderArea(headerContainer: HTMLElement): void {
         if (this.headerArea) {
-            throw new Error("Header already exists");
+            throw new Error('Header already exists');
         }
         if (!this.parent || !this.titleArea) {
             return;
         }
         prepend(this.parent, headerContainer);
-        headerContainer.classList.add("header-or-footer");
-        headerContainer.classList.add("header");
+        headerContainer.classList.add('header-or-footer');
+        headerContainer.classList.add('header');
         this.headerArea = headerContainer;
         this.partLayout?.setHeaderVisibility(true);
         this.relayout();
@@ -118,14 +114,14 @@ export abstract class Part extends Component implements ISerializableView {
      */
     protected setFooterArea(footerContainer: HTMLElement): void {
         if (this.footerArea) {
-            throw new Error("Footer already exists");
+            throw new Error('Footer already exists');
         }
         if (!this.parent || !this.titleArea) {
             return;
         }
         this.parent.appendChild(footerContainer);
-        footerContainer.classList.add("header-or-footer");
-        footerContainer.classList.add("footer");
+        footerContainer.classList.add('header-or-footer');
+        footerContainer.classList.add('footer');
         this.footerArea = footerContainer;
         this.partLayout?.setFooterVisibility(true);
         this.relayout();
@@ -166,9 +162,7 @@ export abstract class Part extends Component implements ISerializableView {
     }
     //#region ISerializableView
     protected _onDidChange = this._register(new Emitter<IViewSize | undefined>());
-    get onDidChange(): Event<IViewSize | undefined> {
-        return this._onDidChange.event;
-    }
+    get onDidChange(): Event<IViewSize | undefined> { return this._onDidChange.event; }
     element!: HTMLElement;
     abstract minimumWidth: number;
     abstract maximumWidth: number;
@@ -216,7 +210,7 @@ class PartLayout {
             footerSize = Dimension.None;
         }
         let contentWidth = width;
-        if (this.options && typeof this.options.borderWidth === "function") {
+        if (this.options && typeof this.options.borderWidth === 'function') {
             contentWidth -= this.options.borderWidth(); // adjust for border size
         }
         // Content Size: Width (Fill), Height (Variable)
@@ -239,9 +233,7 @@ export interface IMultiWindowPart {
 }
 export abstract class MultiWindowParts<T extends IMultiWindowPart> extends Component {
     protected readonly _parts = new Set<T>();
-    get parts() {
-        return Array.from(this._parts);
-    }
+    get parts() { return Array.from(this._parts); }
     abstract readonly mainPart: T;
     registerPart(part: T): IDisposable {
         this._parts.add(part);

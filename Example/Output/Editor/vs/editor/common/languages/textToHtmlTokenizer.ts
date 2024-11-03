@@ -2,17 +2,17 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CharCode } from "../../../base/common/charCode.js";
-import * as strings from "../../../base/common/strings.js";
-import { LanguageId } from "../encodedTokenAttributes.js";
-import { ILanguageIdCodec, IState, ITokenizationSupport, TokenizationRegistry, } from "../languages.js";
-import { IViewLineTokens, LineTokens } from "../tokens/lineTokens.js";
-import { ILanguageService } from "./language.js";
-import { NullState, nullTokenizeEncoded } from "./nullTokenize.js";
-export type IReducedTokenizationSupport = Omit<ITokenizationSupport, "tokenize">;
+import { CharCode } from '../../../base/common/charCode.js';
+import * as strings from '../../../base/common/strings.js';
+import { IViewLineTokens, LineTokens } from '../tokens/lineTokens.js';
+import { ILanguageIdCodec, IState, ITokenizationSupport, TokenizationRegistry } from '../languages.js';
+import { LanguageId } from '../encodedTokenAttributes.js';
+import { NullState, nullTokenizeEncoded } from './nullTokenize.js';
+import { ILanguageService } from './language.js';
+export type IReducedTokenizationSupport = Omit<ITokenizationSupport, 'tokenize'>;
 const fallback: IReducedTokenizationSupport = {
     getInitialState: () => NullState,
-    tokenizeEncoded: (buffer: string, hasEOL: boolean, state: IState) => nullTokenizeEncoded(LanguageId.Null, state),
+    tokenizeEncoded: (buffer: string, hasEOL: boolean, state: IState) => nullTokenizeEncoded(LanguageId.Null, state)
 };
 export function tokenizeToStringSync(languageService: ILanguageService, text: string, languageId: string): string {
     return _tokenizeToString(text, languageService.languageIdCodec, TokenizationRegistry.get(languageId) || fallback);
@@ -34,20 +34,20 @@ export function tokenizeLineToHTML(text: string, viewLineTokens: IViewLineTokens
         if (tokenEndIndex <= startOffset) {
             continue;
         }
-        let partContent = "";
+        let partContent = '';
         for (; charIndex < tokenEndIndex && charIndex < endOffset; charIndex++) {
             const charCode = text.charCodeAt(charIndex);
             switch (charCode) {
                 case CharCode.Tab: {
-                    let insertSpacesCount = tabSize - ((charIndex + tabsCharDelta) % tabSize);
+                    let insertSpacesCount = tabSize - (charIndex + tabsCharDelta) % tabSize;
                     tabsCharDelta += insertSpacesCount - 1;
                     while (insertSpacesCount > 0) {
                         if (useNbsp && prevIsSpace) {
-                            partContent += "&#160;";
+                            partContent += '&#160;';
                             prevIsSpace = false;
                         }
                         else {
-                            partContent += " ";
+                            partContent += ' ';
                             prevIsSpace = true;
                         }
                         insertSpacesCount--;
@@ -55,40 +55,40 @@ export function tokenizeLineToHTML(text: string, viewLineTokens: IViewLineTokens
                     break;
                 }
                 case CharCode.LessThan:
-                    partContent += "&lt;";
+                    partContent += '&lt;';
                     prevIsSpace = false;
                     break;
                 case CharCode.GreaterThan:
-                    partContent += "&gt;";
+                    partContent += '&gt;';
                     prevIsSpace = false;
                     break;
                 case CharCode.Ampersand:
-                    partContent += "&amp;";
+                    partContent += '&amp;';
                     prevIsSpace = false;
                     break;
                 case CharCode.Null:
-                    partContent += "&#00;";
+                    partContent += '&#00;';
                     prevIsSpace = false;
                     break;
                 case CharCode.UTF8_BOM:
                 case CharCode.LINE_SEPARATOR:
                 case CharCode.PARAGRAPH_SEPARATOR:
                 case CharCode.NEXT_LINE:
-                    partContent += "\ufffd";
+                    partContent += '\ufffd';
                     prevIsSpace = false;
                     break;
                 case CharCode.CarriageReturn:
                     // zero width space, because carriage return would introduce a line break
-                    partContent += "&#8203";
+                    partContent += '&#8203';
                     prevIsSpace = false;
                     break;
                 case CharCode.Space:
                     if (useNbsp && prevIsSpace) {
-                        partContent += "&#160;";
+                        partContent += '&#160;';
                         prevIsSpace = false;
                     }
                     else {
-                        partContent += " ";
+                        partContent += ' ';
                         prevIsSpace = true;
                     }
                     break;

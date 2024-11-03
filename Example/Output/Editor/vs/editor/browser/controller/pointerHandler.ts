@@ -2,19 +2,19 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { BrowserFeatures } from "../../../base/browser/canIUse.js";
-import * as dom from "../../../base/browser/dom.js";
-import { EventType, Gesture, GestureEvent, } from "../../../base/browser/touch.js";
-import { mainWindow } from "../../../base/browser/window.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import * as platform from "../../../base/common/platform.js";
-import { ViewContext } from "../../common/viewModel/viewContext.js";
-import { NavigationCommandRevealType } from "../coreCommands.js";
-import { IMouseTarget, MouseTargetType } from "../editorBrowser.js";
-import { EditorMouseEvent, EditorPointerEventFactory } from "../editorDom.js";
-import { ViewController } from "../view/viewController.js";
-import { TextAreaSyntethicEvents } from "./editContext/textArea/textAreaEditContextInput.js";
-import { IPointerHandlerHelper, MouseHandler } from "./mouseHandler.js";
+import { BrowserFeatures } from '../../../base/browser/canIUse.js';
+import * as dom from '../../../base/browser/dom.js';
+import { EventType, Gesture, GestureEvent } from '../../../base/browser/touch.js';
+import { mainWindow } from '../../../base/browser/window.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import * as platform from '../../../base/common/platform.js';
+import { IPointerHandlerHelper, MouseHandler } from './mouseHandler.js';
+import { NavigationCommandRevealType } from '../coreCommands.js';
+import { IMouseTarget, MouseTargetType } from '../editorBrowser.js';
+import { EditorMouseEvent, EditorPointerEventFactory } from '../editorDom.js';
+import { ViewController } from '../view/viewController.js';
+import { ViewContext } from '../../common/viewModel/viewContext.js';
+import { TextAreaSyntethicEvents } from './editContext/textArea/textAreaEditContextInput.js';
 /**
  * Currently only tested on iOS 13/ iPadOS.
  */
@@ -26,18 +26,18 @@ export class PointerEventHandler extends MouseHandler {
         this._register(dom.addDisposableListener(this.viewHelper.linesContentDomNode, EventType.Tap, (e) => this.onTap(e)));
         this._register(dom.addDisposableListener(this.viewHelper.linesContentDomNode, EventType.Change, (e) => this.onChange(e)));
         this._register(dom.addDisposableListener(this.viewHelper.linesContentDomNode, EventType.Contextmenu, (e: MouseEvent) => this._onContextMenu(new EditorMouseEvent(e, false, this.viewHelper.viewDomNode), false)));
-        this._lastPointerType = "mouse";
-        this._register(dom.addDisposableListener(this.viewHelper.linesContentDomNode, "pointerdown", (e: any) => {
+        this._lastPointerType = 'mouse';
+        this._register(dom.addDisposableListener(this.viewHelper.linesContentDomNode, 'pointerdown', (e: any) => {
             const pointerType = e.pointerType;
-            if (pointerType === "mouse") {
-                this._lastPointerType = "mouse";
+            if (pointerType === 'mouse') {
+                this._lastPointerType = 'mouse';
                 return;
             }
-            else if (pointerType === "touch") {
-                this._lastPointerType = "touch";
+            else if (pointerType === 'touch') {
+                this._lastPointerType = 'touch';
             }
             else {
-                this._lastPointerType = "pen";
+                this._lastPointerType = 'pen';
             }
         }));
         // PonterEvents
@@ -48,8 +48,7 @@ export class PointerEventHandler extends MouseHandler {
         this._register(pointerEvents.onPointerDown(this.viewHelper.viewDomNode, (e, pointerId) => this._onMouseDown(e, pointerId)));
     }
     private onTap(event: GestureEvent): void {
-        if (!event.initialTarget ||
-            !this.viewHelper.linesContentDomNode.contains(<any>event.initialTarget)) {
+        if (!event.initialTarget || !this.viewHelper.linesContentDomNode.contains(<any>event.initialTarget)) {
             return;
         }
         event.preventDefault();
@@ -57,10 +56,10 @@ export class PointerEventHandler extends MouseHandler {
         this._dispatchGesture(event, /*inSelectionMode*/ false);
     }
     private onChange(event: GestureEvent): void {
-        if (this._lastPointerType === "touch") {
+        if (this._lastPointerType === 'touch') {
             this._context.viewModel.viewLayout.deltaScrollNow(-event.translationX, -event.translationY);
         }
-        if (this._lastPointerType === "pen") {
+        if (this._lastPointerType === 'pen') {
             this._dispatchGesture(event, /*inSelectionMode*/ true);
         }
     }
@@ -80,13 +79,12 @@ export class PointerEventHandler extends MouseHandler {
                 shiftKey: false,
                 leftButton: false,
                 middleButton: false,
-                onInjectedText: target.type === MouseTargetType.CONTENT_TEXT &&
-                    target.detail.injectedText !== null,
+                onInjectedText: target.type === MouseTargetType.CONTENT_TEXT && target.detail.injectedText !== null
             });
         }
     }
     protected override _onMouseDown(e: EditorMouseEvent, pointerId: number): void {
-        if ((e.browserEvent as any).pointerType === "touch") {
+        if ((e.browserEvent as any).pointerType === 'touch') {
             return;
         }
         super._onMouseDown(e, pointerId);
@@ -106,7 +104,7 @@ class TouchHandler extends MouseHandler {
         const target = this._createMouseTarget(new EditorMouseEvent(event, false, this.viewHelper.viewDomNode), false);
         if (target.position) {
             // Send the tap event also to the <textarea> (for input purposes)
-            const event = document.createEvent("CustomEvent");
+            const event = document.createEvent('CustomEvent');
             event.initEvent(TextAreaSyntethicEvents.Tap, false, true);
             this.viewHelper.dispatchTextAreaEvent(event);
             this.viewController.moveTo(target.position, NavigationCommandRevealType.Minimal);

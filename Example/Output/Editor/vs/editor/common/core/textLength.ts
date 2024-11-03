@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { LineRange } from "./lineRange.js";
-import { Position } from "./position.js";
-import { Range } from "./range.js";
+import { LineRange } from './lineRange.js';
+import { Position } from './position.js';
+import { Range } from './range.js';
 /**
  * Represents a non-negative length of text in terms of line and column count.
- */
+*/
 export class TextLength {
     public static zero = new TextLength(0, 0);
     public static lengthDiffNonNegative(start: TextLength, end: TextLength): TextLength {
@@ -39,7 +39,7 @@ export class TextLength {
         let line = 0;
         let column = 0;
         for (const c of text) {
-            if (c === "\n") {
+            if (c === '\n') {
                 line++;
                 column = 0;
             }
@@ -72,8 +72,7 @@ export class TextLength {
         return this.columnCount >= other.columnCount;
     }
     public equals(other: TextLength): boolean {
-        return (this.lineCount === other.lineCount &&
-            this.columnCount === other.columnCount);
+        return this.lineCount === other.lineCount && this.columnCount === other.columnCount;
     }
     public compare(other: TextLength): number {
         if (this.lineCount !== other.lineCount) {

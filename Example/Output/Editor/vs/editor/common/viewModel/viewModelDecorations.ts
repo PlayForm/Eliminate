@@ -2,15 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { IEditorConfiguration } from "../config/editorConfiguration.js";
-import { filterValidationDecorations } from "../config/editorOptions.js";
-import { Position } from "../core/position.js";
-import { Range } from "../core/range.js";
-import { StandardTokenType } from "../encodedTokenAttributes.js";
-import { IModelDecoration, ITextModel, PositionAffinity } from "../model.js";
-import { ICoordinatesConverter, InlineDecoration, InlineDecorationType, ViewModelDecoration, } from "../viewModel.js";
-import { IViewModelLines } from "./viewModelLines.js";
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { Position } from '../core/position.js';
+import { Range } from '../core/range.js';
+import { IEditorConfiguration } from '../config/editorConfiguration.js';
+import { IModelDecoration, ITextModel, PositionAffinity } from '../model.js';
+import { IViewModelLines } from './viewModelLines.js';
+import { ICoordinatesConverter, InlineDecoration, InlineDecorationType, ViewModelDecoration } from '../viewModel.js';
+import { filterValidationDecorations } from '../config/editorOptions.js';
+import { StandardTokenType } from '../encodedTokenAttributes.js';
 export interface IDecorationsViewportData {
     /**
      * decorations in the viewport.
@@ -77,8 +77,7 @@ export class ViewModelDecorations implements IDisposable {
             else {
                 // For backwards compatibility reasons, we want injected text before any decoration.
                 // Thus, move decorations to the right.
-                viewRange =
-                    this._coordinatesConverter.convertModelRangeToViewRange(modelRange, PositionAffinity.Right);
+                viewRange = this._coordinatesConverter.convertModelRangeToViewRange(modelRange, PositionAffinity.Right);
             }
             r = new ViewModelDecoration(viewRange, options);
             this._decorationsCache[id] = r;
@@ -89,10 +88,8 @@ export class ViewModelDecorations implements IDisposable {
         return this._getDecorationsInRange(range, true, false).decorations;
     }
     public getDecorationsViewportData(viewRange: Range): IDecorationsViewportData {
-        let cacheIsValid = this._cachedModelDecorationsResolver !== null;
-        cacheIsValid =
-            cacheIsValid &&
-                viewRange.equalsRange(this._cachedModelDecorationsResolverViewRange);
+        let cacheIsValid = (this._cachedModelDecorationsResolver !== null);
+        cacheIsValid = cacheIsValid && (viewRange.equalsRange(this._cachedModelDecorationsResolverViewRange));
         if (!cacheIsValid) {
             this._cachedModelDecorationsResolver = this._getDecorationsInRange(viewRange, false, false);
             this._cachedModelDecorationsResolverViewRange = viewRange;
@@ -121,12 +118,9 @@ export class ViewModelDecorations implements IDisposable {
             }
             const viewModelDecoration = this._getOrCreateViewModelDecoration(modelDecoration);
             const viewRange = viewModelDecoration.range;
-            decorationsInViewport[decorationsInViewportLen++] =
-                viewModelDecoration;
+            decorationsInViewport[decorationsInViewportLen++] = viewModelDecoration;
             if (decorationOptions.inlineClassName) {
-                const inlineDecoration = new InlineDecoration(viewRange, decorationOptions.inlineClassName, decorationOptions.inlineClassNameAffectsLetterSpacing
-                    ? InlineDecorationType.RegularAffectingLetterSpacing
-                    : InlineDecorationType.Regular);
+                const inlineDecoration = new InlineDecoration(viewRange, decorationOptions.inlineClassName, decorationOptions.inlineClassNameAffectsLetterSpacing ? InlineDecorationType.RegularAffectingLetterSpacing : InlineDecorationType.Regular);
                 const intersectedStartLineNumber = Math.max(startLineNumber, viewRange.startLineNumber);
                 const intersectedEndLineNumber = Math.min(endLineNumber, viewRange.endLineNumber);
                 for (let j = intersectedStartLineNumber; j <= intersectedEndLineNumber; j++) {
@@ -134,15 +128,13 @@ export class ViewModelDecorations implements IDisposable {
                 }
             }
             if (decorationOptions.beforeContentClassName) {
-                if (startLineNumber <= viewRange.startLineNumber &&
-                    viewRange.startLineNumber <= endLineNumber) {
+                if (startLineNumber <= viewRange.startLineNumber && viewRange.startLineNumber <= endLineNumber) {
                     const inlineDecoration = new InlineDecoration(new Range(viewRange.startLineNumber, viewRange.startColumn, viewRange.startLineNumber, viewRange.startColumn), decorationOptions.beforeContentClassName, InlineDecorationType.Before);
                     inlineDecorations[viewRange.startLineNumber - startLineNumber].push(inlineDecoration);
                 }
             }
             if (decorationOptions.afterContentClassName) {
-                if (startLineNumber <= viewRange.endLineNumber &&
-                    viewRange.endLineNumber <= endLineNumber) {
+                if (startLineNumber <= viewRange.endLineNumber && viewRange.endLineNumber <= endLineNumber) {
                     const inlineDecoration = new InlineDecoration(new Range(viewRange.endLineNumber, viewRange.endColumn, viewRange.endLineNumber, viewRange.endColumn), decorationOptions.afterContentClassName, InlineDecorationType.After);
                     inlineDecorations[viewRange.endLineNumber - startLineNumber].push(inlineDecoration);
                 }
@@ -150,17 +142,15 @@ export class ViewModelDecorations implements IDisposable {
         }
         return {
             decorations: decorationsInViewport,
-            inlineDecorations: inlineDecorations,
+            inlineDecorations: inlineDecorations
         };
     }
 }
 export function isModelDecorationVisible(model: ITextModel, decoration: IModelDecoration): boolean {
-    if (decoration.options.hideInCommentTokens &&
-        isModelDecorationInComment(model, decoration)) {
+    if (decoration.options.hideInCommentTokens && isModelDecorationInComment(model, decoration)) {
         return false;
     }
-    if (decoration.options.hideInStringTokens &&
-        isModelDecorationInString(model, decoration)) {
+    if (decoration.options.hideInStringTokens && isModelDecorationInString(model, decoration)) {
         return false;
     }
     return true;
@@ -181,9 +171,7 @@ function testTokensInRange(model: ITextModel, range: Range, callback: (tokenType
         const lineTokens = model.tokenization.getLineTokens(lineNumber);
         const isFirstLine = lineNumber === range.startLineNumber;
         const isEndLine = lineNumber === range.endLineNumber;
-        let tokenIdx = isFirstLine
-            ? lineTokens.findTokenIndexAtOffset(range.startColumn - 1)
-            : 0;
+        let tokenIdx = isFirstLine ? lineTokens.findTokenIndexAtOffset(range.startColumn - 1) : 0;
         while (tokenIdx < lineTokens.getCount()) {
             if (isEndLine) {
                 const startOffset = lineTokens.getStartOffset(tokenIdx);

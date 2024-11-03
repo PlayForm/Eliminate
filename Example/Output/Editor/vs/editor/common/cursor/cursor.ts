@@ -2,25 +2,25 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { onUnexpectedError } from "../../../base/common/errors.js";
-import { Disposable, dispose } from "../../../base/common/lifecycle.js";
-import * as strings from "../../../base/common/strings.js";
-import { Position } from "../core/position.js";
-import { IRange, Range } from "../core/range.js";
-import { ISelection, Selection, SelectionDirection, } from "../core/selection.js";
-import { CursorConfiguration, CursorState, EditOperationResult, EditOperationType, IColumnSelectData, ICursorSimpleModel, PartialCursorState, } from "../cursorCommon.js";
-import { CursorChangeReason } from "../cursorEvents.js";
-import * as editorCommon from "../editorCommon.js";
-import { ICursorStateComputer, IIdentifiedSingleEditOperation, IModelDeltaDecoration, ITextModel, IValidEditOperation, TrackedRangeStickiness, } from "../model.js";
-import { InternalModelContentChangeEvent, ModelInjectedTextChangedEvent, RawContentChangedType, } from "../textModelEvents.js";
-import { VerticalRevealType, ViewCursorStateChangedEvent, ViewRevealRangeRequestEvent, } from "../viewEvents.js";
-import { ICoordinatesConverter } from "../viewModel.js";
-import { CursorStateChangedEvent, ViewModelEventsCollector, } from "../viewModelEventDispatcher.js";
-import { CursorCollection } from "./cursorCollection.js";
-import { CursorContext } from "./cursorContext.js";
-import { DeleteOperations } from "./cursorDeleteOperations.js";
-import { BaseTypeWithAutoClosingCommand } from "./cursorTypeEditOperations.js";
-import { CompositionOutcome, TypeOperations } from "./cursorTypeOperations.js";
+import { onUnexpectedError } from '../../../base/common/errors.js';
+import * as strings from '../../../base/common/strings.js';
+import { CursorCollection } from './cursorCollection.js';
+import { CursorConfiguration, CursorState, EditOperationResult, EditOperationType, IColumnSelectData, PartialCursorState, ICursorSimpleModel } from '../cursorCommon.js';
+import { CursorContext } from './cursorContext.js';
+import { DeleteOperations } from './cursorDeleteOperations.js';
+import { CursorChangeReason } from '../cursorEvents.js';
+import { CompositionOutcome, TypeOperations } from './cursorTypeOperations.js';
+import { BaseTypeWithAutoClosingCommand } from './cursorTypeEditOperations.js';
+import { Position } from '../core/position.js';
+import { Range, IRange } from '../core/range.js';
+import { ISelection, Selection, SelectionDirection } from '../core/selection.js';
+import * as editorCommon from '../editorCommon.js';
+import { ITextModel, TrackedRangeStickiness, IModelDeltaDecoration, ICursorStateComputer, IIdentifiedSingleEditOperation, IValidEditOperation } from '../model.js';
+import { RawContentChangedType, ModelInjectedTextChangedEvent, InternalModelContentChangeEvent } from '../textModelEvents.js';
+import { VerticalRevealType, ViewCursorStateChangedEvent, ViewRevealRangeRequestEvent } from '../viewEvents.js';
+import { dispose, Disposable } from '../../../base/common/lifecycle.js';
+import { ICoordinatesConverter } from '../viewModel.js';
+import { CursorStateChangedEvent, ViewModelEventsCollector } from '../viewModelEventDispatcher.js';
 export class CursorsController extends Disposable {
     private readonly _model: ITextModel;
     private _knownModelVersionId: number;
@@ -70,7 +70,7 @@ export class CursorsController extends Disposable {
             return;
         }
         // Ensure valid state
-        this.setStates(eventsCollector, "viewModel", CursorChangeReason.NotSet, this.getCursorStates());
+        this.setStates(eventsCollector, 'viewModel', CursorChangeReason.NotSet, this.getCursorStates());
     }
     public setHasFocus(hasFocus: boolean): void {
         this._hasFocus = hasFocus;
@@ -146,7 +146,7 @@ export class CursorsController extends Disposable {
                 position: {
                     lineNumber: selection.positionLineNumber,
                     column: selection.positionColumn,
-                },
+                }
             });
         }
         return result;
@@ -177,11 +177,11 @@ export class CursorsController extends Disposable {
                 selectionStartLineNumber: selectionStartLineNumber,
                 selectionStartColumn: selectionStartColumn,
                 positionLineNumber: positionLineNumber,
-                positionColumn: positionColumn,
+                positionColumn: positionColumn
             });
         }
-        this.setStates(eventsCollector, "restoreState", CursorChangeReason.NotSet, CursorState.fromModelSelections(desiredSelections));
-        this.revealAll(eventsCollector, "restoreState", false, VerticalRevealType.Simple, true, editorCommon.ScrollType.Immediate);
+        this.setStates(eventsCollector, 'restoreState', CursorChangeReason.NotSet, CursorState.fromModelSelections(desiredSelections));
+        this.revealAll(eventsCollector, 'restoreState', false, VerticalRevealType.Simple, true, editorCommon.ScrollType.Immediate);
     }
     public onModelContentChanged(eventsCollector: ViewModelEventsCollector, event: InternalModelContentChangeEvent | ModelInjectedTextChangedEvent): void {
         if (event instanceof ModelInjectedTextChangedEvent) {
@@ -196,7 +196,7 @@ export class CursorsController extends Disposable {
             // _isHandling prevents that.
             this._isHandling = true;
             try {
-                this.setStates(eventsCollector, "modelChange", CursorChangeReason.NotSet, this.getCursorStates());
+                this.setStates(eventsCollector, 'modelChange', CursorChangeReason.NotSet, this.getCursorStates());
             }
             finally {
                 this._isHandling = false;
@@ -215,24 +215,18 @@ export class CursorsController extends Disposable {
                 this._cursors.dispose();
                 this._cursors = new CursorCollection(this.context);
                 this._validateAutoClosedActions();
-                this._emitStateChangedIfNecessary(eventsCollector, "model", CursorChangeReason.ContentFlush, null, false);
+                this._emitStateChangedIfNecessary(eventsCollector, 'model', CursorChangeReason.ContentFlush, null, false);
             }
             else {
-                if (this._hasFocus &&
-                    e.resultingSelection &&
-                    e.resultingSelection.length > 0) {
+                if (this._hasFocus && e.resultingSelection && e.resultingSelection.length > 0) {
                     const cursorState = CursorState.fromModelSelections(e.resultingSelection);
-                    if (this.setStates(eventsCollector, "modelChange", e.isUndoing
-                        ? CursorChangeReason.Undo
-                        : e.isRedoing
-                            ? CursorChangeReason.Redo
-                            : CursorChangeReason.RecoverFromMarkers, cursorState)) {
-                        this.revealAll(eventsCollector, "modelChange", false, VerticalRevealType.Simple, true, editorCommon.ScrollType.Smooth);
+                    if (this.setStates(eventsCollector, 'modelChange', e.isUndoing ? CursorChangeReason.Undo : e.isRedoing ? CursorChangeReason.Redo : CursorChangeReason.RecoverFromMarkers, cursorState)) {
+                        this.revealAll(eventsCollector, 'modelChange', false, VerticalRevealType.Simple, true, editorCommon.ScrollType.Smooth);
                     }
                 }
                 else {
                     const selectionsFromMarkers = this._cursors.readSelectionFromMarkers();
-                    this.setStates(eventsCollector, "modelChange", CursorChangeReason.RecoverFromMarkers, CursorState.fromModelSelections(selectionsFromMarkers));
+                    this.setStates(eventsCollector, 'modelChange', CursorChangeReason.RecoverFromMarkers, CursorState.fromModelSelections(selectionsFromMarkers));
                 }
             }
         }
@@ -284,17 +278,17 @@ export class CursorsController extends Disposable {
             autoClosedCharactersDeltaDecorations.push({
                 range: autoClosedCharactersRanges[i],
                 options: {
-                    description: "auto-closed-character",
-                    inlineClassName: "auto-closed-character",
-                    stickiness: TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-                },
+                    description: 'auto-closed-character',
+                    inlineClassName: 'auto-closed-character',
+                    stickiness: TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+                }
             });
             autoClosedEnclosingDeltaDecorations.push({
                 range: autoClosedEnclosingRanges[i],
                 options: {
-                    description: "auto-closed-enclosing",
-                    stickiness: TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-                },
+                    description: 'auto-closed-enclosing',
+                    stickiness: TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges
+                }
             });
         }
         const autoClosedCharactersDecorations = this._model.deltaDecorations([], autoClosedCharactersDeltaDecorations);
@@ -318,9 +312,7 @@ export class CursorsController extends Disposable {
             const autoClosedEnclosingRanges: Range[] = [];
             for (let i = 0; i < opResult.commands.length; i++) {
                 const command = opResult.commands[i];
-                if (command instanceof BaseTypeWithAutoClosingCommand &&
-                    command.enclosingRange &&
-                    command.closeCharacterRange) {
+                if (command instanceof BaseTypeWithAutoClosingCommand && command.enclosingRange && command.closeCharacterRange) {
                     autoClosedCharactersRanges.push(command.closeCharacterRange);
                     autoClosedEnclosingRanges.push(command.enclosingRange);
                 }
@@ -354,14 +346,12 @@ export class CursorsController extends Disposable {
         // Let the view get the event first.
         eventsCollector.emitViewEvent(new ViewCursorStateChangedEvent(viewSelections, selections, reason));
         // Only after the view has been notified, let the rest of the world know...
-        if (!oldState ||
-            oldState.cursorState.length !== newState.cursorState.length ||
-            newState.cursorState.some((newCursorState, i) => !newCursorState.modelState.equals(oldState.cursorState[i].modelState))) {
-            const oldSelections = oldState
-                ? oldState.cursorState.map((s) => s.modelState.selection)
-                : null;
+        if (!oldState
+            || oldState.cursorState.length !== newState.cursorState.length
+            || newState.cursorState.some((newCursorState, i) => !newCursorState.modelState.equals(oldState.cursorState[i].modelState))) {
+            const oldSelections = oldState ? oldState.cursorState.map(s => s.modelState.selection) : null;
             const oldModelVersionId = oldState ? oldState.modelVersionId : 0;
-            eventsCollector.emitOutgoingEvent(new CursorStateChangedEvent(oldSelections, selections, oldModelVersionId, newState.modelVersionId, source || "keyboard", reason, reachedMaxCursorCount));
+            eventsCollector.emitOutgoingEvent(new CursorStateChangedEvent(oldSelections, selections, oldModelVersionId, newState.modelVersionId, source || 'keyboard', reason, reachedMaxCursorCount));
         }
         return true;
     }
@@ -380,7 +370,7 @@ export class CursorsController extends Disposable {
         ][] = [];
         for (let i = 0, len = edits.length; i < len; i++) {
             const edit = edits[i];
-            if (!edit.text || edit.text.indexOf("\n") >= 0) {
+            if (!edit.text || edit.text.indexOf('\n') >= 0) {
                 return null;
             }
             const m = edit.text.match(/([)\]}>'"`])([^)\]}>'"`]*)$/);
@@ -389,8 +379,7 @@ export class CursorsController extends Disposable {
             }
             const closeChar = m[1];
             const autoClosingPairsCandidates = this.context.cursorConfig.autoClosingPairs.autoClosingPairsCloseSingleChar.get(closeChar);
-            if (!autoClosingPairsCandidates ||
-                autoClosingPairsCandidates.length !== 1) {
+            if (!autoClosingPairsCandidates || autoClosingPairsCandidates.length !== 1) {
                 return null;
             }
             const openChar = autoClosingPairsCandidates[0].open;
@@ -408,7 +397,7 @@ export class CursorsController extends Disposable {
             number,
             number
         ][] | null = null;
-        if (source === "snippet") {
+        if (source === 'snippet') {
             autoClosingIndices = this._findAutoClosingPairs(edits);
         }
         if (autoClosingIndices) {
@@ -423,9 +412,7 @@ export class CursorsController extends Disposable {
                     const undoEdit = undoEdits[i];
                     const lineNumber = undoEdit.range.startLineNumber;
                     const openCharIndex = undoEdit.range.startColumn - 1 + openCharInnerIndex;
-                    const closeCharIndex = undoEdit.range.startColumn -
-                        1 +
-                        closeCharInnerIndex;
+                    const closeCharIndex = undoEdit.range.startColumn - 1 + closeCharInnerIndex;
                     autoClosedCharactersRanges.push(new Range(lineNumber, closeCharIndex + 1, lineNumber, closeCharIndex + 2));
                     autoClosedEnclosingRanges.push(new Range(lineNumber, openCharIndex + 1, lineNumber, closeCharIndex + 2));
                 }
@@ -475,12 +462,10 @@ export class CursorsController extends Disposable {
         this._compositionState = new CompositionState(this._model, this.getSelections());
     }
     public endComposition(eventsCollector: ViewModelEventsCollector, source?: string | null | undefined): void {
-        const compositionOutcome = this._compositionState
-            ? this._compositionState.deduceOutcome(this._model, this.getSelections())
-            : null;
+        const compositionOutcome = this._compositionState ? this._compositionState.deduceOutcome(this._model, this.getSelections()) : null;
         this._compositionState = null;
         this._executeEdit(() => {
-            if (source === "keyboard") {
+            if (source === 'keyboard') {
                 // composition finishes, let's check if we need to auto complete if necessary.
                 this._executeEditOperation(TypeOperations.compositionEndWithInterceptors(this._prevEditOperationType, this.context.cursorConfig, this._model, compositionOutcome, this.getSelections(), this.getAutoClosedCharacters()));
             }
@@ -488,7 +473,7 @@ export class CursorsController extends Disposable {
     }
     public type(eventsCollector: ViewModelEventsCollector, text: string, source?: string | null | undefined): void {
         this._executeEdit(() => {
-            if (source === "keyboard") {
+            if (source === 'keyboard') {
                 // If this event is coming straight from the keyboard, look for electric characters and enter
                 const len = text.length;
                 let offset = 0;
@@ -506,13 +491,11 @@ export class CursorsController extends Disposable {
         }, eventsCollector, source);
     }
     public compositionType(eventsCollector: ViewModelEventsCollector, text: string, replacePrevCharCnt: number, replaceNextCharCnt: number, positionDelta: number, source?: string | null | undefined): void {
-        if (text.length === 0 &&
-            replacePrevCharCnt === 0 &&
-            replaceNextCharCnt === 0) {
+        if (text.length === 0 && replacePrevCharCnt === 0 && replaceNextCharCnt === 0) {
             // this edit is a no-op
             if (positionDelta !== 0) {
                 // but it still wants to move the cursor
-                const newSelections = this.getSelections().map((selection) => {
+                const newSelections = this.getSelections().map(selection => {
                     const position = selection.getPosition();
                     return new Selection(position.lineNumber, position.column + positionDelta, position.lineNumber, position.column + positionDelta);
                 });
@@ -539,7 +522,7 @@ export class CursorsController extends Disposable {
             this._cursors.killSecondaryCursors();
             this._executeEditOperation(new EditOperationResult(EditOperationType.Other, [command], {
                 shouldPushStackElementBefore: false,
-                shouldPushStackElementAfter: false,
+                shouldPushStackElementAfter: false
             }));
         }, eventsCollector, source);
     }
@@ -547,7 +530,7 @@ export class CursorsController extends Disposable {
         this._executeEdit(() => {
             this._executeEditOperation(new EditOperationResult(EditOperationType.Other, commands, {
                 shouldPushStackElementBefore: false,
-                shouldPushStackElementAfter: false,
+                shouldPushStackElementAfter: false
             }));
         }, eventsCollector, source);
     }
@@ -559,7 +542,8 @@ class CursorModelState {
     public static from(model: ITextModel, cursor: CursorsController): CursorModelState {
         return new CursorModelState(model.getVersionId(), cursor.getCursorStates());
     }
-    constructor(public readonly modelVersionId: number, public readonly cursorState: CursorState[]) { }
+    constructor(public readonly modelVersionId: number, public readonly cursorState: CursorState[]) {
+    }
     public equals(other: CursorModelState | null): boolean {
         if (!other) {
             return false;
@@ -614,8 +598,7 @@ class AutoClosedAction {
             const decorationRange = this._model.getDecorationRange(this._autoClosedEnclosingDecorations[i]);
             if (decorationRange) {
                 enclosingRanges.push(decorationRange);
-                if (decorationRange.startLineNumber !==
-                    decorationRange.endLineNumber) {
+                if (decorationRange.startLineNumber !== decorationRange.endLineNumber) {
                     // Stop tracking if the range becomes multiline...
                     return false;
                 }
@@ -654,7 +637,7 @@ export class CommandExecutor {
             model: model,
             selectionsBefore: selectionsBefore,
             trackedRanges: [],
-            trackedRangesDirection: [],
+            trackedRangesDirection: []
         };
         const result = this._innerExecuteCommands(ctx, commands);
         for (let i = 0, len = ctx.trackedRanges.length; i < len; i++) {
@@ -672,9 +655,9 @@ export class CommandExecutor {
         }
         const rawOperations = commandsData.operations;
         const loserCursorsMap = this._getLoserCursorMap(rawOperations);
-        if (loserCursorsMap.hasOwnProperty("0")) {
+        if (loserCursorsMap.hasOwnProperty('0')) {
             // These commands are very messed up
-            console.warn("Ignoring commands");
+            console.warn('Ignoring commands');
             return null;
         }
         // Remove operations belonging to losing cursors
@@ -686,8 +669,7 @@ export class CommandExecutor {
         }
         // TODO@Alex: find a better way to do this.
         // give the hint that edit operations are tracked to the model
-        if (commandsData.hadTrackedEditOperation &&
-            filteredOperations.length > 0) {
+        if (commandsData.hadTrackedEditOperation && filteredOperations.length > 0) {
             filteredOperations[0]._isTracked = true;
         }
         let selectionsAfter = ctx.model.pushEditOperations(ctx.selectionsBefore, filteredOperations, (inverseEditOperations: IValidEditOperation[]): Selection[] => {
@@ -716,12 +698,11 @@ export class CommandExecutor {
                         getTrackedSelection: (id: string) => {
                             const idx = parseInt(id, 10);
                             const range = ctx.model._getTrackedRange(ctx.trackedRanges[idx])!;
-                            if (ctx.trackedRangesDirection[idx] ===
-                                SelectionDirection.LTR) {
+                            if (ctx.trackedRangesDirection[idx] === SelectionDirection.LTR) {
                                 return new Selection(range.startLineNumber, range.startColumn, range.endLineNumber, range.endColumn);
                             }
                             return new Selection(range.endLineNumber, range.endColumn, range.startLineNumber, range.startColumn);
-                        },
+                        }
                     });
                 }
                 else {
@@ -766,13 +747,12 @@ export class CommandExecutor {
             if (command) {
                 const r = this._getEditOperationsFromCommand(ctx, i, command);
                 operations = operations.concat(r.operations);
-                hadTrackedEditOperation =
-                    hadTrackedEditOperation || r.hadTrackedEditOperation;
+                hadTrackedEditOperation = hadTrackedEditOperation || r.hadTrackedEditOperation;
             }
         }
         return {
             operations: operations,
-            hadTrackedEditOperation: hadTrackedEditOperation,
+            hadTrackedEditOperation: hadTrackedEditOperation
         };
     }
     private static _getEditOperationsFromCommand(ctx: IExecContext, majorIdentifier: number, command: editorCommon.ICommand): ICommandData {
@@ -781,19 +761,19 @@ export class CommandExecutor {
         const operations: IIdentifiedSingleEditOperation[] = [];
         let operationMinor = 0;
         const addEditOperation = (range: IRange, text: string | null, forceMoveMarkers: boolean = false) => {
-            if (Range.isEmpty(range) && text === "") {
+            if (Range.isEmpty(range) && text === '') {
                 // This command wants to add a no-op => no thank you
                 return;
             }
             operations.push({
                 identifier: {
                     major: majorIdentifier,
-                    minor: operationMinor++,
+                    minor: operationMinor++
                 },
                 range: range,
                 text: text,
                 forceMoveMarkers: forceMoveMarkers,
-                isAutoWhitespaceEdit: command.insertsAutoWhitespace,
+                isAutoWhitespaceEdit: command.insertsAutoWhitespace
             });
         };
         let hadTrackedEditOperation = false;
@@ -805,26 +785,22 @@ export class CommandExecutor {
             const selection = Selection.liftSelection(_selection);
             let stickiness: TrackedRangeStickiness;
             if (selection.isEmpty()) {
-                if (typeof trackPreviousOnEmpty === "boolean") {
+                if (typeof trackPreviousOnEmpty === 'boolean') {
                     if (trackPreviousOnEmpty) {
-                        stickiness =
-                            TrackedRangeStickiness.GrowsOnlyWhenTypingBefore;
+                        stickiness = TrackedRangeStickiness.GrowsOnlyWhenTypingBefore;
                     }
                     else {
-                        stickiness =
-                            TrackedRangeStickiness.GrowsOnlyWhenTypingAfter;
+                        stickiness = TrackedRangeStickiness.GrowsOnlyWhenTypingAfter;
                     }
                 }
                 else {
                     // Try to lock it with surrounding text
                     const maxLineColumn = ctx.model.getLineMaxColumn(selection.startLineNumber);
                     if (selection.startColumn === maxLineColumn) {
-                        stickiness =
-                            TrackedRangeStickiness.GrowsOnlyWhenTypingBefore;
+                        stickiness = TrackedRangeStickiness.GrowsOnlyWhenTypingBefore;
                     }
                     else {
-                        stickiness =
-                            TrackedRangeStickiness.GrowsOnlyWhenTypingAfter;
+                        stickiness = TrackedRangeStickiness.GrowsOnlyWhenTypingAfter;
                     }
                 }
             }
@@ -840,7 +816,7 @@ export class CommandExecutor {
         const editOperationBuilder: editorCommon.IEditOperationBuilder = {
             addEditOperation: addEditOperation,
             addTrackedEditOperation: addTrackedEditOperation,
-            trackSelection: trackSelection,
+            trackSelection: trackSelection
         };
         try {
             command.getEditOperations(ctx.model, editOperationBuilder);
@@ -851,12 +827,12 @@ export class CommandExecutor {
             onUnexpectedError(e);
             return {
                 operations: [],
-                hadTrackedEditOperation: false,
+                hadTrackedEditOperation: false
             };
         }
         return {
             operations: operations,
-            hadTrackedEditOperation: hadTrackedEditOperation,
+            hadTrackedEditOperation: hadTrackedEditOperation
         };
     }
     private static _getLoserCursorMap(operations: IIdentifiedSingleEditOperation[]): {
@@ -867,7 +843,7 @@ export class CommandExecutor {
         // Sort operations with last one first
         operations.sort((a: IIdentifiedSingleEditOperation, b: IIdentifiedSingleEditOperation): number => {
             // Note the minus!
-            return -Range.compareRangesUsingEnds(a.range, b.range);
+            return -(Range.compareRangesUsingEnds(a.range, b.range));
         });
         // Operations can not overlap!
         const loserCursorsMap: {

@@ -2,21 +2,19 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { StandardTokenType } from "../encodedTokenAttributes.js";
-import { ILanguageIdCodec } from "../languages.js";
-import { IViewLineTokens, LineTokens } from "../tokens/lineTokens.js";
+import { IViewLineTokens, LineTokens } from '../tokens/lineTokens.js';
+import { StandardTokenType } from '../encodedTokenAttributes.js';
+import { ILanguageIdCodec } from '../languages.js';
 export function createScopedLineTokens(context: LineTokens, offset: number): ScopedLineTokens {
     const tokenCount = context.getCount();
     const tokenIndex = context.findTokenIndexAtOffset(offset);
     const desiredLanguageId = context.getLanguageId(tokenIndex);
     let lastTokenIndex = tokenIndex;
-    while (lastTokenIndex + 1 < tokenCount &&
-        context.getLanguageId(lastTokenIndex + 1) === desiredLanguageId) {
+    while (lastTokenIndex + 1 < tokenCount && context.getLanguageId(lastTokenIndex + 1) === desiredLanguageId) {
         lastTokenIndex++;
     }
     let firstTokenIndex = tokenIndex;
-    while (firstTokenIndex > 0 &&
-        context.getLanguageId(firstTokenIndex - 1) === desiredLanguageId) {
+    while (firstTokenIndex > 0 && context.getLanguageId(firstTokenIndex - 1) === desiredLanguageId) {
         firstTokenIndex--;
     }
     return new ScopedLineTokens(context, desiredLanguageId, firstTokenIndex, lastTokenIndex + 1, context.getStartOffset(firstTokenIndex), context.getEndOffset(lastTokenIndex));
@@ -54,8 +52,7 @@ export class ScopedLineTokens {
         return this._lastTokenIndex - this._firstTokenIndex;
     }
     public findTokenIndexAtOffset(offset: number): number {
-        return (this._actual.findTokenIndexAtOffset(offset + this.firstCharOffset) -
-            this._firstTokenIndex);
+        return this._actual.findTokenIndexAtOffset(offset + this.firstCharOffset) - this._firstTokenIndex;
     }
     public getStandardTokenType(tokenIndex: number): StandardTokenType {
         return this._actual.getStandardTokenType(tokenIndex + this._firstTokenIndex);
@@ -65,9 +62,7 @@ export class ScopedLineTokens {
     }
 }
 const enum IgnoreBracketsInTokens {
-    value = StandardTokenType.Comment |
-        StandardTokenType.String |
-        StandardTokenType.RegEx
+    value = StandardTokenType.Comment | StandardTokenType.String | StandardTokenType.RegEx
 }
 export function ignoreBracketsInToken(standardTokenType: StandardTokenType): boolean {
     return (standardTokenType & IgnoreBracketsInTokens.value) !== 0;

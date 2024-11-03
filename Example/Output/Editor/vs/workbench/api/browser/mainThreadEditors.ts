@@ -2,32 +2,32 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { illegalArgument } from "../../../base/common/errors.js";
-import { DisposableStore, dispose, IDisposable, } from "../../../base/common/lifecycle.js";
-import { equals as objectEquals } from "../../../base/common/objects.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { getCodeEditor, ICodeEditor, } from "../../../editor/browser/editorBrowser.js";
-import { ICodeEditorService } from "../../../editor/browser/services/codeEditorService.js";
-import { ISingleEditOperation } from "../../../editor/common/core/editOperation.js";
-import { IRange } from "../../../editor/common/core/range.js";
-import { ISelection } from "../../../editor/common/core/selection.js";
-import { IChange } from "../../../editor/common/diff/legacyLinesDiffComputer.js";
-import { IDecorationOptions, IDecorationRenderOptions, } from "../../../editor/common/editorCommon.js";
-import { CommandsRegistry } from "../../../platform/commands/common/commands.js";
-import { IConfigurationService } from "../../../platform/configuration/common/configuration.js";
-import { EditorActivation, EditorResolution, IResourceEditorInput, ITextEditorOptions, } from "../../../platform/editor/common/editor.js";
-import { IEnvironmentService } from "../../../platform/environment/common/environment.js";
-import { ExtensionIdentifier } from "../../../platform/extensions/common/extensions.js";
-import { ServicesAccessor } from "../../../platform/instantiation/common/instantiation.js";
-import { IEditorControl } from "../../common/editor.js";
-import { DirtyDiffContribution } from "../../contrib/scm/browser/dirtydiffDecorator.js";
-import { columnToEditorGroup, EditorGroupColumn, editorGroupToColumn, } from "../../services/editor/common/editorGroupColumn.js";
-import { IEditorGroupsService } from "../../services/editor/common/editorGroupsService.js";
-import { IEditorService } from "../../services/editor/common/editorService.js";
-import { IExtHostContext } from "../../services/extensions/common/extHostCustomers.js";
-import { IWorkingCopyService } from "../../services/workingCopy/common/workingCopyService.js";
-import { ExtHostContext, ExtHostEditorsShape, IApplyEditsOptions, ITextDocumentShowOptions, ITextEditorConfigurationUpdate, ITextEditorPositionData, IUndoStopOptions, MainThreadTextEditorsShape, TextEditorRevealType, } from "../common/extHost.protocol.js";
-import { MainThreadTextEditor } from "./mainThreadEditor.js";
+import { illegalArgument } from '../../../base/common/errors.js';
+import { IDisposable, dispose, DisposableStore } from '../../../base/common/lifecycle.js';
+import { equals as objectEquals } from '../../../base/common/objects.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { ICodeEditorService } from '../../../editor/browser/services/codeEditorService.js';
+import { IRange } from '../../../editor/common/core/range.js';
+import { ISelection } from '../../../editor/common/core/selection.js';
+import { IDecorationOptions, IDecorationRenderOptions } from '../../../editor/common/editorCommon.js';
+import { ISingleEditOperation } from '../../../editor/common/core/editOperation.js';
+import { CommandsRegistry } from '../../../platform/commands/common/commands.js';
+import { ITextEditorOptions, IResourceEditorInput, EditorActivation, EditorResolution } from '../../../platform/editor/common/editor.js';
+import { ServicesAccessor } from '../../../platform/instantiation/common/instantiation.js';
+import { MainThreadTextEditor } from './mainThreadEditor.js';
+import { ExtHostContext, ExtHostEditorsShape, IApplyEditsOptions, ITextDocumentShowOptions, ITextEditorConfigurationUpdate, ITextEditorPositionData, IUndoStopOptions, MainThreadTextEditorsShape, TextEditorRevealType } from '../common/extHost.protocol.js';
+import { editorGroupToColumn, columnToEditorGroup, EditorGroupColumn } from '../../services/editor/common/editorGroupColumn.js';
+import { IEditorService } from '../../services/editor/common/editorService.js';
+import { IEditorGroupsService } from '../../services/editor/common/editorGroupsService.js';
+import { IEnvironmentService } from '../../../platform/environment/common/environment.js';
+import { IWorkingCopyService } from '../../services/workingCopy/common/workingCopyService.js';
+import { ExtensionIdentifier } from '../../../platform/extensions/common/extensions.js';
+import { IChange } from '../../../editor/common/diff/legacyLinesDiffComputer.js';
+import { IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { IEditorControl } from '../../common/editor.js';
+import { getCodeEditor, ICodeEditor } from '../../../editor/browser/editorBrowser.js';
+import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
+import { DirtyDiffContribution } from '../../contrib/scm/browser/dirtydiffDecorator.js';
 export interface IMainThreadEditorLocator {
     getEditor(id: string): MainThreadTextEditor | undefined;
     findTextEditorIdFor(editorControl: IEditorControl): string | undefined;
@@ -113,14 +113,12 @@ export class MainThreadTextEditors implements MainThreadTextEditorsShape {
             selection: options.selection,
             // preserve pre 1.38 behaviour to not make group active when preserveFocus: true
             // but make sure to restore the editor to fix https://github.com/microsoft/vscode/issues/79633
-            activation: options.preserveFocus
-                ? EditorActivation.RESTORE
-                : undefined,
-            override: EditorResolution.EXCLUSIVE_ONLY,
+            activation: options.preserveFocus ? EditorActivation.RESTORE : undefined,
+            override: EditorResolution.EXCLUSIVE_ONLY
         };
         const input: IResourceEditorInput = {
             resource: uri,
-            options: editorOptions,
+            options: editorOptions
         };
         const editor = await this._editorService.openEditor(input, columnToEditorGroup(this._editorGroupService, this._configurationService, options.position));
         if (!editor) {
@@ -129,9 +127,7 @@ export class MainThreadTextEditors implements MainThreadTextEditorsShape {
         // Composite editors are made up of many editors so we return the active one at the time of opening
         const editorControl = editor.getControl();
         const codeEditor = getCodeEditor(editorControl);
-        return codeEditor
-            ? this._editorLocator.getIdOfCodeEditor(codeEditor)
-            : undefined;
+        return codeEditor ? this._editorLocator.getIdOfCodeEditor(codeEditor) : undefined;
     }
     async $tryShowEditor(id: string, position?: EditorGroupColumn): Promise<void> {
         const mainThreadEditor = this._editorLocator.getEditor(id);
@@ -139,7 +135,7 @@ export class MainThreadTextEditors implements MainThreadTextEditorsShape {
             const model = mainThreadEditor.getModel();
             await this._editorService.openEditor({
                 resource: model.uri,
-                options: { preserveFocus: false },
+                options: { preserveFocus: false }
             }, columnToEditorGroup(this._editorGroupService, this._configurationService, position));
             return;
         }
@@ -225,20 +221,19 @@ export class MainThreadTextEditors implements MainThreadTextEditorsShape {
     $getDiffInformation(id: string): Promise<IChange[]> {
         const editor = this._editorLocator.getEditor(id);
         if (!editor) {
-            return Promise.reject(new Error("No such TextEditor"));
+            return Promise.reject(new Error('No such TextEditor'));
         }
         const codeEditor = editor.getCodeEditor();
         if (!codeEditor) {
-            return Promise.reject(new Error("No such CodeEditor"));
+            return Promise.reject(new Error('No such CodeEditor'));
         }
         const codeEditorId = codeEditor.getId();
         const diffEditors = this._codeEditorService.listDiffEditors();
-        const [diffEditor] = diffEditors.filter((d) => d.getOriginalEditor().getId() === codeEditorId ||
-            d.getModifiedEditor().getId() === codeEditorId);
+        const [diffEditor] = diffEditors.filter(d => d.getOriginalEditor().getId() === codeEditorId || d.getModifiedEditor().getId() === codeEditorId);
         if (diffEditor) {
             return Promise.resolve(diffEditor.getLineChanges() || []);
         }
-        const dirtyDiffContribution = codeEditor.getContribution("editor.contrib.dirtydiff");
+        const dirtyDiffContribution = codeEditor.getContribution('editor.contrib.dirtydiff');
         if (dirtyDiffContribution) {
             return Promise.resolve((dirtyDiffContribution as DirtyDiffContribution).getChanges());
         }
@@ -246,10 +241,10 @@ export class MainThreadTextEditors implements MainThreadTextEditorsShape {
     }
 }
 // --- commands
-CommandsRegistry.registerCommand("_workbench.revertAllDirty", async function (accessor: ServicesAccessor) {
+CommandsRegistry.registerCommand('_workbench.revertAllDirty', async function (accessor: ServicesAccessor) {
     const environmentService = accessor.get(IEnvironmentService);
     if (!environmentService.extensionTestsLocationURI) {
-        throw new Error("Command is only available when running extension tests.");
+        throw new Error('Command is only available when running extension tests.');
     }
     const workingCopyService = accessor.get(IWorkingCopyService);
     for (const workingCopy of workingCopyService.dirtyWorkingCopies) {

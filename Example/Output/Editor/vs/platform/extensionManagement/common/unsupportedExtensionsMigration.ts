@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { ExtensionType } from "../../extensions/common/extensions.js";
-import { ILogService } from "../../log/common/log.js";
-import { IExtensionGalleryService, IExtensionManagementService, IGlobalExtensionEnablementService, InstallOperation, } from "./extensionManagement.js";
-import { areSameExtensions, getExtensionId, } from "./extensionManagementUtil.js";
-import { IExtensionStorageService } from "./extensionStorage.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { IExtensionGalleryService, IExtensionManagementService, IGlobalExtensionEnablementService, InstallOperation } from './extensionManagement.js';
+import { areSameExtensions, getExtensionId } from './extensionManagementUtil.js';
+import { IExtensionStorageService } from './extensionStorage.js';
+import { ExtensionType } from '../../extensions/common/extensions.js';
+import { ILogService } from '../../log/common/log.js';
 /**
  * Migrates the installed unsupported nightly extension to a supported pre-release extension. It includes following:
  * 	- Uninstall the Unsupported extension
@@ -26,42 +26,28 @@ export async function migrateUnsupportedExtensions(extensionManagementService: I
             if (!deprecated?.extension) {
                 continue;
             }
-            const { id: preReleaseExtensionId, autoMigrate, preRelease, } = deprecated.extension;
+            const { id: preReleaseExtensionId, autoMigrate, preRelease } = deprecated.extension;
             if (!autoMigrate) {
                 continue;
             }
-            const unsupportedExtension = installed.find((i) => areSameExtensions(i.identifier, { id: unsupportedExtensionId }));
+            const unsupportedExtension = installed.find(i => areSameExtensions(i.identifier, { id: unsupportedExtensionId }));
             // Unsupported Extension is not installed
             if (!unsupportedExtension) {
                 continue;
             }
-            const gallery = (await galleryService.getExtensions([{ id: preReleaseExtensionId, preRelease }], {
-                targetPlatform: await extensionManagementService.getTargetPlatform(),
-                compatible: true,
-            }, CancellationToken.None))[0];
+            const gallery = (await galleryService.getExtensions([{ id: preReleaseExtensionId, preRelease }], { targetPlatform: await extensionManagementService.getTargetPlatform(), compatible: true }, CancellationToken.None))[0];
             if (!gallery) {
                 logService.info(`Skipping migrating '${unsupportedExtension.identifier.id}' extension because, the comaptible target '${preReleaseExtensionId}' extension is not found`);
                 continue;
             }
             try {
                 logService.info(`Migrating '${unsupportedExtension.identifier.id}' extension to '${preReleaseExtensionId}' extension...`);
-                const isUnsupportedExtensionEnabled = !extensionEnablementService
-                    .getDisabledExtensions()
-                    .some((e) => areSameExtensions(e, unsupportedExtension.identifier));
+                const isUnsupportedExtensionEnabled = !extensionEnablementService.getDisabledExtensions().some(e => areSameExtensions(e, unsupportedExtension.identifier));
                 await extensionManagementService.uninstall(unsupportedExtension);
                 logService.info(`Uninstalled the unsupported extension '${unsupportedExtension.identifier.id}'`);
-                let preReleaseExtension = installed.find((i) => areSameExtensions(i.identifier, {
-                    id: preReleaseExtensionId,
-                }));
-                if (!preReleaseExtension ||
-                    (!preReleaseExtension.isPreReleaseVersion &&
-                        isUnsupportedExtensionEnabled)) {
-                    preReleaseExtension =
-                        await extensionManagementService.installFromGallery(gallery, {
-                            installPreReleaseVersion: true,
-                            isMachineScoped: unsupportedExtension.isMachineScoped,
-                            operation: InstallOperation.Migrate,
-                        });
+                let preReleaseExtension = installed.find(i => areSameExtensions(i.identifier, { id: preReleaseExtensionId }));
+                if (!preReleaseExtension || (!preReleaseExtension.isPreReleaseVersion && isUnsupportedExtensionEnabled)) {
+                    preReleaseExtension = await extensionManagementService.installFromGallery(gallery, { installPreReleaseVersion: true, isMachineScoped: unsupportedExtension.isMachineScoped, operation: InstallOperation.Migrate });
                     logService.info(`Installed the pre-release extension '${preReleaseExtension.identifier.id}'`);
                     if (!isUnsupportedExtensionEnabled) {
                         await extensionEnablementService.disableExtension(preReleaseExtension.identifier);

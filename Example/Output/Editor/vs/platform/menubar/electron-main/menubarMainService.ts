@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { createDecorator, IInstantiationService, } from "../../instantiation/common/instantiation.js";
-import { ILifecycleMainService, LifecycleMainPhase, } from "../../lifecycle/electron-main/lifecycleMainService.js";
-import { ILogService } from "../../log/common/log.js";
-import { ICommonMenubarService, IMenubarData } from "../common/menubar.js";
-import { Menubar } from "./menubar.js";
-export const IMenubarMainService = createDecorator<IMenubarMainService>("menubarMainService");
+import { createDecorator, IInstantiationService } from '../../instantiation/common/instantiation.js';
+import { ILifecycleMainService, LifecycleMainPhase } from '../../lifecycle/electron-main/lifecycleMainService.js';
+import { ILogService } from '../../log/common/log.js';
+import { ICommonMenubarService, IMenubarData } from '../common/menubar.js';
+import { Menubar } from './menubar.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+export const IMenubarMainService = createDecorator<IMenubarMainService>('menubarMainService');
 export interface IMenubarMainService extends ICommonMenubarService {
     readonly _serviceBrand: undefined;
 }
@@ -29,7 +29,7 @@ export class MenubarMainService extends Disposable implements IMenubarMainServic
         return this._register(this.instantiationService.createInstance(Menubar));
     }
     async updateMenubar(windowId: number, menus: IMenubarData): Promise<void> {
-        this.logService.trace("menubarService#updateMenubar", windowId);
+        this.logService.trace('menubarService#updateMenubar', windowId);
         const menubar = await this.menubar;
         menubar.updateMenu(menus, windowId);
     }

@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { isUndefinedOrNull } from "../../../base/common/types.js";
-import { IProfileStorageValueChangeEvent, IStorageService, StorageScope, StorageTarget, } from "../../storage/common/storage.js";
-import { DISABLED_EXTENSIONS_STORAGE_PATH, IExtensionIdentifier, IExtensionManagementService, IGlobalExtensionEnablementService, InstallOperation, } from "./extensionManagement.js";
-import { areSameExtensions } from "./extensionManagementUtil.js";
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { isUndefinedOrNull } from '../../../base/common/types.js';
+import { DISABLED_EXTENSIONS_STORAGE_PATH, IExtensionIdentifier, IExtensionManagementService, IGlobalExtensionEnablementService, InstallOperation } from './extensionManagement.js';
+import { areSameExtensions } from './extensionManagementUtil.js';
+import { IProfileStorageValueChangeEvent, IStorageService, StorageScope, StorageTarget } from '../../storage/common/storage.js';
 export class GlobalExtensionEnablementService extends Disposable implements IGlobalExtensionEnablementService {
     declare readonly _serviceBrand: undefined;
     private _onDidChangeEnablement = new Emitter<{
@@ -26,11 +26,8 @@ export class GlobalExtensionEnablementService extends Disposable implements IGlo
     extensionManagementService: IExtensionManagementService) {
         super();
         this.storageManager = this._register(new StorageManager(storageService));
-        this._register(this.storageManager.onDidChange((extensions) => this._onDidChangeEnablement.fire({
-            extensions,
-            source: "storage",
-        })));
-        this._register(extensionManagementService.onDidInstallExtensions((e) => e.forEach(({ local, operation }) => {
+        this._register(this.storageManager.onDidChange(extensions => this._onDidChangeEnablement.fire({ extensions, source: 'storage' })));
+        this._register(extensionManagementService.onDidInstallExtensions(e => e.forEach(({ local, operation }) => {
             if (local && operation === InstallOperation.Migrate) {
                 this._removeFromDisabledExtensions(local.identifier); /* Reset migrated extensions */
             }
@@ -38,20 +35,14 @@ export class GlobalExtensionEnablementService extends Disposable implements IGlo
     }
     async enableExtension(extension: IExtensionIdentifier, source?: string): Promise<boolean> {
         if (this._removeFromDisabledExtensions(extension)) {
-            this._onDidChangeEnablement.fire({
-                extensions: [extension],
-                source,
-            });
+            this._onDidChangeEnablement.fire({ extensions: [extension], source });
             return true;
         }
         return false;
     }
     async disableExtension(extension: IExtensionIdentifier, source?: string): Promise<boolean> {
         if (this._addToDisabledExtensions(extension)) {
-            this._onDidChangeEnablement.fire({
-                extensions: [extension],
-                source,
-            });
+            this._onDidChangeEnablement.fire({ extensions: [extension], source });
             return true;
         }
         return false;
@@ -64,7 +55,7 @@ export class GlobalExtensionEnablementService extends Disposable implements IGlo
     }
     private _addToDisabledExtensions(identifier: IExtensionIdentifier): boolean {
         const disabledExtensions = this.getDisabledExtensions();
-        if (disabledExtensions.every((e) => !areSameExtensions(e, identifier))) {
+        if (disabledExtensions.every(e => !areSameExtensions(e, identifier))) {
             disabledExtensions.push(identifier);
             this._setDisabledExtensions(disabledExtensions);
             return true;
@@ -101,7 +92,7 @@ export class StorageManager extends Disposable {
     readonly onDidChange: Event<IExtensionIdentifier[]> = this._onDidChange.event;
     constructor(private storageService: IStorageService) {
         super();
-        this._register(storageService.onDidChangeValue(StorageScope.PROFILE, undefined, this._store)((e) => this.onDidStorageChange(e)));
+        this._register(storageService.onDidChangeValue(StorageScope.PROFILE, undefined, this._store)(e => this.onDidStorageChange(e)));
     }
     get(key: string, scope: StorageScope): IExtensionIdentifier[] {
         let value: string;
@@ -138,8 +129,8 @@ export class StorageManager extends Disposable {
                 const oldValues = this.get(storageChangeEvent.key, storageChangeEvent.scope);
                 delete this.storage[storageChangeEvent.key];
                 const newValues = this.get(storageChangeEvent.key, storageChangeEvent.scope);
-                const added = oldValues.filter((oldValue) => !newValues.some((newValue) => areSameExtensions(oldValue, newValue)));
-                const removed = newValues.filter((newValue) => !oldValues.some((oldValue) => areSameExtensions(oldValue, newValue)));
+                const added = oldValues.filter(oldValue => !newValues.some(newValue => areSameExtensions(oldValue, newValue)));
+                const removed = newValues.filter(newValue => !oldValues.some(oldValue => areSameExtensions(oldValue, newValue)));
                 if (added.length || removed.length) {
                     this._onDidChange.fire([...added, ...removed]);
                 }
@@ -147,7 +138,7 @@ export class StorageManager extends Disposable {
         }
     }
     private _get(key: string, scope: StorageScope): string {
-        return this.storageService.get(key, scope, "[]");
+        return this.storageService.get(key, scope, '[]');
     }
     private _set(key: string, value: string | undefined, scope: StorageScope): void {
         if (value) {

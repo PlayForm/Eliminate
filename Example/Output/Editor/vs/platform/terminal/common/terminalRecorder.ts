@@ -2,10 +2,10 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IPtyHostProcessReplayEvent } from "./capabilities/capabilities.js";
-import { ReplayEntry } from "./terminalProcess.js";
+import { IPtyHostProcessReplayEvent } from './capabilities/capabilities.js';
+import { ReplayEntry } from './terminalProcess.js';
 const enum Constants {
-    MaxRecorderDataSize = 10 * 1024 * 1024
+    MaxRecorderDataSize = 10 * 1024 * 1024 // 10MB
 }
 interface RecorderEntry {
     cols: number;
@@ -62,8 +62,7 @@ export class TerminalRecorder {
             }
             else {
                 // the first data piece must be partially deleted
-                firstEntry.data[0] =
-                    firstEntry.data[0].substr(remainingToDelete);
+                firstEntry.data[0] = firstEntry.data[0].substr(remainingToDelete);
                 this._totalDataLength -= remainingToDelete;
             }
         }
@@ -72,21 +71,17 @@ export class TerminalRecorder {
         // normalize entries to one element per data array
         this._entries.forEach((entry) => {
             if (entry.data.length > 0) {
-                entry.data = [entry.data.join("")];
+                entry.data = [entry.data.join('')];
             }
         });
         return {
-            events: this._entries.map((entry) => ({
-                cols: entry.cols,
-                rows: entry.rows,
-                data: entry.data[0] ?? "",
-            })),
+            events: this._entries.map(entry => ({ cols: entry.cols, rows: entry.rows, data: entry.data[0] ?? '' })),
             // No command restoration is needed when relaunching terminals
             commands: {
                 isWindowsPty: false,
                 commands: [],
                 promptInputModel: undefined,
-            },
+            }
         };
     }
     async generateReplayEvent(): Promise<IPtyHostProcessReplayEvent> {

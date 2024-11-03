@@ -2,16 +2,16 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IContextMenuDelegate } from "../../../base/browser/contextmenu.js";
-import { StandardMouseEvent } from "../../../base/browser/mouseEvent.js";
-import { AnchorAlignment, AnchorAxisAlignment, IAnchor, IContextViewProvider, } from "../../../base/browser/ui/contextview/contextview.js";
-import { IAction } from "../../../base/common/actions.js";
-import { Event } from "../../../base/common/event.js";
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { IMenuActionOptions, MenuId } from "../../actions/common/actions.js";
-import { IContextKeyService } from "../../contextkey/common/contextkey.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-export const IContextViewService = createDecorator<IContextViewService>("contextViewService");
+import { IContextMenuDelegate } from '../../../base/browser/contextmenu.js';
+import { StandardMouseEvent } from '../../../base/browser/mouseEvent.js';
+import { AnchorAlignment, AnchorAxisAlignment, IAnchor, IContextViewProvider } from '../../../base/browser/ui/contextview/contextview.js';
+import { IAction } from '../../../base/common/actions.js';
+import { Event } from '../../../base/common/event.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { IMenuActionOptions, MenuId } from '../../actions/common/actions.js';
+import { IContextKeyService } from '../../contextkey/common/contextkey.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+export const IContextViewService = createDecorator<IContextViewService>('contextViewService');
 export interface IContextViewService extends IContextViewProvider {
     readonly _serviceBrand: undefined;
     showContextView(delegate: IContextViewDelegate, container?: HTMLElement, shadowRoot?: boolean): IOpenContextView;
@@ -41,7 +41,7 @@ export interface IContextViewDelegate {
 export interface IOpenContextView {
     close: () => void;
 }
-export const IContextMenuService = createDecorator<IContextMenuService>("contextMenuService");
+export const IContextMenuService = createDecorator<IContextMenuService>('contextMenuService');
 export interface IContextMenuService {
     readonly _serviceBrand: undefined;
     readonly onDidShowContextMenu: Event<void>;
@@ -65,4 +65,4 @@ export type IContextMenuMenuDelegate = {
      * Optional getter for extra actions. They will be prepended to the menu actions.
      */
     getActions?(): IAction[];
-} & Omit<IContextMenuDelegate, "getActions">;
+} & Omit<IContextMenuDelegate, 'getActions'>;

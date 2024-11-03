@@ -2,28 +2,28 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { getActiveElement } from "../../base/browser/dom.js";
-import { KeyCode, KeyMod } from "../../base/common/keyCodes.js";
-import { IDisposable } from "../../base/common/lifecycle.js";
-import { ThemeIcon } from "../../base/common/themables.js";
-import { assertType } from "../../base/common/types.js";
-import { URI } from "../../base/common/uri.js";
-import * as nls from "../../nls.js";
-import { Action2, MenuId, MenuRegistry, } from "../../platform/actions/common/actions.js";
-import { CommandsRegistry, ICommandMetadata, } from "../../platform/commands/common/commands.js";
-import { ContextKeyExpr, ContextKeyExpression, IContextKeyService, } from "../../platform/contextkey/common/contextkey.js";
-import { BrandedService, IConstructorSignature, IInstantiationService, ServicesAccessor as InstantiationServicesAccessor, } from "../../platform/instantiation/common/instantiation.js";
-import { IKeybindings, KeybindingsRegistry, KeybindingWeight, } from "../../platform/keybinding/common/keybindingsRegistry.js";
-import { ILogService } from "../../platform/log/common/log.js";
-import { Registry } from "../../platform/registry/common/platform.js";
-import { ITelemetryService } from "../../platform/telemetry/common/telemetry.js";
-import { Position } from "../common/core/position.js";
-import { IDiffEditorContribution, IEditorContribution, } from "../common/editorCommon.js";
-import { ITextModel } from "../common/model.js";
-import { IModelService } from "../common/services/model.js";
-import { ITextModelService } from "../common/services/resolverService.js";
-import { ICodeEditor, IDiffEditor } from "./editorBrowser.js";
-import { ICodeEditorService } from "./services/codeEditorService.js";
+import * as nls from '../../nls.js';
+import { URI } from '../../base/common/uri.js';
+import { ICodeEditor, IDiffEditor } from './editorBrowser.js';
+import { ICodeEditorService } from './services/codeEditorService.js';
+import { Position } from '../common/core/position.js';
+import { IEditorContribution, IDiffEditorContribution } from '../common/editorCommon.js';
+import { ITextModel } from '../common/model.js';
+import { IModelService } from '../common/services/model.js';
+import { ITextModelService } from '../common/services/resolverService.js';
+import { MenuId, MenuRegistry, Action2 } from '../../platform/actions/common/actions.js';
+import { CommandsRegistry, ICommandMetadata } from '../../platform/commands/common/commands.js';
+import { ContextKeyExpr, IContextKeyService, ContextKeyExpression } from '../../platform/contextkey/common/contextkey.js';
+import { ServicesAccessor as InstantiationServicesAccessor, BrandedService, IInstantiationService, IConstructorSignature } from '../../platform/instantiation/common/instantiation.js';
+import { IKeybindings, KeybindingsRegistry, KeybindingWeight } from '../../platform/keybinding/common/keybindingsRegistry.js';
+import { Registry } from '../../platform/registry/common/platform.js';
+import { ITelemetryService } from '../../platform/telemetry/common/telemetry.js';
+import { assertType } from '../../base/common/types.js';
+import { ThemeIcon } from '../../base/common/themables.js';
+import { IDisposable } from '../../base/common/lifecycle.js';
+import { KeyMod, KeyCode } from '../../base/common/keyCodes.js';
+import { ILogService } from '../../platform/log/common/log.js';
+import { getActiveElement } from '../../base/browser/dom.js';
 export type ServicesAccessor = InstantiationServicesAccessor;
 export type EditorContributionCtor = IConstructorSignature<IEditorContribution, [
     ICodeEditor
@@ -113,9 +113,7 @@ export abstract class Command {
             this._registerMenuItem(this._menuOpts);
         }
         if (this._kbOpts) {
-            const kbOptsArr = Array.isArray(this._kbOpts)
-                ? this._kbOpts
-                : [this._kbOpts];
+            const kbOptsArr = Array.isArray(this._kbOpts) ? this._kbOpts : [this._kbOpts];
             for (const kbOpts of kbOptsArr) {
                 let kbWhen = kbOpts.kbExpr;
                 if (this.precondition) {
@@ -143,7 +141,7 @@ export abstract class Command {
         CommandsRegistry.registerCommand({
             id: this.id,
             handler: (accessor, args) => this.runCommand(accessor, args),
-            metadata: this.metadata,
+            metadata: this.metadata
         });
     }
     private _registerMenuItem(item: ICommandMenuOptions): void {
@@ -153,10 +151,10 @@ export abstract class Command {
                 id: this.id,
                 title: item.title,
                 icon: item.icon,
-                precondition: this.precondition,
+                precondition: this.precondition
             },
             when: item.when,
-            order: item.order,
+            order: item.order
         });
     }
     public abstract runCommand(accessor: ServicesAccessor, args: any): void | Promise<void>;
@@ -186,13 +184,12 @@ export class MultiCommand extends Command {
         return {
             dispose: () => {
                 for (let i = 0; i < this._implementations.length; i++) {
-                    if (this._implementations[i].implementation ===
-                        implementation) {
+                    if (this._implementations[i].implementation === implementation) {
                         this._implementations.splice(i, 1);
                         return;
                     }
                 }
-            },
+            }
         };
     }
     public runCommand(accessor: ServicesAccessor, args: any): void | Promise<void> {
@@ -210,7 +207,7 @@ export class MultiCommand extends Command {
             const result = impl.implementation(accessor, args);
             if (result) {
                 logService.trace(`Command '${this.id}' was handled by '${impl.name}'.`);
-                if (typeof result === "boolean") {
+                if (typeof result === 'boolean') {
                     return;
                 }
                 return result;
@@ -262,8 +259,7 @@ export abstract class EditorCommand extends Command {
     public static runEditorCommand(accessor: ServicesAccessor, args: any, precondition: ContextKeyExpression | undefined, runner: (accessor: ServicesAccessor | null, editor: ICodeEditor, args: any) => void | Promise<void>): void | Promise<void> {
         const codeEditorService = accessor.get(ICodeEditorService);
         // Find the editor with text focus or active
-        const editor = codeEditorService.getFocusedCodeEditor() ||
-            codeEditorService.getActiveCodeEditor();
+        const editor = codeEditorService.getFocusedCodeEditor() || codeEditorService.getActiveCodeEditor();
         if (!editor) {
             // well, at least we tried...
             return;
@@ -339,26 +335,24 @@ export abstract class EditorAction extends EditorCommand {
     }
     protected reportTelemetry(accessor: ServicesAccessor, editor: ICodeEditor) {
         type EditorActionInvokedClassification = {
-            owner: "alexdima";
-            comment: "An editor action has been invoked.";
+            owner: 'alexdima';
+            comment: 'An editor action has been invoked.';
             name: {
-                classification: "SystemMetaData";
-                purpose: "FeatureInsight";
-                comment: "The label of the action that was invoked.";
+                classification: 'SystemMetaData';
+                purpose: 'FeatureInsight';
+                comment: 'The label of the action that was invoked.';
             };
             id: {
-                classification: "SystemMetaData";
-                purpose: "FeatureInsight";
-                comment: "The identifier of the action that was invoked.";
+                classification: 'SystemMetaData';
+                purpose: 'FeatureInsight';
+                comment: 'The identifier of the action that was invoked.';
             };
         };
         type EditorActionInvokedEvent = {
             name: string;
             id: string;
         };
-        accessor
-            .get(ITelemetryService)
-            .publicLog2<EditorActionInvokedEvent, EditorActionInvokedClassification>("editorActionInvoked", { name: this.label, id: this.id });
+        accessor.get(ITelemetryService).publicLog2<EditorActionInvokedEvent, EditorActionInvokedClassification>('editorActionInvoked', { name: this.label, id: this.id });
     }
     public abstract run(accessor: ServicesAccessor, editor: ICodeEditor, args: any): void | Promise<void>;
 }
@@ -382,14 +376,14 @@ export class MultiEditorAction extends EditorAction {
                         return;
                     }
                 }
-            },
+            }
         };
     }
     public run(accessor: ServicesAccessor, editor: ICodeEditor, args: any): void | Promise<void> {
         for (const impl of this._implementations) {
             const result = impl[1](accessor, editor, args);
             if (result) {
-                if (typeof result === "boolean") {
+                if (typeof result === 'boolean') {
                     return;
                 }
                 return result;
@@ -403,8 +397,7 @@ export abstract class EditorAction2 extends Action2 {
     run(accessor: ServicesAccessor, ...args: any[]) {
         // Find the editor with text focus or active
         const codeEditorService = accessor.get(ICodeEditorService);
-        const editor = codeEditorService.getFocusedCodeEditor() ||
-            codeEditorService.getActiveCodeEditor();
+        const editor = codeEditorService.getFocusedCodeEditor() || codeEditorService.getActiveCodeEditor();
         if (!editor) {
             // well, at least we tried...
             return;
@@ -436,10 +429,7 @@ export function registerModelAndPositionCommand(id: string, handler: (accessor: 
             const editorPosition = Position.lift(position);
             return instaService.invokeFunction(handler, model, editorPosition, ...args.slice(2));
         }
-        return accessor
-            .get(ITextModelService)
-            .createModelReference(resource)
-            .then((reference) => {
+        return accessor.get(ITextModelService).createModelReference(resource).then(reference => {
             return new Promise((resolve, reject) => {
                 try {
                     const result = instaService.invokeFunction(handler, reference.object.textEditorModel, Position.lift(position), args.slice(2));
@@ -501,7 +491,7 @@ export namespace EditorExtensionsRegistry {
         return EditorContributionRegistry.INSTANCE.getEditorContributions();
     }
     export function getSomeEditorContributions(ids: string[]): IEditorContributionDescription[] {
-        return EditorContributionRegistry.INSTANCE.getEditorContributions().filter((c) => ids.indexOf(c.id) >= 0);
+        return EditorContributionRegistry.INSTANCE.getEditorContributions().filter(c => ids.indexOf(c.id) >= 0);
     }
     export function getDiffEditorContributions(): IDiffEditorContributionDescription[] {
         return EditorContributionRegistry.INSTANCE.getDiffEditorContributions();
@@ -509,7 +499,7 @@ export namespace EditorExtensionsRegistry {
 }
 // Editor extension points
 const Extensions = {
-    EditorCommonContributions: "editor.contributions",
+    EditorCommonContributions: 'editor.contributions'
 };
 class EditorContributionRegistry {
     public static readonly INSTANCE = new EditorContributionRegistry();
@@ -519,15 +509,12 @@ class EditorContributionRegistry {
     private readonly editorCommands: {
         [commandId: string]: EditorCommand;
     } = Object.create(null);
-    constructor() { }
+    constructor() {
+    }
     public registerEditorContribution<Services extends BrandedService[]>(id: string, ctor: {
         new (editor: ICodeEditor, ...services: Services): IEditorContribution;
     }, instantiation: EditorContributionInstantiation): void {
-        this.editorContributions.push({
-            id,
-            ctor: ctor as EditorContributionCtor,
-            instantiation,
-        });
+        this.editorContributions.push({ id, ctor: ctor as EditorContributionCtor, instantiation });
     }
     public getEditorContributions(): IEditorContributionDescription[] {
         return this.editorContributions.slice(0);
@@ -535,10 +522,7 @@ class EditorContributionRegistry {
     public registerDiffEditorContribution<Services extends BrandedService[]>(id: string, ctor: {
         new (editor: IDiffEditor, ...services: Services): IEditorContribution;
     }): void {
-        this.diffEditorContributions.push({
-            id,
-            ctor: ctor as DiffEditorContributionCtor,
-        });
+        this.diffEditorContributions.push({ id, ctor: ctor as DiffEditorContributionCtor });
     }
     public getDiffEditorContributions(): IDiffEditorContributionDescription[] {
         return this.diffEditorContributions.slice(0);
@@ -555,7 +539,7 @@ class EditorContributionRegistry {
         this.editorCommands[editorCommand.id] = editorCommand;
     }
     public getEditorCommand(commandId: string): EditorCommand {
-        return this.editorCommands[commandId] || null;
+        return (this.editorCommands[commandId] || null);
     }
 }
 Registry.add(Extensions.EditorCommonContributions, EditorContributionRegistry.INSTANCE);
@@ -564,79 +548,64 @@ function registerCommand<T extends Command>(command: T): T {
     return command;
 }
 export const UndoCommand = registerCommand(new MultiCommand({
-    id: "undo",
+    id: 'undo',
     precondition: undefined,
     kbOpts: {
         weight: KeybindingWeight.EditorCore,
-        primary: KeyMod.CtrlCmd | KeyCode.KeyZ,
+        primary: KeyMod.CtrlCmd | KeyCode.KeyZ
     },
-    menuOpts: [
-        {
+    menuOpts: [{
             menuId: MenuId.MenubarEditMenu,
-            group: "1_do",
-            title: nls.localize({ key: "miUndo", comment: ["&& denotes a mnemonic"] }, "&&Undo"),
-            order: 1,
-        },
-        {
+            group: '1_do',
+            title: nls.localize({ key: 'miUndo', comment: ['&& denotes a mnemonic'] }, "&&Undo"),
+            order: 1
+        }, {
             menuId: MenuId.CommandPalette,
-            group: "",
-            title: nls.localize("undo", "Undo"),
-            order: 1,
-        },
-    ],
+            group: '',
+            title: nls.localize('undo', "Undo"),
+            order: 1
+        }]
 }));
-registerCommand(new ProxyCommand(UndoCommand, {
-    id: "default:undo",
-    precondition: undefined,
-}));
+registerCommand(new ProxyCommand(UndoCommand, { id: 'default:undo', precondition: undefined }));
 export const RedoCommand = registerCommand(new MultiCommand({
-    id: "redo",
+    id: 'redo',
     precondition: undefined,
     kbOpts: {
         weight: KeybindingWeight.EditorCore,
         primary: KeyMod.CtrlCmd | KeyCode.KeyY,
         secondary: [KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyZ],
-        mac: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyZ },
+        mac: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyZ }
     },
-    menuOpts: [
-        {
+    menuOpts: [{
             menuId: MenuId.MenubarEditMenu,
-            group: "1_do",
-            title: nls.localize({ key: "miRedo", comment: ["&& denotes a mnemonic"] }, "&&Redo"),
-            order: 2,
-        },
-        {
+            group: '1_do',
+            title: nls.localize({ key: 'miRedo', comment: ['&& denotes a mnemonic'] }, "&&Redo"),
+            order: 2
+        }, {
             menuId: MenuId.CommandPalette,
-            group: "",
-            title: nls.localize("redo", "Redo"),
-            order: 1,
-        },
-    ],
+            group: '',
+            title: nls.localize('redo', "Redo"),
+            order: 1
+        }]
 }));
-registerCommand(new ProxyCommand(RedoCommand, {
-    id: "default:redo",
-    precondition: undefined,
-}));
+registerCommand(new ProxyCommand(RedoCommand, { id: 'default:redo', precondition: undefined }));
 export const SelectAllCommand = registerCommand(new MultiCommand({
-    id: "editor.action.selectAll",
+    id: 'editor.action.selectAll',
     precondition: undefined,
     kbOpts: {
         weight: KeybindingWeight.EditorCore,
         kbExpr: null,
-        primary: KeyMod.CtrlCmd | KeyCode.KeyA,
+        primary: KeyMod.CtrlCmd | KeyCode.KeyA
     },
-    menuOpts: [
-        {
+    menuOpts: [{
             menuId: MenuId.MenubarSelectionMenu,
-            group: "1_basic",
-            title: nls.localize({ key: "miSelectAll", comment: ["&& denotes a mnemonic"] }, "&&Select All"),
-            order: 1,
-        },
-        {
+            group: '1_basic',
+            title: nls.localize({ key: 'miSelectAll', comment: ['&& denotes a mnemonic'] }, "&&Select All"),
+            order: 1
+        }, {
             menuId: MenuId.CommandPalette,
-            group: "",
-            title: nls.localize("selectAll", "Select All"),
-            order: 1,
-        },
-    ],
+            group: '',
+            title: nls.localize('selectAll', "Select All"),
+            order: 1
+        }]
 }));

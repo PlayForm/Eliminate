@@ -2,10 +2,10 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IChannel, IPCServer, IServerChannel, StaticRouter, } from "../../../base/parts/ipc/common/ipc.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { IRemoteService } from "./services.js";
-export const IMainProcessService = createDecorator<IMainProcessService>("mainProcessService");
+import { IChannel, IPCServer, IServerChannel, StaticRouter } from '../../../base/parts/ipc/common/ipc.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { IRemoteService } from './services.js';
+export const IMainProcessService = createDecorator<IMainProcessService>('mainProcessService');
 export interface IMainProcessService extends IRemoteService {
 }
 /**

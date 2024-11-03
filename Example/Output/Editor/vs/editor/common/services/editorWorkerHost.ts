@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IWorkerClient, IWorkerServer, } from "../../../base/common/worker/simpleWorker.js";
+import { IWorkerServer, IWorkerClient } from '../../../base/common/worker/simpleWorker.js';
 export abstract class EditorWorkerHost {
-    public static CHANNEL_NAME = "editorWorkerHost";
+    public static CHANNEL_NAME = 'editorWorkerHost';
     public static getChannel(workerServer: IWorkerServer): EditorWorkerHost {
         return workerServer.getChannel<EditorWorkerHost>(EditorWorkerHost.CHANNEL_NAME);
     }

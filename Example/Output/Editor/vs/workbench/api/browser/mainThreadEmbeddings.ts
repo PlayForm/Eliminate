@@ -2,19 +2,19 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Emitter, Event } from "../../../base/common/event.js";
-import { DisposableMap, DisposableStore, IDisposable, } from "../../../base/common/lifecycle.js";
-import { InstantiationType, registerSingleton, } from "../../../platform/instantiation/common/extensions.js";
-import { createDecorator } from "../../../platform/instantiation/common/instantiation.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { ExtHostContext, ExtHostEmbeddingsShape, MainContext, MainThreadEmbeddingsShape, } from "../common/extHost.protocol.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { DisposableMap, DisposableStore, IDisposable } from '../../../base/common/lifecycle.js';
+import { InstantiationType, registerSingleton } from '../../../platform/instantiation/common/extensions.js';
+import { createDecorator } from '../../../platform/instantiation/common/instantiation.js';
+import { ExtHostContext, ExtHostEmbeddingsShape, MainContext, MainThreadEmbeddingsShape } from '../common/extHost.protocol.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
 interface IEmbeddingsProvider {
     provideEmbeddings(input: string[], token: CancellationToken): Promise<{
         values: number[];
     }[]>;
 }
-const IEmbeddingsService = createDecorator<IEmbeddingsService>("embeddingsService");
+const IEmbeddingsService = createDecorator<IEmbeddingsService>('embeddingsService');
 interface IEmbeddingsService {
     _serviceBrand: undefined;
     readonly onDidChange: Event<void>;
@@ -42,7 +42,7 @@ class EmbeddingsService implements IEmbeddingsService {
             dispose: () => {
                 this.providers.delete(id);
                 this._onDidChange.fire();
-            },
+            }
         };
     }
     computeEmbeddings(id: string, input: string[], token: CancellationToken): Promise<{
@@ -61,15 +61,15 @@ registerSingleton(IEmbeddingsService, EmbeddingsService, InstantiationType.Delay
 @extHostNamedCustomer(MainContext.MainThreadEmbeddings)
 export class MainThreadEmbeddings implements MainThreadEmbeddingsShape {
     private readonly _store = new DisposableStore();
-    private readonly _providers = this._store.add(new DisposableMap<number>());
+    private readonly _providers = this._store.add(new DisposableMap<number>);
     private readonly _proxy: ExtHostEmbeddingsShape;
     constructor(context: IExtHostContext, 
     @IEmbeddingsService
     private readonly embeddingsService: IEmbeddingsService) {
         this._proxy = context.getProxy(ExtHostContext.ExtHostEmbeddings);
-        this._store.add(embeddingsService.onDidChange(() => {
+        this._store.add(embeddingsService.onDidChange((() => {
             this._proxy.$acceptEmbeddingModels(Array.from(embeddingsService.allProviders));
-        }));
+        })));
     }
     dispose(): void {
         this._store.dispose();
@@ -80,7 +80,7 @@ export class MainThreadEmbeddings implements MainThreadEmbeddingsShape {
                 values: number[];
             }[]> => {
                 return this._proxy.$provideEmbeddings(handle, input, token);
-            },
+            }
         });
         this._providers.set(handle, registration);
     }

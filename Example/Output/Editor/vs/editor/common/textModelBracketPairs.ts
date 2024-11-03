@@ -2,16 +2,16 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CallbackIterable } from "../../base/common/arrays.js";
-import { Event } from "../../base/common/event.js";
-import { IPosition } from "./core/position.js";
-import { IRange, Range } from "./core/range.js";
-import { ClosingBracketKind, OpeningBracketKind, } from "./languages/supports/languageBracketsConfiguration.js";
-import { PairAstNode } from "./model/bracketPairsTextModelPart/bracketPairsTree/ast.js";
+import { CallbackIterable } from '../../base/common/arrays.js';
+import { Event } from '../../base/common/event.js';
+import { IPosition } from './core/position.js';
+import { IRange, Range } from './core/range.js';
+import { ClosingBracketKind, OpeningBracketKind } from './languages/supports/languageBracketsConfiguration.js';
+import { PairAstNode } from './model/bracketPairsTextModelPart/bracketPairsTree/ast.js';
 export interface IBracketPairsTextModelPart {
     /**
      * Is fired when bracket pairs change, either due to a text or a settings change.
-     */
+    */
     onDidChange: Event<void>;
     /**
      * Gets all bracket pairs that intersect the given position.
@@ -73,10 +73,10 @@ export class BracketInfo {
 export class BracketPairInfo {
     constructor(public readonly range: Range, public readonly openingBracketRange: Range, public readonly closingBracketRange: Range | undefined, 
     /** 0-based */
-    public readonly nestingLevel: number, public readonly nestingLevelOfEqualBracketType: number, private readonly bracketPairNode: PairAstNode) { }
+    public readonly nestingLevel: number, public readonly nestingLevelOfEqualBracketType: number, private readonly bracketPairNode: PairAstNode) {
+    }
     public get openingBracketInfo(): OpeningBracketKind {
-        return this.bracketPairNode.openingBracket
-            .bracketInfo as OpeningBracketKind;
+        return this.bracketPairNode.openingBracket.bracketInfo as OpeningBracketKind;
     }
     public get closingBracketInfo(): ClosingBracketKind | undefined {
         return this.bracketPairNode.closingBracket?.bracketInfo as ClosingBracketKind | undefined;
@@ -86,11 +86,11 @@ export class BracketPairWithMinIndentationInfo extends BracketPairInfo {
     constructor(range: Range, openingBracketRange: Range, closingBracketRange: Range | undefined, 
     /**
      * 0-based
-     */
+    */
     nestingLevel: number, nestingLevelOfEqualBracketType: number, bracketPairNode: PairAstNode, 
     /**
      * -1 if not requested, otherwise the size of the minimum indentation in the bracket pair in terms of visible columns.
-     */
+    */
     public readonly minVisibleColumnIndentation: number) {
         super(range, openingBracketRange, closingBracketRange, nestingLevel, nestingLevelOfEqualBracketType, bracketPairNode);
     }

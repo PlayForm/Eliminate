@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { basename } from "../../../base/common/path.js";
-import { TernarySearchTree } from "../../../base/common/ternarySearchTree.js";
-import { URI } from "../../../base/common/uri.js";
-import { IRequestHandler, IWorkerServer, } from "../../../base/common/worker/simpleWorker.js";
-import { IV8Profile, Utils } from "../common/profiling.js";
-import { BottomUpNode, BottomUpSample, buildModel, CdpCallFrame, IProfileModel, processNode, } from "../common/profilingModel.js";
-import { BottomUpAnalysis, IProfileAnalysisWorker, ProfilingOutput, } from "./profileAnalysisWorkerService.js";
+import { basename } from '../../../base/common/path.js';
+import { TernarySearchTree } from '../../../base/common/ternarySearchTree.js';
+import { URI } from '../../../base/common/uri.js';
+import { IRequestHandler, IWorkerServer } from '../../../base/common/worker/simpleWorker.js';
+import { IV8Profile, Utils } from '../common/profiling.js';
+import { IProfileModel, BottomUpSample, buildModel, BottomUpNode, processNode, CdpCallFrame } from '../common/profilingModel.js';
+import { BottomUpAnalysis, IProfileAnalysisWorker, ProfilingOutput } from './profileAnalysisWorkerService.js';
 /**
  * Defines the worker entry point. Must be exported and named `create`.
  * @skipMangle
@@ -23,7 +23,8 @@ class ProfileAnalysisWorker implements IRequestHandler, IProfileAnalysisWorker {
             return { kind: ProfilingOutput.Irrelevant, samples: [] };
         }
         const model = buildModel(profile);
-        const samples = bottomUp(model, 5).filter((s) => !s.isSpecial);
+        const samples = bottomUp(model, 5)
+            .filter(s => !s.isSpecial);
         if (samples.length === 0 || samples[0].percentage < 10) {
             // ignore this profile because 90% of the time is spent inside "special" frames
             // like idle, GC, or program
@@ -71,38 +72,38 @@ class ProfileAnalysisWorker implements IRequestHandler, IProfileAnalysisWorker {
     }
 }
 function isSpecial(call: CdpCallFrame): boolean {
-    return call.functionName.startsWith("(") && call.functionName.endsWith(")");
+    return call.functionName.startsWith('(') && call.functionName.endsWith(')');
 }
 function printCallFrameShort(frame: CdpCallFrame): string {
-    let result = frame.functionName || "(anonymous)";
+    let result = frame.functionName || '(anonymous)';
     if (frame.url) {
-        result += "#";
+        result += '#';
         result += basename(frame.url);
         if (frame.lineNumber >= 0) {
-            result += ":";
+            result += ':';
             result += frame.lineNumber + 1;
         }
         if (frame.columnNumber >= 0) {
-            result += ":";
+            result += ':';
             result += frame.columnNumber + 1;
         }
     }
     return result;
 }
 function printCallFrameStackLike(frame: CdpCallFrame): string {
-    let result = frame.functionName || "(anonymous)";
+    let result = frame.functionName || '(anonymous)';
     if (frame.url) {
-        result += " (";
+        result += ' (';
         result += frame.url;
         if (frame.lineNumber >= 0) {
-            result += ":";
+            result += ':';
             result += frame.lineNumber + 1;
         }
         if (frame.columnNumber >= 0) {
-            result += ":";
+            result += ':';
             result += frame.columnNumber + 1;
         }
-        result += ")";
+        result += ')';
     }
     return result;
 }
@@ -111,8 +112,7 @@ function getHeaviestLocationIds(model: IProfileModel, topN: number) {
         [locationId: number]: number;
     } = {};
     for (const node of model.nodes) {
-        stackSelfTime[node.locationId] =
-            (stackSelfTime[node.locationId] || 0) + node.selfTime;
+        stackSelfTime[node.locationId] = (stackSelfTime[node.locationId] || 0) + node.selfTime;
     }
     const locationIds = Object.entries(stackSelfTime)
         .sort(([, a], [, b]) => b - a)
@@ -142,7 +142,7 @@ function bottomUp(model: IProfileModel, topN: number) {
             url: node.callFrame.url,
             caller: [],
             percentage: Math.round(node.selfTime / (model.duration / 100)),
-            isSpecial: isSpecial(node.callFrame),
+            isSpecial: isSpecial(node.callFrame)
         };
         // follow the heaviest caller paths
         const stack = [node];

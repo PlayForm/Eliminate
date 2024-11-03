@@ -2,28 +2,28 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Event } from "../../../base/common/event.js";
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { URI } from "../../../base/common/uri.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
+import { Event } from '../../../base/common/event.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { URI } from '../../../base/common/uri.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
 export enum WorkspaceTrustScope {
     Local = 0,
     Remote = 1
 }
 export interface WorkspaceTrustRequestButton {
     readonly label: string;
-    readonly type: "ContinueWithTrust" | "ContinueWithoutTrust" | "Manage" | "Cancel";
+    readonly type: 'ContinueWithTrust' | 'ContinueWithoutTrust' | 'Manage' | 'Cancel';
 }
 export interface WorkspaceTrustRequestOptions {
     readonly buttons?: WorkspaceTrustRequestButton[];
     readonly message?: string;
 }
-export const IWorkspaceTrustEnablementService = createDecorator<IWorkspaceTrustEnablementService>("workspaceTrustEnablementService");
+export const IWorkspaceTrustEnablementService = createDecorator<IWorkspaceTrustEnablementService>('workspaceTrustEnablementService');
 export interface IWorkspaceTrustEnablementService {
     readonly _serviceBrand: undefined;
     isWorkspaceTrustEnabled(): boolean;
 }
-export const IWorkspaceTrustManagementService = createDecorator<IWorkspaceTrustManagementService>("workspaceTrustManagementService");
+export const IWorkspaceTrustManagementService = createDecorator<IWorkspaceTrustManagementService>('workspaceTrustManagementService');
 export interface IWorkspaceTrustManagementService {
     readonly _serviceBrand: undefined;
     onDidChangeTrust: Event<boolean>;
@@ -48,7 +48,7 @@ export const enum WorkspaceTrustUriResponse {
     OpenInNewWindow = 2,
     Cancel = 3
 }
-export const IWorkspaceTrustRequestService = createDecorator<IWorkspaceTrustRequestService>("workspaceTrustRequestService");
+export const IWorkspaceTrustRequestService = createDecorator<IWorkspaceTrustRequestService>('workspaceTrustRequestService');
 export interface IWorkspaceTrustRequestService {
     readonly _serviceBrand: undefined;
     readonly onDidInitiateOpenFilesTrustRequest: Event<void>;

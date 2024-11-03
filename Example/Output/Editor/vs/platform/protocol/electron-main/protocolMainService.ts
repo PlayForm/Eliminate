@@ -2,19 +2,19 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { session } from "electron";
-import { Disposable, IDisposable, toDisposable, } from "../../../base/common/lifecycle.js";
-import { COI, FileAccess, Schemas } from "../../../base/common/network.js";
-import { basename, extname, normalize } from "../../../base/common/path.js";
-import { isLinux } from "../../../base/common/platform.js";
-import { TernarySearchTree } from "../../../base/common/ternarySearchTree.js";
-import { URI } from "../../../base/common/uri.js";
-import { generateUuid } from "../../../base/common/uuid.js";
-import { validatedIpcMain } from "../../../base/parts/ipc/electron-main/ipcMain.js";
-import { INativeEnvironmentService } from "../../environment/common/environment.js";
-import { ILogService } from "../../log/common/log.js";
-import { IUserDataProfilesService } from "../../userDataProfile/common/userDataProfile.js";
-import { IIPCObjectUrl, IProtocolMainService } from "./protocol.js";
+import { session } from 'electron';
+import { Disposable, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { COI, FileAccess, Schemas } from '../../../base/common/network.js';
+import { basename, extname, normalize } from '../../../base/common/path.js';
+import { isLinux } from '../../../base/common/platform.js';
+import { TernarySearchTree } from '../../../base/common/ternarySearchTree.js';
+import { URI } from '../../../base/common/uri.js';
+import { generateUuid } from '../../../base/common/uuid.js';
+import { validatedIpcMain } from '../../../base/parts/ipc/electron-main/ipcMain.js';
+import { INativeEnvironmentService } from '../../environment/common/environment.js';
+import { ILogService } from '../../log/common/log.js';
+import { IIPCObjectUrl, IProtocolMainService } from './protocol.js';
+import { IUserDataProfilesService } from '../../userDataProfile/common/userDataProfile.js';
 type ProtocolCallback = {
     (result: string | Electron.FilePathWithHeaders | {
         error: number;
@@ -23,16 +23,7 @@ type ProtocolCallback = {
 export class ProtocolMainService extends Disposable implements IProtocolMainService {
     declare readonly _serviceBrand: undefined;
     private readonly validRoots = TernarySearchTree.forPaths<boolean>(!isLinux);
-    private readonly validExtensions = new Set([
-        ".svg",
-        ".png",
-        ".jpg",
-        ".jpeg",
-        ".gif",
-        ".bmp",
-        ".webp",
-        ".mp4",
-    ]); // https://github.com/microsoft/vscode/issues/119384
+    private readonly validExtensions = new Set(['.svg', '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.mp4']); // https://github.com/microsoft/vscode/issues/119384
     constructor(
     @INativeEnvironmentService
     private readonly environmentService: INativeEnvironmentService, 
@@ -47,12 +38,8 @@ export class ProtocolMainService extends Disposable implements IProtocolMainServ
         // - storage    : all files in global and workspace storage (https://github.com/microsoft/vscode/issues/116735)
         this.addValidFileRoot(environmentService.appRoot);
         this.addValidFileRoot(environmentService.extensionsPath);
-        this.addValidFileRoot(userDataProfilesService.defaultProfile.globalStorageHome.with({
-            scheme: Schemas.file,
-        }).fsPath);
-        this.addValidFileRoot(environmentService.workspaceStorageHome.with({
-            scheme: Schemas.file,
-        }).fsPath);
+        this.addValidFileRoot(userDataProfilesService.defaultProfile.globalStorageHome.with({ scheme: Schemas.file }).fsPath);
+        this.addValidFileRoot(environmentService.workspaceStorageHome.with({ scheme: Schemas.file }).fsPath);
         // Handle protocols
         this.handleProtocols();
     }
@@ -91,8 +78,7 @@ export class ProtocolMainService extends Disposable implements IProtocolMainServ
         let headers: Record<string, string> | undefined;
         if (this.environmentService.crossOriginIsolated) {
             const pathBasename = basename(path);
-            if (pathBasename === "workbench.html" ||
-                pathBasename === "workbench-dev.html") {
+            if (pathBasename === 'workbench.html' || pathBasename === 'workbench-dev.html') {
                 headers = COI.CoopAndCoep;
             }
             else {
@@ -128,8 +114,8 @@ export class ProtocolMainService extends Disposable implements IProtocolMainServ
         let obj: T | undefined = undefined;
         // Create unique URI
         const resource = URI.from({
-            scheme: "vscode", // used for all our IPC communication (vscode:<channel>)
-            path: generateUuid(),
+            scheme: 'vscode', // used for all our IPC communication (vscode:<channel>)
+            path: generateUuid()
         });
         // Install IPC handler
         const channel = resource.toString();
@@ -138,11 +124,11 @@ export class ProtocolMainService extends Disposable implements IProtocolMainServ
         this.logService.trace(`IPC Object URL: Registered new channel ${channel}.`);
         return {
             resource,
-            update: (updatedObj) => (obj = updatedObj),
+            update: updatedObj => obj = updatedObj,
             dispose: () => {
                 this.logService.trace(`IPC Object URL: Removed channel ${channel}.`);
                 validatedIpcMain.removeHandler(channel);
-            },
+            }
         };
     }
 }

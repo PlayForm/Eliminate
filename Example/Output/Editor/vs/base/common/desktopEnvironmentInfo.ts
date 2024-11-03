@@ -19,18 +19,17 @@ enum DesktopEnvironment {
     UKUI = 'UKUI',
     LXQT = 'LXQT'
 }
-;
+const kXdgCurrentDesktopEnvVar = 'XDG_CURRENT_DESKTOP';
 const kKDESessionEnvVar = 'KDE_SESSION_VERSION';
 export function getDesktopEnvironment(): DesktopEnvironment {
     const xdgCurrentDesktop = env[kXdgCurrentDesktopEnvVar];
-    if (env['XDG_CURRENT_DESKTOP']) {
-        ;
-        for (const value of env['XDG_CURRENT_DESKTOP'].split(':').map(value => value.trim()).filter(value => value.length > 0)) {
+    if (xdgCurrentDesktop) {
+        const values = xdgCurrentDesktop.split(':').map(value => value.trim()).filter(value => value.length > 0);
+        for (const value of values) {
             switch (value) {
                 case 'Unity': {
                     const desktopSessionUnity = env['DESKTOP_SESSION'];
-                    if (env['DESKTOP_SESSION']
-                        && env['DESKTOP_SESSION'].includes('gnome-fallback')) {
+                    if (desktopSessionUnity && desktopSessionUnity.includes('gnome-fallback')) {
                         return DesktopEnvironment.GNOME;
                     }
                     return DesktopEnvironment.UNITY;
@@ -43,12 +42,10 @@ export function getDesktopEnvironment(): DesktopEnvironment {
                     return DesktopEnvironment.CINNAMON;
                 case 'KDE': {
                     const kdeSession = env[kKDESessionEnvVar];
-                    if (env['KDE_SESSION_VERSION']
-                        === '5') {
+                    if (kdeSession === '5') {
                         return DesktopEnvironment.KDE5;
                     }
-                    if (env['KDE_SESSION_VERSION']
-                        === '6') {
+                    if (kdeSession === '6') {
                         return DesktopEnvironment.KDE6;
                     }
                     return DesktopEnvironment.KDE4;
@@ -65,8 +62,8 @@ export function getDesktopEnvironment(): DesktopEnvironment {
         }
     }
     const desktopSession = env['DESKTOP_SESSION'];
-    if (env['DESKTOP_SESSION']) {
-        switch (env['DESKTOP_SESSION']) {
+    if (desktopSession) {
+        switch (desktopSession) {
             case 'deepin':
                 return DesktopEnvironment.DEEPIN;
             case 'gnome':
@@ -76,8 +73,7 @@ export function getDesktopEnvironment(): DesktopEnvironment {
             case 'kde-plasma':
                 return DesktopEnvironment.KDE4;
             case 'kde':
-                if ('KDE_SESSION_VERSION'
-                    in env) {
+                if (kKDESessionEnvVar in env) {
                     return DesktopEnvironment.KDE4;
                 }
                 return DesktopEnvironment.KDE3;
@@ -92,8 +88,7 @@ export function getDesktopEnvironment(): DesktopEnvironment {
         return DesktopEnvironment.GNOME;
     }
     if ('KDE_FULL_SESSION' in env) {
-        if ('KDE_SESSION_VERSION'
-            in env) {
+        if (kKDESessionEnvVar in env) {
             return DesktopEnvironment.KDE4;
         }
         return DesktopEnvironment.KDE3;

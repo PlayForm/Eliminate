@@ -9,7 +9,7 @@
  */
 export namespace WebFileSystemAccess {
     export function supported(obj: any & Window): boolean {
-        if (typeof obj?.showDirectoryPicker === "function") {
+        if (typeof obj?.showDirectoryPicker === 'function') {
             return true;
         }
         return false;
@@ -19,21 +19,19 @@ export namespace WebFileSystemAccess {
         if (!candidate) {
             return false;
         }
-        return (typeof candidate.kind === "string" &&
-            typeof candidate.queryPermission === "function" &&
-            typeof candidate.requestPermission === "function");
+        return typeof candidate.kind === 'string' && typeof candidate.queryPermission === 'function' && typeof candidate.requestPermission === 'function';
     }
     export function isFileSystemFileHandle(handle: FileSystemHandle): handle is FileSystemFileHandle {
-        return handle.kind === "file";
+        return handle.kind === 'file';
     }
     export function isFileSystemDirectoryHandle(handle: FileSystemHandle): handle is FileSystemDirectoryHandle {
-        return handle.kind === "directory";
+        return handle.kind === 'directory';
     }
 }
 // TODO@bpasero adopt official types of FileSystemObserver
 export namespace WebFileSystemObserver {
     export function supported(obj: any & Window): boolean {
-        return typeof obj?.FileSystemObserver === "function";
+        return typeof obj?.FileSystemObserver === 'function';
     }
 }
 export interface FileSystemObserver {
@@ -66,7 +64,7 @@ export interface FileSystemObserverRecord {
      * "unknown": This indicates that zero or more events were missed. Developers should poll the watched directory in response to this.
      * "errored": The observation is no longer valid. In this case, you may want to stop observing the file system.
      */
-    readonly type: "appeared" | "disappeared" | "modified" | "moved" | "unknown" | "errored";
+    readonly type: 'appeared' | 'disappeared' | 'modified' | 'moved' | 'unknown' | 'errored';
     /**
      * The former location of a moved handle. Available only when the type is "moved".
      */

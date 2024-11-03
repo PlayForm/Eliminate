@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as Assert from "../../../base/common/assert.js";
-import * as Types from "../../../base/common/types.js";
+import * as Assert from '../../../base/common/assert.js';
+import * as Types from '../../../base/common/types.js';
 export interface IRegistry {
     /**
      * Adds the extension functions and properties defined by data to the
@@ -28,7 +28,7 @@ class RegistryImpl implements IRegistry {
     public add(id: string, data: any): void {
         Assert.ok(Types.isString(id));
         Assert.ok(Types.isObject(data));
-        Assert.ok(!this.data.has(id), "There is already an extension with this id");
+        Assert.ok(!this.data.has(id), 'There is already an extension with this id');
         this.data.set(id, data);
     }
     public knows(id: string): boolean {

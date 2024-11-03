@@ -2,20 +2,20 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Event } from "../../../base/common/event.js";
-import { Disposable, DisposableStore } from "../../../base/common/lifecycle.js";
-import { assertIsDefined } from "../../../base/common/types.js";
-import { InstantiationType, registerSingleton, } from "../../../platform/instantiation/common/extensions.js";
-import { IInstantiationService } from "../../../platform/instantiation/common/instantiation.js";
-import { IProgressIndicator } from "../../../platform/progress/common/progress.js";
-import { IPaneComposite } from "../../common/panecomposite.js";
-import { ViewContainerLocation, ViewContainerLocations, } from "../../common/views.js";
-import { IPaneCompositePartService } from "../../services/panecomposite/browser/panecomposite.js";
-import { PaneCompositeDescriptor } from "../panecomposite.js";
-import { AuxiliaryBarPart } from "./auxiliarybar/auxiliaryBarPart.js";
-import { IPaneCompositePart } from "./paneCompositePart.js";
-import { PanelPart } from "./panel/panelPart.js";
-import { SidebarPart } from "./sidebar/sidebarPart.js";
+import { Event } from '../../../base/common/event.js';
+import { assertIsDefined } from '../../../base/common/types.js';
+import { InstantiationType, registerSingleton } from '../../../platform/instantiation/common/extensions.js';
+import { IInstantiationService } from '../../../platform/instantiation/common/instantiation.js';
+import { IProgressIndicator } from '../../../platform/progress/common/progress.js';
+import { PaneCompositeDescriptor } from '../panecomposite.js';
+import { AuxiliaryBarPart } from './auxiliarybar/auxiliaryBarPart.js';
+import { PanelPart } from './panel/panelPart.js';
+import { SidebarPart } from './sidebar/sidebarPart.js';
+import { IPaneComposite } from '../../common/panecomposite.js';
+import { ViewContainerLocation, ViewContainerLocations } from '../../common/views.js';
+import { IPaneCompositePartService } from '../../services/panecomposite/browser/panecomposite.js';
+import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
+import { IPaneCompositePart } from './paneCompositePart.js';
 export class PaneCompositePartService extends Disposable implements IPaneCompositePartService {
     declare readonly _serviceBrand: undefined;
     readonly onDidPaneCompositeOpen: Event<{
@@ -34,16 +34,12 @@ export class PaneCompositePartService extends Disposable implements IPaneComposi
         const panelPart = instantiationService.createInstance(PanelPart);
         const sideBarPart = instantiationService.createInstance(SidebarPart);
         const auxiliaryBarPart = instantiationService.createInstance(AuxiliaryBarPart);
-        this.paneCompositeParts.set(ViewContainerLocation.Panel, instantiationService.createInstance(PanelPart));
-        this.paneCompositeParts.set(ViewContainerLocation.Sidebar, instantiationService.createInstance(SidebarPart));
-        this.paneCompositeParts.set(ViewContainerLocation.AuxiliaryBar, instantiationService.createInstance(AuxiliaryBarPart));
+        this.paneCompositeParts.set(ViewContainerLocation.Panel, panelPart);
+        this.paneCompositeParts.set(ViewContainerLocation.Sidebar, sideBarPart);
+        this.paneCompositeParts.set(ViewContainerLocation.AuxiliaryBar, auxiliaryBarPart);
         const eventDisposables = this._register(new DisposableStore());
-        this.onDidPaneCompositeOpen = Event.any(...ViewContainerLocations.map((loc) => Event.map(this.paneCompositeParts.get(loc)!.onDidPaneCompositeOpen, (composite) => {
-            return { composite, viewContainerLocation: loc };
-        }, this._register(new DisposableStore()))));
-        this.onDidPaneCompositeClose = Event.any(...ViewContainerLocations.map((loc) => Event.map(this.paneCompositeParts.get(loc)!.onDidPaneCompositeClose, (composite) => {
-            return { composite, viewContainerLocation: loc };
-        }, this._register(new DisposableStore()))));
+        this.onDidPaneCompositeOpen = Event.any(...ViewContainerLocations.map(loc => Event.map(this.paneCompositeParts.get(loc)!.onDidPaneCompositeOpen, composite => { return { composite, viewContainerLocation: loc }; }, eventDisposables)));
+        this.onDidPaneCompositeClose = Event.any(...ViewContainerLocations.map(loc => Event.map(this.paneCompositeParts.get(loc)!.onDidPaneCompositeClose, composite => { return { composite, viewContainerLocation: loc }; }, eventDisposables)));
     }
     openPaneComposite(id: string | undefined, viewContainerLocation: ViewContainerLocation, focus?: boolean): Promise<IPaneComposite | undefined> {
         return this.getPartByLocation(viewContainerLocation).openPaneComposite(id, focus);

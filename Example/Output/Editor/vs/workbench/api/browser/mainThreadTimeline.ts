@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Emitter } from "../../../base/common/event.js";
-import { revive } from "../../../base/common/marshalling.js";
-import { URI } from "../../../base/common/uri.js";
-import { ILogService } from "../../../platform/log/common/log.js";
-import { ITimelineService, Timeline, TimelineChangeEvent, TimelineOptions, TimelineProviderDescriptor, } from "../../contrib/timeline/common/timeline.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { ExtHostContext, ExtHostTimelineShape, MainContext, MainThreadTimelineShape, } from "../common/extHost.protocol.js";
+import { Emitter } from '../../../base/common/event.js';
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { URI } from '../../../base/common/uri.js';
+import { ILogService } from '../../../platform/log/common/log.js';
+import { MainContext, MainThreadTimelineShape, ExtHostTimelineShape, ExtHostContext } from '../common/extHost.protocol.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { TimelineChangeEvent, TimelineOptions, TimelineProviderDescriptor, ITimelineService, Timeline } from '../../contrib/timeline/common/timeline.js';
+import { revive } from '../../../base/common/marshalling.js';
 @extHostNamedCustomer(MainContext.MainThreadTimeline)
 export class MainThreadTimeline implements MainThreadTimelineShape {
     private readonly _proxy: ExtHostTimelineShape;
@@ -39,7 +39,7 @@ export class MainThreadTimeline implements MainThreadTimelineShape {
             dispose() {
                 emitters.delete(provider.id);
                 onDidChange?.dispose();
-            },
+            }
         });
     }
     $unregisterTimelineProvider(id: string): void {

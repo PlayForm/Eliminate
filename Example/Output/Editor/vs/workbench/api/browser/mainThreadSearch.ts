@@ -2,17 +2,17 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { DisposableStore, dispose, IDisposable, } from "../../../base/common/lifecycle.js";
-import { revive } from "../../../base/common/marshalling.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { IConfigurationService } from "../../../platform/configuration/common/configuration.js";
-import { IContextKeyService } from "../../../platform/contextkey/common/contextkey.js";
-import { ITelemetryService } from "../../../platform/telemetry/common/telemetry.js";
-import * as Constants from "../../contrib/search/common/constants.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { IFileMatch, IFileQuery, IRawFileMatch2, ISearchComplete, ISearchCompleteStats, ISearchProgressItem, ISearchQuery, ISearchResultProvider, ISearchService, ITextQuery, QueryType, SearchProviderType, } from "../../services/search/common/search.js";
-import { ExtHostContext, ExtHostSearchShape, MainContext, MainThreadSearchShape, } from "../common/extHost.protocol.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { DisposableStore, dispose, IDisposable } from '../../../base/common/lifecycle.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
+import { ITelemetryService } from '../../../platform/telemetry/common/telemetry.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { IFileMatch, IFileQuery, IRawFileMatch2, ISearchComplete, ISearchCompleteStats, ISearchProgressItem, ISearchQuery, ISearchResultProvider, ISearchService, ITextQuery, QueryType, SearchProviderType } from '../../services/search/common/search.js';
+import { ExtHostContext, ExtHostSearchShape, MainContext, MainThreadSearchShape } from '../common/extHost.protocol.js';
+import { revive } from '../../../base/common/marshalling.js';
+import * as Constants from '../../contrib/search/common/constants.js';
+import { IContextKeyService } from '../../../platform/contextkey/common/contextkey.js';
 @extHostNamedCustomer(MainContext.MainThreadSearch)
 export class MainThreadSearch implements MainThreadSearchShape {
     private readonly _proxy: ExtHostSearchShape;
@@ -30,16 +30,14 @@ export class MainThreadSearch implements MainThreadSearchShape {
         this._proxy.$enableExtensionHostSearch();
     }
     dispose(): void {
-        this._searchProvider.forEach((value) => value.dispose());
+        this._searchProvider.forEach(value => value.dispose());
         this._searchProvider.clear();
     }
     $registerTextSearchProvider(handle: number, scheme: string): void {
         this._searchProvider.set(handle, new RemoteSearchProvider(this._searchService, SearchProviderType.text, scheme, handle, this._proxy));
     }
     $registerAITextSearchProvider(handle: number, scheme: string): void {
-        Constants.SearchContext.hasAIResultProvider
-            .bindTo(this.contextKeyService)
-            .set(true);
+        Constants.SearchContext.hasAIResultProvider.bindTo(this.contextKeyService).set(true);
         this._searchProvider.set(handle, new RemoteSearchProvider(this._searchService, SearchProviderType.aiText, scheme, handle, this._proxy));
     }
     $registerFileSearchProvider(handle: number, scheme: string): void {
@@ -52,14 +50,14 @@ export class MainThreadSearch implements MainThreadSearchShape {
     $handleFileMatch(handle: number, session: number, data: UriComponents[]): void {
         const provider = this._searchProvider.get(handle);
         if (!provider) {
-            throw new Error("Got result for unknown provider");
+            throw new Error('Got result for unknown provider');
         }
         provider.handleFindMatch(session, data);
     }
     $handleTextMatch(handle: number, session: number, data: IRawFileMatch2[]): void {
         const provider = this._searchProvider.get(handle);
         if (!provider) {
-            throw new Error("Got result for unknown provider");
+            throw new Error('Got result for unknown provider');
         }
         provider.handleFindMatch(session, data);
     }
@@ -112,20 +110,15 @@ class RemoteSearchProvider implements ISearchResultProvider, IDisposable {
     }
     doSearch(query: ISearchQuery, onProgress?: (p: ISearchProgressItem) => void, token: CancellationToken = CancellationToken.None): Promise<ISearchComplete> {
         if (!query.folderQueries.length) {
-            throw new Error("Empty folderQueries");
+            throw new Error('Empty folderQueries');
         }
         const search = new SearchOperation(onProgress);
         this._searches.set(search.id, search);
         const searchP = this._provideSearchResults(query, search.id, token);
         return Promise.resolve(searchP).then((result: ISearchCompleteStats) => {
             this._searches.delete(search.id);
-            return {
-                results: Array.from(search.matches.values()),
-                stats: result.stats,
-                limitHit: result.limitHit,
-                messages: result.messages,
-            };
-        }, (err) => {
+            return { results: Array.from(search.matches.values()), stats: result.stats, limitHit: result.limitHit, messages: result.messages };
+        }, err => {
             this._searches.delete(search.id);
             return Promise.reject(err);
         });
@@ -139,13 +132,13 @@ class RemoteSearchProvider implements ISearchResultProvider, IDisposable {
             // ignore...
             return;
         }
-        dataOrUri.forEach((result) => {
+        dataOrUri.forEach(result => {
             if ((<IRawFileMatch2>result).results) {
-                searchOp.addMatch(revive(<IRawFileMatch2>result));
+                searchOp.addMatch(revive((<IRawFileMatch2>result)));
             }
             else {
                 searchOp.addMatch({
-                    resource: URI.revive(<UriComponents>result),
+                    resource: URI.revive(<UriComponents>result)
                 });
             }
         });

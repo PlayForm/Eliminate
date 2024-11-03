@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Emitter } from "../../base/common/event.js";
-import { Disposable } from "../../base/common/lifecycle.js";
-import { Selection } from "./core/selection.js";
-import { CursorChangeReason } from "./cursorEvents.js";
-import { IContentSizeChangedEvent } from "./editorCommon.js";
-import { IModelContentChangedEvent, IModelDecorationsChangedEvent, IModelLanguageChangedEvent, IModelLanguageConfigurationChangedEvent, IModelOptionsChangedEvent, IModelTokensChangedEvent, } from "./textModelEvents.js";
-import { ViewEventHandler } from "./viewEventHandler.js";
-import { ViewEvent } from "./viewEvents.js";
+import { ViewEventHandler } from './viewEventHandler.js';
+import { ViewEvent } from './viewEvents.js';
+import { IContentSizeChangedEvent } from './editorCommon.js';
+import { Emitter } from '../../base/common/event.js';
+import { Selection } from './core/selection.js';
+import { Disposable } from '../../base/common/lifecycle.js';
+import { CursorChangeReason } from './cursorEvents.js';
+import { IModelContentChangedEvent, IModelDecorationsChangedEvent, IModelLanguageChangedEvent, IModelLanguageConfigurationChangedEvent, IModelOptionsChangedEvent, IModelTokensChangedEvent } from './textModelEvents.js';
 export class ViewModelEventDispatcher extends Disposable {
     private readonly _onEvent = this._register(new Emitter<OutgoingViewModelEvent>());
     public readonly onEvent = this._onEvent.event;
@@ -34,9 +34,7 @@ export class ViewModelEventDispatcher extends Disposable {
     }
     private _addOutgoingEvent(e: OutgoingViewModelEvent): void {
         for (let i = 0, len = this._outgoingEvents.length; i < len; i++) {
-            const mergeResult = this._outgoingEvents[i].kind === e.kind
-                ? this._outgoingEvents[i].attemptToMerge(e)
-                : null;
+            const mergeResult = (this._outgoingEvents[i].kind === e.kind ? this._outgoingEvents[i].attemptToMerge(e) : null);
             if (mergeResult) {
                 this._outgoingEvents[i] = mergeResult;
                 return;
@@ -61,7 +59,7 @@ export class ViewModelEventDispatcher extends Disposable {
     public addViewEventHandler(eventHandler: ViewEventHandler): void {
         for (let i = 0, len = this._eventHandlers.length; i < len; i++) {
             if (this._eventHandlers[i] === eventHandler) {
-                console.warn("Detected duplicate listener in ViewEventDispatcher", eventHandler);
+                console.warn('Detected duplicate listener in ViewEventDispatcher', eventHandler);
             }
         }
         this._eventHandlers.push(eventHandler);
@@ -152,7 +150,7 @@ export class ViewModelEventsCollector {
         this.outgoingEvents.push(e);
     }
 }
-export type OutgoingViewModelEvent = ContentSizeChangedEvent | FocusChangedEvent | ScrollChangedEvent | ViewZonesChangedEvent | HiddenAreasChangedEvent | ReadOnlyEditAttemptEvent | CursorStateChangedEvent | ModelDecorationsChangedEvent | ModelLanguageChangedEvent | ModelLanguageConfigurationChangedEvent | ModelContentChangedEvent | ModelOptionsChangedEvent | ModelTokensChangedEvent;
+export type OutgoingViewModelEvent = (ContentSizeChangedEvent | FocusChangedEvent | ScrollChangedEvent | ViewZonesChangedEvent | HiddenAreasChangedEvent | ReadOnlyEditAttemptEvent | CursorStateChangedEvent | ModelDecorationsChangedEvent | ModelLanguageChangedEvent | ModelLanguageConfigurationChangedEvent | ModelContentChangedEvent | ModelOptionsChangedEvent | ModelTokensChangedEvent);
 export const enum OutgoingViewModelEventKind {
     ContentSizeChanged,
     FocusChanged,
@@ -181,12 +179,11 @@ export class ContentSizeChangedEvent implements IContentSizeChangedEvent {
         this._oldContentHeight = oldContentHeight;
         this.contentWidth = contentWidth;
         this.contentHeight = contentHeight;
-        this.contentWidthChanged = this._oldContentWidth !== this.contentWidth;
-        this.contentHeightChanged =
-            this._oldContentHeight !== this.contentHeight;
+        this.contentWidthChanged = (this._oldContentWidth !== this.contentWidth);
+        this.contentHeightChanged = (this._oldContentHeight !== this.contentHeight);
     }
     public isNoOp(): boolean {
-        return !this.contentWidthChanged && !this.contentHeightChanged;
+        return (!this.contentWidthChanged && !this.contentHeightChanged);
     }
     public attemptToMerge(other: OutgoingViewModelEvent): OutgoingViewModelEvent | null {
         if (other.kind !== this.kind) {
@@ -204,7 +201,7 @@ export class FocusChangedEvent {
         this.hasFocus = hasFocus;
     }
     public isNoOp(): boolean {
-        return this.oldHasFocus === this.hasFocus;
+        return (this.oldHasFocus === this.hasFocus);
     }
     public attemptToMerge(other: OutgoingViewModelEvent): OutgoingViewModelEvent | null {
         if (other.kind !== this.kind) {
@@ -236,16 +233,13 @@ export class ScrollChangedEvent {
         this.scrollLeft = scrollLeft;
         this.scrollHeight = scrollHeight;
         this.scrollTop = scrollTop;
-        this.scrollWidthChanged = this._oldScrollWidth !== this.scrollWidth;
-        this.scrollLeftChanged = this._oldScrollLeft !== this.scrollLeft;
-        this.scrollHeightChanged = this._oldScrollHeight !== this.scrollHeight;
-        this.scrollTopChanged = this._oldScrollTop !== this.scrollTop;
+        this.scrollWidthChanged = (this._oldScrollWidth !== this.scrollWidth);
+        this.scrollLeftChanged = (this._oldScrollLeft !== this.scrollLeft);
+        this.scrollHeightChanged = (this._oldScrollHeight !== this.scrollHeight);
+        this.scrollTopChanged = (this._oldScrollTop !== this.scrollTop);
     }
     public isNoOp(): boolean {
-        return (!this.scrollWidthChanged &&
-            !this.scrollLeftChanged &&
-            !this.scrollHeightChanged &&
-            !this.scrollTopChanged);
+        return (!this.scrollWidthChanged && !this.scrollLeftChanged && !this.scrollHeightChanged && !this.scrollTopChanged);
     }
     public attemptToMerge(other: OutgoingViewModelEvent): OutgoingViewModelEvent | null {
         if (other.kind !== this.kind) {
@@ -256,7 +250,8 @@ export class ScrollChangedEvent {
 }
 export class ViewZonesChangedEvent {
     public readonly kind = OutgoingViewModelEventKind.ViewZonesChanged;
-    constructor() { }
+    constructor() {
+    }
     public isNoOp(): boolean {
         return false;
     }
@@ -269,7 +264,8 @@ export class ViewZonesChangedEvent {
 }
 export class HiddenAreasChangedEvent {
     public readonly kind = OutgoingViewModelEventKind.HiddenAreasChanged;
-    constructor() { }
+    constructor() {
+    }
     public isNoOp(): boolean {
         return false;
     }
@@ -318,7 +314,8 @@ export class CursorStateChangedEvent {
         return true;
     }
     public isNoOp(): boolean {
-        return (CursorStateChangedEvent._selectionsAreEqual(this.oldSelections, this.selections) && this.oldModelVersionId === this.modelVersionId);
+        return (CursorStateChangedEvent._selectionsAreEqual(this.oldSelections, this.selections)
+            && this.oldModelVersionId === this.modelVersionId);
     }
     public attemptToMerge(other: OutgoingViewModelEvent): OutgoingViewModelEvent | null {
         if (other.kind !== this.kind) {
@@ -329,7 +326,8 @@ export class CursorStateChangedEvent {
 }
 export class ReadOnlyEditAttemptEvent {
     public readonly kind = OutgoingViewModelEventKind.ReadOnlyEditAttempt;
-    constructor() { }
+    constructor() {
+    }
     public isNoOp(): boolean {
         return false;
     }

@@ -2,10 +2,10 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { UriComponents } from "../../../base/common/uri.js";
-import { Client, IClientRouter, IConnectionHub, } from "../../../base/parts/ipc/common/ipc.js";
-export const NODE_REMOTE_RESOURCE_IPC_METHOD_NAME = "request";
-export const NODE_REMOTE_RESOURCE_CHANNEL_NAME = "remoteResourceHandler";
+import { UriComponents } from '../../../base/common/uri.js';
+import { Client, IClientRouter, IConnectionHub } from '../../../base/parts/ipc/common/ipc.js';
+export const NODE_REMOTE_RESOURCE_IPC_METHOD_NAME = 'request';
+export const NODE_REMOTE_RESOURCE_CHANNEL_NAME = 'remoteResourceHandler';
 export type NodeRemoteResourceResponse = {
     body: string;
     mimeType?: string;
@@ -16,9 +16,9 @@ export class NodeRemoteResourceRouter implements IClientRouter<string> {
         if (command !== NODE_REMOTE_RESOURCE_IPC_METHOD_NAME) {
             throw new Error(`Call not found: ${command}`);
         }
-        const uri = arg[0] as UriComponents | undefined;
+        const uri = arg[0] as (UriComponents | undefined);
         if (uri?.authority) {
-            const connection = hub.connections.find((c) => c.ctx === uri.authority);
+            const connection = hub.connections.find(c => c.ctx === uri.authority);
             if (connection) {
                 return connection;
             }

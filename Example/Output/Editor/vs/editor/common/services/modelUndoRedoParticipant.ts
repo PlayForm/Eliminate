@@ -2,11 +2,11 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Disposable, dispose, IDisposable, } from "../../../base/common/lifecycle.js";
-import { IUndoRedoService } from "../../../platform/undoRedo/common/undoRedo.js";
-import { IUndoRedoDelegate, MultiModelEditStackElement, } from "../model/editStack.js";
-import { IModelService } from "./model.js";
-import { ITextModelService } from "./resolverService.js";
+import { IModelService } from './model.js';
+import { ITextModelService } from './resolverService.js';
+import { Disposable, IDisposable, dispose } from '../../../base/common/lifecycle.js';
+import { IUndoRedoService } from '../../../platform/undoRedo/common/undoRedo.js';
+import { IUndoRedoDelegate, MultiModelEditStackElement } from '../model/editStack.js';
 export class ModelUndoRedoParticipant extends Disposable implements IUndoRedoDelegate {
     constructor(
     @IModelService
@@ -19,16 +19,15 @@ export class ModelUndoRedoParticipant extends Disposable implements IUndoRedoDel
         this._register(this._modelService.onModelRemoved((model) => {
             // a model will get disposed, so let's check if the undo redo stack is maintained
             const elements = this._undoRedoService.getElements(model.uri);
-            if (this._undoRedoService.getElements(model.uri).past.length === 0 &&
-                this._undoRedoService.getElements(model.uri).future.length === 0) {
+            if (elements.past.length === 0 && elements.future.length === 0) {
                 return;
             }
-            for (const element of this._undoRedoService.getElements(model.uri).past) {
+            for (const element of elements.past) {
                 if (element instanceof MultiModelEditStackElement) {
                     element.setDelegate(this);
                 }
             }
-            for (const element of this._undoRedoService.getElements(model.uri).future) {
+            for (const element of elements.future) {
                 if (element instanceof MultiModelEditStackElement) {
                     element.setDelegate(this);
                 }
@@ -38,23 +37,23 @@ export class ModelUndoRedoParticipant extends Disposable implements IUndoRedoDel
     public prepareUndoRedo(element: MultiModelEditStackElement): IDisposable | Promise<IDisposable> {
         // Load all the needed text models
         const missingModels = element.getMissingModels();
-        if (element.getMissingModels().length === 0) {
+        if (missingModels.length === 0) {
             // All models are available!
             return Disposable.None;
         }
-        ;
-        return Promise.all(element.getMissingModels().map(async (uri) => {
+        const disposablesPromises = missingModels.map(async (uri) => {
             try {
-                ;
-                return <IDisposable>await this._textModelService.createModelReference(uri);
+                const reference = await this._textModelService.createModelReference(uri);
+                return <IDisposable>reference;
             }
             catch (err) {
                 // This model could not be loaded, maybe it was deleted in the meantime?
                 return Disposable.None;
             }
-        })).then((disposables) => {
+        });
+        return Promise.all(disposablesPromises).then(disposables => {
             return {
-                dispose: () => dispose(disposables),
+                dispose: () => dispose(disposables)
             };
         });
     }

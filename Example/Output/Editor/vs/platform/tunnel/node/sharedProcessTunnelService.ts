@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { DeferredPromise } from "../../../base/common/async.js";
-import { canceled } from "../../../base/common/errors.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { ILogService } from "../../log/common/log.js";
-import { IAddress, IAddressProvider, } from "../../remote/common/remoteAgentConnection.js";
-import { ISharedProcessTunnel, ISharedProcessTunnelService, } from "../../remote/common/sharedProcessTunnelService.js";
-import { ISharedTunnelsService, RemoteTunnel } from "../common/tunnel.js";
+import { ILogService } from '../../log/common/log.js';
+import { ISharedProcessTunnel, ISharedProcessTunnelService } from '../../remote/common/sharedProcessTunnelService.js';
+import { ISharedTunnelsService, RemoteTunnel } from '../common/tunnel.js';
+import { IAddress, IAddressProvider } from '../../remote/common/remoteAgentConnection.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { canceled } from '../../../base/common/errors.js';
+import { DeferredPromise } from '../../../base/common/async.js';
 class TunnelData extends Disposable implements IAddressProvider {
     private _address: IAddress | null;
     private _addressPromise: DeferredPromise<IAddress> | null;
@@ -63,7 +63,7 @@ export class SharedProcessTunnelService extends Disposable implements ISharedPro
     async startTunnel(authority: string, id: string, tunnelRemoteHost: string, tunnelRemotePort: number, tunnelLocalHost: string, tunnelLocalPort: number | undefined, elevateIfNeeded: boolean | undefined): Promise<ISharedProcessTunnel> {
         const tunnelData = new TunnelData();
         const tunnel = await Promise.resolve(this._tunnelService.openTunnel(authority, tunnelData, tunnelRemoteHost, tunnelRemotePort, tunnelLocalHost, tunnelLocalPort, elevateIfNeeded));
-        if (!tunnel || typeof tunnel === "string") {
+        if (!tunnel || (typeof tunnel === 'string')) {
             this._logService.info(`[SharedProcessTunnelService] Could not create a tunnel to ${tunnelRemoteHost}:${tunnelRemotePort} (remote).`);
             tunnelData.dispose();
             throw new Error(`Could not create tunnel`);
@@ -80,7 +80,7 @@ export class SharedProcessTunnelService extends Disposable implements ISharedPro
         this._logService.info(`[SharedProcessTunnelService] Created tunnel ${id}: ${tunnel.localAddress} (local) to ${tunnelRemoteHost}:${tunnelRemotePort} (remote).`);
         const result: ISharedProcessTunnel = {
             tunnelLocalPort: tunnel.tunnelLocalPort,
-            localAddress: tunnel.localAddress,
+            localAddress: tunnel.localAddress
         };
         return result;
     }

@@ -2,17 +2,17 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Emitter } from "../../../base/common/event.js";
-import { Disposable, IDisposable, toDisposable, } from "../../../base/common/lifecycle.js";
-import { ResourceSet } from "../../../base/common/map.js";
-import { ReadableStreamEvents } from "../../../base/common/stream.js";
-import { TernarySearchTree } from "../../../base/common/ternarySearchTree.js";
-import { URI } from "../../../base/common/uri.js";
-import { FileSystemProviderCapabilities, FileType, hasFileCloneCapability, hasFileFolderCopyCapability, IFileAtomicOptions, IFileAtomicReadOptions, IFileChange, IFileDeleteOptions, IFileOpenOptions, IFileOverwriteOptions, IFileReadStreamOptions, IFileSystemProviderWithFileAtomicDeleteCapability, IFileSystemProviderWithFileAtomicReadCapability, IFileSystemProviderWithFileAtomicWriteCapability, IFileSystemProviderWithFileCloneCapability, IFileSystemProviderWithFileFolderCopyCapability, IFileSystemProviderWithFileReadStreamCapability, IFileSystemProviderWithFileReadWriteCapability, IFileSystemProviderWithOpenReadWriteCloseCapability, IFileWriteOptions, IStat, IWatchOptions, } from "../../files/common/files.js";
-import { ILogService } from "../../log/common/log.js";
-import { IUriIdentityService } from "../../uriIdentity/common/uriIdentity.js";
-import { IUserDataProfilesService } from "../../userDataProfile/common/userDataProfile.js";
+import { Emitter } from '../../../base/common/event.js';
+import { Disposable, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { IFileSystemProviderWithFileReadWriteCapability, IFileChange, IWatchOptions, IStat, IFileOverwriteOptions, FileType, IFileWriteOptions, IFileDeleteOptions, FileSystemProviderCapabilities, IFileSystemProviderWithFileReadStreamCapability, IFileReadStreamOptions, IFileSystemProviderWithFileAtomicReadCapability, hasFileFolderCopyCapability, IFileSystemProviderWithOpenReadWriteCloseCapability, IFileOpenOptions, IFileSystemProviderWithFileAtomicWriteCapability, IFileSystemProviderWithFileAtomicDeleteCapability, IFileSystemProviderWithFileFolderCopyCapability, IFileSystemProviderWithFileCloneCapability, hasFileCloneCapability, IFileAtomicReadOptions, IFileAtomicOptions } from '../../files/common/files.js';
+import { URI } from '../../../base/common/uri.js';
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { ReadableStreamEvents } from '../../../base/common/stream.js';
+import { ILogService } from '../../log/common/log.js';
+import { TernarySearchTree } from '../../../base/common/ternarySearchTree.js';
+import { IUserDataProfilesService } from '../../userDataProfile/common/userDataProfile.js';
+import { ResourceSet } from '../../../base/common/map.js';
+import { IUriIdentityService } from '../../uriIdentity/common/uriIdentity.js';
 /**
  * This is a wrapper on top of the local filesystem provider which will
  * 	- Convert the user data resources to file system scheme and vice-versa
@@ -23,14 +23,13 @@ export class FileUserDataProvider extends Disposable implements IFileSystemProvi
     readonly onDidChangeCapabilities = this.fileSystemProvider.onDidChangeCapabilities;
     private readonly _onDidChangeFile = this._register(new Emitter<readonly IFileChange[]>());
     readonly onDidChangeFile = this._onDidChangeFile.event;
-    private readonly watchResources = TernarySearchTree.forUris<URI>(() => !(this.capabilities &
-        FileSystemProviderCapabilities.PathCaseSensitive));
+    private readonly watchResources = TernarySearchTree.forUris<URI>(() => !(this.capabilities & FileSystemProviderCapabilities.PathCaseSensitive));
     private readonly atomicReadWriteResources = new ResourceSet((uri) => this.uriIdentityService.extUri.getComparisonKey(this.toFileSystemResource(uri)));
     constructor(private readonly fileSystemScheme: string, private readonly fileSystemProvider: IFileSystemProviderWithFileReadWriteCapability & IFileSystemProviderWithOpenReadWriteCloseCapability & IFileSystemProviderWithFileReadStreamCapability & IFileSystemProviderWithFileAtomicReadCapability & IFileSystemProviderWithFileAtomicWriteCapability & IFileSystemProviderWithFileAtomicDeleteCapability, private readonly userDataScheme: string, private readonly userDataProfilesService: IUserDataProfilesService, private readonly uriIdentityService: IUriIdentityService, private readonly logService: ILogService) {
         super();
         this.updateAtomicReadWritesResources();
         this._register(userDataProfilesService.onDidChangeProfiles(() => this.updateAtomicReadWritesResources()));
-        this._register(this.fileSystemProvider.onDidChangeFile((e) => this.handleFileChanges(e)));
+        this._register(this.fileSystemProvider.onDidChangeFile(e => this.handleFileChanges(e)));
     }
     private updateAtomicReadWritesResources(): void {
         this.atomicReadWriteResources.clear();
@@ -90,7 +89,7 @@ export class FileUserDataProvider extends Disposable implements IFileSystemProvi
     }
     enforceAtomicWriteFile(resource: URI): IFileAtomicOptions | false {
         if (this.atomicReadWriteResources.has(resource)) {
-            return { postfix: ".vsctmp" };
+            return { postfix: '.vsctmp' };
         }
         return false;
     }
@@ -101,13 +100,13 @@ export class FileUserDataProvider extends Disposable implements IFileSystemProvi
         if (hasFileFolderCopyCapability(this.fileSystemProvider)) {
             return this.fileSystemProvider.copy(this.toFileSystemResource(from), this.toFileSystemResource(to), opts);
         }
-        throw new Error("copy not supported");
+        throw new Error('copy not supported');
     }
     cloneFile(from: URI, to: URI): Promise<void> {
         if (hasFileCloneCapability(this.fileSystemProvider)) {
             return this.fileSystemProvider.cloneFile(this.toFileSystemResource(from), this.toFileSystemResource(to));
         }
-        throw new Error("clone not supported");
+        throw new Error('clone not supported');
     }
     private handleFileChanges(changes: readonly IFileChange[]): void {
         const userDataChanges: IFileChange[] = [];
@@ -120,12 +119,12 @@ export class FileUserDataProvider extends Disposable implements IFileSystemProvi
                 userDataChanges.push({
                     resource: userDataResource,
                     type: change.type,
-                    cId: change.cId,
+                    cId: change.cId
                 });
             }
         }
         if (userDataChanges.length) {
-            this.logService.debug("User data changed");
+            this.logService.debug('User data changed');
             this._onDidChangeFile.fire(userDataChanges);
         }
     }

@@ -67,7 +67,10 @@ export class Position {
         if (!a && !b) {
             return true;
         }
-        return (!!a && !!b && a.lineNumber === b.lineNumber && a.column === b.column);
+        return (!!a &&
+            !!b &&
+            a.lineNumber === b.lineNumber &&
+            a.column === b.column);
     }
     /**
      * Test if this position is before other position.
@@ -115,18 +118,12 @@ export class Position {
     public static compare(a: IPosition, b: IPosition): number {
         const aLineNumber = a.lineNumber | 0;
         const bLineNumber = b.lineNumber | 0;
-        if ((a.lineNumber | 0)
-            ===
-                (b.lineNumber | 0)) {
-            ;
-            ;
-            return (a.column | 0)
-                -
-                    (b.column | 0);
+        if (aLineNumber === bLineNumber) {
+            const aColumn = a.column | 0;
+            const bColumn = b.column | 0;
+            return aColumn - bColumn;
         }
-        return (a.lineNumber | 0)
-            -
-                (b.lineNumber | 0);
+        return aLineNumber - bLineNumber;
     }
     /**
      * Clone this position.
@@ -138,7 +135,7 @@ export class Position {
      * Convert to a human-readable representation.
      */
     public toString(): string {
-        return "(" + this.lineNumber + "," + this.column + ")";
+        return '(' + this.lineNumber + ',' + this.column + ')';
     }
     // ---
     /**
@@ -151,14 +148,14 @@ export class Position {
      * Test if `obj` is an `IPosition`.
      */
     public static isIPosition(obj: any): obj is IPosition {
-        return (obj &&
-            typeof obj.lineNumber === "number" &&
-            typeof obj.column === "number");
+        return (obj
+            && (typeof obj.lineNumber === 'number')
+            && (typeof obj.column === 'number'));
     }
     public toJSON(): IPosition {
         return {
             lineNumber: this.lineNumber,
-            column: this.column,
+            column: this.column
         };
     }
 }

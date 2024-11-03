@@ -2,26 +2,26 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { raceCancellation } from "../../../base/common/async.js";
-import { CancellationToken, CancellationTokenSource, } from "../../../base/common/cancellation.js";
-import { DisposableMap, DisposableStore, } from "../../../base/common/lifecycle.js";
-import Severity from "../../../base/common/severity.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { IBulkEditService } from "../../../editor/browser/services/bulkEditService.js";
-import { localize } from "../../../nls.js";
-import { Action2, registerAction2, } from "../../../platform/actions/common/actions.js";
-import { IDialogService } from "../../../platform/dialogs/common/dialogs.js";
-import { IEnvironmentService } from "../../../platform/environment/common/environment.js";
-import { FileOperation, IFileService, IWatchOptions, } from "../../../platform/files/common/files.js";
-import { ServicesAccessor } from "../../../platform/instantiation/common/instantiation.js";
-import { ILogService } from "../../../platform/log/common/log.js";
-import { IProgressService, ProgressLocation, } from "../../../platform/progress/common/progress.js";
-import { IStorageService, StorageScope, StorageTarget, } from "../../../platform/storage/common/storage.js";
-import { IUriIdentityService } from "../../../platform/uriIdentity/common/uriIdentity.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { IFileOperationUndoRedoInfo, IWorkingCopyFileOperationParticipant, IWorkingCopyFileService, SourceTargetPair, } from "../../services/workingCopy/common/workingCopyFileService.js";
-import { ExtHostContext, ExtHostFileSystemEventServiceShape, MainContext, MainThreadFileSystemEventServiceShape, } from "../common/extHost.protocol.js";
-import { reviveWorkspaceEditDto } from "./mainThreadBulkEdits.js";
+import { DisposableMap, DisposableStore } from '../../../base/common/lifecycle.js';
+import { FileOperation, IFileService, IWatchOptions } from '../../../platform/files/common/files.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { ExtHostContext, ExtHostFileSystemEventServiceShape, MainContext, MainThreadFileSystemEventServiceShape } from '../common/extHost.protocol.js';
+import { localize } from '../../../nls.js';
+import { IWorkingCopyFileOperationParticipant, IWorkingCopyFileService, SourceTargetPair, IFileOperationUndoRedoInfo } from '../../services/workingCopy/common/workingCopyFileService.js';
+import { IBulkEditService } from '../../../editor/browser/services/bulkEditService.js';
+import { IProgressService, ProgressLocation } from '../../../platform/progress/common/progress.js';
+import { raceCancellation } from '../../../base/common/async.js';
+import { CancellationToken, CancellationTokenSource } from '../../../base/common/cancellation.js';
+import { IDialogService } from '../../../platform/dialogs/common/dialogs.js';
+import Severity from '../../../base/common/severity.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../../platform/storage/common/storage.js';
+import { Action2, registerAction2 } from '../../../platform/actions/common/actions.js';
+import { ServicesAccessor } from '../../../platform/instantiation/common/instantiation.js';
+import { ILogService } from '../../../platform/log/common/log.js';
+import { IEnvironmentService } from '../../../platform/environment/common/environment.js';
+import { IUriIdentityService } from '../../../platform/uriIdentity/common/uriIdentity.js';
+import { reviveWorkspaceEditDto } from './mainThreadBulkEdits.js';
+import { UriComponents, URI } from '../../../base/common/uri.js';
 @extHostNamedCustomer(MainContext.MainThreadFileSystemEventService)
 export class MainThreadFileSystemEventService implements MainThreadFileSystemEventServiceShape {
     static readonly MementoKeyAdditionalEdits = `file.particpants.additionalEdits`;
@@ -50,27 +50,26 @@ export class MainThreadFileSystemEventService implements MainThreadFileSystemEve
     @ILogService
     private readonly _logService: ILogService) {
         this._proxy = extHostContext.getProxy(ExtHostContext.ExtHostFileSystemEventService);
-        this._listener.add(_fileService.onDidFilesChange((event) => {
+        this._listener.add(_fileService.onDidFilesChange(event => {
             this._proxy.$onFileEvent({
                 created: event.rawAdded,
                 changed: event.rawUpdated,
-                deleted: event.rawDeleted,
+                deleted: event.rawDeleted
             });
         }));
         const that = this;
-        const fileOperationParticipant = new (class implements IWorkingCopyFileOperationParticipant {
+        const fileOperationParticipant = new class implements IWorkingCopyFileOperationParticipant {
             async participate(files: SourceTargetPair[], operation: FileOperation, undoInfo: IFileOperationUndoRedoInfo | undefined, timeout: number, token: CancellationToken) {
                 if (undoInfo?.isUndoing) {
                     return;
                 }
                 const cts = new CancellationTokenSource(token);
                 const timer = setTimeout(() => cts.cancel(), timeout);
-                const data = await progressService
-                    .withProgress({
+                const data = await progressService.withProgress({
                     location: ProgressLocation.Notification,
                     title: this._progressLabel(operation),
                     cancellable: true,
-                    delay: Math.min(timeout / 2, 3000),
+                    delay: Math.min(timeout / 2, 3000)
                 }, () => {
                     // race extension host event delivery against timeout AND user-cancel
                     const onWillEvent = that._proxy.$onWillRunFileOperation(operation, files, timeout, cts.token);
@@ -78,8 +77,7 @@ export class MainThreadFileSystemEventService implements MainThreadFileSystemEve
                 }, () => {
                     // user-cancel
                     cts.cancel();
-                })
-                    .finally(() => {
+                }).finally(() => {
                     cts.dispose();
                     clearTimeout(timer);
                 });
@@ -87,7 +85,7 @@ export class MainThreadFileSystemEventService implements MainThreadFileSystemEve
                     // cancelled, no reply, or no edits
                     return;
                 }
-                const needsConfirmation = data.edit.edits.some((edit) => edit.metadata?.needsConfirmation);
+                const needsConfirmation = data.edit.edits.some(edit => edit.metadata?.needsConfirmation);
                 let showPreview = storageService.getBoolean(MainThreadFileSystemEventService.MementoKeyAdditionalEdits, StorageScope.PROFILE);
                 if (envService.extensionTestsLocationURI) {
                     // don't show dialog in tests
@@ -98,50 +96,30 @@ export class MainThreadFileSystemEventService implements MainThreadFileSystemEve
                     let message: string;
                     if (data.extensionNames.length === 1) {
                         if (operation === FileOperation.CREATE) {
-                            message = localize("ask.1.create", "Extension '{0}' wants to make refactoring changes with this file creation", data.extensionNames[0]);
+                            message = localize('ask.1.create', "Extension '{0}' wants to make refactoring changes with this file creation", data.extensionNames[0]);
                         }
                         else if (operation === FileOperation.COPY) {
-                            message = localize("ask.1.copy", "Extension '{0}' wants to make refactoring changes with this file copy", data.extensionNames[0]);
+                            message = localize('ask.1.copy', "Extension '{0}' wants to make refactoring changes with this file copy", data.extensionNames[0]);
                         }
                         else if (operation === FileOperation.MOVE) {
-                            message = localize("ask.1.move", "Extension '{0}' wants to make refactoring changes with this file move", data.extensionNames[0]);
-                        } /* if (operation === FileOperation.DELETE) */
-                        else {
-                            message = localize("ask.1.delete", "Extension '{0}' wants to make refactoring changes with this file deletion", data.extensionNames[0]);
+                            message = localize('ask.1.move', "Extension '{0}' wants to make refactoring changes with this file move", data.extensionNames[0]);
+                        }
+                        else /* if (operation === FileOperation.DELETE) */ {
+                            message = localize('ask.1.delete', "Extension '{0}' wants to make refactoring changes with this file deletion", data.extensionNames[0]);
                         }
                     }
                     else {
                         if (operation === FileOperation.CREATE) {
-                            message = localize({
-                                key: "ask.N.create",
-                                comment: [
-                                    '{0} is a number, e.g "3 extensions want..."',
-                                ],
-                            }, "{0} extensions want to make refactoring changes with this file creation", data.extensionNames.length);
+                            message = localize({ key: 'ask.N.create', comment: ['{0} is a number, e.g "3 extensions want..."'] }, "{0} extensions want to make refactoring changes with this file creation", data.extensionNames.length);
                         }
                         else if (operation === FileOperation.COPY) {
-                            message = localize({
-                                key: "ask.N.copy",
-                                comment: [
-                                    '{0} is a number, e.g "3 extensions want..."',
-                                ],
-                            }, "{0} extensions want to make refactoring changes with this file copy", data.extensionNames.length);
+                            message = localize({ key: 'ask.N.copy', comment: ['{0} is a number, e.g "3 extensions want..."'] }, "{0} extensions want to make refactoring changes with this file copy", data.extensionNames.length);
                         }
                         else if (operation === FileOperation.MOVE) {
-                            message = localize({
-                                key: "ask.N.move",
-                                comment: [
-                                    '{0} is a number, e.g "3 extensions want..."',
-                                ],
-                            }, "{0} extensions want to make refactoring changes with this file move", data.extensionNames.length);
-                        } /* if (operation === FileOperation.DELETE) */
-                        else {
-                            message = localize({
-                                key: "ask.N.delete",
-                                comment: [
-                                    '{0} is a number, e.g "3 extensions want..."',
-                                ],
-                            }, "{0} extensions want to make refactoring changes with this file deletion", data.extensionNames.length);
+                            message = localize({ key: 'ask.N.move', comment: ['{0} is a number, e.g "3 extensions want..."'] }, "{0} extensions want to make refactoring changes with this file move", data.extensionNames.length);
+                        }
+                        else /* if (operation === FileOperation.DELETE) */ {
+                            message = localize({ key: 'ask.N.delete', comment: ['{0} is a number, e.g "3 extensions want..."'] }, "{0} extensions want to make refactoring changes with this file deletion", data.extensionNames.length);
                         }
                     }
                     if (needsConfirmation) {
@@ -149,8 +127,8 @@ export class MainThreadFileSystemEventService implements MainThreadFileSystemEve
                         const { confirmed } = await dialogService.confirm({
                             type: Severity.Info,
                             message,
-                            primaryButton: localize("preview", "Show &&Preview"),
-                            cancelButton: localize("cancel", "Skip Changes"),
+                            primaryButton: localize('preview', "Show &&Preview"),
+                            cancelButton: localize('cancel', "Skip Changes")
                         });
                         showPreview = true;
                         if (!confirmed) {
@@ -170,31 +148,19 @@ export class MainThreadFileSystemEventService implements MainThreadFileSystemEve
                             message,
                             buttons: [
                                 {
-                                    label: localize({
-                                        key: "ok",
-                                        comment: [
-                                            "&& denotes a mnemonic",
-                                        ],
-                                    }, "&&OK"),
-                                    run: () => Choice.OK,
+                                    label: localize({ key: 'ok', comment: ['&& denotes a mnemonic'] }, "&&OK"),
+                                    run: () => Choice.OK
                                 },
                                 {
-                                    label: localize({
-                                        key: "preview",
-                                        comment: [
-                                            "&& denotes a mnemonic",
-                                        ],
-                                    }, "Show &&Preview"),
-                                    run: () => Choice.Preview,
-                                },
+                                    label: localize({ key: 'preview', comment: ['&& denotes a mnemonic'] }, "Show &&Preview"),
+                                    run: () => Choice.Preview
+                                }
                             ],
                             cancelButton: {
-                                label: localize("cancel", "Skip Changes"),
-                                run: () => Choice.Cancel,
+                                label: localize('cancel', "Skip Changes"),
+                                run: () => Choice.Cancel
                             },
-                            checkbox: {
-                                label: localize("again", "Do not ask me again"),
-                            },
+                            checkbox: { label: localize('again', "Do not ask me again") }
                         });
                         if (result === Choice.Cancel) {
                             // no changes wanted, don't persist cancel option
@@ -206,33 +172,33 @@ export class MainThreadFileSystemEventService implements MainThreadFileSystemEve
                         }
                     }
                 }
-                logService.info("[onWill-handler] applying additional workspace edit from extensions", data.extensionNames);
+                logService.info('[onWill-handler] applying additional workspace edit from extensions', data.extensionNames);
                 await bulkEditService.apply(reviveWorkspaceEditDto(data.edit, uriIdentService), { undoRedoGroupId: undoInfo?.undoRedoGroupId, showPreview });
             }
             private _progressLabel(operation: FileOperation): string {
                 switch (operation) {
                     case FileOperation.CREATE:
-                        return localize("msg-create", "Running 'File Create' participants...");
+                        return localize('msg-create', "Running 'File Create' participants...");
                     case FileOperation.MOVE:
-                        return localize("msg-rename", "Running 'File Rename' participants...");
+                        return localize('msg-rename', "Running 'File Rename' participants...");
                     case FileOperation.COPY:
-                        return localize("msg-copy", "Running 'File Copy' participants...");
+                        return localize('msg-copy', "Running 'File Copy' participants...");
                     case FileOperation.DELETE:
-                        return localize("msg-delete", "Running 'File Delete' participants...");
+                        return localize('msg-delete', "Running 'File Delete' participants...");
                     case FileOperation.WRITE:
-                        return localize("msg-write", "Running 'File Write' participants...");
+                        return localize('msg-write', "Running 'File Write' participants...");
                 }
             }
-        })();
+        };
         // BEFORE file operation
         this._listener.add(workingCopyFileService.addFileOperationParticipant(fileOperationParticipant));
         // AFTER file operation
-        this._listener.add(workingCopyFileService.onDidRunWorkingCopyFileOperation((e) => this._proxy.$onDidRunFileOperation(e.operation, e.files)));
+        this._listener.add(workingCopyFileService.onDidRunWorkingCopyFileOperation(e => this._proxy.$onDidRunFileOperation(e.operation, e.files)));
     }
     async $watch(extensionId: string, session: number, resource: UriComponents, unvalidatedOpts: IWatchOptions, correlate: boolean): Promise<void> {
         const uri = URI.revive(resource);
         const opts: IWatchOptions = {
-            ...unvalidatedOpts,
+            ...unvalidatedOpts
         };
         // Convert a recursive watcher to a flat watcher if the path
         // turns out to not be a folder. Recursive watching is only
@@ -254,12 +220,12 @@ export class MainThreadFileSystemEventService implements MainThreadFileSystemEve
             this._logService.trace(`MainThreadFileSystemEventService#$watch(): request to start watching correlated (extension: ${extensionId}, path: ${uri.toString(true)}, recursive: ${opts.recursive}, session: ${session}, excludes: ${JSON.stringify(opts.excludes)}, includes: ${JSON.stringify(opts.includes)})`);
             const watcherDisposables = new DisposableStore();
             const subscription = watcherDisposables.add(this._fileService.createWatcher(uri, opts));
-            watcherDisposables.add(subscription.onDidChange((event) => {
+            watcherDisposables.add(subscription.onDidChange(event => {
                 this._proxy.$onFileEvent({
                     session,
                     created: event.rawAdded,
                     changed: event.rawUpdated,
-                    deleted: event.rawDeleted,
+                    deleted: event.rawDeleted
                 });
             }));
             this._watches.set(session, watcherDisposables);
@@ -285,17 +251,15 @@ export class MainThreadFileSystemEventService implements MainThreadFileSystemEve
 registerAction2(class ResetMemento extends Action2 {
     constructor() {
         super({
-            id: "files.participants.resetChoice",
+            id: 'files.participants.resetChoice',
             title: {
-                value: localize("label", "Reset choice for 'File operation needs preview'"),
-                original: `Reset choice for 'File operation needs preview'`,
+                value: localize('label', "Reset choice for 'File operation needs preview'"),
+                original: `Reset choice for 'File operation needs preview'`
             },
-            f1: true,
+            f1: true
         });
     }
     run(accessor: ServicesAccessor) {
-        accessor
-            .get(IStorageService)
-            .remove(MainThreadFileSystemEventService.MementoKeyAdditionalEdits, StorageScope.PROFILE);
+        accessor.get(IStorageService).remove(MainThreadFileSystemEventService.MementoKeyAdditionalEdits, StorageScope.PROFILE);
     }
 });

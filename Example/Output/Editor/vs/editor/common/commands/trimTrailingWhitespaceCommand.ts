@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as strings from "../../../base/common/strings.js";
-import { EditOperation, ISingleEditOperation } from "../core/editOperation.js";
-import { Position } from "../core/position.js";
-import { Range } from "../core/range.js";
-import { Selection } from "../core/selection.js";
-import { ICommand, ICursorStateComputerData, IEditOperationBuilder, } from "../editorCommon.js";
-import { StandardTokenType } from "../encodedTokenAttributes.js";
-import { ITextModel } from "../model.js";
+import * as strings from '../../../base/common/strings.js';
+import { EditOperation, ISingleEditOperation } from '../core/editOperation.js';
+import { Position } from '../core/position.js';
+import { Range } from '../core/range.js';
+import { Selection } from '../core/selection.js';
+import { ICommand, ICursorStateComputerData, IEditOperationBuilder } from '../editorCommon.js';
+import { StandardTokenType } from '../encodedTokenAttributes.js';
+import { ITextModel } from '../model.js';
 export class TrimTrailingWhitespaceCommand implements ICommand {
     private readonly _selection: Selection;
     private _selectionId: string | null;
@@ -59,8 +59,7 @@ export function trimTrailingWhitespace(model: ITextModel, cursors: Position[], t
         const lineContent = model.getLineContent(lineNumber);
         const maxLineColumn = lineContent.length + 1;
         let minEditColumn = 0;
-        if (cursorIndex < cursorLen &&
-            cursors[cursorIndex].lineNumber === lineNumber) {
+        if (cursorIndex < cursorLen && cursors[cursorIndex].lineNumber === lineNumber) {
             minEditColumn = cursors[cursorIndex].column;
             cursorIndex++;
             if (minEditColumn === maxLineColumn) {
@@ -94,8 +93,7 @@ export function trimTrailingWhitespace(model: ITextModel, cursors: Position[], t
             }
             const lineTokens = model.tokenization.getLineTokens(lineNumber);
             const fromColumnType = lineTokens.getStandardTokenType(lineTokens.findTokenIndexAtOffset(fromColumn));
-            if (fromColumnType === StandardTokenType.String ||
-                fromColumnType === StandardTokenType.RegEx) {
+            if (fromColumnType === StandardTokenType.String || fromColumnType === StandardTokenType.RegEx) {
                 continue;
             }
         }

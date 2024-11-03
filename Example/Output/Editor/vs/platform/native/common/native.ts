@@ -2,17 +2,17 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { VSBuffer } from "../../../base/common/buffer.js";
-import { Event } from "../../../base/common/event.js";
-import { URI } from "../../../base/common/uri.js";
-import { MessageBoxOptions, MessageBoxReturnValue, OpenDevToolsOptions, OpenDialogOptions, OpenDialogReturnValue, SaveDialogOptions, SaveDialogReturnValue, } from "../../../base/parts/sandbox/common/electronTypes.js";
-import { ISerializableCommandAction } from "../../action/common/action.js";
-import { INativeOpenDialogOptions } from "../../dialogs/common/dialogs.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { IV8Profile } from "../../profiling/common/profiling.js";
-import { AuthInfo, Credentials } from "../../request/common/request.js";
-import { IPartsSplash } from "../../theme/common/themeService.js";
-import { IColorScheme, IOpenedAuxiliaryWindow, IOpenedMainWindow, IOpenEmptyWindowOptions, IOpenWindowOptions, IPoint, IRectangle, IWindowOpenable, } from "../../window/common/window.js";
+import { VSBuffer } from '../../../base/common/buffer.js';
+import { Event } from '../../../base/common/event.js';
+import { URI } from '../../../base/common/uri.js';
+import { MessageBoxOptions, MessageBoxReturnValue, OpenDevToolsOptions, OpenDialogOptions, OpenDialogReturnValue, SaveDialogOptions, SaveDialogReturnValue } from '../../../base/parts/sandbox/common/electronTypes.js';
+import { ISerializableCommandAction } from '../../action/common/action.js';
+import { INativeOpenDialogOptions } from '../../dialogs/common/dialogs.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { IV8Profile } from '../../profiling/common/profiling.js';
+import { AuthInfo, Credentials } from '../../request/common/request.js';
+import { IPartsSplash } from '../../theme/common/themeService.js';
+import { IColorScheme, IOpenedAuxiliaryWindow, IOpenedMainWindow, IOpenEmptyWindowOptions, IOpenWindowOptions, IPoint, IRectangle, IWindowOpenable } from '../../window/common/window.js';
 export interface ICPUProperties {
     model: string;
     speed: number;
@@ -141,13 +141,13 @@ export interface ICommonNativeHostService {
     getProcessId(): Promise<number | undefined>;
     killProcess(pid: number, code: string): Promise<void>;
     // Clipboard
-    readClipboardText(type?: "selection" | "clipboard"): Promise<string>;
-    writeClipboardText(text: string, type?: "selection" | "clipboard"): Promise<void>;
+    readClipboardText(type?: 'selection' | 'clipboard'): Promise<string>;
+    writeClipboardText(text: string, type?: 'selection' | 'clipboard'): Promise<void>;
     readClipboardFindText(): Promise<string>;
     writeClipboardFindText(text: string): Promise<void>;
-    writeClipboardBuffer(format: string, buffer: VSBuffer, type?: "selection" | "clipboard"): Promise<void>;
+    writeClipboardBuffer(format: string, buffer: VSBuffer, type?: 'selection' | 'clipboard'): Promise<void>;
     readClipboardBuffer(format: string): Promise<VSBuffer>;
-    hasClipboard(format: string, type?: "selection" | "clipboard"): Promise<boolean>;
+    hasClipboard(format: string, type?: 'selection' | 'clipboard'): Promise<boolean>;
     readImage(): Promise<Uint8Array>;
     // macOS Touchbar
     newWindowTab(): Promise<void>;
@@ -185,9 +185,9 @@ export interface ICommonNativeHostService {
     loadCertificates(): Promise<string[]>;
     findFreePort(startPort: number, giveUpAfter: number, timeout: number, stride?: number): Promise<number>;
     // Registry (windows only)
-    windowsGetStringRegKey(hive: "HKEY_CURRENT_USER" | "HKEY_LOCAL_MACHINE" | "HKEY_CLASSES_ROOT" | "HKEY_USERS" | "HKEY_CURRENT_CONFIG", path: string, name: string): Promise<string | undefined>;
+    windowsGetStringRegKey(hive: 'HKEY_CURRENT_USER' | 'HKEY_LOCAL_MACHINE' | 'HKEY_CLASSES_ROOT' | 'HKEY_USERS' | 'HKEY_CURRENT_CONFIG', path: string, name: string): Promise<string | undefined>;
 }
-export const INativeHostService = createDecorator<INativeHostService>("nativeHostService");
+export const INativeHostService = createDecorator<INativeHostService>('nativeHostService');
 /**
  * A set of methods specific to a native host, i.e. unsupported in web
  * environments.

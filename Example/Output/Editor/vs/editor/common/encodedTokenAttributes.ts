@@ -89,43 +89,38 @@ export const enum MetadataConsts {
  */
 export class TokenMetadata {
     public static getLanguageId(metadata: number): LanguageId {
-        return ((metadata & MetadataConsts.LANGUAGEID_MASK) >>>
-            MetadataConsts.LANGUAGEID_OFFSET);
+        return (metadata & MetadataConsts.LANGUAGEID_MASK) >>> MetadataConsts.LANGUAGEID_OFFSET;
     }
     public static getTokenType(metadata: number): StandardTokenType {
-        return ((metadata & MetadataConsts.TOKEN_TYPE_MASK) >>>
-            MetadataConsts.TOKEN_TYPE_OFFSET);
+        return (metadata & MetadataConsts.TOKEN_TYPE_MASK) >>> MetadataConsts.TOKEN_TYPE_OFFSET;
     }
     public static containsBalancedBrackets(metadata: number): boolean {
         return (metadata & MetadataConsts.BALANCED_BRACKETS_MASK) !== 0;
     }
     public static getFontStyle(metadata: number): FontStyle {
-        return ((metadata & MetadataConsts.FONT_STYLE_MASK) >>>
-            MetadataConsts.FONT_STYLE_OFFSET);
+        return (metadata & MetadataConsts.FONT_STYLE_MASK) >>> MetadataConsts.FONT_STYLE_OFFSET;
     }
     public static getForeground(metadata: number): ColorId {
-        return ((metadata & MetadataConsts.FOREGROUND_MASK) >>>
-            MetadataConsts.FOREGROUND_OFFSET);
+        return (metadata & MetadataConsts.FOREGROUND_MASK) >>> MetadataConsts.FOREGROUND_OFFSET;
     }
     public static getBackground(metadata: number): ColorId {
-        return ((metadata & MetadataConsts.BACKGROUND_MASK) >>>
-            MetadataConsts.BACKGROUND_OFFSET);
+        return (metadata & MetadataConsts.BACKGROUND_MASK) >>> MetadataConsts.BACKGROUND_OFFSET;
     }
     public static getClassNameFromMetadata(metadata: number): string {
         const foreground = this.getForeground(metadata);
-        let className = "mtk" + foreground;
+        let className = 'mtk' + foreground;
         const fontStyle = this.getFontStyle(metadata);
         if (fontStyle & FontStyle.Italic) {
-            className += " mtki";
+            className += ' mtki';
         }
         if (fontStyle & FontStyle.Bold) {
-            className += " mtkb";
+            className += ' mtkb';
         }
         if (fontStyle & FontStyle.Underline) {
-            className += " mtku";
+            className += ' mtku';
         }
         if (fontStyle & FontStyle.Strikethrough) {
-            className += " mtks";
+            className += ' mtks';
         }
         return className;
     }
@@ -134,17 +129,17 @@ export class TokenMetadata {
         const fontStyle = this.getFontStyle(metadata);
         let result = `color: ${colorMap[foreground]};`;
         if (fontStyle & FontStyle.Italic) {
-            result += "font-style: italic;";
+            result += 'font-style: italic;';
         }
         if (fontStyle & FontStyle.Bold) {
-            result += "font-weight: bold;";
+            result += 'font-weight: bold;';
         }
-        let textDecoration = "";
+        let textDecoration = '';
         if (fontStyle & FontStyle.Underline) {
-            textDecoration += " underline";
+            textDecoration += ' underline';
         }
         if (fontStyle & FontStyle.Strikethrough) {
-            textDecoration += " line-through";
+            textDecoration += ' line-through';
         }
         if (textDecoration) {
             result += `text-decoration:${textDecoration};`;

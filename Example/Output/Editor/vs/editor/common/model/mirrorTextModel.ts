@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { splitLines } from "../../../base/common/strings.js";
-import { URI } from "../../../base/common/uri.js";
-import { Position } from "../core/position.js";
-import { IRange } from "../core/range.js";
-import { IModelContentChange } from "../textModelEvents.js";
-import { PrefixSumComputer } from "./prefixSumComputer.js";
+import { splitLines } from '../../../base/common/strings.js';
+import { URI } from '../../../base/common/uri.js';
+import { Position } from '../core/position.js';
+import { IRange } from '../core/range.js';
+import { IModelContentChange } from '../textModelEvents.js';
+import { PrefixSumComputer } from './prefixSumComputer.js';
 export interface IModelChangedEvent {
     /**
      * The actual changes.
@@ -102,13 +102,13 @@ export class MirrorTextModel implements IMirrorTextModel {
                 return;
             }
             // Delete text on the affected line
-            this._setLineText(range.startLineNumber - 1, this._lines[range.startLineNumber - 1].substring(0, range.startColumn - 1) +
-                this._lines[range.startLineNumber - 1].substring(range.endColumn - 1));
+            this._setLineText(range.startLineNumber - 1, this._lines[range.startLineNumber - 1].substring(0, range.startColumn - 1)
+                + this._lines[range.startLineNumber - 1].substring(range.endColumn - 1));
             return;
         }
         // Take remaining text on last line and append it to remaining text on first line
-        this._setLineText(range.startLineNumber - 1, this._lines[range.startLineNumber - 1].substring(0, range.startColumn - 1) +
-            this._lines[range.endLineNumber - 1].substring(range.endColumn - 1));
+        this._setLineText(range.startLineNumber - 1, this._lines[range.startLineNumber - 1].substring(0, range.startColumn - 1)
+            + this._lines[range.endLineNumber - 1].substring(range.endColumn - 1));
         // Delete middle lines
         this._lines.splice(range.startLineNumber, range.endLineNumber - range.startLineNumber);
         if (this._lineStarts) {
@@ -124,15 +124,16 @@ export class MirrorTextModel implements IMirrorTextModel {
         const insertLines = splitLines(insertText);
         if (insertLines.length === 1) {
             // Inserting text on one line
-            this._setLineText(position.lineNumber - 1, this._lines[position.lineNumber - 1].substring(0, position.column - 1) +
-                insertLines[0] +
-                this._lines[position.lineNumber - 1].substring(position.column - 1));
+            this._setLineText(position.lineNumber - 1, this._lines[position.lineNumber - 1].substring(0, position.column - 1)
+                + insertLines[0]
+                + this._lines[position.lineNumber - 1].substring(position.column - 1));
             return;
         }
         // Append overflowing text from first line to the end of text to insert
         insertLines[insertLines.length - 1] += this._lines[position.lineNumber - 1].substring(position.column - 1);
         // Delete overflowing text from first line and insert text on first line
-        this._setLineText(position.lineNumber - 1, this._lines[position.lineNumber - 1].substring(0, position.column - 1) + insertLines[0]);
+        this._setLineText(position.lineNumber - 1, this._lines[position.lineNumber - 1].substring(0, position.column - 1)
+            + insertLines[0]);
         // Insert new lines & store lengths
         const newLengths = new Uint32Array(insertLines.length - 1);
         for (let i = 1; i < insertLines.length; i++) {

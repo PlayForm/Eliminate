@@ -2,17 +2,17 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import type * as vscode from "vscode";
-import { Emitter, Event } from "../../../base/common/event.js";
-import { ExtensionIdentifier, IExtensionDescription, } from "../../../platform/extensions/common/extensions.js";
-import { createDecorator } from "../../../platform/instantiation/common/instantiation.js";
-import { INTERNAL_AUTH_PROVIDER_PREFIX } from "../../services/authentication/common/authentication.js";
-import { ExtHostAuthenticationShape, MainContext, MainThreadAuthenticationShape, } from "./extHost.protocol.js";
-import { IExtHostRpcService } from "./extHostRpcService.js";
-import { Disposable } from "./extHostTypes.js";
+import type * as vscode from 'vscode';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { MainContext, MainThreadAuthenticationShape, ExtHostAuthenticationShape } from './extHost.protocol.js';
+import { Disposable } from './extHostTypes.js';
+import { IExtensionDescription, ExtensionIdentifier } from '../../../platform/extensions/common/extensions.js';
+import { INTERNAL_AUTH_PROVIDER_PREFIX } from '../../services/authentication/common/authentication.js';
+import { createDecorator } from '../../../platform/instantiation/common/instantiation.js';
+import { IExtHostRpcService } from './extHostRpcService.js';
 export interface IExtHostAuthentication extends ExtHostAuthentication {
 }
-export const IExtHostAuthentication = createDecorator<IExtHostAuthentication>("IExtHostAuthentication");
+export const IExtHostAuthentication = createDecorator<IExtHostAuthentication>('IExtHostAuthentication');
 interface ProviderWithMetadata {
     label: string;
     provider: vscode.AuthenticationProvider;
@@ -39,8 +39,9 @@ export class ExtHostAuthentication implements ExtHostAuthenticationShape {
      */
     getExtensionScopedSessionsEvent(extensionId: string): Event<vscode.AuthenticationSessionsChangeEvent> {
         const normalizedExtensionId = extensionId.toLowerCase();
-        return Event.chain(this._onDidChangeSessions.event, ($) => $.filter((e) => !e.extensionIdFilter ||
-            e.extensionIdFilter.includes(normalizedExtensionId)).map((e) => ({ provider: e.provider })));
+        return Event.chain(this._onDidChangeSessions.event, ($) => $
+            .filter(e => !e.extensionIdFilter || e.extensionIdFilter.includes(normalizedExtensionId))
+            .map(e => ({ provider: e.provider })));
     }
     async getSession(requestingExtension: IExtensionDescription, providerId: string, scopes: readonly string[], options: vscode.AuthenticationGetSessionOptions & ({
         createIfNone: true;
@@ -58,7 +59,7 @@ export class ExtHostAuthentication implements ExtHostAuthenticationShape {
     async getSession(requestingExtension: IExtensionDescription, providerId: string, scopes: readonly string[], options: vscode.AuthenticationGetSessionOptions): Promise<vscode.AuthenticationSession | undefined>;
     async getSession(requestingExtension: IExtensionDescription, providerId: string, scopes: readonly string[], options: vscode.AuthenticationGetSessionOptions = {}): Promise<vscode.AuthenticationSession | undefined> {
         const extensionId = ExtensionIdentifier.toKey(requestingExtension.identifier);
-        const sortedScopes = [...scopes].sort().join(" ");
+        const sortedScopes = [...scopes].sort().join(' ');
         return await this._getSessionTaskSingler.getOrCreate(`${extensionId} ${providerId} ${sortedScopes}`, async () => {
             await this._proxy.$ensureProvider(providerId);
             const extensionName = requestingExtension.displayName || requestingExtension.name;
@@ -80,12 +81,8 @@ export class ExtHostAuthentication implements ExtHostAuthenticationShape {
         if (this._authenticationProviders.get(id)) {
             throw new Error(`An authentication provider with id '${id}' is already registered.`);
         }
-        this._authenticationProviders.set(id, {
-            label,
-            provider,
-            options: options ?? { supportsMultipleAccounts: false },
-        });
-        const listener = provider.onDidChangeSessions((e) => this._proxy.$sendDidChangeSessions(id, e));
+        this._authenticationProviders.set(id, { label, provider, options: options ?? { supportsMultipleAccounts: false } });
+        const listener = provider.onDidChangeSessions(e => this._proxy.$sendDidChangeSessions(id, e));
         this._proxy.$registerAuthenticationProvider(id, label, options?.supportsMultipleAccounts ?? false);
         return new Disposable(() => {
             listener.dispose();
@@ -117,10 +114,7 @@ export class ExtHostAuthentication implements ExtHostAuthenticationShape {
     $onDidChangeAuthenticationSessions(id: string, label: string, extensionIdFilter?: string[]) {
         // Don't fire events for the internal auth providers
         if (!id.startsWith(INTERNAL_AUTH_PROVIDER_PREFIX)) {
-            this._onDidChangeSessions.fire({
-                provider: { id, label },
-                extensionIdFilter,
-            });
+            this._onDidChangeSessions.fire({ provider: { id, label }, extensionIdFilter });
         }
         return Promise.resolve();
     }

@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CharCode } from "../../../base/common/charCode.js";
-import { StandardTokenType } from "../encodedTokenAttributes.js";
-import { ScopedLineTokens } from "./supports.js";
+import { CharCode } from '../../../base/common/charCode.js';
+import { StandardTokenType } from '../encodedTokenAttributes.js';
+import { ScopedLineTokens } from './supports.js';
 /**
  * Describes how comments for a language work.
  */
@@ -62,7 +62,7 @@ export interface LanguageConfiguration {
     /**
      * Defines a list of bracket pairs that are colorized depending on their nesting level.
      * If not set, the configured brackets will be used.
-     */
+    */
     colorizedBracketPairs?: CharacterPair[];
     /**
      * Defines what characters must be after the cursor for bracket or quote autoclosing to occur when using the \'languageDefined\' autoclosing setting.
@@ -272,13 +272,13 @@ export class StandardAutoClosingPairConditional {
             for (let i = 0, len = source.notIn.length; i < len; i++) {
                 const notIn: string = source.notIn[i];
                 switch (notIn) {
-                    case "string":
+                    case 'string':
                         this._inString = false;
                         break;
-                    case "comment":
+                    case 'comment':
                         this._inComment = false;
                         break;
-                    case "regex":
+                    case 'regex':
                         this._inRegEx = false;
                         break;
                 }
@@ -309,8 +309,7 @@ export class StandardAutoClosingPairConditional {
     private _findNeutralCharacterInRange(fromCharCode: number, toCharCode: number): string | null {
         for (let charCode = fromCharCode; charCode <= toCharCode; charCode++) {
             const character = String.fromCharCode(charCode);
-            if (!this.open.includes(character) &&
-                !this.close.includes(character)) {
+            if (!this.open.includes(character) && !this.close.includes(character)) {
                 return character;
             }
         }

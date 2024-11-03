@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { ISandboxConfiguration } from "../../../base/parts/sandbox/common/sandboxTypes.js";
-import { PerformanceInfo, SystemInfo, } from "../../diagnostics/common/diagnostics.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
+import { ISandboxConfiguration } from '../../../base/parts/sandbox/common/sandboxTypes.js';
+import { PerformanceInfo, SystemInfo } from '../../diagnostics/common/diagnostics.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
 // Since data sent through the service is serialized to JSON, functions will be lost, so Color objects
 // should not be sent as their 'toString' method will be stripped. Instead convert to strings before sending.
 export interface WindowStyles {
@@ -16,9 +16,9 @@ export interface WindowData {
     zoomLevel: number;
 }
 export enum IssueSource {
-    VSCode = "vscode",
-    Extension = "extension",
-    Marketplace = "marketplace"
+    VSCode = 'vscode',
+    Extension = 'extension',
+    Marketplace = 'marketplace'
 }
 export interface ISettingSearchResult {
     extensionId: string;
@@ -48,7 +48,7 @@ export interface ProcessExplorerData extends WindowData {
 export interface ProcessExplorerWindowConfiguration extends ISandboxConfiguration {
     data: ProcessExplorerData;
 }
-export const IProcessMainService = createDecorator<IProcessMainService>("processService");
+export const IProcessMainService = createDecorator<IProcessMainService>('processService');
 export interface IProcessMainService {
     readonly _serviceBrand: undefined;
     getSystemStatus(): Promise<string>;

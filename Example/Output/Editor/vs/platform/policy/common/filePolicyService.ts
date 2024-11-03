@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { ThrottledDelayer } from "../../../base/common/async.js";
-import { Event } from "../../../base/common/event.js";
-import { Iterable } from "../../../base/common/iterator.js";
-import { isObject } from "../../../base/common/types.js";
-import { URI } from "../../../base/common/uri.js";
-import { FileOperationError, FileOperationResult, IFileService, } from "../../files/common/files.js";
-import { ILogService } from "../../log/common/log.js";
-import { AbstractPolicyService, IPolicyService, PolicyName, PolicyValue, } from "./policy.js";
+import { ThrottledDelayer } from '../../../base/common/async.js';
+import { Event } from '../../../base/common/event.js';
+import { Iterable } from '../../../base/common/iterator.js';
+import { isObject } from '../../../base/common/types.js';
+import { URI } from '../../../base/common/uri.js';
+import { FileOperationError, FileOperationResult, IFileService } from '../../files/common/files.js';
+import { ILogService } from '../../log/common/log.js';
+import { AbstractPolicyService, IPolicyService, PolicyName, PolicyValue } from './policy.js';
 function keysDiff<T>(a: Map<string, T>, b: Map<string, T>): string[] {
     const result: string[] = [];
     for (const key of new Set(Iterable.concat(a.keys(), b.keys()))) {
@@ -27,7 +27,7 @@ export class FilePolicyService extends AbstractPolicyService implements IPolicyS
     @ILogService
     private readonly logService: ILogService) {
         super();
-        const onDidChangePolicyFile = Event.filter(fileService.onDidFilesChange, (e) => e.affects(file));
+        const onDidChangePolicyFile = Event.filter(fileService.onDidFilesChange, e => e.affects(file));
         this._register(fileService.watch(file));
         this._register(onDidChangePolicyFile(() => this.throttledDelayer.trigger(() => this.refresh())));
     }
@@ -40,7 +40,7 @@ export class FilePolicyService extends AbstractPolicyService implements IPolicyS
             const content = await this.fileService.readFile(this.file);
             const raw = JSON.parse(content.value.toString());
             if (!isObject(raw)) {
-                throw new Error("Policy file isn't a JSON object");
+                throw new Error('Policy file isn\'t a JSON object');
             }
             for (const key of Object.keys(raw)) {
                 if (this.policyDefinitions[key]) {
@@ -49,8 +49,7 @@ export class FilePolicyService extends AbstractPolicyService implements IPolicyS
             }
         }
         catch (error) {
-            if ((<FileOperationError>error).fileOperationResult !==
-                FileOperationResult.FILE_NOT_FOUND) {
+            if ((<FileOperationError>error).fileOperationResult !== FileOperationResult.FILE_NOT_FOUND) {
                 this.logService.error(`[FilePolicyService] Failed to read policies`, error);
             }
         }

@@ -2,15 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { assertNever } from "../../../base/common/assert.js";
-import { RunOnceScheduler } from "../../../base/common/async.js";
-import { Color } from "../../../base/common/color.js";
-import { Emitter, Event } from "../../../base/common/event.js";
-import { IJSONSchema, IJSONSchemaSnippet, } from "../../../base/common/jsonSchema.js";
-import * as nls from "../../../nls.js";
-import { IJSONContributionRegistry, Extensions as JSONExtensions, } from "../../jsonschemas/common/jsonContributionRegistry.js";
-import * as platform from "../../registry/common/platform.js";
-import { IColorTheme } from "./themeService.js";
+import { assertNever } from '../../../base/common/assert.js';
+import { RunOnceScheduler } from '../../../base/common/async.js';
+import { Color } from '../../../base/common/color.js';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { IJSONSchema, IJSONSchemaSnippet } from '../../../base/common/jsonSchema.js';
+import { IJSONContributionRegistry, Extensions as JSONExtensions } from '../../jsonschemas/common/jsonContributionRegistry.js';
+import * as platform from '../../registry/common/platform.js';
+import { IColorTheme } from './themeService.js';
+import * as nls from '../../../nls.js';
 //  ------ API types
 export type ColorIdentifier = string;
 export interface ColorContribution {
@@ -27,7 +27,7 @@ export interface ColorContribution {
  * @sample `editorSuggestWidget.background` is `--vscode-editorSuggestWidget-background`.
  */
 export function asCssVariableName(colorIdent: ColorIdentifier): string {
-    return `--vscode-${colorIdent.replace(/\./g, "-")}`;
+    return `--vscode-${colorIdent.replace(/\./g, '-')}`;
 }
 export function asCssVariable(color: ColorIdentifier): string {
     return `var(${asCssVariableName(color)})`;
@@ -82,10 +82,7 @@ export interface ColorDefaults {
     hcLight: ColorValue | null;
 }
 export function isColorDefaults(value: unknown): value is ColorDefaults {
-    return (value !== null &&
-        typeof value === "object" &&
-        "light" in value &&
-        "dark" in value);
+    return value !== null && typeof value === 'object' && 'light' in value && 'dark' in value;
 }
 /**
  * A Color Value is either a color literal, a reference to an other color or a derived color
@@ -93,9 +90,9 @@ export function isColorDefaults(value: unknown): value is ColorDefaults {
 export type ColorValue = Color | string | ColorIdentifier | ColorTransform;
 // color registry
 export const Extensions = {
-    ColorContribution: "base.contributions.colors",
+    ColorContribution: 'base.contributions.colors'
 };
-export const DEFAULT_COLOR_CONFIG_VALUE = "default";
+export const DEFAULT_COLOR_CONFIG_VALUE = 'default';
 export interface IColorRegistry {
     readonly onDidChangeSchema: Event<void>;
     /**
@@ -150,14 +147,11 @@ class ColorRegistry implements IColorRegistry {
     private colorsById: {
         [key: string]: ColorContribution;
     };
-    private colorSchema: IJSONSchemaForColors = {
-        type: "object",
-        properties: {},
-    };
+    private colorSchema: IJSONSchemaForColors = { type: 'object', properties: {} };
     private colorReferenceSchema: IJSONSchema & {
         enum: string[];
         enumDescriptions: string[];
-    } = { type: "string", enum: [], enumDescriptions: [] };
+    } = { type: 'string', enum: [], enumDescriptions: [] };
     constructor() {
         this.colorsById = {};
     }
@@ -165,44 +159,28 @@ class ColorRegistry implements IColorRegistry {
         for (const key of Object.keys(this.colorsById)) {
             const color = colorThemeData.getColor(key);
             if (color) {
-                this.colorSchema.properties[key].oneOf[0].defaultSnippets[0].body =
-                    `\${1:${color.toString()}}`;
+                this.colorSchema.properties[key].oneOf[0].defaultSnippets[0].body = `\${1:${color.toString()}}`;
             }
         }
         this._onDidChangeSchema.fire();
     }
     public registerColor(id: string, defaults: ColorDefaults | ColorValue | null, description: string, needsTransparency = false, deprecationMessage?: string): ColorIdentifier {
-        const colorContribution: ColorContribution = {
-            id,
-            description,
-            defaults,
-            needsTransparency,
-            deprecationMessage,
-        };
+        const colorContribution: ColorContribution = { id, description, defaults, needsTransparency, deprecationMessage };
         this.colorsById[id] = colorContribution;
-        const propertySchema: IJSONSchemaWithSnippets = {
-            type: "string",
-            format: "color-hex",
-            defaultSnippets: [{ body: "${1:#ff0000}" }],
-        };
+        const propertySchema: IJSONSchemaWithSnippets = { type: 'string', format: 'color-hex', defaultSnippets: [{ body: '${1:#ff0000}' }] };
         if (deprecationMessage) {
             propertySchema.deprecationMessage = deprecationMessage;
         }
         if (needsTransparency) {
-            propertySchema.pattern =
-                "^#(?:(?<rgba>[0-9a-fA-f]{3}[0-9a-eA-E])|(?:[0-9a-fA-F]{6}(?:(?![fF]{2})(?:[0-9a-fA-F]{2}))))?$";
-            propertySchema.patternErrorMessage = nls.localize("transparecyRequired", "This color must be transparent or it will obscure content");
+            propertySchema.pattern = '^#(?:(?<rgba>[0-9a-fA-f]{3}[0-9a-eA-E])|(?:[0-9a-fA-F]{6}(?:(?![fF]{2})(?:[0-9a-fA-F]{2}))))?$';
+            propertySchema.patternErrorMessage = nls.localize('transparecyRequired', 'This color must be transparent or it will obscure content');
         }
         this.colorSchema.properties[id] = {
             description,
             oneOf: [
                 propertySchema,
-                {
-                    type: "string",
-                    const: DEFAULT_COLOR_CONFIG_VALUE,
-                    description: nls.localize("useDefault", "Use the default color."),
-                },
-            ],
+                { type: 'string', const: DEFAULT_COLOR_CONFIG_VALUE, description: nls.localize('useDefault', 'Use the default color.') }
+            ]
         };
         this.colorReferenceSchema.enum.push(id);
         this.colorReferenceSchema.enumDescriptions.push(description);
@@ -220,14 +198,12 @@ class ColorRegistry implements IColorRegistry {
         this._onDidChangeSchema.fire();
     }
     public getColors(): ColorContribution[] {
-        return Object.keys(this.colorsById).map((id) => this.colorsById[id]);
+        return Object.keys(this.colorsById).map(id => this.colorsById[id]);
     }
     public resolveDefaultColor(id: ColorIdentifier, theme: IColorTheme): Color | undefined {
         const colorDesc = this.colorsById[id];
         if (colorDesc?.defaults) {
-            const colorValue = isColorDefaults(colorDesc.defaults)
-                ? colorDesc.defaults[theme.type]
-                : colorDesc.defaults;
+            const colorValue = isColorDefaults(colorDesc.defaults) ? colorDesc.defaults[theme.type] : colorDesc.defaults;
             return resolveColorValue(colorValue, theme);
         }
         return undefined;
@@ -240,17 +216,14 @@ class ColorRegistry implements IColorRegistry {
     }
     public toString() {
         const sorter = (a: string, b: string) => {
-            const cat1 = a.indexOf(".") === -1 ? 0 : 1;
-            const cat2 = b.indexOf(".") === -1 ? 0 : 1;
+            const cat1 = a.indexOf('.') === -1 ? 0 : 1;
+            const cat2 = b.indexOf('.') === -1 ? 0 : 1;
             if (cat1 !== cat2) {
                 return cat1 - cat2;
             }
             return a.localeCompare(b);
         };
-        return Object.keys(this.colorsById)
-            .sort(sorter)
-            .map((k) => `- \`${k}\`: ${this.colorsById[k].description}`)
-            .join("\n");
+        return Object.keys(this.colorsById).sort(sorter).map(k => `- \`${k}\`: ${this.colorsById[k].description}`).join('\n');
     }
 }
 const colorRegistry = new ColorRegistry();
@@ -320,21 +293,10 @@ export function oneOf(...colorValues: ColorValue[]): ColorTransform {
     return { op: ColorTransformType.OneOf, values: colorValues };
 }
 export function ifDefinedThenElse(ifArg: ColorIdentifier, thenArg: ColorValue, elseArg: ColorValue): ColorTransform {
-    return {
-        op: ColorTransformType.IfDefinedThenElse,
-        if: ifArg,
-        then: thenArg,
-        else: elseArg,
-    };
+    return { op: ColorTransformType.IfDefinedThenElse, if: ifArg, then: thenArg, else: elseArg };
 }
 export function lessProminent(colorValue: ColorValue, backgroundColorValue: ColorValue, factor: number, transparency: number): ColorTransform {
-    return {
-        op: ColorTransformType.LessProminent,
-        value: colorValue,
-        background: backgroundColorValue,
-        factor,
-        transparency,
-    };
+    return { op: ColorTransformType.LessProminent, value: colorValue, background: backgroundColorValue, factor, transparency };
 }
 // ----- implementation
 /**
@@ -344,8 +306,8 @@ export function resolveColorValue(colorValue: ColorValue | null, theme: IColorTh
     if (colorValue === null) {
         return undefined;
     }
-    else if (typeof colorValue === "string") {
-        if (colorValue[0] === "#") {
+    else if (typeof colorValue === 'string') {
+        if (colorValue[0] === '#') {
             return Color.fromHex(colorValue);
         }
         return theme.getColor(colorValue);
@@ -353,12 +315,12 @@ export function resolveColorValue(colorValue: ColorValue | null, theme: IColorTh
     else if (colorValue instanceof Color) {
         return colorValue;
     }
-    else if (typeof colorValue === "object") {
+    else if (typeof colorValue === 'object') {
         return executeTransform(colorValue, theme);
     }
     return undefined;
 }
-export const workbenchColorsSchemaId = "vscode://schemas/workbench-colors";
+export const workbenchColorsSchemaId = 'vscode://schemas/workbench-colors';
 const schemaRegistry = platform.Registry.as<IJSONContributionRegistry>(JSONExtensions.JSONContribution);
 schemaRegistry.registerSchema(workbenchColorsSchemaId, colorRegistry.getColorSchema());
 const delayer = new RunOnceScheduler(() => schemaRegistry.notifySchemaChanged(workbenchColorsSchemaId), 200);

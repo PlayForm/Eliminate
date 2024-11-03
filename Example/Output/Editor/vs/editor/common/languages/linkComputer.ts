@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CharCode } from "../../../base/common/charCode.js";
-import { CharacterClassifier } from "../core/characterClassifier.js";
-import { ILink } from "../languages.js";
+import { CharCode } from '../../../base/common/charCode.js';
+import { CharacterClassifier } from '../core/characterClassifier.js';
+import { ILink } from '../languages.js';
 export interface ILinkComputerTarget {
     getLineCount(): number;
     getLineContent(lineNumber: number): string;
@@ -24,7 +24,7 @@ export const enum State {
     AlmostThere = 11,
     End = 12,
     Accept = 13,
-    LastKnownState = 14
+    LastKnownState = 14 // marker, custom states may follow
 }
 export type Edge = [
     State,
@@ -127,11 +127,11 @@ function getClassifier(): CharacterClassifier<CharacterClass> {
     if (_classifier === null) {
         _classifier = new CharacterClassifier<CharacterClass>(CharacterClass.None);
         // allow-any-unicode-next-line
-        const FORCE_TERMINATION_CHARACTERS = " \t<>'\"、。｡､，．：；‘〈「『〔（［｛｢｣｝］）〕』」〉’｀～…";
+        const FORCE_TERMINATION_CHARACTERS = ' \t<>\'\"、。｡､，．：；‘〈「『〔（［｛｢｣｝］）〕』」〉’｀～…';
         for (let i = 0; i < FORCE_TERMINATION_CHARACTERS.length; i++) {
             _classifier.set(FORCE_TERMINATION_CHARACTERS.charCodeAt(i), CharacterClass.ForceTermination);
         }
-        const CANNOT_END_WITH_CHARACTERS = ".,;:";
+        const CANNOT_END_WITH_CHARACTERS = '.,;:';
         for (let i = 0; i < CANNOT_END_WITH_CHARACTERS.length; i++) {
             _classifier.set(CANNOT_END_WITH_CHARACTERS.charCodeAt(i), CharacterClass.CannotEndIn);
         }
@@ -154,12 +154,9 @@ export class LinkComputer {
         if (linkBeginIndex > 0) {
             const charCodeBeforeLink = line.charCodeAt(linkBeginIndex - 1);
             const lastCharCodeInLink = line.charCodeAt(lastIncludedCharIndex);
-            if ((charCodeBeforeLink === CharCode.OpenParen &&
-                lastCharCodeInLink === CharCode.CloseParen) ||
-                (charCodeBeforeLink === CharCode.OpenSquareBracket &&
-                    lastCharCodeInLink === CharCode.CloseSquareBracket) ||
-                (charCodeBeforeLink === CharCode.OpenCurlyBrace &&
-                    lastCharCodeInLink === CharCode.CloseCurlyBrace)) {
+            if ((charCodeBeforeLink === CharCode.OpenParen && lastCharCodeInLink === CharCode.CloseParen)
+                || (charCodeBeforeLink === CharCode.OpenSquareBracket && lastCharCodeInLink === CharCode.CloseSquareBracket)
+                || (charCodeBeforeLink === CharCode.OpenCurlyBrace && lastCharCodeInLink === CharCode.CloseCurlyBrace)) {
                 // Do not end in ) if ( is before the link start
                 // Do not end in ] if [ is before the link start
                 // Do not end in } if { is before the link start
@@ -171,9 +168,9 @@ export class LinkComputer {
                 startLineNumber: lineNumber,
                 startColumn: linkBeginIndex + 1,
                 endLineNumber: lineNumber,
-                endColumn: lastIncludedCharIndex + 2,
+                endColumn: lastIncludedCharIndex + 2
             },
-            url: line.substring(linkBeginIndex, lastIncludedCharIndex + 1),
+            url: line.substring(linkBeginIndex, lastIncludedCharIndex + 1)
         };
     }
     public static computeLinks(model: ILinkComputerTarget, stateMachine: StateMachine = getStateMachine()): ILink[] {
@@ -201,9 +198,7 @@ export class LinkComputer {
                             chClass = CharacterClass.None;
                             break;
                         case CharCode.CloseParen:
-                            chClass = hasOpenParens
-                                ? CharacterClass.None
-                                : CharacterClass.ForceTermination;
+                            chClass = (hasOpenParens ? CharacterClass.None : CharacterClass.ForceTermination);
                             break;
                         case CharCode.OpenSquareBracket:
                             inSquareBrackets = true;
@@ -212,18 +207,14 @@ export class LinkComputer {
                             break;
                         case CharCode.CloseSquareBracket:
                             inSquareBrackets = false;
-                            chClass = hasOpenSquareBracket
-                                ? CharacterClass.None
-                                : CharacterClass.ForceTermination;
+                            chClass = (hasOpenSquareBracket ? CharacterClass.None : CharacterClass.ForceTermination);
                             break;
                         case CharCode.OpenCurlyBrace:
                             hasOpenCurlyBracket = true;
                             chClass = CharacterClass.None;
                             break;
                         case CharCode.CloseCurlyBrace:
-                            chClass = hasOpenCurlyBracket
-                                ? CharacterClass.None
-                                : CharacterClass.ForceTermination;
+                            chClass = (hasOpenCurlyBracket ? CharacterClass.None : CharacterClass.ForceTermination);
                             break;
                         // The following three rules make it that ' or " or ` are allowed inside links
                         // only if the link is wrapped by some other quote character
@@ -233,9 +224,7 @@ export class LinkComputer {
                             if (linkBeginChCode === chCode) {
                                 chClass = CharacterClass.ForceTermination;
                             }
-                            else if (linkBeginChCode === CharCode.SingleQuote ||
-                                linkBeginChCode === CharCode.DoubleQuote ||
-                                linkBeginChCode === CharCode.BackTick) {
+                            else if (linkBeginChCode === CharCode.SingleQuote || linkBeginChCode === CharCode.DoubleQuote || linkBeginChCode === CharCode.BackTick) {
                                 chClass = CharacterClass.None;
                             }
                             else {
@@ -244,23 +233,15 @@ export class LinkComputer {
                             break;
                         case CharCode.Asterisk:
                             // `*` terminates a link if the link began with `*`
-                            chClass =
-                                linkBeginChCode === CharCode.Asterisk
-                                    ? CharacterClass.ForceTermination
-                                    : CharacterClass.None;
+                            chClass = (linkBeginChCode === CharCode.Asterisk) ? CharacterClass.ForceTermination : CharacterClass.None;
                             break;
                         case CharCode.Pipe:
                             // `|` terminates a link if the link began with `|`
-                            chClass =
-                                linkBeginChCode === CharCode.Pipe
-                                    ? CharacterClass.ForceTermination
-                                    : CharacterClass.None;
+                            chClass = (linkBeginChCode === CharCode.Pipe) ? CharacterClass.ForceTermination : CharacterClass.None;
                             break;
                         case CharCode.Space:
                             // ` ` allow space in between [ and ]
-                            chClass = inSquareBrackets
-                                ? CharacterClass.None
-                                : CharacterClass.ForceTermination;
+                            chClass = (inSquareBrackets ? CharacterClass.None : CharacterClass.ForceTermination);
                             break;
                         default:
                             chClass = classifier.get(chCode);
@@ -319,9 +300,7 @@ export class LinkComputer {
  * expensive and should not run in the UI thread.
  */
 export function computeLinks(model: ILinkComputerTarget | null): ILink[] {
-    if (!model ||
-        typeof model.getLineCount !== "function" ||
-        typeof model.getLineContent !== "function") {
+    if (!model || typeof model.getLineCount !== 'function' || typeof model.getLineContent !== 'function') {
         // Unknown caller!
         return [];
     }

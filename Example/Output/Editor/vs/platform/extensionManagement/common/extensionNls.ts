@@ -2,11 +2,11 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { isObject, isString } from "../../../base/common/types.js";
-import { localize } from "../../../nls.js";
-import { ILocalizedString } from "../../action/common/action.js";
-import { IExtensionManifest } from "../../extensions/common/extensions.js";
-import { ILogger } from "../../log/common/log.js";
+import { isObject, isString } from '../../../base/common/types.js';
+import { ILocalizedString } from '../../action/common/action.js';
+import { IExtensionManifest } from '../../extensions/common/extensions.js';
+import { localize } from '../../../nls.js';
+import { ILogger } from '../../log/common/log.js';
 export interface ITranslations {
     [key: string]: string | {
         message: string;
@@ -33,7 +33,7 @@ function replaceNLStrings(logger: ILogger, extensionManifest: IExtensionManifest
         if (isString(value)) {
             const str = <string>value;
             const length = str.length;
-            if (length > 1 && str[0] === "%" && str[length - 1] === "%") {
+            if (length > 1 && str[0] === '%' && str[length - 1] === '%') {
                 const messageKey = str.substr(1, length - 2);
                 let translated = messages[messageKey];
                 // If the messages come from a language pack they might miss some keys
@@ -41,28 +41,24 @@ function replaceNLStrings(logger: ILogger, extensionManifest: IExtensionManifest
                 if (translated === undefined && originalMessages) {
                     translated = originalMessages[messageKey];
                 }
-                const message: string | undefined = typeof translated === "string"
-                    ? translated
-                    : translated?.message;
+                const message: string | undefined = typeof translated === 'string' ? translated : translated?.message;
                 // This branch returns ILocalizedString's instead of Strings so that the Command Palette can contain both the localized and the original value.
                 const original = originalMessages?.[messageKey];
-                const originalMessage: string | undefined = typeof original === "string" ? original : original?.message;
+                const originalMessage: string | undefined = typeof original === 'string' ? original : original?.message;
                 if (!message) {
                     if (!originalMessage) {
-                        logger.warn(`[${extensionManifest.name}]: ${localize("missingNLSKey", "Couldn't find message for key {0}.", messageKey)}`);
+                        logger.warn(`[${extensionManifest.name}]: ${localize('missingNLSKey', "Couldn't find message for key {0}.", messageKey)}`);
                     }
                     return;
                 }
                 if (
                 // if we are translating the title or category of a command
-                command &&
-                    (key === "title" || key === "category") &&
+                command && (key === 'title' || key === 'category') &&
                     // and the original value is not the same as the translated value
-                    originalMessage &&
-                    originalMessage !== message) {
+                    originalMessage && originalMessage !== message) {
                     const localizedString: ILocalizedString = {
                         value: message,
-                        original: originalMessage,
+                        original: originalMessage
                     };
                     obj[key] = localizedString;
                 }
@@ -74,9 +70,7 @@ function replaceNLStrings(logger: ILogger, extensionManifest: IExtensionManifest
         else if (isObject(value)) {
             for (const k in value) {
                 if (value.hasOwnProperty(k)) {
-                    k === "commands"
-                        ? processEntry(value, k, true)
-                        : processEntry(value, k, command);
+                    k === 'commands' ? processEntry(value, k, true) : processEntry(value, k, command);
                 }
             }
         }

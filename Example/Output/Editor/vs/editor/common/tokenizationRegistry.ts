@@ -2,11 +2,11 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Color } from "../../base/common/color.js";
-import { Emitter, Event } from "../../base/common/event.js";
-import { Disposable, IDisposable, toDisposable, } from "../../base/common/lifecycle.js";
-import { ColorId } from "./encodedTokenAttributes.js";
-import { ILazyTokenizationSupport, ITokenizationRegistry, ITokenizationSupportChangedEvent, } from "./languages.js";
+import { Color } from '../../base/common/color.js';
+import { Emitter, Event } from '../../base/common/event.js';
+import { Disposable, IDisposable, toDisposable } from '../../base/common/lifecycle.js';
+import { ITokenizationRegistry, ITokenizationSupportChangedEvent, ILazyTokenizationSupport } from './languages.js';
+import { ColorId } from './encodedTokenAttributes.js';
 export class TokenizationRegistry<TSupport> implements ITokenizationRegistry<TSupport> {
     private readonly _tokenizationSupports = new Map<string, TSupport>();
     private readonly _factories = new Map<string, TokenizationSupportFactoryData<TSupport>>();
@@ -19,7 +19,7 @@ export class TokenizationRegistry<TSupport> implements ITokenizationRegistry<TSu
     public handleChange(languageIds: string[]): void {
         this._onDidChange.fire({
             changedLanguages: languageIds,
-            changedColorMap: false,
+            changedColorMap: false
         });
     }
     public register(languageId: string, support: TSupport): IDisposable {
@@ -78,15 +78,14 @@ export class TokenizationRegistry<TSupport> implements ITokenizationRegistry<TSu
         this._colorMap = colorMap;
         this._onDidChange.fire({
             changedLanguages: Array.from(this._tokenizationSupports.keys()),
-            changedColorMap: true,
+            changedColorMap: true
         });
     }
     public getColorMap(): Color[] | null {
         return this._colorMap;
     }
     public getDefaultBackground(): Color | null {
-        if (this._colorMap &&
-            this._colorMap.length > ColorId.DefaultBackground) {
+        if (this._colorMap && this._colorMap.length > ColorId.DefaultBackground) {
             return this._colorMap[ColorId.DefaultBackground];
         }
         return null;

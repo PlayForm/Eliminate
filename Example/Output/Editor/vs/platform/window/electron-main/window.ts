@@ -2,15 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import electron from "electron";
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Event } from "../../../base/common/event.js";
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { ISerializableCommandAction } from "../../action/common/action.js";
-import { NativeParsedArgs } from "../../environment/common/argv.js";
-import { IUserDataProfile } from "../../userDataProfile/common/userDataProfile.js";
-import { ISingleFolderWorkspaceIdentifier, IWorkspaceIdentifier, } from "../../workspace/common/workspace.js";
-import { INativeWindowConfiguration } from "../common/window.js";
+import electron from 'electron';
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { Event } from '../../../base/common/event.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { ISerializableCommandAction } from '../../action/common/action.js';
+import { NativeParsedArgs } from '../../environment/common/argv.js';
+import { IUserDataProfile } from '../../userDataProfile/common/userDataProfile.js';
+import { INativeWindowConfiguration } from '../common/window.js';
+import { ISingleFolderWorkspaceIdentifier, IWorkspaceIdentifier } from '../../workspace/common/workspace.js';
 export interface IBaseWindow extends IDisposable {
     readonly onDidMaximize: Event<void>;
     readonly onDidUnmaximize: Event<void>;
@@ -114,7 +114,7 @@ export const defaultWindowState = function (mode = WindowMode.Normal): IWindowSt
     return {
         width: 1024,
         height: 768,
-        mode,
+        mode
     };
 };
 export const defaultAuxWindowState = function (): IWindowState {
@@ -127,14 +127,14 @@ export const defaultAuxWindowState = function (): IWindowState {
     const width = 800;
     const height = 600;
     const workArea = electron.screen.getPrimaryDisplay().workArea;
-    const x = Math.max(workArea.x + workArea.width / 2 - width / 2, 0);
-    const y = Math.max(workArea.y + workArea.height / 2 - height / 2, 0);
+    const x = Math.max(workArea.x + (workArea.width / 2) - (width / 2), 0);
+    const y = Math.max(workArea.y + (workArea.height / 2) - (height / 2), 0);
     return {
         x,
         y,
         width,
         height,
-        mode: WindowMode.Normal,
+        mode: WindowMode.Normal
     };
 };
 export const enum WindowMode {

@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Emitter } from "../../../base/common/event.js";
-import { dispose, IDisposable } from "../../../base/common/lifecycle.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { IDecorationData, IDecorationsService, } from "../../services/decorations/common/decorations.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { DecorationData, DecorationRequest, ExtHostContext, ExtHostDecorationsShape, MainContext, MainThreadDecorationsShape, } from "../common/extHost.protocol.js";
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { Emitter } from '../../../base/common/event.js';
+import { IDisposable, dispose } from '../../../base/common/lifecycle.js';
+import { ExtHostContext, MainContext, MainThreadDecorationsShape, ExtHostDecorationsShape, DecorationData, DecorationRequest } from '../common/extHost.protocol.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { IDecorationsService, IDecorationData } from '../../services/decorations/common/decorations.js';
+import { CancellationToken } from '../../../base/common/cancellation.js';
 class DecorationRequestsQueue {
     private _idPool = 0;
     private _requests = new Map<number, DecorationRequest>();
@@ -19,7 +19,7 @@ class DecorationRequestsQueue {
     }
     enqueue(uri: URI, token: CancellationToken): Promise<DecorationData> {
         const id = ++this._idPool;
-        const result = new Promise<DecorationData>((resolve) => {
+        const result = new Promise<DecorationData>(resolve => {
             this._requests.set(id, { id, uri });
             this._resolver.set(id, resolve);
             this._processQueue();
@@ -31,7 +31,7 @@ class DecorationRequestsQueue {
         return result.finally(() => sub.dispose());
     }
     private _processQueue(): void {
-        if (typeof this._timer === "number") {
+        if (typeof this._timer === 'number') {
             // already queued
             return;
         }
@@ -39,9 +39,7 @@ class DecorationRequestsQueue {
             // make request
             const requests = this._requests;
             const resolver = this._resolver;
-            this._proxy
-                .$provideDecorations(this._handle, [...requests.values()], CancellationToken.None)
-                .then((data) => {
+            this._proxy.$provideDecorations(this._handle, [...requests.values()], CancellationToken.None).then(data => {
                 for (const [id, resolve] of resolver) {
                     resolve(data[id]);
                 }
@@ -66,7 +64,7 @@ export class MainThreadDecorations implements MainThreadDecorationsShape {
         this._proxy = context.getProxy(ExtHostContext.ExtHostDecorations);
     }
     dispose() {
-        this._provider.forEach((value) => dispose(value));
+        this._provider.forEach(value => dispose(value));
         this._provider.clear();
     }
     $registerDecorationProvider(handle: number, label: string): void {
@@ -86,9 +84,9 @@ export class MainThreadDecorations implements MainThreadDecorationsShape {
                     bubble: bubble ?? false,
                     color: themeColor?.id,
                     tooltip,
-                    letter,
+                    letter
                 };
-            },
+            }
         });
         this._provider.set(handle, [emitter, registration]);
     }
@@ -96,7 +94,7 @@ export class MainThreadDecorations implements MainThreadDecorationsShape {
         const provider = this._provider.get(handle);
         if (provider) {
             const [emitter] = provider;
-            emitter.fire(resources && resources.map((r) => URI.revive(r)));
+            emitter.fire(resources && resources.map(r => URI.revive(r)));
         }
     }
     $unregisterDecorationProvider(handle: number): void {

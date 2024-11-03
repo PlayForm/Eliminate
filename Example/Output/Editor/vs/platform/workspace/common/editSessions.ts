@@ -2,16 +2,16 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { IWorkspaceFolder } from "./workspace.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { IWorkspaceFolder } from './workspace.js';
 export interface IEditSessionIdentityProvider {
     readonly scheme: string;
     getEditSessionIdentifier(workspaceFolder: IWorkspaceFolder, token: CancellationToken): Promise<string | undefined>;
     provideEditSessionIdentityMatch(workspaceFolder: IWorkspaceFolder, identity1: string, identity2: string, token: CancellationToken): Promise<EditSessionIdentityMatch | undefined>;
 }
-export const IEditSessionIdentityService = createDecorator<IEditSessionIdentityService>("editSessionIdentityService");
+export const IEditSessionIdentityService = createDecorator<IEditSessionIdentityService>('editSessionIdentityService');
 export interface IEditSessionIdentityService {
     readonly _serviceBrand: undefined;
     registerEditSessionIdentityProvider(provider: IEditSessionIdentityProvider): IDisposable;

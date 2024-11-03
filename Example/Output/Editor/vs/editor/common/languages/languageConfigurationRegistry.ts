@@ -2,24 +2,24 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable, IDisposable, toDisposable, } from "../../../base/common/lifecycle.js";
-import * as strings from "../../../base/common/strings.js";
-import { IConfigurationService } from "../../../platform/configuration/common/configuration.js";
-import { InstantiationType, registerSingleton, } from "../../../platform/instantiation/common/extensions.js";
-import { createDecorator } from "../../../platform/instantiation/common/instantiation.js";
-import { EditorAutoIndentStrategy } from "../config/editorOptions.js";
-import { DEFAULT_WORD_REGEXP, ensureValidWordDefinition, } from "../core/wordHelper.js";
-import { ITextModel } from "../model.js";
-import { ILanguageService } from "./language.js";
-import { AutoClosingPairs, CharacterPair, EnterAction, ExplicitLanguageConfiguration, FoldingRules, IAutoClosingPair, IndentationRule, LanguageConfiguration, } from "./languageConfiguration.js";
-import { PLAINTEXT_LANGUAGE_ID } from "./modesRegistry.js";
-import { CharacterPairSupport } from "./supports/characterPair.js";
-import { BracketElectricCharacterSupport } from "./supports/electricCharacter.js";
-import { IndentRulesSupport } from "./supports/indentRules.js";
-import { LanguageBracketsConfiguration } from "./supports/languageBracketsConfiguration.js";
-import { OnEnterSupport } from "./supports/onEnter.js";
-import { RichEditBrackets } from "./supports/richEditBrackets.js";
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import * as strings from '../../../base/common/strings.js';
+import { ITextModel } from '../model.js';
+import { DEFAULT_WORD_REGEXP, ensureValidWordDefinition } from '../core/wordHelper.js';
+import { EnterAction, FoldingRules, IAutoClosingPair, IndentationRule, LanguageConfiguration, AutoClosingPairs, CharacterPair, ExplicitLanguageConfiguration } from './languageConfiguration.js';
+import { CharacterPairSupport } from './supports/characterPair.js';
+import { BracketElectricCharacterSupport } from './supports/electricCharacter.js';
+import { IndentRulesSupport } from './supports/indentRules.js';
+import { OnEnterSupport } from './supports/onEnter.js';
+import { RichEditBrackets } from './supports/richEditBrackets.js';
+import { EditorAutoIndentStrategy } from '../config/editorOptions.js';
+import { createDecorator } from '../../../platform/instantiation/common/instantiation.js';
+import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
+import { ILanguageService } from './language.js';
+import { InstantiationType, registerSingleton } from '../../../platform/instantiation/common/extensions.js';
+import { PLAINTEXT_LANGUAGE_ID } from './modesRegistry.js';
+import { LanguageBracketsConfiguration } from './supports/languageBracketsConfiguration.js';
 /**
  * Interface used to support insertion of mode specific comments.
  */
@@ -43,7 +43,7 @@ export class LanguageConfigurationServiceChangeEvent {
         return !this.languageId ? true : this.languageId === languageId;
     }
 }
-export const ILanguageConfigurationService = createDecorator<ILanguageConfigurationService>("languageConfigurationService");
+export const ILanguageConfigurationService = createDecorator<ILanguageConfigurationService>('languageConfigurationService');
 export class LanguageConfigurationService extends Disposable implements ILanguageConfigurationService {
     _serviceBrand: undefined;
     private readonly _registry = this._register(new LanguageConfigurationRegistry());
@@ -103,16 +103,13 @@ function computeConfig(languageId: string, registry: LanguageConfigurationRegist
         languageConfig = new ResolvedLanguageConfiguration(languageId, {});
     }
     const customizedConfig = getCustomizedLanguageConfig(languageConfig.languageId, configurationService);
-    const data = combineLanguageConfigurations([
-        languageConfig.underlyingConfig,
-        customizedConfig,
-    ]);
+    const data = combineLanguageConfigurations([languageConfig.underlyingConfig, customizedConfig]);
     const config = new ResolvedLanguageConfiguration(languageConfig.languageId, data);
     return config;
 }
 const customizedLanguageConfigKeys = {
-    brackets: "editor.language.brackets",
-    colorizedBracketPairs: "editor.language.colorizedBracketPairs",
+    brackets: 'editor.language.brackets',
+    colorizedBracketPairs: 'editor.language.colorizedBracketPairs'
 };
 function getCustomizedLanguageConfig(languageId: string, configurationService: IConfigurationService): LanguageConfiguration {
     const brackets = configurationService.getValue(customizedLanguageConfigKeys.brackets, {
@@ -130,14 +127,12 @@ function validateBracketPairs(data: unknown): CharacterPair[] | undefined {
     if (!Array.isArray(data)) {
         return undefined;
     }
-    return data
-        .map((pair) => {
+    return data.map(pair => {
         if (!Array.isArray(pair) || pair.length !== 2) {
             return undefined;
         }
         return [pair[0], pair[1]] as CharacterPair;
-    })
-        .filter((p): p is CharacterPair => !!p);
+    }).filter((p): p is CharacterPair => !!p);
 }
 export function getIndentationAtPosition(model: ITextModel, lineNumber: number, column: number): string {
     const lineText = model.getLineContent(lineNumber);
@@ -184,7 +179,7 @@ class ComposedLanguageConfiguration {
             return null;
         }
         this._entries.sort(LanguageConfigurationContribution.cmp);
-        return combineLanguageConfigurations(this._entries.map((e) => e.configuration));
+        return combineLanguageConfigurations(this._entries.map(e => e.configuration));
     }
 }
 function combineLanguageConfigurations(configs: LanguageConfiguration[]): LanguageConfiguration {
@@ -213,8 +208,7 @@ function combineLanguageConfigurations(configs: LanguageConfiguration[]): Langua
             autoCloseBefore: entry.autoCloseBefore || result.autoCloseBefore,
             folding: entry.folding || result.folding,
             colorizedBracketPairs: entry.colorizedBracketPairs || result.colorizedBracketPairs,
-            __electricCharacterSupport: entry.__electricCharacterSupport ||
-                result.__electricCharacterSupport,
+            __electricCharacterSupport: entry.__electricCharacterSupport || result.__electricCharacterSupport,
         };
     }
     return result;
@@ -241,23 +235,23 @@ export class LanguageConfigurationRegistry extends Disposable {
         super();
         this._register(this.register(PLAINTEXT_LANGUAGE_ID, {
             brackets: [
-                ["(", ")"],
-                ["[", "]"],
-                ["{", "}"],
+                ['(', ')'],
+                ['[', ']'],
+                ['{', '}'],
             ],
             surroundingPairs: [
-                { open: "{", close: "}" },
-                { open: "[", close: "]" },
-                { open: "(", close: ")" },
-                { open: "<", close: ">" },
-                { open: '"', close: '"' },
-                { open: "'", close: "'" },
-                { open: "`", close: "`" },
+                { open: '{', close: '}' },
+                { open: '[', close: ']' },
+                { open: '(', close: ')' },
+                { open: '<', close: '>' },
+                { open: '\"', close: '\"' },
+                { open: '\'', close: '\'' },
+                { open: '`', close: '`' },
             ],
             colorizedBracketPairs: [],
             folding: {
-                offSide: true,
-            },
+                offSide: true
+            }
         }, 0));
     }
     /**
@@ -283,7 +277,7 @@ export class LanguageConfigurationRegistry extends Disposable {
 }
 /**
  * Immutable.
- */
+*/
 export class ResolvedLanguageConfiguration {
     private _brackets: RichEditBrackets | null;
     private _electricCharacter: BracketElectricCharacterSupport | null;
@@ -306,8 +300,7 @@ export class ResolvedLanguageConfiguration {
                 : null;
         this.comments = ResolvedLanguageConfiguration._handleComments(this.underlyingConfig);
         this.characterPair = new CharacterPairSupport(this.underlyingConfig);
-        this.wordDefinition =
-            this.underlyingConfig.wordPattern || DEFAULT_WORD_REGEXP;
+        this.wordDefinition = this.underlyingConfig.wordPattern || DEFAULT_WORD_REGEXP;
         this.indentationRules = this.underlyingConfig.indentationRules;
         if (this.underlyingConfig.indentationRules) {
             this.indentRulesSupport = new IndentRulesSupport(this.underlyingConfig.indentationRules);

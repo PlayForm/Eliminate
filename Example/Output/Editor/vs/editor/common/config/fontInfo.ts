@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as platform from "../../../base/common/platform.js";
-import { EDITOR_FONT_DEFAULTS, EditorFontVariations, EditorOption, EditorOptions, FindComputedEditorOptionValueById, } from "./editorOptions.js";
-import { EditorZoom } from "./editorZoom.js";
+import * as platform from '../../../base/common/platform.js';
+import { EditorFontVariations, EditorOptions, EditorOption, FindComputedEditorOptionValueById, EDITOR_FONT_DEFAULTS } from './editorOptions.js';
+import { EditorZoom } from './editorZoom.js';
 /**
  * Determined from empirical observations.
  * @internal
@@ -76,13 +76,13 @@ export class BareFontInfo {
         fontSize *= editorZoomLevelMultiplier;
         lineHeight *= editorZoomLevelMultiplier;
         if (fontVariationSettings === EditorFontVariations.TRANSLATE) {
-            if (fontWeight === "normal" || fontWeight === "bold") {
+            if (fontWeight === 'normal' || fontWeight === 'bold') {
                 fontVariationSettings = EditorFontVariations.OFF;
             }
             else {
                 const fontWeightAsNumber = parseInt(fontWeight, 10);
                 fontVariationSettings = `'wght' ${fontWeightAsNumber}`;
-                fontWeight = "normal";
+                fontWeight = 'normal';
             }
         }
         return new BareFontInfo({
@@ -93,7 +93,7 @@ export class BareFontInfo {
             fontFeatureSettings: fontFeatureSettings,
             fontVariationSettings,
             lineHeight: lineHeight,
-            letterSpacing: letterSpacing,
+            letterSpacing: letterSpacing
         });
     }
     readonly pixelRatio: number;
@@ -193,12 +193,9 @@ export class FontInfo extends BareFontInfo {
         super(opts);
         this.isTrusted = isTrusted;
         this.isMonospace = opts.isMonospace;
-        this.typicalHalfwidthCharacterWidth =
-            opts.typicalHalfwidthCharacterWidth;
-        this.typicalFullwidthCharacterWidth =
-            opts.typicalFullwidthCharacterWidth;
-        this.canUseHalfwidthRightwardsArrow =
-            opts.canUseHalfwidthRightwardsArrow;
+        this.typicalHalfwidthCharacterWidth = opts.typicalHalfwidthCharacterWidth;
+        this.typicalFullwidthCharacterWidth = opts.typicalFullwidthCharacterWidth;
+        this.canUseHalfwidthRightwardsArrow = opts.canUseHalfwidthRightwardsArrow;
         this.spaceWidth = opts.spaceWidth;
         this.middotWidth = opts.middotWidth;
         this.wsmiddotWidth = opts.wsmiddotWidth;
@@ -208,22 +205,19 @@ export class FontInfo extends BareFontInfo {
      * @internal
      */
     public equals(other: FontInfo): boolean {
-        return (this.fontFamily === other.fontFamily &&
-            this.fontWeight === other.fontWeight &&
-            this.fontSize === other.fontSize &&
-            this.fontFeatureSettings === other.fontFeatureSettings &&
-            this.fontVariationSettings === other.fontVariationSettings &&
-            this.lineHeight === other.lineHeight &&
-            this.letterSpacing === other.letterSpacing &&
-            this.typicalHalfwidthCharacterWidth ===
-                other.typicalHalfwidthCharacterWidth &&
-            this.typicalFullwidthCharacterWidth ===
-                other.typicalFullwidthCharacterWidth &&
-            this.canUseHalfwidthRightwardsArrow ===
-                other.canUseHalfwidthRightwardsArrow &&
-            this.spaceWidth === other.spaceWidth &&
-            this.middotWidth === other.middotWidth &&
-            this.wsmiddotWidth === other.wsmiddotWidth &&
-            this.maxDigitWidth === other.maxDigitWidth);
+        return (this.fontFamily === other.fontFamily
+            && this.fontWeight === other.fontWeight
+            && this.fontSize === other.fontSize
+            && this.fontFeatureSettings === other.fontFeatureSettings
+            && this.fontVariationSettings === other.fontVariationSettings
+            && this.lineHeight === other.lineHeight
+            && this.letterSpacing === other.letterSpacing
+            && this.typicalHalfwidthCharacterWidth === other.typicalHalfwidthCharacterWidth
+            && this.typicalFullwidthCharacterWidth === other.typicalFullwidthCharacterWidth
+            && this.canUseHalfwidthRightwardsArrow === other.canUseHalfwidthRightwardsArrow
+            && this.spaceWidth === other.spaceWidth
+            && this.middotWidth === other.middotWidth
+            && this.wsmiddotWidth === other.wsmiddotWidth
+            && this.maxDigitWidth === other.maxDigitWidth);
     }
 }

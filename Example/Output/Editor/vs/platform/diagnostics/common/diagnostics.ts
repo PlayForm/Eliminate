@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IStringDictionary } from "../../../base/common/collections.js";
-import { ProcessItem } from "../../../base/common/processes.js";
-import { UriComponents } from "../../../base/common/uri.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { IWorkspace } from "../../workspace/common/workspace.js";
-export const ID = "diagnosticsService";
-export const IDiagnosticsService = createDecorator<IDiagnosticsService>("diagnosticsService");
+import { IStringDictionary } from '../../../base/common/collections.js';
+import { ProcessItem } from '../../../base/common/processes.js';
+import { UriComponents } from '../../../base/common/uri.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { IWorkspace } from '../../workspace/common/workspace.js';
+export const ID = 'diagnosticsService';
+export const IDiagnosticsService = createDecorator<IDiagnosticsService>(ID);
 export interface IDiagnosticsService {
     readonly _serviceBrand: undefined;
     getPerformanceInfo(mainProcessInfo: IMainProcessDiagnostics, remoteInfo: (IRemoteDiagnosticInfo | IRemoteDiagnosticError)[]): Promise<PerformanceInfo>;
@@ -91,17 +91,17 @@ export class NullDiagnosticsService implements IDiagnosticsService {
     }
     async getSystemInfo(mainProcessInfo: IMainProcessDiagnostics, remoteInfo: (IRemoteDiagnosticInfo | IRemoteDiagnosticError)[]): Promise<SystemInfo> {
         return {
-            processArgs: "nullProcessArgs",
-            gpuStatus: "nullGpuStatus",
-            screenReader: "nullScreenReader",
+            processArgs: 'nullProcessArgs',
+            gpuStatus: 'nullGpuStatus',
+            screenReader: 'nullScreenReader',
             remoteData: [],
-            os: "nullOs",
-            memory: "nullMemory",
-            vmHint: "nullVmHint",
+            os: 'nullOs',
+            memory: 'nullMemory',
+            vmHint: 'nullVmHint',
         };
     }
     async getDiagnostics(mainProcessInfo: IMainProcessDiagnostics, remoteInfo: (IRemoteDiagnosticInfo | IRemoteDiagnosticError)[]): Promise<string> {
-        return "";
+        return '';
     }
     async getWorkspaceFileExtensions(workspace: IWorkspace): Promise<{
         extensions: string[];

@@ -2,18 +2,18 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Event } from "../../../base/common/event.js";
-import { IMatch } from "../../../base/common/filters.js";
-import { IItemAccessor } from "../../../base/common/fuzzyScorer.js";
-import { IMarkdownString } from "../../../base/common/htmlContent.js";
-import { ResolvedKeybinding } from "../../../base/common/keybindings.js";
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { Schemas } from "../../../base/common/network.js";
-import Severity from "../../../base/common/severity.js";
-import { URI } from "../../../base/common/uri.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { IQuickAccessController } from "./quickAccess.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { Event } from '../../../base/common/event.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { IQuickAccessController } from './quickAccess.js';
+import { IMatch } from '../../../base/common/filters.js';
+import { IItemAccessor } from '../../../base/common/fuzzyScorer.js';
+import { ResolvedKeybinding } from '../../../base/common/keybindings.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { Schemas } from '../../../base/common/network.js';
+import Severity from '../../../base/common/severity.js';
+import { URI } from '../../../base/common/uri.js';
+import { IMarkdownString } from '../../../base/common/htmlContent.js';
 export interface IQuickPickItemHighlights {
     label?: IMatch[];
     description?: IMatch[];
@@ -21,7 +21,7 @@ export interface IQuickPickItemHighlights {
 }
 export type QuickPickItem = IQuickPickSeparator | IQuickPickItem;
 export interface IQuickPickItem {
-    type?: "item";
+    type?: 'item';
     id?: string;
     label: string;
     ariaLabel?: string;
@@ -52,7 +52,7 @@ export interface IQuickPickItem {
     alwaysShow?: boolean;
 }
 export interface IQuickPickSeparator {
-    type: "separator";
+    type: 'separator';
     id?: string;
     label?: string;
     description?: string;
@@ -185,9 +185,9 @@ export interface IQuickInputHideEvent {
  * A collection of the different types of QuickInput
  */
 export const enum QuickInputType {
-    QuickPick = "quickPick",
-    InputBox = "inputBox",
-    QuickWidget = "quickWidget"
+    QuickPick = 'quickPick',
+    InputBox = 'inputBox',
+    QuickWidget = 'quickWidget'
 }
 /**
  * Represents a quick input control that allows users to make selections or provide input quickly.
@@ -411,7 +411,7 @@ export interface IQuickPick<T extends IQuickPickItem, O extends {
     /**
      * The OK button state. It can be a boolean value or the string 'default'.
      */
-    ok: boolean | "default";
+    ok: boolean | 'default';
     /**
      * An event that is fired when the custom button is triggered. The custom button is a button with text rendered to the right of the input.
      */
@@ -461,7 +461,7 @@ export interface IQuickPick<T extends IQuickPickItem, O extends {
     /**
      * The mode to filter the label with. It can be 'fuzzy' or 'contiguous'. Defaults to 'fuzzy'.
      */
-    matchOnLabelMode: "fuzzy" | "contiguous";
+    matchOnLabelMode: 'fuzzy' | 'contiguous';
     /**
      * Whether to sort the items by label.
      */
@@ -719,7 +719,7 @@ export class QuickPickItemScorerAccessor implements IItemAccessor<IQuickPickItem
 }
 export const quickPickItemScorerAccessor = new QuickPickItemScorerAccessor();
 //#endregion
-export const IQuickInputService = createDecorator<IQuickInputService>("quickInputService");
+export const IQuickInputService = createDecorator<IQuickInputService>('quickInputService');
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export interface IQuickInputService {
     readonly _serviceBrand: undefined;
@@ -749,7 +749,7 @@ export interface IQuickInputService {
     pick<T extends IQuickPickItem>(picks: Promise<QuickPickInput<T>[]> | QuickPickInput<T>[], options?: IPickOptions<T> & {
         canPickMany: false;
     }, token?: CancellationToken): Promise<T | undefined>;
-    pick<T extends IQuickPickItem>(picks: Promise<QuickPickInput<T>[]> | QuickPickInput<T>[], options?: Omit<IPickOptions<T>, "canPickMany">, token?: CancellationToken): Promise<T | undefined>;
+    pick<T extends IQuickPickItem>(picks: Promise<QuickPickInput<T>[]> | QuickPickInput<T>[], options?: Omit<IPickOptions<T>, 'canPickMany'>, token?: CancellationToken): Promise<T | undefined>;
     /**
      * Opens the quick input box for text input and returns a promise with the user typed value if any.
      */

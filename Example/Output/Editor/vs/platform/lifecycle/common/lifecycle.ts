@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { isThenable, Promises } from "../../../base/common/async.js";
+import { isThenable, Promises } from '../../../base/common/async.js';
 // Shared veto handling across main and renderer
 export function handleVetos(vetos: (boolean | Promise<boolean>)[], onError: (error: Error) => void): Promise<boolean /* veto */> {
     if (vetos.length === 0) {
@@ -16,11 +16,11 @@ export function handleVetos(vetos: (boolean | Promise<boolean>)[], onError: (err
             return Promise.resolve(true);
         }
         if (isThenable(valueOrPromise)) {
-            promises.push(valueOrPromise.then((value) => {
+            promises.push(valueOrPromise.then(value => {
                 if (value) {
                     lazyValue = true; // veto, done
                 }
-            }, (err) => {
+            }, err => {
                 onError(err); // error, treated like a veto, done
                 lazyValue = true;
             }));

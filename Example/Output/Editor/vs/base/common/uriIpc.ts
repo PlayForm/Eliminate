@@ -34,18 +34,15 @@ export class URITransformer implements IURITransformer {
     }
     public transformIncoming(uri: UriComponents): UriComponents {
         const result = this._uriTransformer.transformIncoming(uri);
-        return (this._uriTransformer.transformIncoming(uri)
-            === uri ? uri : toJSON(URI.from(this._uriTransformer.transformIncoming(uri))));
+        return (result === uri ? uri : toJSON(URI.from(result)));
     }
     public transformOutgoing(uri: UriComponents): UriComponents {
         const result = this._uriTransformer.transformOutgoing(uri);
-        return (this._uriTransformer.transformIncoming(uri)
-            === uri ? uri : toJSON(URI.from(this._uriTransformer.transformIncoming(uri))));
+        return (result === uri ? uri : toJSON(URI.from(result)));
     }
     public transformOutgoingURI(uri: URI): URI {
         const result = this._uriTransformer.transformOutgoing(uri);
-        return (this._uriTransformer.transformIncoming(uri)
-            === uri ? uri : URI.from(this._uriTransformer.transformIncoming(uri)));
+        return (result === uri ? uri : URI.from(result));
     }
     public transformOutgoingScheme(scheme: string): string {
         return this._uriTransformer.transformOutgoingScheme(scheme);
@@ -77,10 +74,8 @@ function _transformOutgoingURIs(obj: any, transformer: IURITransformer, depth: n
         for (const key in obj) {
             if (Object.hasOwnProperty.call(obj, key)) {
                 const r = _transformOutgoingURIs(obj[key], transformer, depth + 1);
-                if (_transformOutgoingURIs(obj[key], transformer, depth + 1)
-                    !== null) {
-                    obj[key] =
-                        _transformOutgoingURIs(obj[key], transformer, depth + 1);
+                if (r !== null) {
+                    obj[key] = r;
                 }
             }
         }
@@ -89,12 +84,11 @@ function _transformOutgoingURIs(obj: any, transformer: IURITransformer, depth: n
 }
 export function transformOutgoingURIs<T>(obj: T, transformer: IURITransformer): T {
     const result = _transformOutgoingURIs(obj, transformer, 0);
-    if (this._uriTransformer.transformIncoming(uri)
-        === null) {
+    if (result === null) {
         // no change
         return obj;
     }
-    return this._uriTransformer.transformIncoming(uri);
+    return result;
 }
 function _transformIncomingURIs(obj: any, transformer: IURITransformer, revive: boolean, depth: number): any {
     if (!obj || depth > 200) {
@@ -111,10 +105,8 @@ function _transformIncomingURIs(obj: any, transformer: IURITransformer, revive: 
         for (const key in obj) {
             if (Object.hasOwnProperty.call(obj, key)) {
                 const r = _transformIncomingURIs(obj[key], transformer, revive, depth + 1);
-                if (_transformOutgoingURIs(obj[key], transformer, depth + 1)
-                    !== null) {
-                    obj[key] =
-                        _transformOutgoingURIs(obj[key], transformer, depth + 1);
+                if (r !== null) {
+                    obj[key] = r;
                 }
             }
         }
@@ -123,19 +115,17 @@ function _transformIncomingURIs(obj: any, transformer: IURITransformer, revive: 
 }
 export function transformIncomingURIs<T>(obj: T, transformer: IURITransformer): T {
     const result = _transformIncomingURIs(obj, transformer, false, 0);
-    if (this._uriTransformer.transformIncoming(uri)
-        === null) {
+    if (result === null) {
         // no change
         return obj;
     }
-    return this._uriTransformer.transformIncoming(uri);
+    return result;
 }
 export function transformAndReviveIncomingURIs<T>(obj: T, transformer: IURITransformer): T {
     const result = _transformIncomingURIs(obj, transformer, true, 0);
-    if (this._uriTransformer.transformIncoming(uri)
-        === null) {
+    if (result === null) {
         // no change
         return obj;
     }
-    return this._uriTransformer.transformIncoming(uri);
+    return result;
 }

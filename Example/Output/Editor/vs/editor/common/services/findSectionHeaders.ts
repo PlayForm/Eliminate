@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IRange } from "../core/range.js";
-import { FoldingRules } from "../languages/languageConfiguration.js";
+import { IRange } from '../core/range.js';
+import { FoldingRules } from '../languages/languageConfiguration.js';
 export interface ISectionHeaderFinderTarget {
     getLineCount(): number;
     getLineContent(lineNumber: number): string;
@@ -31,7 +31,7 @@ export interface SectionHeader {
      */
     shouldBeInComments: boolean;
 }
-const markRegex = new RegExp("\\bMARK:\\s*(.*)$", "d");
+const markRegex = new RegExp('\\bMARK:\\s*(.*)$', 'd');
 const trimDashesRegex = /^-+|-+$/g;
 /**
  * Find section headers in the model.
@@ -59,17 +59,12 @@ function collectRegionHeaders(model: ISectionHeaderFinderTarget, options: FindSe
         const lineContent = model.getLineContent(lineNumber);
         const match = lineContent.match(options.foldingRules!.markers!.start);
         if (match) {
-            const range = {
-                startLineNumber: lineNumber,
-                startColumn: match[0].length + 1,
-                endLineNumber: lineNumber,
-                endColumn: lineContent.length + 1,
-            };
+            const range = { startLineNumber: lineNumber, startColumn: match[0].length + 1, endLineNumber: lineNumber, endColumn: lineContent.length + 1 };
             if (range.endColumn > range.startColumn) {
                 const sectionHeader = {
                     range,
                     ...getHeaderText(lineContent.substring(match[0].length)),
-                    shouldBeInComments: false,
+                    shouldBeInComments: false
                 };
                 if (sectionHeader.text || sectionHeader.hasSeparatorLine) {
                     regionHeaders.push(sectionHeader);
@@ -94,17 +89,12 @@ function addMarkHeaderIfFound(lineContent: string, lineNumber: number, sectionHe
     if (match) {
         const column = match.indices![1][0] + 1;
         const endColumn = match.indices![1][1] + 1;
-        const range = {
-            startLineNumber: lineNumber,
-            startColumn: column,
-            endLineNumber: lineNumber,
-            endColumn: endColumn,
-        };
+        const range = { startLineNumber: lineNumber, startColumn: column, endLineNumber: lineNumber, endColumn: endColumn };
         if (range.endColumn > range.startColumn) {
             const sectionHeader = {
                 range,
                 ...getHeaderText(match[1]),
-                shouldBeInComments: true,
+                shouldBeInComments: true
             };
             if (sectionHeader.text || sectionHeader.hasSeparatorLine) {
                 sectionHeaders.push(sectionHeader);
@@ -117,7 +107,7 @@ function getHeaderText(text: string): {
     hasSeparatorLine: boolean;
 } {
     text = text.trim();
-    const hasSeparatorLine = text.startsWith("-");
-    text = text.replace(trimDashesRegex, "");
+    const hasSeparatorLine = text.startsWith('-');
+    text = text.replace(trimDashesRegex, '');
     return { text, hasSeparatorLine };
 }

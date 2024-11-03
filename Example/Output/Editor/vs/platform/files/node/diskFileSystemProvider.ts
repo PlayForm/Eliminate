@@ -2,28 +2,28 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { promises, Stats } from "fs";
-import { Barrier, retry } from "../../../base/common/async.js";
-import { VSBuffer } from "../../../base/common/buffer.js";
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Event } from "../../../base/common/event.js";
-import { isEqual } from "../../../base/common/extpath.js";
-import { DisposableStore, IDisposable, toDisposable, } from "../../../base/common/lifecycle.js";
-import { ResourceMap } from "../../../base/common/map.js";
-import { basename, dirname, join } from "../../../base/common/path.js";
-import { isLinux, isWindows } from "../../../base/common/platform.js";
-import { extUriBiasedIgnorePathCase, joinPath, basename as resourcesBasename, dirname as resourcesDirname, } from "../../../base/common/resources.js";
-import { newWriteableStream, ReadableStreamEvents, } from "../../../base/common/stream.js";
-import { URI } from "../../../base/common/uri.js";
-import { IDirent, Promises, RimRafMode, SymlinkSupport, } from "../../../base/node/pfs.js";
-import { localize } from "../../../nls.js";
-import { ILogService } from "../../log/common/log.js";
-import { AbstractDiskFileSystemProvider, IDiskFileSystemProviderOptions, } from "../common/diskFileSystemProvider.js";
-import { createFileSystemProviderError, FilePermission, FileSystemProviderCapabilities, FileSystemProviderError, FileSystemProviderErrorCode, FileType, IFileAtomicReadOptions, IFileChange, IFileDeleteOptions, IFileOpenOptions, IFileOverwriteOptions, IFileReadStreamOptions, IFileSystemProviderWithFileAtomicDeleteCapability, IFileSystemProviderWithFileAtomicReadCapability, IFileSystemProviderWithFileAtomicWriteCapability, IFileSystemProviderWithFileCloneCapability, IFileSystemProviderWithFileFolderCopyCapability, IFileSystemProviderWithFileReadStreamCapability, IFileSystemProviderWithFileReadWriteCapability, IFileSystemProviderWithOpenReadWriteCloseCapability, IFileWriteOptions, isFileOpenForWriteOptions, IStat, } from "../common/files.js";
-import { readFileIntoStream } from "../common/io.js";
-import { AbstractNonRecursiveWatcherClient, AbstractUniversalWatcherClient, ILogMessage, } from "../common/watcher.js";
-import { NodeJSWatcherClient } from "./watcher/nodejs/nodejsClient.js";
-import { UniversalWatcherClient } from "./watcher/watcherClient.js";
+import { Stats, promises } from 'fs';
+import { Barrier, retry } from '../../../base/common/async.js';
+import { ResourceMap } from '../../../base/common/map.js';
+import { VSBuffer } from '../../../base/common/buffer.js';
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { Event } from '../../../base/common/event.js';
+import { isEqual } from '../../../base/common/extpath.js';
+import { DisposableStore, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { basename, dirname, join } from '../../../base/common/path.js';
+import { isLinux, isWindows } from '../../../base/common/platform.js';
+import { extUriBiasedIgnorePathCase, joinPath, basename as resourcesBasename, dirname as resourcesDirname } from '../../../base/common/resources.js';
+import { newWriteableStream, ReadableStreamEvents } from '../../../base/common/stream.js';
+import { URI } from '../../../base/common/uri.js';
+import { IDirent, Promises, RimRafMode, SymlinkSupport } from '../../../base/node/pfs.js';
+import { localize } from '../../../nls.js';
+import { createFileSystemProviderError, IFileAtomicReadOptions, IFileDeleteOptions, IFileOpenOptions, IFileOverwriteOptions, IFileReadStreamOptions, FileSystemProviderCapabilities, FileSystemProviderError, FileSystemProviderErrorCode, FileType, IFileWriteOptions, IFileSystemProviderWithFileAtomicReadCapability, IFileSystemProviderWithFileCloneCapability, IFileSystemProviderWithFileFolderCopyCapability, IFileSystemProviderWithFileReadStreamCapability, IFileSystemProviderWithFileReadWriteCapability, IFileSystemProviderWithOpenReadWriteCloseCapability, isFileOpenForWriteOptions, IStat, FilePermission, IFileSystemProviderWithFileAtomicWriteCapability, IFileSystemProviderWithFileAtomicDeleteCapability, IFileChange } from '../common/files.js';
+import { readFileIntoStream } from '../common/io.js';
+import { AbstractNonRecursiveWatcherClient, AbstractUniversalWatcherClient, ILogMessage } from '../common/watcher.js';
+import { ILogService } from '../../log/common/log.js';
+import { AbstractDiskFileSystemProvider, IDiskFileSystemProviderOptions } from '../common/diskFileSystemProvider.js';
+import { UniversalWatcherClient } from './watcher/watcherClient.js';
+import { NodeJSWatcherClient } from './watcher/nodejs/nodejsClient.js';
 export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider implements IFileSystemProviderWithFileReadWriteCapability, IFileSystemProviderWithOpenReadWriteCloseCapability, IFileSystemProviderWithFileReadStreamCapability, IFileSystemProviderWithFileFolderCopyCapability, IFileSystemProviderWithFileAtomicReadCapability, IFileSystemProviderWithFileAtomicWriteCapability, IFileSystemProviderWithFileAtomicDeleteCapability, IFileSystemProviderWithFileCloneCapability {
     private static TRACE_LOG_RESOURCE_LOCKS = false; // not enabled by default because very spammy
     constructor(logService: ILogService, options?: IDiskFileSystemProviderOptions) {
@@ -45,8 +45,7 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
                     FileSystemProviderCapabilities.FileAtomicDelete |
                     FileSystemProviderCapabilities.FileClone;
             if (isLinux) {
-                this._capabilities |=
-                    FileSystemProviderCapabilities.PathCaseSensitive;
+                this._capabilities |= FileSystemProviderCapabilities.PathCaseSensitive;
             }
         }
         return this._capabilities;
@@ -61,9 +60,7 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
                 ctime: stat.birthtime.getTime(), // intentionally not using ctime here, we want the creation time
                 mtime: stat.mtime.getTime(),
                 size: stat.size,
-                permissions: (stat.mode & 0o200) === 0
-                    ? FilePermission.Locked
-                    : undefined,
+                permissions: (stat.mode & 0o200) === 0 ? FilePermission.Locked : undefined
             };
         }
         catch (error) {
@@ -83,9 +80,7 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
         FileType
     ][]> {
         try {
-            const children = await Promises.readdir(this.toFilePath(resource), {
-                withFileTypes: true,
-            });
+            const children = await Promises.readdir(this.toFilePath(resource), { withFileTypes: true });
             const result: [
                 string,
                 FileType
@@ -138,7 +133,7 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
     }
     //#endregion
     //#region File Reading/Writing
-    private readonly resourceLocks = new ResourceMap<Barrier>((resource) => extUriBiasedIgnorePathCase.getComparisonKey(resource));
+    private readonly resourceLocks = new ResourceMap<Barrier>(resource => extUriBiasedIgnorePathCase.getComparisonKey(resource));
     private async createResourceLock(resource: URI): Promise<IDisposable> {
         const filePath = this.toFilePath(resource);
         this.traceLock(`[Disk FileSystemProvider]: createResourceLock() - request to acquire resource lock (${filePath})`);
@@ -146,7 +141,7 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
         // added right after opening, so we have to loop over locks until no lock
         // remains.
         let existingLock: Barrier | undefined = undefined;
-        while ((existingLock = this.resourceLocks.get(resource))) {
+        while (existingLock = this.resourceLocks.get(resource)) {
             this.traceLock(`[Disk FileSystemProvider]: createResourceLock() - waiting for resource lock to be released (${filePath})`);
             await existingLock.wait();
         }
@@ -192,17 +187,15 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
         }
     }
     readFileStream(resource: URI, opts: IFileReadStreamOptions, token: CancellationToken): ReadableStreamEvents<Uint8Array> {
-        const stream = newWriteableStream<Uint8Array>((data) => VSBuffer.concat(data.map((data) => VSBuffer.wrap(data))).buffer);
-        readFileIntoStream(this, resource, stream, (data) => data.buffer, {
+        const stream = newWriteableStream<Uint8Array>(data => VSBuffer.concat(data.map(data => VSBuffer.wrap(data))).buffer);
+        readFileIntoStream(this, resource, stream, data => data.buffer, {
             ...opts,
-            bufferSize: 256 * 1024, // read into chunks of 256kb each to reduce IPC overhead
+            bufferSize: 256 * 1024 // read into chunks of 256kb each to reduce IPC overhead
         }, token);
         return stream;
     }
     async writeFile(resource: URI, content: Uint8Array, opts: IFileWriteOptions): Promise<void> {
-        if (opts?.atomic !== false &&
-            opts?.atomic?.postfix &&
-            (await this.canWriteFileAtomic(resource))) {
+        if (opts?.atomic !== false && opts?.atomic?.postfix && await this.canWriteFileAtomic(resource)) {
             return this.doWriteFileAtomic(resource, joinPath(resourcesDirname(resource), `${resourcesBasename(resource)}${opts.atomic.postfix}`), content, opts);
         }
         else {
@@ -244,11 +237,7 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
             catch (error) {
                 // Cleanup in case of rename error
                 try {
-                    await this.delete(tempResource, {
-                        recursive: false,
-                        useTrash: false,
-                        atomic: false,
-                    });
+                    await this.delete(tempResource, { recursive: false, useTrash: false, atomic: false });
                 }
                 catch (error) {
                     // ignore - we want the outer error to bubble up
@@ -269,12 +258,12 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
                 const fileExists = await Promises.exists(filePath);
                 if (fileExists) {
                     if (!opts.overwrite) {
-                        throw createFileSystemProviderError(localize("fileExists", "File already exists"), FileSystemProviderErrorCode.FileExists);
+                        throw createFileSystemProviderError(localize('fileExists', "File already exists"), FileSystemProviderErrorCode.FileExists);
                     }
                 }
                 else {
                     if (!opts.create) {
-                        throw createFileSystemProviderError(localize("fileNotExists", "File does not exist"), FileSystemProviderErrorCode.FileNotFound);
+                        throw createFileSystemProviderError(localize('fileNotExists', "File does not exist"), FileSystemProviderErrorCode.FileNotFound);
                     }
                 }
             }
@@ -287,7 +276,7 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
             throw await this.toFileSystemProviderWriteError(resource, error);
         }
         finally {
-            if (typeof handle === "number") {
+            if (typeof handle === 'number') {
                 await this.close(handle);
             }
         }
@@ -314,12 +303,12 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
             if (isFileOpenForWriteOptions(opts) && opts.unlock) {
                 try {
                     const { stat } = await SymlinkSupport.stat(filePath);
-                    if (!((stat.mode & 0o200) /* File mode indicating writable by owner */)) {
+                    if (!(stat.mode & 0o200 /* File mode indicating writable by owner */)) {
                         await promises.chmod(filePath, stat.mode | 0o200);
                     }
                 }
                 catch (error) {
-                    if (error.code !== "ENOENT") {
+                    if (error.code !== 'ENOENT') {
                         this.logService.trace(error); // log errors but do not give up writing
                     }
                 }
@@ -333,16 +322,16 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
                     // Related issues:
                     // - https://github.com/microsoft/vscode/issues/931
                     // - https://github.com/microsoft/vscode/issues/6363
-                    fd = await Promises.open(filePath, "r+");
+                    fd = await Promises.open(filePath, 'r+');
                     // The flag 'r+' will not truncate the file, so we have to do this manually
                     await Promises.ftruncate(fd, 0);
                 }
                 catch (error) {
-                    if (error.code !== "ENOENT") {
+                    if (error.code !== 'ENOENT') {
                         this.logService.trace(error); // log errors but do not give up writing
                     }
                     // Make sure to close the file handle if we have one
-                    if (typeof fd === "number") {
+                    if (typeof fd === 'number') {
                         try {
                             await Promises.close(fd);
                         }
@@ -354,16 +343,16 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
                     }
                 }
             }
-            if (typeof fd !== "number") {
-                fd = await Promises.open(filePath, isFileOpenForWriteOptions(opts)
-                    ? // We take `opts.create` as a hint that the file is opened for writing
-                        // as such we use 'w' to truncate an existing or create the
-                        // file otherwise. we do not allow reading.
-                        "w"
-                    : // Otherwise we assume the file is opened for reading
-                        // as such we use 'r' to neither truncate, nor create
-                        // the file.
-                        "r");
+            if (typeof fd !== 'number') {
+                fd = await Promises.open(filePath, isFileOpenForWriteOptions(opts) ?
+                    // We take `opts.create` as a hint that the file is opened for writing
+                    // as such we use 'w' to truncate an existing or create the
+                    // file otherwise. we do not allow reading.
+                    'w' :
+                    // Otherwise we assume the file is opened for reading
+                    // as such we use 'r' to neither truncate, nor create
+                    // the file.
+                    'r');
             }
         }
         catch (error) {
@@ -419,8 +408,7 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
             this.mapHandleToPos.delete(fd);
             // If a handle is closed that was used for writing, ensure
             // to flush the contents to disk if possible.
-            if (this.writeHandles.delete(fd) &&
-                DiskFileSystemProvider.canFlush) {
+            if (this.writeHandles.delete(fd) && DiskFileSystemProvider.canFlush) {
                 try {
                     await Promises.fdatasync(fd); // https://github.com/microsoft/vscode/issues/9589
                 }
@@ -476,7 +464,7 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
     }
     private updatePos(fd: number, pos: number | null, bytesLength: number | null): void {
         const lastKnownPos = this.mapHandleToPos.get(fd);
-        if (typeof lastKnownPos === "number") {
+        if (typeof lastKnownPos === 'number') {
             // pos !== null signals that previously a position was used that is
             // not null. node.js documentation explains, that in this case
             // the internal file pointer is not moving and as such we do not move
@@ -485,7 +473,7 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
             // Docs: "If position is null, data will be read from the current file position,
             // and the file position will be updated. If position is an integer, the file position
             // will remain unchanged."
-            if (typeof pos === "number") {
+            if (typeof pos === 'number') {
                 // do not modify the position
             }
             // bytesLength = number is a signal that the read/write operation was
@@ -501,7 +489,7 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
             // example, a regular file) writing takes place at the file offset, and
             // the file offset is incremented by the number of bytes actually
             // written."
-            else if (typeof bytesLength === "number") {
+            else if (typeof bytesLength === 'number') {
                 this.mapHandleToPos.set(fd, lastKnownPos + bytesLength);
             }
             // bytesLength = null signals an error in the read/write operation
@@ -561,8 +549,7 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
                     // we try to detect this error and then see if the
                     // provided resource is actually a directory. in that
                     // case we use `fs.rmdir` to delete the directory.
-                    if (unlinkError.code === "EPERM" ||
-                        unlinkError.code === "EISDIR") {
+                    if (unlinkError.code === 'EPERM' || unlinkError.code === 'EISDIR') {
                         let isDirectory = false;
                         try {
                             const { stat, symbolicLink } = await SymlinkSupport.stat(filePath);
@@ -596,17 +583,15 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
         }
         try {
             // Validate the move operation can perform
-            await this.validateMoveCopy(from, to, "move", opts.overwrite);
+            await this.validateMoveCopy(from, to, 'move', opts.overwrite);
             // Rename
             await Promises.rename(fromFilePath, toFilePath);
         }
         catch (error) {
             // Rewrite some typical errors that can happen especially around symlinks
             // to something the user can better understand
-            if (error.code === "EINVAL" ||
-                error.code === "EBUSY" ||
-                error.code === "ENAMETOOLONG") {
-                error = new Error(localize("moveError", "Unable to move '{0}' into '{1}' ({2}).", basename(fromFilePath), basename(dirname(toFilePath)), error.toString()));
+            if (error.code === 'EINVAL' || error.code === 'EBUSY' || error.code === 'ENAMETOOLONG') {
+                error = new Error(localize('moveError', "Unable to move '{0}' into '{1}' ({2}).", basename(fromFilePath), basename(dirname(toFilePath)), error.toString()));
             }
             throw this.toFileSystemProviderError(error);
         }
@@ -619,24 +604,20 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
         }
         try {
             // Validate the copy operation can perform
-            await this.validateMoveCopy(from, to, "copy", opts.overwrite);
+            await this.validateMoveCopy(from, to, 'copy', opts.overwrite);
             // Copy
-            await Promises.copy(fromFilePath, toFilePath, {
-                preserveSymlinks: true,
-            });
+            await Promises.copy(fromFilePath, toFilePath, { preserveSymlinks: true });
         }
         catch (error) {
             // Rewrite some typical errors that can happen especially around symlinks
             // to something the user can better understand
-            if (error.code === "EINVAL" ||
-                error.code === "EBUSY" ||
-                error.code === "ENAMETOOLONG") {
-                error = new Error(localize("copyError", "Unable to copy '{0}' into '{1}' ({2}).", basename(fromFilePath), basename(dirname(toFilePath)), error.toString()));
+            if (error.code === 'EINVAL' || error.code === 'EBUSY' || error.code === 'ENAMETOOLONG') {
+                error = new Error(localize('copyError', "Unable to copy '{0}' into '{1}' ({2}).", basename(fromFilePath), basename(dirname(toFilePath)), error.toString()));
             }
             throw this.toFileSystemProviderError(error);
         }
     }
-    private async validateMoveCopy(from: URI, to: URI, mode: "move" | "copy", overwrite?: boolean): Promise<void> {
+    private async validateMoveCopy(from: URI, to: URI, mode: 'move' | 'copy', overwrite?: boolean): Promise<void> {
         const fromFilePath = this.toFilePath(from);
         const toFilePath = this.toFilePath(to);
         let isSameResourceWithDifferentPathCase = false;
@@ -647,12 +628,12 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
         if (isSameResourceWithDifferentPathCase) {
             // You cannot copy the same file to the same location with different
             // path case unless you are on a case sensitive file system
-            if (mode === "copy") {
-                throw createFileSystemProviderError(localize("fileCopyErrorPathCase", "File cannot be copied to same path with different path case"), FileSystemProviderErrorCode.FileExists);
+            if (mode === 'copy') {
+                throw createFileSystemProviderError(localize('fileCopyErrorPathCase', "File cannot be copied to same path with different path case"), FileSystemProviderErrorCode.FileExists);
             }
             // You can move the same file to the same location with different
             // path case on case insensitive file systems
-            else if (mode === "move") {
+            else if (mode === 'move') {
                 return;
             }
         }
@@ -661,26 +642,21 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
         // target exists.
         const fromStat = await this.statIgnoreError(from);
         if (!fromStat) {
-            throw createFileSystemProviderError(localize("fileMoveCopyErrorNotFound", "File to move/copy does not exist"), FileSystemProviderErrorCode.FileNotFound);
+            throw createFileSystemProviderError(localize('fileMoveCopyErrorNotFound', "File to move/copy does not exist"), FileSystemProviderErrorCode.FileNotFound);
         }
         const toStat = await this.statIgnoreError(to);
         if (!toStat) {
             return; // target does not exist so we are good
         }
         if (!overwrite) {
-            throw createFileSystemProviderError(localize("fileMoveCopyErrorExists", "File at target already exists and thus will not be moved/copied to unless overwrite is specified"), FileSystemProviderErrorCode.FileExists);
+            throw createFileSystemProviderError(localize('fileMoveCopyErrorExists', "File at target already exists and thus will not be moved/copied to unless overwrite is specified"), FileSystemProviderErrorCode.FileExists);
         }
         // Handle existing target for move/copy
-        if ((fromStat.type & FileType.File) !== 0 &&
-            (toStat.type & FileType.File) !== 0) {
+        if ((fromStat.type & FileType.File) !== 0 && (toStat.type & FileType.File) !== 0) {
             return; // node.js can move/copy a file over an existing file without having to delete it first
         }
         else {
-            await this.delete(to, {
-                recursive: true,
-                useTrash: false,
-                atomic: false,
-            });
+            await this.delete(to, { recursive: true, useTrash: false, atomic: false });
         }
     }
     //#endregion
@@ -708,7 +684,7 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
             await promises.copyFile(fromFilePath, toFilePath);
         }
         catch (error) {
-            if (error.code === "ENOENT" && !mkdir) {
+            if (error.code === 'ENOENT' && !mkdir) {
                 return this.doCloneFile(from, to, true);
             }
             throw this.toFileSystemProviderError(error);
@@ -720,10 +696,10 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
     //#endregion
     //#region File Watching
     protected createUniversalWatcher(onChange: (changes: IFileChange[]) => void, onLogMessage: (msg: ILogMessage) => void, verboseLogging: boolean): AbstractUniversalWatcherClient {
-        return new UniversalWatcherClient((changes) => onChange(changes), (msg) => onLogMessage(msg), verboseLogging);
+        return new UniversalWatcherClient(changes => onChange(changes), msg => onLogMessage(msg), verboseLogging);
     }
     protected createNonRecursiveWatcher(onChange: (changes: IFileChange[]) => void, onLogMessage: (msg: ILogMessage) => void, verboseLogging: boolean): AbstractNonRecursiveWatcherClient {
-        return new NodeJSWatcherClient((changes) => onChange(changes), (msg) => onLogMessage(msg), verboseLogging);
+        return new NodeJSWatcherClient(changes => onChange(changes), msg => onLogMessage(msg), verboseLogging);
     }
     //#endregion
     //#region Helpers
@@ -734,23 +710,23 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
         let resultError: Error | string = error;
         let code: FileSystemProviderErrorCode;
         switch (error.code) {
-            case "ENOENT":
+            case 'ENOENT':
                 code = FileSystemProviderErrorCode.FileNotFound;
                 break;
-            case "EISDIR":
+            case 'EISDIR':
                 code = FileSystemProviderErrorCode.FileIsADirectory;
                 break;
-            case "ENOTDIR":
+            case 'ENOTDIR':
                 code = FileSystemProviderErrorCode.FileNotADirectory;
                 break;
-            case "EEXIST":
+            case 'EEXIST':
                 code = FileSystemProviderErrorCode.FileExists;
                 break;
-            case "EPERM":
-            case "EACCES":
+            case 'EPERM':
+            case 'EACCES':
                 code = FileSystemProviderErrorCode.NoPermissions;
                 break;
-            case "ERR_UNC_HOST_NOT_ALLOWED":
+            case 'ERR_UNC_HOST_NOT_ALLOWED':
                 resultError = `${error.message}. Please update the 'security.allowedUNCHosts' setting if you want to allow this host.`;
                 code = FileSystemProviderErrorCode.Unknown;
                 break;
@@ -764,14 +740,11 @@ export class DiskFileSystemProvider extends AbstractDiskFileSystemProvider imple
         // If the write error signals permission issues, we try
         // to read the file's mode to see if the file is write
         // locked.
-        if (resource &&
-            fileSystemProviderWriteError.code ===
-                FileSystemProviderErrorCode.NoPermissions) {
+        if (resource && fileSystemProviderWriteError.code === FileSystemProviderErrorCode.NoPermissions) {
             try {
                 const { stat } = await SymlinkSupport.stat(this.toFilePath(resource));
-                if (!((stat.mode & 0o200) /* File mode indicating writable by owner */)) {
-                    fileSystemProviderWriteError =
-                        createFileSystemProviderError(error, FileSystemProviderErrorCode.FileWriteLocked);
+                if (!(stat.mode & 0o200 /* File mode indicating writable by owner */)) {
+                    fileSystemProviderWriteError = createFileSystemProviderError(error, FileSystemProviderErrorCode.FileWriteLocked);
                 }
             }
             catch (error) {

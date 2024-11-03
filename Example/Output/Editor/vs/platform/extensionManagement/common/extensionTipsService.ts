@@ -2,25 +2,25 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { isNonEmptyArray } from "../../../base/common/arrays.js";
-import { disposableTimeout } from "../../../base/common/async.js";
-import { IStringDictionary } from "../../../base/common/collections.js";
-import { Event } from "../../../base/common/event.js";
-import { Disposable, MutableDisposable, } from "../../../base/common/lifecycle.js";
-import { join } from "../../../base/common/path.js";
-import { isWindows } from "../../../base/common/platform.js";
-import { env } from "../../../base/common/process.js";
-import { IConfigBasedExtensionTip as IRawConfigBasedExtensionTip } from "../../../base/common/product.js";
-import { joinPath } from "../../../base/common/resources.js";
-import { URI } from "../../../base/common/uri.js";
-import { IExtensionRecommendationNotificationService, RecommendationsNotificationResult, RecommendationSource, } from "../../extensionRecommendations/common/extensionRecommendations.js";
-import { ExtensionType } from "../../extensions/common/extensions.js";
-import { IFileService } from "../../files/common/files.js";
-import { IProductService } from "../../product/common/productService.js";
-import { IStorageService, StorageScope, StorageTarget, } from "../../storage/common/storage.js";
-import { ITelemetryService } from "../../telemetry/common/telemetry.js";
-import { IConfigBasedExtensionTip, IExecutableBasedExtensionTip, IExtensionManagementService, IExtensionTipsService, ILocalExtension, } from "./extensionManagement.js";
-import { areSameExtensions } from "./extensionManagementUtil.js";
+import { isNonEmptyArray } from '../../../base/common/arrays.js';
+import { Disposable, MutableDisposable } from '../../../base/common/lifecycle.js';
+import { IConfigBasedExtensionTip as IRawConfigBasedExtensionTip } from '../../../base/common/product.js';
+import { joinPath } from '../../../base/common/resources.js';
+import { URI } from '../../../base/common/uri.js';
+import { IConfigBasedExtensionTip, IExecutableBasedExtensionTip, IExtensionManagementService, IExtensionTipsService, ILocalExtension } from './extensionManagement.js';
+import { IFileService } from '../../files/common/files.js';
+import { IProductService } from '../../product/common/productService.js';
+import { disposableTimeout } from '../../../base/common/async.js';
+import { IStringDictionary } from '../../../base/common/collections.js';
+import { Event } from '../../../base/common/event.js';
+import { join } from '../../../base/common/path.js';
+import { isWindows } from '../../../base/common/platform.js';
+import { env } from '../../../base/common/process.js';
+import { areSameExtensions } from './extensionManagementUtil.js';
+import { IExtensionRecommendationNotificationService, RecommendationsNotificationResult, RecommendationSource } from '../../extensionRecommendations/common/extensionRecommendations.js';
+import { ExtensionType } from '../../extensions/common/extensions.js';
+import { IStorageService, StorageScope, StorageTarget } from '../../storage/common/storage.js';
+import { ITelemetryService } from '../../telemetry/common/telemetry.js';
 //#region Base Extension Tips Service
 export class ExtensionTipsService extends Disposable implements IExtensionTipsService {
     _serviceBrand: any;
@@ -53,22 +53,19 @@ export class ExtensionTipsService extends Disposable implements IExtensionTipsSe
             try {
                 const content = (await this.fileService.readFile(joinPath(folder, configPath))).value.toString();
                 for (const [key, value] of Object.entries(tip.recommendations)) {
-                    if (!value.contentPattern ||
-                        new RegExp(value.contentPattern, "mig").test(content)) {
+                    if (!value.contentPattern || new RegExp(value.contentPattern, 'mig').test(content)) {
                         result.push({
                             extensionId: key,
                             extensionName: value.name,
                             configName: tip.configName,
                             important: !!value.important,
                             isExtensionPack: !!value.isExtensionPack,
-                            whenNotInstalled: value.whenNotInstalled,
+                            whenNotInstalled: value.whenNotInstalled
                         });
                     }
                 }
             }
-            catch (error) {
-                /* Ignore */
-            }
+            catch (error) { /* Ignore */ }
         }
         return result;
     }
@@ -76,17 +73,17 @@ export class ExtensionTipsService extends Disposable implements IExtensionTipsSe
 //#endregion
 //#region Native Extension Tips Service (enables unit testing having it here in "common")
 type ExeExtensionRecommendationsClassification = {
-    owner: "sandy081";
-    comment: "Information about executable based extension recommendation";
+    owner: 'sandy081';
+    comment: 'Information about executable based extension recommendation';
     extensionId: {
-        classification: "PublicNonPersonalData";
-        purpose: "FeatureInsight";
-        comment: "id of the recommended extension";
+        classification: 'PublicNonPersonalData';
+        purpose: 'FeatureInsight';
+        comment: 'id of the recommended extension';
     };
     exeName: {
-        classification: "PublicNonPersonalData";
-        purpose: "FeatureInsight";
-        comment: "name of the executable for which extension is being recommended";
+        classification: 'PublicNonPersonalData';
+        purpose: 'FeatureInsight';
+        comment: 'name of the executable for which extension is being recommended';
     };
 };
 type IExeBasedExtensionTips = {
@@ -99,8 +96,8 @@ type IExeBasedExtensionTips = {
         whenNotInstalled?: string[];
     }[];
 };
-const promptedExecutableTipsStorageKey = "extensionTips/promptedExecutableTips";
-const lastPromptedMediumImpExeTimeStorageKey = "extensionTips/lastPromptedMediumImpExeTime";
+const promptedExecutableTipsStorageKey = 'extensionTips/promptedExecutableTips';
+const lastPromptedMediumImpExeTimeStorageKey = 'extensionTips/lastPromptedMediumImpExeTime';
 export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsService {
     private readonly highImportanceExecutableTips: Map<string, IExeBasedExtensionTips> = new Map<string, IExeBasedExtensionTips>();
     private readonly mediumImportanceExecutableTips: Map<string, IExeBasedExtensionTips> = new Map<string, IExeBasedExtensionTips>();
@@ -132,48 +129,24 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
                 Object.entries(exeBasedExtensionTip.recommendations).forEach(([extensionId, value]) => {
                     if (value.important) {
                         if (exeBasedExtensionTip.important) {
-                            highImportanceRecommendations.push({
-                                extensionId,
-                                extensionName: value.name,
-                                isExtensionPack: !!value.isExtensionPack,
-                            });
+                            highImportanceRecommendations.push({ extensionId, extensionName: value.name, isExtensionPack: !!value.isExtensionPack });
                         }
                         else {
-                            mediumImportanceRecommendations.push({
-                                extensionId,
-                                extensionName: value.name,
-                                isExtensionPack: !!value.isExtensionPack,
-                            });
+                            mediumImportanceRecommendations.push({ extensionId, extensionName: value.name, isExtensionPack: !!value.isExtensionPack });
                         }
                     }
                     else {
-                        otherRecommendations.push({
-                            extensionId,
-                            extensionName: value.name,
-                            isExtensionPack: !!value.isExtensionPack,
-                        });
+                        otherRecommendations.push({ extensionId, extensionName: value.name, isExtensionPack: !!value.isExtensionPack });
                     }
                 });
                 if (highImportanceRecommendations.length) {
-                    this.highImportanceExecutableTips.set(key, {
-                        exeFriendlyName: exeBasedExtensionTip.friendlyName,
-                        windowsPath: exeBasedExtensionTip.windowsPath,
-                        recommendations: highImportanceRecommendations,
-                    });
+                    this.highImportanceExecutableTips.set(key, { exeFriendlyName: exeBasedExtensionTip.friendlyName, windowsPath: exeBasedExtensionTip.windowsPath, recommendations: highImportanceRecommendations });
                 }
                 if (mediumImportanceRecommendations.length) {
-                    this.mediumImportanceExecutableTips.set(key, {
-                        exeFriendlyName: exeBasedExtensionTip.friendlyName,
-                        windowsPath: exeBasedExtensionTip.windowsPath,
-                        recommendations: mediumImportanceRecommendations,
-                    });
+                    this.mediumImportanceExecutableTips.set(key, { exeFriendlyName: exeBasedExtensionTip.friendlyName, windowsPath: exeBasedExtensionTip.windowsPath, recommendations: mediumImportanceRecommendations });
                 }
                 if (otherRecommendations.length) {
-                    this.allOtherExecutableTips.set(key, {
-                        exeFriendlyName: exeBasedExtensionTip.friendlyName,
-                        windowsPath: exeBasedExtensionTip.windowsPath,
-                        recommendations: otherRecommendations,
-                    });
+                    this.allOtherExecutableTips.set(key, { exeFriendlyName: exeBasedExtensionTip.friendlyName, windowsPath: exeBasedExtensionTip.windowsPath, recommendations: otherRecommendations });
                 }
             });
         }
@@ -204,7 +177,7 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
     }
     private groupImportantTipsByExe(importantExeBasedTips: IExecutableBasedExtensionTip[], local: ILocalExtension[]): Map<string, IExecutableBasedExtensionTip[]> {
         const importantExeBasedRecommendations = new Map<string, IExecutableBasedExtensionTip>();
-        importantExeBasedTips.forEach((tip) => importantExeBasedRecommendations.set(tip.extensionId.toLowerCase(), tip));
+        importantExeBasedTips.forEach(tip => importantExeBasedRecommendations.set(tip.extensionId.toLowerCase(), tip));
         const { installed, uninstalled: recommendations } = this.groupByInstalled([...importantExeBasedRecommendations.keys()], local);
         /* Log installed and uninstalled exe based recommendations */
         for (const extensionId of installed) {
@@ -213,10 +186,7 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
                 this.telemetryService.publicLog2<{
                     exeName: string;
                     extensionId: string;
-                }, ExeExtensionRecommendationsClassification>("exeExtensionRecommendations:alreadyInstalled", {
-                    extensionId,
-                    exeName: tip.exeName,
-                });
+                }, ExeExtensionRecommendationsClassification>('exeExtensionRecommendations:alreadyInstalled', { extensionId, exeName: tip.exeName });
             }
         }
         for (const extensionId of recommendations) {
@@ -225,19 +195,14 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
                 this.telemetryService.publicLog2<{
                     exeName: string;
                     extensionId: string;
-                }, ExeExtensionRecommendationsClassification>("exeExtensionRecommendations:notInstalled", {
-                    extensionId,
-                    exeName: tip.exeName,
-                });
+                }, ExeExtensionRecommendationsClassification>('exeExtensionRecommendations:notInstalled', { extensionId, exeName: tip.exeName });
             }
         }
         const promptedExecutableTips = this.getPromptedExecutableTips();
         const tipsByExe = new Map<string, IExecutableBasedExtensionTip[]>();
         for (const extensionId of recommendations) {
             const tip = importantExeBasedRecommendations.get(extensionId);
-            if (tip &&
-                (!promptedExecutableTips[tip.exeName] ||
-                    !promptedExecutableTips[tip.exeName].includes(tip.extensionId))) {
+            if (tip && (!promptedExecutableTips[tip.exeName] || !promptedExecutableTips[tip.exeName].includes(tip.extensionId))) {
                 let tips = tipsByExe.get(tip.exeName);
                 if (!tips) {
                     tips = [];
@@ -256,7 +221,8 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
             return;
         }
         const [exeName, tips] = [...this.highImportanceTipsByExe.entries()][0];
-        this.promptExeRecommendations(tips).then((result) => {
+        this.promptExeRecommendations(tips)
+            .then(result => {
             switch (result) {
                 case RecommendationsNotificationResult.Accepted:
                     this.addToRecommendedExecutables(tips[0].exeName, tips);
@@ -273,10 +239,7 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
                 case RecommendationsNotificationResult.TooMany: {
                     // Too many notifications. Schedule the prompt after one hour
                     const disposable = this._register(new MutableDisposable());
-                    disposable.value = disposableTimeout(() => {
-                        disposable.dispose();
-                        this.promptHighImportanceExeBasedTip();
-                    }, 60 * 60 * 1000 /* 1 hour */);
+                    disposable.value = disposableTimeout(() => { disposable.dispose(); this.promptHighImportanceExeBasedTip(); }, 60 * 60 * 1000 /* 1 hour */);
                     break;
                 }
             }
@@ -295,16 +258,12 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
         if (timeSinceLastPrompt < promptInterval) {
             // Wait until interval and prompt
             const disposable = this._register(new MutableDisposable());
-            disposable.value = disposableTimeout(() => {
-                disposable.dispose();
-                this.promptMediumImportanceExeBasedTip();
-            }, promptInterval - timeSinceLastPrompt);
+            disposable.value = disposableTimeout(() => { disposable.dispose(); this.promptMediumImportanceExeBasedTip(); }, promptInterval - timeSinceLastPrompt);
             return;
         }
-        const [exeName, tips] = [
-            ...this.mediumImportanceTipsByExe.entries(),
-        ][0];
-        this.promptExeRecommendations(tips).then((result) => {
+        const [exeName, tips] = [...this.mediumImportanceTipsByExe.entries()][0];
+        this.promptExeRecommendations(tips)
+            .then(result => {
             switch (result) {
                 case RecommendationsNotificationResult.Accepted: {
                     // Accepted: Update the last prompted time and caches.
@@ -313,10 +272,7 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
                     this.addToRecommendedExecutables(tips[0].exeName, tips);
                     // Schedule the next recommendation for next internval
                     const disposable1 = this._register(new MutableDisposable());
-                    disposable1.value = disposableTimeout(() => {
-                        disposable1.dispose();
-                        this.promptMediumImportanceExeBasedTip();
-                    }, promptInterval);
+                    disposable1.value = disposableTimeout(() => { disposable1.dispose(); this.promptMediumImportanceExeBasedTip(); }, promptInterval);
                     break;
                 }
                 case RecommendationsNotificationResult.Ignored:
@@ -333,10 +289,7 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
                 case RecommendationsNotificationResult.TooMany: {
                     // Too many notifications. Schedule the prompt after one hour
                     const disposable2 = this._register(new MutableDisposable());
-                    disposable2.value = disposableTimeout(() => {
-                        disposable2.dispose();
-                        this.promptMediumImportanceExeBasedTip();
-                    }, 60 * 60 * 1000 /* 1 hour */);
+                    disposable2.value = disposableTimeout(() => { disposable2.dispose(); this.promptMediumImportanceExeBasedTip(); }, 60 * 60 * 1000 /* 1 hour */);
                     break;
                 }
             }
@@ -345,15 +298,9 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
     private async promptExeRecommendations(tips: IExecutableBasedExtensionTip[]): Promise<RecommendationsNotificationResult> {
         const installed = await this.extensionManagementService.getInstalled(ExtensionType.User);
         const extensions = tips
-            .filter((tip) => !tip.whenNotInstalled ||
-            tip.whenNotInstalled.every((id) => installed.every((local) => !areSameExtensions(local.identifier, { id }))))
+            .filter(tip => !tip.whenNotInstalled || tip.whenNotInstalled.every(id => installed.every(local => !areSameExtensions(local.identifier, { id }))))
             .map(({ extensionId }) => extensionId.toLowerCase());
-        return this.extensionRecommendationNotificationService.promptImportantExtensionsInstallNotification({
-            extensions,
-            source: RecommendationSource.EXE,
-            name: tips[0].exeFriendlyName,
-            searchValue: `@exe:"${tips[0].exeName}"`,
-        });
+        return this.extensionRecommendationNotificationService.promptImportantExtensionsInstallNotification({ extensions, source: RecommendationSource.EXE, name: tips[0].exeFriendlyName, searchValue: `@exe:"${tips[0].exeName}"` });
     }
     private getLastPromptedMediumExeTime(): number {
         let value = this.storageService.getNumber(lastPromptedMediumImpExeTimeStorageKey, StorageScope.APPLICATION);
@@ -367,7 +314,7 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
         this.storageService.store(lastPromptedMediumImpExeTimeStorageKey, value, StorageScope.APPLICATION, StorageTarget.MACHINE);
     }
     private getPromptedExecutableTips(): IStringDictionary<string[]> {
-        return JSON.parse(this.storageService.get(promptedExecutableTipsStorageKey, StorageScope.APPLICATION, "{}"));
+        return JSON.parse(this.storageService.get(promptedExecutableTipsStorageKey, StorageScope.APPLICATION, '{}'));
     }
     private addToRecommendedExecutables(exeName: string, tips: IExecutableBasedExtensionTip[]) {
         const promptedExecutableTips = this.getPromptedExecutableTips();
@@ -379,11 +326,8 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
         uninstalled: string[];
     } {
         const installed: string[] = [], uninstalled: string[] = [];
-        const installedExtensionsIds = local.reduce((result, i) => {
-            result.add(i.identifier.id.toLowerCase());
-            return result;
-        }, new Set<string>());
-        recommendationsToSuggest.forEach((id) => {
+        const installedExtensionsIds = local.reduce((result, i) => { result.add(i.identifier.id.toLowerCase()); return result; }, new Set<string>());
+        recommendationsToSuggest.forEach(id => {
             if (installedExtensionsIds.has(id.toLowerCase())) {
                 installed.push(id);
             }
@@ -398,24 +342,22 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
         const checkedExecutables: Map<string, boolean> = new Map<string, boolean>();
         for (const exeName of executableTips.keys()) {
             const extensionTip = executableTips.get(exeName);
-            if (!extensionTip ||
-                !isNonEmptyArray(extensionTip.recommendations)) {
+            if (!extensionTip || !isNonEmptyArray(extensionTip.recommendations)) {
                 continue;
             }
             const exePaths: string[] = [];
             if (isWindows) {
                 if (extensionTip.windowsPath) {
-                    exePaths.push(extensionTip.windowsPath
-                        .replace("%USERPROFILE%", () => env["USERPROFILE"]!)
-                        .replace("%ProgramFiles(x86)%", () => env["ProgramFiles(x86)"]!)
-                        .replace("%ProgramFiles%", () => env["ProgramFiles"]!)
-                        .replace("%APPDATA%", () => env["APPDATA"]!)
-                        .replace("%WINDIR%", () => env["WINDIR"]!));
+                    exePaths.push(extensionTip.windowsPath.replace('%USERPROFILE%', () => env['USERPROFILE']!)
+                        .replace('%ProgramFiles(x86)%', () => env['ProgramFiles(x86)']!)
+                        .replace('%ProgramFiles%', () => env['ProgramFiles']!)
+                        .replace('%APPDATA%', () => env['APPDATA']!)
+                        .replace('%WINDIR%', () => env['WINDIR']!));
                 }
             }
             else {
-                exePaths.push(join("/usr/local/bin", exeName));
-                exePaths.push(join("/usr/bin", exeName));
+                exePaths.push(join('/usr/local/bin', exeName));
+                exePaths.push(join('/usr/bin', exeName));
                 exePaths.push(join(this.userHome.fsPath, exeName));
             }
             for (const exePath of exePaths) {
@@ -425,7 +367,7 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
                     checkedExecutables.set(exePath, exists);
                 }
                 if (exists) {
-                    for (const { extensionId, extensionName, isExtensionPack, whenNotInstalled, } of extensionTip.recommendations) {
+                    for (const { extensionId, extensionName, isExtensionPack, whenNotInstalled } of extensionTip.recommendations) {
                         result.push({
                             extensionId,
                             extensionName,
@@ -433,7 +375,7 @@ export abstract class AbstractNativeExtensionTipsService extends ExtensionTipsSe
                             exeName,
                             exeFriendlyName: extensionTip.exeFriendlyName,
                             windowsPath: extensionTip.windowsPath,
-                            whenNotInstalled: whenNotInstalled,
+                            whenNotInstalled: whenNotInstalled
                         });
                     }
                 }

@@ -489,6 +489,7 @@ export const Fn = ((usageMap, initializerMap) => {
 						factory.createPropertyAssignment(
 							node.name,
 							nameResult.node,
+							
 						),
 						true,
 					);
@@ -528,27 +529,30 @@ export const Fn = ((usageMap, initializerMap) => {
 
 			// Special handling for array literals
 			if (ts.isArrayLiteralExpression(node)) {
-				const elements = node.elements.map((element) => {
-					if (ts.isSpreadElement(element)) {
-						const spreadResult = this.visitNode(element.expression);
-
-						modified = modified || spreadResult.modified;
-
-						return factory.createSpreadElement(
-							spreadResult.node as Expression,
-						);
-					}
-
-					const result = this.visitNode(element);
-
-					modified = modified || result.modified;
-
-					return result.node as Expression;
-				});
-
 				if (modified) {
 					return this.createVisitResult(
-						factory.createArrayLiteralExpression(elements),
+						factory.createArrayLiteralExpression(
+							node.elements.map((element) => {
+								if (ts.isSpreadElement(element)) {
+									const spreadResult = this.visitNode(
+										element.expression,
+									);
+
+									modified =
+										modified || spreadResult.modified;
+
+									return factory.createSpreadElement(
+										spreadResult.node as Expression,
+									);
+								}
+
+								const result = this.visitNode(element);
+
+								modified = modified || result.modified;
+
+								return result.node as Expression;
+							}),
+						),
 						true,
 					);
 				}
@@ -558,23 +562,21 @@ export const Fn = ((usageMap, initializerMap) => {
 
 			// Special handling for object literals
 			if (ts.isObjectLiteralExpression(node)) {
-				const properties = node.properties.map((prop) => {
-					// Skip spread assignments - they should be handled by visitEachChild
-					if (ts.isSpreadAssignment(prop)) {
-						return prop;
-					}
-
-					const result = this.visitNode(prop);
-
-					modified = modified || result.modified;
-
-					return result.node;
-				});
-
 				if (modified) {
 					return this.createVisitResult(
 						factory.createObjectLiteralExpression(
-							properties as any,
+							node.properties.map((prop) => {
+								// Skip spread assignments - they should be handled by visitEachChild
+								if (ts.isSpreadAssignment(prop)) {
+									return prop;
+								}
+
+								const result = this.visitNode(prop);
+
+								modified = modified || result.modified;
+
+								return result.node;
+							}) as any,
 						),
 						true,
 					);
@@ -584,19 +586,20 @@ export const Fn = ((usageMap, initializerMap) => {
 			}
 
 			// Handle all other nodes
-			const newNode = ts.visitEachChild(
-				node,
-				(child) => {
-					const result = this.visitNode(child, depth + 1);
+			return this.createVisitResult(
+				ts.visitEachChild(
+					node,
+					(child) => {
+						const result = this.visitNode(child, depth + 1);
 
-					modified = modified || result.modified;
+						modified = modified || result.modified;
 
-					return result.node;
-				},
-				this.state.context,
+						return result.node;
+					},
+					this.state.context,
+				),
+				modified,
 			);
-
-			return this.createVisitResult(newNode, modified);
 		}
 
 		public getState(): Readonly<TransformerState> {
@@ -609,29 +612,29 @@ export const Fn = ((usageMap, initializerMap) => {
 
 		let currentNode = rootNode;
 
-		let iterationCount = 0;
+		// let iterationCount = 0;
 
-		while (iterationCount < CONFIG.MAX_ITERATIONS) {
-			const result = transformer.visitNode(currentNode);
+		// while (iterationCount < CONFIG.MAX_ITERATIONS) {
+		// 	const result = transformer.visitNode(currentNode);
 
-			if (!result.modified) {
-				return result.node;
-			}
+		// 	if (!result.modified) {
+		// 		return result.node;
+		// 	}
 
-			currentNode = result.node;
+		// 	currentNode = result.node;
 
-			iterationCount++;
+		// 	iterationCount++;
 
-			const state = transformer.getState();
+		// 	const state = transformer.getState();
 
-			if (state.errors.length > 0) {
-				console.error("Transformation errors:", state.errors);
-			}
+		// 	if (state.errors.length > 0) {
+		// 		console.error("Transformation errors:", state.errors);
+		// 	}
 
-			if (state.warnings.length > 0) {
-				console.warn("Transformation warnings:", state.warnings);
-			}
-		}
+		// 	if (state.warnings.length > 0) {
+		// 		console.warn("Transformation warnings:", state.warnings);
+		// 	}
+		// }
 
 		return currentNode;
 	};

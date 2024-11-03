@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { ContextKeyExpression, ContextKeyExprType, expressionsAreEqualWithConstantSubstitution, IContext, IContextKeyService, implies, } from "../../contextkey/common/contextkey.js";
-import { ResolvedKeybindingItem } from "./resolvedKeybindingItem.js";
+import { implies, ContextKeyExpression, ContextKeyExprType, IContext, IContextKeyService, expressionsAreEqualWithConstantSubstitution } from '../../contextkey/common/contextkey.js';
+import { ResolvedKeybindingItem } from './resolvedKeybindingItem.js';
 //#region resolution-result
 export const enum ResultKind {
     /** No keybinding found this sequence of chords */
@@ -25,9 +25,7 @@ export type ResolutionResult = {
 };
 // util definitions to make working with the above types easier within this module:
 export const NoMatchingKb: ResolutionResult = { kind: ResultKind.NoMatchingKb };
-const MoreChordsNeeded: ResolutionResult = {
-    kind: ResultKind.MoreChordsNeeded,
-};
+const MoreChordsNeeded: ResolutionResult = { kind: ResultKind.MoreChordsNeeded };
 function KbFound(commandId: string | null, commandArgs: any, isBubble: boolean): ResolutionResult {
     return { kind: ResultKind.KbFound, commandId, commandArgs, isBubble };
 }
@@ -40,12 +38,9 @@ export class KeybindingResolver {
     private readonly _log: (str: string) => void;
     private readonly _defaultKeybindings: ResolvedKeybindingItem[];
     private readonly _keybindings: ResolvedKeybindingItem[];
-    private readonly _defaultBoundCommands: Map<
-    /* commandId */ string, boolean>;
-    private readonly _map: Map<
-    /* 1st chord's keypress */ string, ResolvedKeybindingItem[]>;
-    private readonly _lookupMap: Map<
-    /* commandId */ string, ResolvedKeybindingItem[]>;
+    private readonly _defaultBoundCommands: Map</* commandId */ string, boolean>;
+    private readonly _map: Map</* 1st chord's keypress */ string, ResolvedKeybindingItem[]>;
+    private readonly _lookupMap: Map</* commandId */ string, ResolvedKeybindingItem[]>;
     constructor(
     /** built-in and extension-provided keybindings */
     defaultKeybindings: ResolvedKeybindingItem[], 
@@ -56,15 +51,13 @@ export class KeybindingResolver {
         this._defaultBoundCommands = new Map<string, boolean>();
         for (const defaultKeybinding of defaultKeybindings) {
             const command = defaultKeybinding.command;
-            if (command && command.charAt(0) !== "-") {
+            if (command && command.charAt(0) !== '-') {
                 this._defaultBoundCommands.set(command, true);
             }
         }
         this._map = new Map<string, ResolvedKeybindingItem[]>();
         this._lookupMap = new Map<string, ResolvedKeybindingItem[]>();
-        this._keybindings = KeybindingResolver.handleRemovals(([] as ResolvedKeybindingItem[])
-            .concat(defaultKeybindings)
-            .concat(overrides));
+        this._keybindings = KeybindingResolver.handleRemovals(([] as ResolvedKeybindingItem[]).concat(defaultKeybindings).concat(overrides));
         for (let i = 0, len = this._keybindings.length; i < len; i++) {
             const k = this._keybindings[i];
             if (k.chords.length === 0) {
@@ -105,11 +98,10 @@ export class KeybindingResolver {
      */
     public static handleRemovals(rules: ResolvedKeybindingItem[]): ResolvedKeybindingItem[] {
         // Do a first pass and construct a hash-map for removals
-        const removals = new Map<
-        /* commandId */ string, ResolvedKeybindingItem[]>();
+        const removals = new Map</* commandId */ string, ResolvedKeybindingItem[]>();
         for (let i = 0, len = rules.length; i < len; i++) {
             const rule = rules[i];
-            if (rule.command && rule.command.charAt(0) === "-") {
+            if (rule.command && rule.command.charAt(0) === '-') {
                 const command = rule.command.substring(1);
                 if (!removals.has(command)) {
                     removals.set(command, [rule]);
@@ -131,7 +123,7 @@ export class KeybindingResolver {
                 result.push(rule);
                 continue;
             }
-            if (rule.command.charAt(0) === "-") {
+            if (rule.command.charAt(0) === '-') {
                 continue;
             }
             const commandRemovals = removals.get(rule.command);
@@ -156,7 +148,7 @@ export class KeybindingResolver {
     }
     private _addKeyPress(keypress: string, item: ResolvedKeybindingItem): void {
         const conflicts = this._map.get(keypress);
-        if (typeof conflicts === "undefined") {
+        if (typeof conflicts === 'undefined') {
             // There is no conflict so far
             this._map.set(keypress, [item]);
             this._addToLookupMap(item);
@@ -194,7 +186,7 @@ export class KeybindingResolver {
             return;
         }
         let arr = this._lookupMap.get(item.command);
-        if (typeof arr === "undefined") {
+        if (typeof arr === 'undefined') {
             arr = [item];
             this._lookupMap.set(item.command, arr);
         }
@@ -207,7 +199,7 @@ export class KeybindingResolver {
             return;
         }
         const arr = this._lookupMap.get(item.command);
-        if (typeof arr === "undefined") {
+        if (typeof arr === 'undefined') {
             return;
         }
         for (let i = 0, len = arr.length; i < len; i++) {
@@ -240,7 +232,7 @@ export class KeybindingResolver {
     }
     public lookupKeybindings(commandId: string): ResolvedKeybindingItem[] {
         const items = this._lookupMap.get(commandId);
-        if (typeof items === "undefined" || items.length === 0) {
+        if (typeof items === 'undefined' || items.length === 0) {
             return [];
         }
         // Reverse to get the most specific item first
@@ -253,7 +245,7 @@ export class KeybindingResolver {
     }
     public lookupPrimaryKeybinding(commandId: string, context: IContextKeyService): ResolvedKeybindingItem | null {
         const items = this._lookupMap.get(commandId);
-        if (typeof items === "undefined" || items.length === 0) {
+        if (typeof items === 'undefined' || items.length === 0) {
             return null;
         }
         if (items.length === 1) {
@@ -291,8 +283,7 @@ export class KeybindingResolver {
             lookupMap = [];
             for (let i = 0, len = kbCandidates.length; i < len; i++) {
                 const candidate = kbCandidates[i];
-                if (pressedChords.length > candidate.chords.length) {
-                    // # of pressed chords can't be less than # of chords in a keybinding to invoke
+                if (pressedChords.length > candidate.chords.length) { // # of pressed chords can't be less than # of chords in a keybinding to invoke
                     continue;
                 }
                 let prefixMatches = true;
@@ -346,11 +337,7 @@ function printWhenExplanation(when: ContextKeyExpression | undefined): string {
     return `${when.serialize()}`;
 }
 function printSourceExplanation(kb: ResolvedKeybindingItem): string {
-    return kb.extensionId
-        ? kb.isBuiltinExtension
-            ? `built-in extension ${kb.extensionId}`
-            : `user extension ${kb.extensionId}`
-        : kb.isDefault
-            ? `built-in`
-            : `user`;
+    return (kb.extensionId
+        ? (kb.isBuiltinExtension ? `built-in extension ${kb.extensionId}` : `user extension ${kb.extensionId}`)
+        : (kb.isDefault ? `built-in` : `user`));
 }

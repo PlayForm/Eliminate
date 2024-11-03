@@ -2,25 +2,22 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Disposable, DisposableMap } from "../../../base/common/lifecycle.js";
-import { CountTokensCallback, ILanguageModelToolsService, IToolData, IToolInvocation, IToolResult, } from "../../contrib/chat/common/languageModelToolsService.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { ExtHostContext, ExtHostLanguageModelToolsShape, MainContext, MainThreadLanguageModelToolsShape, } from "../common/extHost.protocol.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { Disposable, DisposableMap } from '../../../base/common/lifecycle.js';
+import { CountTokensCallback, ILanguageModelToolsService, IToolData, IToolInvocation, IToolResult } from '../../contrib/chat/common/languageModelToolsService.js';
+import { IExtHostContext, extHostNamedCustomer } from '../../services/extensions/common/extHostCustomers.js';
+import { ExtHostContext, ExtHostLanguageModelToolsShape, MainContext, MainThreadLanguageModelToolsShape } from '../common/extHost.protocol.js';
 @extHostNamedCustomer(MainContext.MainThreadLanguageModelTools)
 export class MainThreadLanguageModelTools extends Disposable implements MainThreadLanguageModelToolsShape {
     private readonly _proxy: ExtHostLanguageModelToolsShape;
     private readonly _tools = this._register(new DisposableMap<string>());
-    private readonly _countTokenCallbacks = new Map<
-    /* call ID */ string, CountTokensCallback>();
+    private readonly _countTokenCallbacks = new Map</* call ID */ string, CountTokensCallback>();
     constructor(extHostContext: IExtHostContext, 
     @ILanguageModelToolsService
     private readonly _languageModelToolsService: ILanguageModelToolsService) {
         super();
         this._proxy = extHostContext.getProxy(ExtHostContext.ExtHostLanguageModelTools);
-        this._register(this._languageModelToolsService.onDidChangeTools((e) => this._proxy.$onDidChangeTools([
-            ...this._languageModelToolsService.getTools(),
-        ])));
+        this._register(this._languageModelToolsService.onDidChangeTools(e => this._proxy.$onDidChangeTools([...this._languageModelToolsService.getTools()])));
     }
     async $getTools(): Promise<IToolData[]> {
         return Array.from(this._languageModelToolsService.getTools());

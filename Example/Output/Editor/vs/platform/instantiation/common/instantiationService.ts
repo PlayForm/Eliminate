@@ -2,24 +2,21 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { GlobalIdleValue } from "../../../base/common/async.js";
-import { illegalState } from "../../../base/common/errors.js";
-import { Event } from "../../../base/common/event.js";
-import { DisposableStore, dispose, IDisposable, isDisposable, toDisposable, } from "../../../base/common/lifecycle.js";
-import { LinkedList } from "../../../base/common/linkedList.js";
-import { SyncDescriptor, SyncDescriptor0 } from "./descriptors.js";
-import { Graph } from "./graph.js";
-import { _util, GetLeadingNonServiceArgs, IInstantiationService, ServiceIdentifier, ServicesAccessor, } from "./instantiation.js";
-import { ServiceCollection } from "./serviceCollection.js";
+import { GlobalIdleValue } from '../../../base/common/async.js';
+import { Event } from '../../../base/common/event.js';
+import { illegalState } from '../../../base/common/errors.js';
+import { DisposableStore, dispose, IDisposable, isDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { SyncDescriptor, SyncDescriptor0 } from './descriptors.js';
+import { Graph } from './graph.js';
+import { GetLeadingNonServiceArgs, IInstantiationService, ServiceIdentifier, ServicesAccessor, _util } from './instantiation.js';
+import { ServiceCollection } from './serviceCollection.js';
+import { LinkedList } from '../../../base/common/linkedList.js';
 // TRACING
 const _enableAllTracing = false;
-// || "TRUE" // DO NOT CHECK IN!
 class CyclicDependencyError extends Error {
     constructor(graph: Graph<any>) {
-        super("cyclic dependency between services");
-        this.message =
-            graph.findCycleSlow() ??
-                `UNABLE to detect cycle, dumping graph: \n${graph.toString()}`;
+        super('cyclic dependency between services');
+        this.message = graph.findCycleSlow() ?? `UNABLE to detect cycle, dumping graph: \n${graph.toString()}`;
     }
 }
 export class InstantiationService implements IInstantiationService {
@@ -31,9 +28,7 @@ export class InstantiationService implements IInstantiationService {
     private readonly _children = new Set<InstantiationService>();
     constructor(private readonly _services: ServiceCollection = new ServiceCollection(), private readonly _strict: boolean = false, private readonly _parent?: InstantiationService, private readonly _enableTracing: boolean = _enableAllTracing) {
         this._services.set(IInstantiationService, this);
-        this._globalGraph = _enableTracing
-            ? (_parent?._globalGraph ?? new Graph((e) => e))
-            : undefined;
+        this._globalGraph = _enableTracing ? _parent?._globalGraph ?? new Graph(e => e) : undefined;
     }
     dispose(): void {
         if (!this._isDisposed) {
@@ -52,18 +47,18 @@ export class InstantiationService implements IInstantiationService {
     }
     private _throwIfDisposed(): void {
         if (this._isDisposed) {
-            throw new Error("InstantiationService has been disposed");
+            throw new Error('InstantiationService has been disposed');
         }
     }
     createChild(services: ServiceCollection, store?: DisposableStore): IInstantiationService {
         this._throwIfDisposed();
         const that = this;
-        const result = new (class extends InstantiationService {
+        const result = new class extends InstantiationService {
             override dispose(): void {
                 that._children.delete(result);
                 super.dispose();
             }
-        })(services, this._strict, this, this._enableTracing);
+        }(services, this._strict, this, this._enableTracing);
         this._children.add(result);
         store?.add(result);
         return result;
@@ -77,14 +72,14 @@ export class InstantiationService implements IInstantiationService {
             const accessor: ServicesAccessor = {
                 get: <T>(id: ServiceIdentifier<T>) => {
                     if (_done) {
-                        throw illegalState("service accessor is only valid during the invocation of its target method");
+                        throw illegalState('service accessor is only valid during the invocation of its target method');
                     }
                     const result = this._getOrCreateServiceInstance(id, _trace);
                     if (!result) {
                         throw new Error(`[invokeFunction] unknown service '${id}'`);
                     }
                     return result;
-                },
+                }
             };
             return fn(accessor, ...args);
         }
@@ -112,9 +107,7 @@ export class InstantiationService implements IInstantiationService {
     }
     private _createInstance<T>(ctor: any, args: any[] = [], _trace: Trace): T {
         // arguments defined by service decorators
-        const serviceDependencies = _util
-            .getServiceDependencies(ctor)
-            .sort((a, b) => a.index - b.index);
+        const serviceDependencies = _util.getServiceDependencies(ctor).sort((a, b) => a.index - b.index);
         const serviceArgs: any[] = [];
         for (const dependency of serviceDependencies) {
             const service = this._getOrCreateServiceInstance(dependency.id, _trace);
@@ -123,9 +116,7 @@ export class InstantiationService implements IInstantiationService {
             }
             serviceArgs.push(service);
         }
-        const firstServiceArgPos = serviceDependencies.length > 0
-            ? serviceDependencies[0].index
-            : args.length;
+        const firstServiceArgPos = serviceDependencies.length > 0 ? serviceDependencies[0].index : args.length;
         // check for argument mismatches, adjust static args if needed
         if (args.length !== firstServiceArgPos) {
             console.trace(`[createInstance] First service dependency of ${ctor.name} at position ${firstServiceArgPos + 1} conflicts with ${args.length} static arguments`);
@@ -148,7 +139,7 @@ export class InstantiationService implements IInstantiationService {
             this._parent._setCreatedServiceInstance(id, instance);
         }
         else {
-            throw new Error("illegalState - setting UNKNOWN service instance");
+            throw new Error('illegalState - setting UNKNOWN service instance');
         }
     }
     private _getServiceInstanceOrDescriptor<T>(id: ServiceIdentifier<T>): T | SyncDescriptor<T> {
@@ -192,7 +183,7 @@ export class InstantiationService implements IInstantiationService {
             desc: SyncDescriptor<any>;
             _trace: Trace;
         };
-        const graph = new Graph<Triple>((data) => data.id.toString());
+        const graph = new Graph<Triple>(data => data.id.toString());
         let cycleCount = 0;
         const stack = [{ id, desc, _trace }];
         const seen = new Set<string>();
@@ -216,11 +207,7 @@ export class InstantiationService implements IInstantiationService {
                 // take note of all service dependencies
                 this._globalGraph?.insertEdge(String(item.id), String(dependency.id));
                 if (instanceOrDesc instanceof SyncDescriptor) {
-                    const d = {
-                        id: dependency.id,
-                        desc: instanceOrDesc,
-                        _trace: item._trace.branch(dependency.id, true),
-                    };
+                    const d = { id: dependency.id, desc: instanceOrDesc, _trace: item._trace.branch(dependency.id, true) };
                     graph.insertEdge(item, d);
                     stack.push(d);
                 }
@@ -287,7 +274,7 @@ export class InstantiationService implements IInstantiationService {
                 // the real service
                 for (const [key, values] of earlyListeners) {
                     const candidate = <Event<any>>(<any>result)[key];
-                    if (typeof candidate === "function") {
+                    if (typeof candidate === 'function') {
                         for (const value of values) {
                             value.disposable = candidate.apply(result, value.listener);
                         }
@@ -301,9 +288,7 @@ export class InstantiationService implements IInstantiationService {
                 get(target: any, key: PropertyKey): unknown {
                     if (!idle.isInitialized) {
                         // looks like an event
-                        if (typeof key === "string" &&
-                            (key.startsWith("onDid") ||
-                                key.startsWith("onWill"))) {
+                        if (typeof key === 'string' && (key.startsWith('onDid') || key.startsWith('onWill'))) {
                             let list = earlyListeners.get(key);
                             if (!list) {
                                 list = new LinkedList();
@@ -314,14 +299,7 @@ export class InstantiationService implements IInstantiationService {
                                     return idle.value[key](callback, thisArg, disposables);
                                 }
                                 else {
-                                    const entry: EaryListenerData = {
-                                        listener: [
-                                            callback,
-                                            thisArg,
-                                            disposables,
-                                        ],
-                                        disposable: undefined,
-                                    };
+                                    const entry: EaryListenerData = { listener: [callback, thisArg, disposables], disposable: undefined };
                                     const rm = list.push(entry);
                                     const result = toDisposable(() => {
                                         rm();
@@ -340,7 +318,7 @@ export class InstantiationService implements IInstantiationService {
                     // create value
                     const obj = idle.value;
                     let prop = obj[key];
-                    if (typeof prop !== "function") {
+                    if (typeof prop !== 'function') {
                         return prop;
                     }
                     prop = prop.bind(obj);
@@ -353,7 +331,7 @@ export class InstantiationService implements IInstantiationService {
                 },
                 getPrototypeOf(_target: T) {
                     return ctor.prototype;
-                },
+                }
             });
         }
     }
@@ -375,25 +353,16 @@ const enum TraceType {
 }
 export class Trace {
     static all = new Set<string>();
-    private static readonly _None = new (class extends Trace {
-        constructor() {
-            super(TraceType.None, null);
-        }
+    private static readonly _None = new class extends Trace {
+        constructor() { super(TraceType.None, null); }
         override stop() { }
-        override branch() {
-            return this;
-        }
-    })();
+        override branch() { return this; }
+    };
     static traceInvocation(_enableTracing: boolean, ctor: any): Trace {
-        return !_enableTracing
-            ? Trace._None
-            : new Trace(TraceType.Invocation, ctor.name ||
-                new Error().stack!.split("\n").slice(3, 4).join("\n"));
+        return !_enableTracing ? Trace._None : new Trace(TraceType.Invocation, ctor.name || new Error().stack!.split('\n').slice(3, 4).join('\n'));
     }
     static traceCreation(_enableTracing: boolean, ctor: any): Trace {
-        return !_enableTracing
-            ? Trace._None
-            : new Trace(TraceType.Creation, ctor.name);
+        return !_enableTracing ? Trace._None : new Trace(TraceType.Creation, ctor.name);
     }
     private static _totals: number = 0;
     private readonly _start: number = Date.now();
@@ -414,7 +383,7 @@ export class Trace {
         let causedCreation = false;
         function printChild(n: number, trace: Trace) {
             const res: string[] = [];
-            const prefix = new Array(n + 1).join("\t");
+            const prefix = new Array(n + 1).join('\t');
             for (const [id, first, child] of trace._dep) {
                 if (first && child) {
                     causedCreation = true;
@@ -428,15 +397,15 @@ export class Trace {
                     res.push(`${prefix}uses -> ${id}`);
                 }
             }
-            return res.join("\n");
+            return res.join('\n');
         }
         const lines = [
-            `${this.type === TraceType.Creation ? "CREATE" : "CALL"} ${this.name}`,
+            `${this.type === TraceType.Creation ? 'CREATE' : 'CALL'} ${this.name}`,
             `${printChild(1, this)}`,
-            `DONE, took ${dur.toFixed(2)}ms (grand total ${Trace._totals.toFixed(2)}ms)`,
+            `DONE, took ${dur.toFixed(2)}ms (grand total ${Trace._totals.toFixed(2)}ms)`
         ];
         if (dur > 2 || causedCreation) {
-            Trace.all.add(lines.join("\n"));
+            Trace.all.add(lines.join('\n'));
         }
     }
 }

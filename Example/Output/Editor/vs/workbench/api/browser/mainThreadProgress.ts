@@ -2,16 +2,16 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Action } from "../../../base/common/actions.js";
-import { localize } from "../../../nls.js";
-import { ICommandService } from "../../../platform/commands/common/commands.js";
-import { IProgress, IProgressNotificationOptions, IProgressOptions, IProgressService, IProgressStep, ProgressLocation, } from "../../../platform/progress/common/progress.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { ExtHostContext, ExtHostProgressShape, MainContext, MainThreadProgressShape, } from "../common/extHost.protocol.js";
+import { IProgress, IProgressService, IProgressStep, ProgressLocation, IProgressOptions, IProgressNotificationOptions } from '../../../platform/progress/common/progress.js';
+import { MainThreadProgressShape, MainContext, ExtHostProgressShape, ExtHostContext } from '../common/extHost.protocol.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { Action } from '../../../base/common/actions.js';
+import { ICommandService } from '../../../platform/commands/common/commands.js';
+import { localize } from '../../../nls.js';
 class ManageExtensionAction extends Action {
     constructor(extensionId: string, label: string, commandService: ICommandService) {
         super(extensionId, label, undefined, true, () => {
-            return commandService.executeCommand("_extensions.manage", extensionId);
+            return commandService.executeCommand('_extensions.manage', extensionId);
         });
     }
 }
@@ -32,7 +32,7 @@ export class MainThreadProgress implements MainThreadProgressShape {
         this._progressService = progressService;
     }
     dispose(): void {
-        this._progress.forEach((handle) => handle.resolve());
+        this._progress.forEach(handle => handle.resolve());
         this._progress.clear();
     }
     async $startProgress(handle: number, options: IProgressOptions, extensionId?: string): Promise<void> {
@@ -41,9 +41,7 @@ export class MainThreadProgress implements MainThreadProgressShape {
             const notificationOptions: IProgressNotificationOptions = {
                 ...options,
                 location: ProgressLocation.Notification,
-                secondaryActions: [
-                    new ManageExtensionAction(extensionId, localize("manageExtension", "Manage Extension"), this._commandService),
-                ],
+                secondaryActions: [new ManageExtensionAction(extensionId, localize('manageExtension', "Manage Extension"), this._commandService)]
             };
             options = notificationOptions;
         }
@@ -62,7 +60,7 @@ export class MainThreadProgress implements MainThreadProgressShape {
     }
     private _createTask(handle: number) {
         return (progress: IProgress<IProgressStep>) => {
-            return new Promise<void>((resolve) => {
+            return new Promise<void>(resolve => {
                 this._progress.set(handle, { resolve, progress });
             });
         };

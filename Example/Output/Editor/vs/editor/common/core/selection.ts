@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IPosition, Position } from "./position.js";
-import { Range } from "./range.js";
+import { IPosition, Position } from './position.js';
+import { Range } from './range.js';
 /**
  * A selection in the editor.
  * The selection is a range that has an orientation.
@@ -71,21 +71,13 @@ export class Selection extends Range {
      * Transform to a human-readable representation.
      */
     public override toString(): string {
-        return ("[" +
-            this.selectionStartLineNumber +
-            "," +
-            this.selectionStartColumn +
-            " -> " +
-            this.positionLineNumber +
-            "," +
-            this.positionColumn +
-            "]");
+        return '[' + this.selectionStartLineNumber + ',' + this.selectionStartColumn + ' -> ' + this.positionLineNumber + ',' + this.positionColumn + ']';
     }
     /**
      * Test if equals other selection.
      */
     public equalsSelection(other: ISelection): boolean {
-        return Selection.selectionsEqual(this, other);
+        return (Selection.selectionsEqual(this, other));
     }
     /**
      * Test if the two selections are equal.
@@ -100,8 +92,7 @@ export class Selection extends Range {
      * Get directions (LTR or RTL).
      */
     public getDirection(): SelectionDirection {
-        if (this.selectionStartLineNumber === this.startLineNumber &&
-            this.selectionStartColumn === this.startColumn) {
+        if (this.selectionStartLineNumber === this.startLineNumber && this.selectionStartColumn === this.startColumn) {
             return SelectionDirection.LTR;
         }
         return SelectionDirection.RTL;
@@ -123,7 +114,7 @@ export class Selection extends Range {
     }
     /**
      * Get the position at the start of the selection.
-     */
+    */
     public getSelectionStart(): Position {
         return new Position(this.selectionStartLineNumber, this.selectionStartColumn);
     }
@@ -164,7 +155,7 @@ export class Selection extends Range {
      * `a` equals `b`.
      */
     public static selectionsArrEqual(a: ISelection[], b: ISelection[]): boolean {
-        if ((a && !b) || (!a && b)) {
+        if (a && !b || !a && b) {
             return false;
         }
         if (!a && !b) {
@@ -184,11 +175,11 @@ export class Selection extends Range {
      * Test if `obj` is an `ISelection`.
      */
     public static isISelection(obj: any): obj is ISelection {
-        return (obj &&
-            typeof obj.selectionStartLineNumber === "number" &&
-            typeof obj.selectionStartColumn === "number" &&
-            typeof obj.positionLineNumber === "number" &&
-            typeof obj.positionColumn === "number");
+        return (obj
+            && (typeof obj.selectionStartLineNumber === 'number')
+            && (typeof obj.selectionStartColumn === 'number')
+            && (typeof obj.positionLineNumber === 'number')
+            && (typeof obj.positionColumn === 'number'));
     }
     /**
      * Create with a direction.

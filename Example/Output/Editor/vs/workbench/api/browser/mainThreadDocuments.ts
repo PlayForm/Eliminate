@@ -2,25 +2,25 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { toErrorMessage } from "../../../base/common/errorMessage.js";
-import { ErrorNoTelemetry } from "../../../base/common/errors.js";
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable, dispose, IReference, } from "../../../base/common/lifecycle.js";
-import { ResourceMap } from "../../../base/common/map.js";
-import { Schemas } from "../../../base/common/network.js";
-import { extUri, IExtUri, toLocalResource, } from "../../../base/common/resources.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { ITextModel, shouldSynchronizeModel, } from "../../../editor/common/model.js";
-import { IModelService } from "../../../editor/common/services/model.js";
-import { ITextModelService } from "../../../editor/common/services/resolverService.js";
-import { FileOperation, IFileService, } from "../../../platform/files/common/files.js";
-import { IUriIdentityService } from "../../../platform/uriIdentity/common/uriIdentity.js";
-import { IWorkbenchEnvironmentService } from "../../services/environment/common/environmentService.js";
-import { IExtHostContext } from "../../services/extensions/common/extHostCustomers.js";
-import { IPathService } from "../../services/path/common/pathService.js";
-import { ITextFileService } from "../../services/textfile/common/textfiles.js";
-import { IWorkingCopyFileService } from "../../services/workingCopy/common/workingCopyFileService.js";
-import { ExtHostContext, ExtHostDocumentsShape, MainThreadDocumentsShape, } from "../common/extHost.protocol.js";
+import { toErrorMessage } from '../../../base/common/errorMessage.js';
+import { IReference, dispose, Disposable } from '../../../base/common/lifecycle.js';
+import { Schemas } from '../../../base/common/network.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { ITextModel, shouldSynchronizeModel } from '../../../editor/common/model.js';
+import { IModelService } from '../../../editor/common/services/model.js';
+import { ITextModelService } from '../../../editor/common/services/resolverService.js';
+import { IFileService, FileOperation } from '../../../platform/files/common/files.js';
+import { ExtHostContext, ExtHostDocumentsShape, MainThreadDocumentsShape } from '../common/extHost.protocol.js';
+import { ITextFileService } from '../../services/textfile/common/textfiles.js';
+import { IWorkbenchEnvironmentService } from '../../services/environment/common/environmentService.js';
+import { toLocalResource, extUri, IExtUri } from '../../../base/common/resources.js';
+import { IWorkingCopyFileService } from '../../services/workingCopy/common/workingCopyFileService.js';
+import { IUriIdentityService } from '../../../platform/uriIdentity/common/uriIdentity.js';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { IPathService } from '../../services/path/common/pathService.js';
+import { ResourceMap } from '../../../base/common/map.js';
+import { IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { ErrorNoTelemetry } from '../../../base/common/errors.js';
 export class BoundModelReferenceCollection {
     private _data = new Array<{
         uri: URI;
@@ -30,16 +30,15 @@ export class BoundModelReferenceCollection {
     private _length = 0;
     constructor(private readonly _extUri: IExtUri, private readonly _maxAge: number = 1000 * 60 * 3, // auto-dispse by age
     private readonly _maxLength: number = 1024 * 1024 * 80, // auto-dispose by total length
-    private readonly _maxSize: number = 50) {
+    private readonly _maxSize: number = 50 // auto-dispose by number of references
+    ) {
         //
     }
     dispose(): void {
         this._data = dispose(this._data);
     }
     remove(uri: URI): void {
-        for (const entry of [
-            ...this._data,
-        ] /* copy array because dispose will modify it */) {
+        for (const entry of [...this._data] /* copy array because dispose will modify it */) {
             if (this._extUri.isEqualOrParent(entry.uri, uri)) {
                 entry.dispose();
             }
@@ -88,7 +87,7 @@ class ModelTracker extends Disposable {
         }));
     }
     isCaughtUpWithContentChanges(): boolean {
-        return this._model.getVersionId() === this._knownVersionId;
+        return (this._model.getVersionId() === this._knownVersionId);
     }
 }
 export class MainThreadDocuments extends Disposable implements MainThreadDocumentsShape {
@@ -118,17 +117,17 @@ export class MainThreadDocuments extends Disposable implements MainThreadDocumen
         this._modelReferenceCollection = this._store.add(new BoundModelReferenceCollection(_uriIdentityService.extUri));
         this._proxy = extHostContext.getProxy(ExtHostContext.ExtHostDocuments);
         this._store.add(_modelService.onModelLanguageChanged(this._onModelModeChanged, this));
-        this._store.add(_textFileService.files.onDidSave((e) => {
+        this._store.add(_textFileService.files.onDidSave(e => {
             if (this._shouldHandleFileEvent(e.model.resource)) {
                 this._proxy.$acceptModelSaved(e.model.resource);
             }
         }));
-        this._store.add(_textFileService.files.onDidChangeDirty((m) => {
+        this._store.add(_textFileService.files.onDidChangeDirty(m => {
             if (this._shouldHandleFileEvent(m.resource)) {
                 this._proxy.$acceptDirtyStateChanged(m.resource, m.isDirty());
             }
         }));
-        this._store.add(workingCopyFileService.onDidRunWorkingCopyFileOperation((e) => {
+        this._store.add(workingCopyFileService.onDidRunWorkingCopyFileOperation(e => {
             const isMove = e.operation === FileOperation.MOVE;
             if (isMove || e.operation === FileOperation.DELETE) {
                 for (const pair of e.files) {
@@ -238,7 +237,7 @@ export class MainThreadDocuments extends Disposable implements MainThreadDocumen
         const exists = await this._fileService.exists(asLocalUri);
         if (exists) {
             // don't create a new file ontop of an existing file
-            return Promise.reject(new Error("file already exists"));
+            return Promise.reject(new Error('file already exists'));
         }
         return await this._doCreateUntitled(Boolean(uri.path) ? uri : undefined);
     }
@@ -246,7 +245,7 @@ export class MainThreadDocuments extends Disposable implements MainThreadDocumen
         const model = this._textFileService.untitled.create({
             associatedResource,
             languageId,
-            initialValue,
+            initialValue
         });
         const resource = model.resource;
         const ref = await this._textModelResolverService.createModelReference(resource);

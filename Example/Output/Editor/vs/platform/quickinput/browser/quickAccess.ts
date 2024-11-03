@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { DeferredPromise } from "../../../base/common/async.js";
-import { CancellationTokenSource } from "../../../base/common/cancellation.js";
-import { Event } from "../../../base/common/event.js";
-import { Disposable, DisposableStore, IDisposable, toDisposable, } from "../../../base/common/lifecycle.js";
-import { IInstantiationService } from "../../instantiation/common/instantiation.js";
-import { Registry } from "../../registry/common/platform.js";
-import { DefaultQuickAccessFilterValue, Extensions, IQuickAccessController, IQuickAccessOptions, IQuickAccessProvider, IQuickAccessProviderDescriptor, IQuickAccessRegistry, } from "../common/quickAccess.js";
-import { IQuickInputService, IQuickPick, IQuickPickItem, ItemActivation, } from "../common/quickInput.js";
+import { DeferredPromise } from '../../../base/common/async.js';
+import { CancellationTokenSource } from '../../../base/common/cancellation.js';
+import { Event } from '../../../base/common/event.js';
+import { Disposable, DisposableStore, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { IInstantiationService } from '../../instantiation/common/instantiation.js';
+import { DefaultQuickAccessFilterValue, Extensions, IQuickAccessController, IQuickAccessOptions, IQuickAccessProvider, IQuickAccessProviderDescriptor, IQuickAccessRegistry } from '../common/quickAccess.js';
+import { IQuickInputService, IQuickPick, IQuickPickItem, ItemActivation } from '../common/quickInput.js';
+import { Registry } from '../../registry/common/platform.js';
 export class QuickAccessController extends Disposable implements IQuickAccessController {
     private readonly registry = Registry.as<IQuickAccessRegistry>(Extensions.Quickaccess);
     private readonly mapProviderToDescriptor = new Map<IQuickAccessProviderDescriptor, IQuickAccessProvider>();
@@ -28,10 +28,10 @@ export class QuickAccessController extends Disposable implements IQuickAccessCon
     private readonly instantiationService: IInstantiationService) {
         super();
     }
-    pick(value = "", options?: IQuickAccessOptions): Promise<IQuickPickItem[] | undefined> {
+    pick(value = '', options?: IQuickAccessOptions): Promise<IQuickPickItem[] | undefined> {
         return this.doShowOrPick(value, true, options);
     }
-    show(value = "", options?: IQuickAccessOptions): void {
+    show(value = '', options?: IQuickAccessOptions): void {
         this.doShowOrPick(value, false, options);
     }
     private doShowOrPick(value: string, pick: true, options?: IQuickAccessOptions): Promise<IQuickPickItem[] | undefined>;
@@ -42,9 +42,7 @@ export class QuickAccessController extends Disposable implements IQuickAccessCon
         // Return early if quick access is already showing on that same prefix
         const visibleQuickAccess = this.visibleQuickAccess;
         const visibleDescriptor = visibleQuickAccess?.descriptor;
-        if (visibleQuickAccess &&
-            descriptor &&
-            visibleDescriptor === descriptor) {
+        if (visibleQuickAccess && descriptor && visibleDescriptor === descriptor) {
             // Apply value only if it is more specific than the prefix
             // from the provider and we are not instructed to preserve
             if (value !== descriptor.prefix && !options?.preserveValue) {
@@ -59,9 +57,7 @@ export class QuickAccessController extends Disposable implements IQuickAccessCon
             let newValue: string | undefined = undefined;
             // If we have a visible provider with a value, take it's filter value but
             // rewrite to new provider prefix in case they differ
-            if (visibleQuickAccess &&
-                visibleDescriptor &&
-                visibleDescriptor !== descriptor) {
+            if (visibleQuickAccess && visibleDescriptor && visibleDescriptor !== descriptor) {
                 const newValueCandidateWithoutPrefix = visibleQuickAccess.value.substr(visibleDescriptor.prefix.length);
                 if (newValueCandidateWithoutPrefix) {
                     newValue = `${descriptor.prefix}${newValueCandidateWithoutPrefix}`;
@@ -73,11 +69,11 @@ export class QuickAccessController extends Disposable implements IQuickAccessCon
                 if (defaultFilterValue === DefaultQuickAccessFilterValue.LAST) {
                     newValue = this.lastAcceptedPickerValues.get(descriptor);
                 }
-                else if (typeof defaultFilterValue === "string") {
+                else if (typeof defaultFilterValue === 'string') {
                     newValue = `${descriptor.prefix}${defaultFilterValue}`;
                 }
             }
-            if (typeof newValue === "string") {
+            if (typeof newValue === 'string') {
                 value = newValue;
             }
         }
@@ -93,11 +89,8 @@ export class QuickAccessController extends Disposable implements IQuickAccessCon
         picker.placeholder = options?.placeholder ?? descriptor?.placeholder;
         picker.quickNavigate = options?.quickNavigateConfiguration;
         picker.hideInput = !!picker.quickNavigate && !visibleQuickAccess; // only hide input if there was no picker opened already
-        if (typeof options?.itemActivation === "number" ||
-            options?.quickNavigateConfiguration) {
-            picker.itemActivation =
-                options?.itemActivation ??
-                    ItemActivation.SECOND /* quick nav is always second */;
+        if (typeof options?.itemActivation === 'number' || options?.quickNavigateConfiguration) {
+            picker.itemActivation = options?.itemActivation ?? ItemActivation.SECOND /* quick nav is always second */;
         }
         picker.contextKey = descriptor?.contextKey;
         picker.filterValue = (value: string) => value.substring(descriptor ? descriptor.prefix.length : 0);
@@ -106,7 +99,7 @@ export class QuickAccessController extends Disposable implements IQuickAccessCon
         let pickPromise: DeferredPromise<IQuickPickItem[]> | undefined = undefined;
         if (pick) {
             pickPromise = new DeferredPromise<IQuickPickItem[]>();
-            disposables.add(Event.once(picker.onWillAccept)((e) => {
+            disposables.add(Event.once(picker.onWillAccept)(e => {
                 e.veto();
                 picker.hide();
             }));
@@ -157,10 +150,7 @@ export class QuickAccessController extends Disposable implements IQuickAccessCon
         }
         // Otherwise: select the value up until the prefix
         else {
-            valueSelection = [
-                descriptor?.prefix.length ?? 0,
-                picker.value.length,
-            ];
+            valueSelection = [descriptor?.prefix.length ?? 0, picker.value.length];
         }
         picker.valueSelection = valueSelection;
     }
@@ -169,11 +159,7 @@ export class QuickAccessController extends Disposable implements IQuickAccessCon
     }>, provider: IQuickAccessProvider | undefined, descriptor: IQuickAccessProviderDescriptor | undefined, value: string, options?: IQuickAccessOptions): IDisposable {
         const disposables = new DisposableStore();
         // Remember as last visible picker and clean up once picker get's disposed
-        const visibleQuickAccess = (this.visibleQuickAccess = {
-            picker,
-            descriptor,
-            value,
-        });
+        const visibleQuickAccess = this.visibleQuickAccess = { picker, descriptor, value };
         disposables.add(toDisposable(() => {
             if (visibleQuickAccess === this.visibleQuickAccess) {
                 this.visibleQuickAccess = undefined;
@@ -181,7 +167,7 @@ export class QuickAccessController extends Disposable implements IQuickAccessCon
         }));
         // Whenever the value changes, check if the provider has
         // changed and if so - re-create the picker from the beginning
-        disposables.add(picker.onDidChangeValue((value) => {
+        disposables.add(picker.onDidChangeValue(value => {
             const [providerForValue] = this.getOrInstantiateProvider(value, options?.enabledProviderPrefixes);
             if (providerForValue !== provider) {
                 this.show(value, {
@@ -189,7 +175,7 @@ export class QuickAccessController extends Disposable implements IQuickAccessCon
                     // do not rewrite value from user typing!
                     preserveValue: true,
                     // persist the value of the providerOptions from the original showing
-                    providerOptions: options?.providerOptions,
+                    providerOptions: options?.providerOptions
                 });
             }
             else {
@@ -209,9 +195,7 @@ export class QuickAccessController extends Disposable implements IQuickAccessCon
         IQuickAccessProviderDescriptor | undefined
     ] {
         const providerDescriptor = this.registry.getQuickAccessProvider(value);
-        if (!providerDescriptor ||
-            (enabledProviderPrefixes &&
-                !enabledProviderPrefixes?.includes(providerDescriptor.prefix))) {
+        if (!providerDescriptor || enabledProviderPrefixes && !enabledProviderPrefixes?.includes(providerDescriptor.prefix)) {
             return [undefined, undefined];
         }
         let provider = this.mapProviderToDescriptor.get(providerDescriptor);

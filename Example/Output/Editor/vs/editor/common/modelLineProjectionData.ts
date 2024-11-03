@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { assertNever } from "../../base/common/assert.js";
-import { WrappingIndent } from "./config/editorOptions.js";
-import { FontInfo } from "./config/fontInfo.js";
-import { Position } from "./core/position.js";
-import { InjectedTextCursorStops, InjectedTextOptions, PositionAffinity, } from "./model.js";
-import { LineInjectedText } from "./textModelEvents.js";
+import { assertNever } from '../../base/common/assert.js';
+import { WrappingIndent } from './config/editorOptions.js';
+import { FontInfo } from './config/fontInfo.js';
+import { Position } from './core/position.js';
+import { InjectedTextCursorStops, InjectedTextOptions, PositionAffinity } from './model.js';
+import { LineInjectedText } from './textModelEvents.js';
 /**
  * *input*:
  * ```
@@ -47,7 +47,8 @@ export class ModelLineProjectionData {
     /**
      * Refers to offsets after applying injections
      */
-    public breakOffsetsVisibleColumn: number[], public wrappedTextIndentLength: number) { }
+    public breakOffsetsVisibleColumn: number[], public wrappedTextIndentLength: number) {
+    }
     public getOutputLineCount(): number {
         return this.breakOffsets.length;
     }
@@ -74,22 +75,17 @@ export class ModelLineProjectionData {
         if (outputLineIndex > 0) {
             outputOffset = Math.max(0, outputOffset - this.wrappedTextIndentLength);
         }
-        const offsetInInputWithInjection = outputLineIndex === 0
-            ? outputOffset
-            : this.breakOffsets[outputLineIndex - 1] + outputOffset;
+        const offsetInInputWithInjection = outputLineIndex === 0 ? outputOffset : this.breakOffsets[outputLineIndex - 1] + outputOffset;
         let offsetInInput = offsetInInputWithInjection;
         if (this.injectionOffsets !== null) {
             for (let i = 0; i < this.injectionOffsets.length; i++) {
                 if (offsetInInput > this.injectionOffsets[i]) {
-                    if (offsetInInput <
-                        this.injectionOffsets[i] +
-                            this.injectionOptions![i].content.length) {
+                    if (offsetInInput < this.injectionOffsets[i] + this.injectionOptions![i].content.length) {
                         // `inputOffset` is within injected text
                         offsetInInput = this.injectionOffsets[i];
                     }
                     else {
-                        offsetInInput -=
-                            this.injectionOptions![i].content.length;
+                        offsetInInput -= this.injectionOptions![i].content.length;
                     }
                 }
                 else {
@@ -106,12 +102,10 @@ export class ModelLineProjectionData {
                 if (inputOffset < this.injectionOffsets[i]) {
                     break;
                 }
-                if (affinity !== PositionAffinity.Right &&
-                    inputOffset === this.injectionOffsets[i]) {
+                if (affinity !== PositionAffinity.Right && inputOffset === this.injectionOffsets[i]) {
                     break;
                 }
-                inputOffsetInInputWithInjection +=
-                    this.injectionOptions![i].content.length;
+                inputOffsetInInputWithInjection += this.injectionOptions![i].content.length;
             }
         }
         return this.offsetInInputWithInjectionsToOutputPosition(inputOffsetInInputWithInjection, affinity);
@@ -122,7 +116,7 @@ export class ModelLineProjectionData {
         let mid = 0;
         let midStart = 0;
         while (low <= high) {
-            mid = (low + (high - low) / 2) | 0;
+            mid = low + ((high - low) / 2) | 0;
             const midStop = this.breakOffsets[mid];
             midStart = mid > 0 ? this.breakOffsets[mid - 1] : 0;
             if (affinity === PositionAffinity.Left) {
@@ -164,15 +158,13 @@ export class ModelLineProjectionData {
             }
         }
         if (affinity === PositionAffinity.Left) {
-            if (outputLineIndex > 0 &&
-                outputOffset === this.getMinOutputOffset(outputLineIndex)) {
+            if (outputLineIndex > 0 && outputOffset === this.getMinOutputOffset(outputLineIndex)) {
                 return new OutputPosition(outputLineIndex - 1, this.getMaxOutputOffset(outputLineIndex - 1));
             }
         }
         else if (affinity === PositionAffinity.Right) {
             const maxOutputLineIndex = this.getOutputLineCount() - 1;
-            if (outputLineIndex < maxOutputLineIndex &&
-                outputOffset === this.getMaxOutputOffset(outputLineIndex)) {
+            if (outputLineIndex < maxOutputLineIndex && outputOffset === this.getMaxOutputOffset(outputLineIndex)) {
                 return new OutputPosition(outputLineIndex + 1, this.getMinOutputOffset(outputLineIndex + 1));
             }
         }
@@ -182,8 +174,7 @@ export class ModelLineProjectionData {
         if (outputLineIndex > 0) {
             outputOffset = Math.max(0, outputOffset - this.wrappedTextIndentLength);
         }
-        const result = (outputLineIndex > 0 ? this.breakOffsets[outputLineIndex - 1] : 0) +
-            outputOffset;
+        const result = (outputLineIndex > 0 ? this.breakOffsets[outputLineIndex - 1] : 0) + outputOffset;
         return result;
     }
     private normalizeOffsetInInputWithInjectionsAroundInjections(offsetInInputWithInjections: number, affinity: PositionAffinity): number {
@@ -192,24 +183,17 @@ export class ModelLineProjectionData {
             return offsetInInputWithInjections;
         }
         if (affinity === PositionAffinity.None) {
-            if (offsetInInputWithInjections ===
-                injectedText.offsetInInputWithInjections +
-                    injectedText.length &&
-                hasRightCursorStop(this.injectionOptions![injectedText.injectedTextIndex]
-                    .cursorStops)) {
-                return (injectedText.offsetInInputWithInjections +
-                    injectedText.length);
+            if (offsetInInputWithInjections === injectedText.offsetInInputWithInjections + injectedText.length
+                && hasRightCursorStop(this.injectionOptions![injectedText.injectedTextIndex].cursorStops)) {
+                return injectedText.offsetInInputWithInjections + injectedText.length;
             }
             else {
                 let result = injectedText.offsetInInputWithInjections;
-                if (hasLeftCursorStop(this.injectionOptions![injectedText.injectedTextIndex]
-                    .cursorStops)) {
+                if (hasLeftCursorStop(this.injectionOptions![injectedText.injectedTextIndex].cursorStops)) {
                     return result;
                 }
                 let index = injectedText.injectedTextIndex - 1;
-                while (index >= 0 &&
-                    this.injectionOffsets![index] ===
-                        this.injectionOffsets![injectedText.injectedTextIndex]) {
+                while (index >= 0 && this.injectionOffsets![index] === this.injectionOffsets![injectedText.injectedTextIndex]) {
                     if (hasRightCursorStop(this.injectionOptions![index].cursorStops)) {
                         break;
                     }
@@ -222,28 +206,22 @@ export class ModelLineProjectionData {
                 return result;
             }
         }
-        else if (affinity === PositionAffinity.Right ||
-            affinity === PositionAffinity.RightOfInjectedText) {
+        else if (affinity === PositionAffinity.Right || affinity === PositionAffinity.RightOfInjectedText) {
             let result = injectedText.offsetInInputWithInjections + injectedText.length;
             let index = injectedText.injectedTextIndex;
             // traverse all injected text that touch each other
-            while (index + 1 < this.injectionOffsets!.length &&
-                this.injectionOffsets![index + 1] ===
-                    this.injectionOffsets![index]) {
+            while (index + 1 < this.injectionOffsets!.length && this.injectionOffsets![index + 1] === this.injectionOffsets![index]) {
                 result += this.injectionOptions![index + 1].content.length;
                 index++;
             }
             return result;
         }
-        else if (affinity === PositionAffinity.Left ||
-            affinity === PositionAffinity.LeftOfInjectedText) {
+        else if (affinity === PositionAffinity.Left || affinity === PositionAffinity.LeftOfInjectedText) {
             // affinity is left
             let result = injectedText.offsetInInputWithInjections;
             let index = injectedText.injectedTextIndex;
             // traverse all injected text that touch each other
-            while (index - 1 >= 0 &&
-                this.injectionOffsets![index - 1] ===
-                    this.injectionOffsets![index]) {
+            while (index - 1 >= 0 && this.injectionOffsets![index - 1] === this.injectionOffsets![index]) {
                 result -= this.injectionOptions![index - 1].content.length;
                 index--;
             }
@@ -258,7 +236,7 @@ export class ModelLineProjectionData {
             return null;
         }
         return {
-            options: this.injectionOptions![injectedText.injectedTextIndex],
+            options: this.injectionOptions![injectedText.injectedTextIndex]
         };
     }
     private getInjectedTextAtOffset(offsetInInputWithInjections: number): {
@@ -273,21 +251,17 @@ export class ModelLineProjectionData {
             for (let i = 0; i < injectionOffsets.length; i++) {
                 const length = injectionOptions![i].content.length;
                 const injectedTextStartOffsetInInputWithInjections = injectionOffsets[i] + totalInjectedTextLengthBefore;
-                const injectedTextEndOffsetInInputWithInjections = injectionOffsets[i] +
-                    totalInjectedTextLengthBefore +
-                    length;
-                if (injectedTextStartOffsetInInputWithInjections >
-                    offsetInInputWithInjections) {
+                const injectedTextEndOffsetInInputWithInjections = injectionOffsets[i] + totalInjectedTextLengthBefore + length;
+                if (injectedTextStartOffsetInInputWithInjections > offsetInInputWithInjections) {
                     // Injected text starts later.
                     break; // All later injected texts have an even larger offset.
                 }
-                if (offsetInInputWithInjections <=
-                    injectedTextEndOffsetInInputWithInjections) {
+                if (offsetInInputWithInjections <= injectedTextEndOffsetInInputWithInjections) {
                     // Injected text ends after or with the given position (but also starts with or before it).
                     return {
                         injectedTextIndex: i,
                         offsetInInputWithInjections: injectedTextStartOffsetInInputWithInjections,
-                        length,
+                        length
                     };
                 }
                 totalInjectedTextLengthBefore += length;
@@ -300,15 +274,13 @@ function hasRightCursorStop(cursorStop: InjectedTextCursorStops | null | undefin
     if (cursorStop === null || cursorStop === undefined) {
         return true;
     }
-    return (cursorStop === InjectedTextCursorStops.Right ||
-        cursorStop === InjectedTextCursorStops.Both);
+    return cursorStop === InjectedTextCursorStops.Right || cursorStop === InjectedTextCursorStops.Both;
 }
 function hasLeftCursorStop(cursorStop: InjectedTextCursorStops | null | undefined): boolean {
     if (cursorStop === null || cursorStop === undefined) {
         return true;
     }
-    return (cursorStop === InjectedTextCursorStops.Left ||
-        cursorStop === InjectedTextCursorStops.Both);
+    return cursorStop === InjectedTextCursorStops.Left || cursorStop === InjectedTextCursorStops.Both;
 }
 export class InjectedText {
     constructor(public readonly options: InjectedTextOptions) { }
@@ -328,7 +300,7 @@ export class OutputPosition {
     }
 }
 export interface ILineBreaksComputerFactory {
-    createLineBreaksComputer(fontInfo: FontInfo, tabSize: number, wrappingColumn: number, wrappingIndent: WrappingIndent, wordBreak: "normal" | "keepAll"): ILineBreaksComputer;
+    createLineBreaksComputer(fontInfo: FontInfo, tabSize: number, wrappingColumn: number, wrappingIndent: WrappingIndent, wordBreak: 'normal' | 'keepAll'): ILineBreaksComputer;
 }
 export interface ILineBreaksComputer {
     /**

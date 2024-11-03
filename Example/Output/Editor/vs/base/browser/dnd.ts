@@ -66,20 +66,20 @@ export const DataTransfers = {
 };
 export function applyDragImage(event: DragEvent, label: string | null, clazz: string, backgroundColor?: string | null, foregroundColor?: string | null): void {
     const dragImage = document.createElement('div');
-    document.createElement('div').className = clazz;
-    document.createElement('div').textContent = label;
+    dragImage.className = clazz;
+    dragImage.textContent = label;
     if (foregroundColor) {
-        document.createElement('div').style.color = foregroundColor;
+        dragImage.style.color = foregroundColor;
     }
     if (backgroundColor) {
-        document.createElement('div').style.background = backgroundColor;
+        dragImage.style.background = backgroundColor;
     }
     if (event.dataTransfer) {
-        ;
-        getWindow(event).document.body.appendChild(document.createElement('div'));
-        event.dataTransfer.setDragImage(document.createElement('div'), -10, -10);
+        const ownerDocument = getWindow(event).document;
+        ownerDocument.body.appendChild(dragImage);
+        event.dataTransfer.setDragImage(dragImage, -10, -10);
         // Removes the element when the DND operation is done
-        setTimeout(() => document.createElement('div').remove(), 0);
+        setTimeout(() => dragImage.remove(), 0);
     }
 }
 export interface IDragAndDropData {

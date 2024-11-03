@@ -2,25 +2,25 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as browser from "../../../base/browser/browser.js";
-import { getWindow, getWindowById } from "../../../base/browser/dom.js";
-import { PixelRatio } from "../../../base/browser/pixelRatio.js";
-import * as arrays from "../../../base/common/arrays.js";
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import * as objects from "../../../base/common/objects.js";
-import * as platform from "../../../base/common/platform.js";
-import { AccessibilitySupport, IAccessibilityService, } from "../../../platform/accessibility/common/accessibility.js";
-import { MenuId } from "../../../platform/actions/common/actions.js";
-import { IEditorConfiguration } from "../../common/config/editorConfiguration.js";
-import { ComputeOptionsMemory, ConfigurationChangedEvent, EditorOption, editorOptionsRegistry, FindComputedEditorOptionValueById, IComputedEditorOptions, IEditorOptions, IEnvironmentalOptions, } from "../../common/config/editorOptions.js";
-import { EditorZoom } from "../../common/config/editorZoom.js";
-import { BareFontInfo, FontInfo, IValidatedEditorOptions, } from "../../common/config/fontInfo.js";
-import { IDimension } from "../../common/core/dimension.js";
-import { ElementSizeObserver } from "./elementSizeObserver.js";
-import { FontMeasurements } from "./fontMeasurements.js";
-import { migrateOptions } from "./migrateOptions.js";
-import { TabFocus } from "./tabFocus.js";
+import * as browser from '../../../base/browser/browser.js';
+import * as arrays from '../../../base/common/arrays.js';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import * as objects from '../../../base/common/objects.js';
+import * as platform from '../../../base/common/platform.js';
+import { ElementSizeObserver } from './elementSizeObserver.js';
+import { FontMeasurements } from './fontMeasurements.js';
+import { migrateOptions } from './migrateOptions.js';
+import { TabFocus } from './tabFocus.js';
+import { ComputeOptionsMemory, ConfigurationChangedEvent, EditorOption, editorOptionsRegistry, FindComputedEditorOptionValueById, IComputedEditorOptions, IEditorOptions, IEnvironmentalOptions } from '../../common/config/editorOptions.js';
+import { EditorZoom } from '../../common/config/editorZoom.js';
+import { BareFontInfo, FontInfo, IValidatedEditorOptions } from '../../common/config/fontInfo.js';
+import { IDimension } from '../../common/core/dimension.js';
+import { IEditorConfiguration } from '../../common/config/editorConfiguration.js';
+import { AccessibilitySupport, IAccessibilityService } from '../../../platform/accessibility/common/accessibility.js';
+import { getWindow, getWindowById } from '../../../base/browser/dom.js';
+import { PixelRatio } from '../../../base/browser/pixelRatio.js';
+import { MenuId } from '../../../platform/actions/common/actions.js';
 export interface IEditorConstructionOptions extends IEditorOptions {
     /**
      * The initial editor dimension (to avoid measuring the container).
@@ -108,7 +108,7 @@ export class EditorConfiguration extends Disposable implements IEditorConfigurat
             pixelRatio: partialEnv.pixelRatio,
             tabFocusMode: TabFocus.getTabFocusMode(),
             accessibilitySupport: partialEnv.accessibilitySupport,
-            glyphMarginDecorationLaneCount: this._glyphMarginDecorationLaneCount,
+            glyphMarginDecorationLaneCount: this._glyphMarginDecorationLaneCount
         };
         return EditorOptionsUtil.computeOptions(this._validatedOptions, env);
     }
@@ -119,9 +119,9 @@ export class EditorConfiguration extends Disposable implements IEditorConfigurat
             outerHeight: this._containerObserver.getHeight(),
             emptySelectionClipboard: browser.isWebKit || browser.isFirefox,
             pixelRatio: PixelRatio.getInstance(getWindowById(this._targetWindowId, true).window).value,
-            accessibilitySupport: this._accessibilityService.isScreenReaderOptimized()
+            accessibilitySupport: (this._accessibilityService.isScreenReaderOptimized()
                 ? AccessibilitySupport.Enabled
-                : this._accessibilityService.getAccessibilitySupport(),
+                : this._accessibilityService.getAccessibilitySupport())
         };
     }
     protected _readFontInfo(bareFontInfo: BareFontInfo): FontInfo {
@@ -188,18 +188,18 @@ function digitCount(n: number): number {
     return r ? r : 1;
 }
 function getExtraEditorClassName(): string {
-    let extra = "";
+    let extra = '';
     if (!browser.isSafari && !browser.isWebkitWebView) {
         // Use user-select: none in all browsers except Safari and native macOS WebView
-        extra += "no-user-select ";
+        extra += 'no-user-select ';
     }
     if (browser.isSafari) {
         // See https://github.com/microsoft/vscode/issues/108822
-        extra += "no-minimap-shadow ";
-        extra += "enable-user-select ";
+        extra += 'no-minimap-shadow ';
+        extra += 'enable-user-select ';
     }
     if (platform.isMacintosh) {
-        extra += "mac ";
+        extra += 'mac ';
     }
     return extra;
 }
@@ -227,7 +227,7 @@ export class ComputedEditorOptions implements IComputedEditorOptions {
     private readonly _values: any[] = [];
     public _read<T>(id: EditorOption): T {
         if (id >= this._values.length) {
-            throw new Error("Cannot read uninitialized value");
+            throw new Error('Cannot read uninitialized value');
         }
         return this._values[id];
     }
@@ -242,9 +242,7 @@ class EditorOptionsUtil {
     public static validateOptions(options: IEditorOptions): ValidatedEditorOptions {
         const result = new ValidatedEditorOptions();
         for (const editorOption of editorOptionsRegistry) {
-            const value = editorOption.name === "_never_"
-                ? undefined
-                : (options as any)[editorOption.name];
+            const value = (editorOption.name === '_never_' ? undefined : (options as any)[editorOption.name]);
             result._write(editorOption.id, editorOption.validate(value));
         }
         return result;
@@ -257,16 +255,13 @@ class EditorOptionsUtil {
         return result;
     }
     private static _deepEquals<T>(a: T, b: T): boolean {
-        if (typeof a !== "object" || typeof b !== "object" || !a || !b) {
+        if (typeof a !== 'object' || typeof b !== 'object' || !a || !b) {
             return a === b;
         }
         if (Array.isArray(a) || Array.isArray(b)) {
-            return Array.isArray(a) && Array.isArray(b)
-                ? arrays.equals(a, b)
-                : false;
+            return (Array.isArray(a) && Array.isArray(b) ? arrays.equals(a, b) : false);
         }
-        if (Object.keys(a as unknown as object).length !==
-            Object.keys(b as unknown as object).length) {
+        if (Object.keys(a as unknown as object).length !== Object.keys(b as unknown as object).length) {
             return false;
         }
         for (const key in a) {
@@ -286,12 +281,12 @@ class EditorOptionsUtil {
                 somethingChanged = true;
             }
         }
-        return somethingChanged ? new ConfigurationChangedEvent(result) : null;
+        return (somethingChanged ? new ConfigurationChangedEvent(result) : null);
     }
     /**
      * Returns true if something changed.
      * Modifies `options`.
-     */
+    */
     public static applyUpdate(options: IEditorOptions, update: Readonly<IEditorOptions>): boolean {
         let changed = false;
         for (const editorOption of editorOptionsRegistry) {

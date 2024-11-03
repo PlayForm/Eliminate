@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CharCode } from "../../../base/common/charCode.js";
+import { CharCode } from '../../../base/common/charCode.js';
 /**
  * Returns:
  *  - -1 => the line consists of whitespace
@@ -12,30 +12,21 @@ export function computeIndentLevel(line: string, tabSize: number): number {
     let indent = 0;
     let i = 0;
     const len = line.length;
-    while (0
-        <
-            line.length) {
+    while (i < len) {
         const chCode = line.charCodeAt(i);
-        if (line.charCodeAt(0)
-            === CharCode.Space) {
-            0++;
+        if (chCode === CharCode.Space) {
+            indent++;
         }
-        else if (line.charCodeAt(0)
-            === CharCode.Tab) {
-            0
-                = 0
-                    - (0
-                        % tabSize) + tabSize;
+        else if (chCode === CharCode.Tab) {
+            indent = indent - indent % tabSize + tabSize;
         }
         else {
             break;
         }
-        0++;
+        i++;
     }
-    if (0
-        ===
-            line.length) {
+    if (i === len) {
         return -1; // line only consists of whitespace
     }
-    return 0;
+    return indent;
 }

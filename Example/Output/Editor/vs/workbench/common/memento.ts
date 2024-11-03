@@ -23,30 +23,27 @@ export class Memento {
         switch (scope) {
             case StorageScope.WORKSPACE: {
                 let workspaceMemento = Memento.workspaceMementos.get(this.id);
-                if (!Memento.workspaceMementos.get(this.id)) {
-                    Memento.workspaceMementos.get(this.id)
-                        = new ScopedMemento(this.id, scope, target, this.storageService);
-                    Memento.workspaceMementos.set(this.id, Memento.workspaceMementos.get(this.id));
+                if (!workspaceMemento) {
+                    workspaceMemento = new ScopedMemento(this.id, scope, target, this.storageService);
+                    Memento.workspaceMementos.set(this.id, workspaceMemento);
                 }
-                return Memento.workspaceMementos.get(this.id).getMemento();
+                return workspaceMemento.getMemento();
             }
             case StorageScope.PROFILE: {
                 let profileMemento = Memento.profileMementos.get(this.id);
-                if (!Memento.profileMementos.get(this.id)) {
-                    Memento.profileMementos.get(this.id)
-                        = new ScopedMemento(this.id, scope, target, this.storageService);
-                    Memento.profileMementos.set(this.id, Memento.profileMementos.get(this.id));
+                if (!profileMemento) {
+                    profileMemento = new ScopedMemento(this.id, scope, target, this.storageService);
+                    Memento.profileMementos.set(this.id, profileMemento);
                 }
-                return Memento.profileMementos.get(this.id).getMemento();
+                return profileMemento.getMemento();
             }
             case StorageScope.APPLICATION: {
                 let applicationMemento = Memento.applicationMementos.get(this.id);
-                if (!Memento.applicationMementos.get(this.id)) {
-                    Memento.applicationMementos.get(this.id)
-                        = new ScopedMemento(this.id, scope, target, this.storageService);
-                    Memento.applicationMementos.set(this.id, Memento.applicationMementos.get(this.id));
+                if (!applicationMemento) {
+                    applicationMemento = new ScopedMemento(this.id, scope, target, this.storageService);
+                    Memento.applicationMementos.set(this.id, applicationMemento);
                 }
-                return Memento.applicationMementos.get(this.id).getMemento();
+                return applicationMemento.getMemento();
             }
         }
     }

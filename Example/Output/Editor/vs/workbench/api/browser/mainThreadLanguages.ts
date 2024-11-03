@@ -2,17 +2,17 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { DisposableMap, DisposableStore, } from "../../../base/common/lifecycle.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { IPosition } from "../../../editor/common/core/position.js";
-import { IRange, Range } from "../../../editor/common/core/range.js";
-import { StandardTokenType } from "../../../editor/common/encodedTokenAttributes.js";
-import { ILanguageService } from "../../../editor/common/languages/language.js";
-import { IModelService } from "../../../editor/common/services/model.js";
-import { ITextModelService } from "../../../editor/common/services/resolverService.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { ILanguageStatus, ILanguageStatusService, } from "../../services/languageStatus/common/languageStatusService.js";
-import { ExtHostContext, ExtHostLanguagesShape, MainContext, MainThreadLanguagesShape, } from "../common/extHost.protocol.js";
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { ILanguageService } from '../../../editor/common/languages/language.js';
+import { IModelService } from '../../../editor/common/services/model.js';
+import { MainThreadLanguagesShape, MainContext, ExtHostContext, ExtHostLanguagesShape } from '../common/extHost.protocol.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { IPosition } from '../../../editor/common/core/position.js';
+import { IRange, Range } from '../../../editor/common/core/range.js';
+import { StandardTokenType } from '../../../editor/common/encodedTokenAttributes.js';
+import { ITextModelService } from '../../../editor/common/services/resolverService.js';
+import { ILanguageStatus, ILanguageStatusService } from '../../services/languageStatus/common/languageStatusService.js';
+import { DisposableMap, DisposableStore } from '../../../base/common/lifecycle.js';
 @extHostNamedCustomer(MainContext.MainThreadLanguages)
 export class MainThreadLanguages implements MainThreadLanguagesShape {
     private readonly _disposables = new DisposableStore();
@@ -29,7 +29,7 @@ export class MainThreadLanguages implements MainThreadLanguagesShape {
     private readonly _languageStatusService: ILanguageStatusService) {
         this._proxy = _extHostContext.getProxy(ExtHostContext.ExtHostLanguages);
         this._proxy.$acceptLanguageIds(_languageService.getRegisteredLanguageIds());
-        this._disposables.add(_languageService.onDidChange((_) => {
+        this._disposables.add(_languageService.onDidChange(_ => {
             this._proxy.$acceptLanguageIds(_languageService.getRegisteredLanguageIds());
         }));
     }
@@ -64,7 +64,7 @@ export class MainThreadLanguages implements MainThreadLanguagesShape {
         const idx = tokens.findTokenIndexAtOffset(position.column - 1);
         return {
             type: tokens.getStandardTokenType(idx),
-            range: new Range(position.lineNumber, 1 + tokens.getStartOffset(idx), position.lineNumber, 1 + tokens.getEndOffset(idx)),
+            range: new Range(position.lineNumber, 1 + tokens.getStartOffset(idx), position.lineNumber, 1 + tokens.getEndOffset(idx))
         };
     }
     // --- language status

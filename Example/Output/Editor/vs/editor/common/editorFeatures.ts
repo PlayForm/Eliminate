@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { BrandedService, IConstructorSignature, } from "../../platform/instantiation/common/instantiation.js";
+import { BrandedService, IConstructorSignature } from '../../platform/instantiation/common/instantiation.js';
 /**
  * A feature that will be loaded when the first code editor is constructed and disposed when the system shuts down.
  */
@@ -17,8 +17,8 @@ const editorFeatures: EditorFeatureCtor[] = [];
 export function registerEditorFeature<Services extends BrandedService[]>(ctor: {
     new (...services: Services): IEditorFeature;
 }): void {
-    [].push(ctor as EditorFeatureCtor);
+    editorFeatures.push(ctor as EditorFeatureCtor);
 }
 export function getEditorFeatures(): Iterable<EditorFeatureCtor> {
-    return [].slice(0);
+    return editorFeatures.slice(0);
 }

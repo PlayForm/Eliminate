@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { debounce, throttle } from "../../../base/common/decorators.js";
-import { Emitter } from "../../../base/common/event.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { parse } from "../../../base/common/path.js";
-import { ProcessItem } from "../../../base/common/processes.js";
-import { listProcesses } from "../../../base/node/ps.js";
-import { ILogService } from "../../log/common/log.js";
+import { parse } from '../../../base/common/path.js';
+import { debounce, throttle } from '../../../base/common/decorators.js';
+import { Emitter } from '../../../base/common/event.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { ProcessItem } from '../../../base/common/processes.js';
+import { listProcesses } from '../../../base/node/ps.js';
+import { ILogService } from '../../log/common/log.js';
 const enum Constants {
     /**
      * The amount of time to throttle checks when the process receives output.
@@ -29,16 +29,14 @@ export class ChildProcessMonitor extends Disposable {
     private set hasChildProcesses(value: boolean) {
         if (this._hasChildProcesses !== value) {
             this._hasChildProcesses = value;
-            this._logService.debug("ChildProcessMonitor: Has child processes changed", value);
+            this._logService.debug('ChildProcessMonitor: Has child processes changed', value);
             this._onDidChangeHasChildProcesses.fire(value);
         }
     }
     /**
      * Whether the process has child processes.
      */
-    get hasChildProcesses(): boolean {
-        return this._hasChildProcesses;
-    }
+    get hasChildProcesses(): boolean { return this._hasChildProcesses; }
     private readonly _onDidChangeHasChildProcesses = this._register(new Emitter<boolean>());
     /**
      * An event that fires when whether the process has child processes changes.
@@ -71,7 +69,7 @@ export class ChildProcessMonitor extends Disposable {
             this.hasChildProcesses = this._processContainsChildren(processItem);
         }
         catch (e) {
-            this._logService.debug("ChildProcessMonitor: Fetching process tree failed", e);
+            this._logService.debug('ChildProcessMonitor: Fetching process tree failed', e);
         }
     }
     @throttle(Constants.InactiveThrottleDuration)

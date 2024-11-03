@@ -2,24 +2,24 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IStringDictionary } from "../../../base/common/collections.js";
-import { PerformanceMark } from "../../../base/common/performance.js";
-import { isLinux, isMacintosh, isNative, isWeb, } from "../../../base/common/platform.js";
-import { URI, UriComponents, UriDto } from "../../../base/common/uri.js";
-import { ISandboxConfiguration } from "../../../base/parts/sandbox/common/sandboxTypes.js";
-import { IConfigurationService } from "../../configuration/common/configuration.js";
-import { IEditorOptions } from "../../editor/common/editor.js";
-import { NativeParsedArgs } from "../../environment/common/argv.js";
-import { FileType } from "../../files/common/files.js";
-import { ILoggerResource, LogLevel } from "../../log/common/log.js";
-import { PolicyDefinition, PolicyValue } from "../../policy/common/policy.js";
-import { IPartsSplash } from "../../theme/common/themeService.js";
-import { IUserDataProfile } from "../../userDataProfile/common/userDataProfile.js";
-import { IAnyWorkspaceIdentifier, ISingleFolderWorkspaceIdentifier, IWorkspaceIdentifier, } from "../../workspace/common/workspace.js";
+import { IStringDictionary } from '../../../base/common/collections.js';
+import { PerformanceMark } from '../../../base/common/performance.js';
+import { isLinux, isMacintosh, isNative, isWeb } from '../../../base/common/platform.js';
+import { URI, UriComponents, UriDto } from '../../../base/common/uri.js';
+import { ISandboxConfiguration } from '../../../base/parts/sandbox/common/sandboxTypes.js';
+import { IConfigurationService } from '../../configuration/common/configuration.js';
+import { IEditorOptions } from '../../editor/common/editor.js';
+import { NativeParsedArgs } from '../../environment/common/argv.js';
+import { FileType } from '../../files/common/files.js';
+import { ILoggerResource, LogLevel } from '../../log/common/log.js';
+import { PolicyDefinition, PolicyValue } from '../../policy/common/policy.js';
+import { IPartsSplash } from '../../theme/common/themeService.js';
+import { IUserDataProfile } from '../../userDataProfile/common/userDataProfile.js';
+import { IAnyWorkspaceIdentifier, ISingleFolderWorkspaceIdentifier, IWorkspaceIdentifier } from '../../workspace/common/workspace.js';
 export const WindowMinimumSize = {
     WIDTH: 400,
     WIDTH_WITH_VERTICAL_PANEL: 600,
-    HEIGHT: 270,
+    HEIGHT: 270
 };
 export interface IPoint {
     readonly x: number;
@@ -71,7 +71,7 @@ export interface IOpenedAuxiliaryWindow extends IOpenedWindow {
     readonly parentId: number;
 }
 export function isOpenedAuxiliaryWindow(candidate: IOpenedMainWindow | IOpenedAuxiliaryWindow): candidate is IOpenedAuxiliaryWindow {
-    return typeof (candidate as IOpenedAuxiliaryWindow).parentId === "number";
+    return typeof (candidate as IOpenedAuxiliaryWindow).parentId === 'number';
 }
 export interface IOpenEmptyWindowOptions extends IBaseOpenWindowsOptions {
 }
@@ -97,14 +97,12 @@ export function isFolderToOpen(uriToOpen: IWindowOpenable): uriToOpen is IFolder
 export function isFileToOpen(uriToOpen: IWindowOpenable): uriToOpen is IFileToOpen {
     return !!(uriToOpen as IFileToOpen).fileUri;
 }
-export type MenuBarVisibility = "classic" | "visible" | "toggle" | "hidden" | "compact";
+export type MenuBarVisibility = 'classic' | 'visible' | 'toggle' | 'hidden' | 'compact';
 export function getMenuBarVisibility(configurationService: IConfigurationService): MenuBarVisibility {
     const nativeTitleBarEnabled = hasNativeTitlebar(configurationService);
-    const menuBarVisibility = configurationService.getValue<MenuBarVisibility | "default">("window.menuBarVisibility");
-    if (menuBarVisibility === "default" ||
-        (nativeTitleBarEnabled && menuBarVisibility === "compact") ||
-        (isMacintosh && isNative)) {
-        return "classic";
+    const menuBarVisibility = configurationService.getValue<MenuBarVisibility | 'default'>('window.menuBarVisibility');
+    if (menuBarVisibility === 'default' || (nativeTitleBarEnabled && menuBarVisibility === 'compact') || (isMacintosh && isNative)) {
+        return 'classic';
     }
     else {
         return menuBarVisibility;
@@ -114,17 +112,17 @@ export interface IWindowsConfiguration {
     readonly window: IWindowSettings;
 }
 export interface IWindowSettings {
-    readonly openFilesInNewWindow: "on" | "off" | "default";
-    readonly openFoldersInNewWindow: "on" | "off" | "default";
-    readonly openWithoutArgumentsInNewWindow: "on" | "off";
-    readonly restoreWindows: "preserve" | "all" | "folders" | "one" | "none";
+    readonly openFilesInNewWindow: 'on' | 'off' | 'default';
+    readonly openFoldersInNewWindow: 'on' | 'off' | 'default';
+    readonly openWithoutArgumentsInNewWindow: 'on' | 'off';
+    readonly restoreWindows: 'preserve' | 'all' | 'folders' | 'one' | 'none';
     readonly restoreFullscreen: boolean;
     readonly zoomLevel: number;
     readonly titleBarStyle: TitlebarStyle;
     readonly autoDetectHighContrast: boolean;
     readonly autoDetectColorScheme: boolean;
     readonly menuBarVisibility: MenuBarVisibility;
-    readonly newWindowDimensions: "default" | "inherit" | "offset" | "maximized" | "fullscreen";
+    readonly newWindowDimensions: 'default' | 'inherit' | 'offset' | 'maximized' | 'fullscreen';
     readonly nativeTabs: boolean;
     readonly nativeFullScreen: boolean;
     readonly enableMenuBarMnemonics: boolean;
@@ -135,20 +133,20 @@ export interface IWindowSettings {
     readonly experimentalControlOverlay?: boolean;
 }
 export interface IDensitySettings {
-    readonly editorTabHeight: "default" | "compact";
+    readonly editorTabHeight: 'default' | 'compact';
 }
 export const enum TitleBarSetting {
-    TITLE_BAR_STYLE = "window.titleBarStyle",
-    CUSTOM_TITLE_BAR_VISIBILITY = "window.customTitleBarVisibility"
+    TITLE_BAR_STYLE = 'window.titleBarStyle',
+    CUSTOM_TITLE_BAR_VISIBILITY = 'window.customTitleBarVisibility'
 }
 export const enum TitlebarStyle {
-    NATIVE = "native",
-    CUSTOM = "custom"
+    NATIVE = 'native',
+    CUSTOM = 'custom'
 }
 export const enum CustomTitleBarVisibility {
-    AUTO = "auto",
-    WINDOWED = "windowed",
-    NEVER = "never"
+    AUTO = 'auto',
+    WINDOWED = 'windowed',
+    NEVER = 'never'
 }
 export function hasCustomTitlebar(configurationService: IConfigurationService, titleBarStyle?: TitlebarStyle): boolean {
     // Returns if it possible to have a custom title bar in the curren session
@@ -165,7 +163,7 @@ export function getTitleBarStyle(configurationService: IConfigurationService): T
     if (isWeb) {
         return TitlebarStyle.CUSTOM;
     }
-    const configuration = configurationService.getValue<IWindowSettings | undefined>("window");
+    const configuration = configurationService.getValue<IWindowSettings | undefined>('window');
     if (configuration) {
         const useNativeTabs = isMacintosh && configuration.nativeTabs === true;
         if (useNativeTabs) {
@@ -191,8 +189,8 @@ export function useWindowControlsOverlay(configurationService: IConfigurationSer
         return false; // only supported when title bar is custom
     }
     if (isLinux) {
-        const setting = configurationService.getValue("window.experimentalControlOverlay");
-        if (typeof setting === "boolean") {
+        const setting = configurationService.getValue('window.experimentalControlOverlay');
+        if (typeof setting === 'boolean') {
             return setting;
         }
     }
@@ -200,8 +198,8 @@ export function useWindowControlsOverlay(configurationService: IConfigurationSer
     return true;
 }
 export function useNativeFullScreen(configurationService: IConfigurationService): boolean {
-    const windowConfig = configurationService.getValue<IWindowSettings | undefined>("window");
-    if (!windowConfig || typeof windowConfig.nativeFullScreen !== "boolean") {
+    const windowConfig = configurationService.getValue<IWindowSettings | undefined>('window');
+    if (!windowConfig || typeof windowConfig.nativeFullScreen !== 'boolean') {
         return true; // default
     }
     if (windowConfig.nativeTabs) {
@@ -263,7 +261,7 @@ export interface INativeOpenFileRequest extends IOpenFileRequest {
 }
 export interface INativeRunActionInWindowRequest {
     readonly id: string;
-    readonly from: "menu" | "touchbar" | "mouse";
+    readonly from: 'menu' | 'touchbar' | 'mouse';
     readonly args?: any[];
 }
 export interface INativeRunKeybindingInWindowRequest {

@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { InstantiationType, registerSingleton, } from "../../../platform/instantiation/common/extensions.js";
-import { ILogService } from "../../../platform/log/common/log.js";
-import { IThemeService } from "../../../platform/theme/common/themeService.js";
-import { ILanguageService } from "../languages/language.js";
-import { DocumentTokensProvider } from "./model.js";
-import { SemanticTokensProviderStyling } from "./semanticTokensProviderStyling.js";
-import { ISemanticTokensStylingService } from "./semanticTokensStyling.js";
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { ILanguageService } from '../languages/language.js';
+import { DocumentTokensProvider } from './model.js';
+import { IThemeService } from '../../../platform/theme/common/themeService.js';
+import { ILogService } from '../../../platform/log/common/log.js';
+import { SemanticTokensProviderStyling } from './semanticTokensProviderStyling.js';
+import { ISemanticTokensStylingService } from './semanticTokensStyling.js';
+import { InstantiationType, registerSingleton } from '../../../platform/instantiation/common/extensions.js';
 export class SemanticTokensStylingService extends Disposable implements ISemanticTokensStylingService {
     public _serviceBrand: undefined;
     private _caches: WeakMap<DocumentTokensProvider, SemanticTokensProviderStyling>;

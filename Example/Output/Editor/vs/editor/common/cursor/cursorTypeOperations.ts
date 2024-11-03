@@ -2,15 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { ShiftCommand } from "../commands/shiftCommand.js";
-import { CompositionSurroundSelectionCommand } from "../commands/surroundSelectionCommand.js";
-import { Position } from "../core/position.js";
-import { Range } from "../core/range.js";
-import { Selection } from "../core/selection.js";
-import { CursorConfiguration, EditOperationResult, EditOperationType, ICursorSimpleModel, isQuote, } from "../cursorCommon.js";
-import { ICommand } from "../editorCommon.js";
-import { ITextModel } from "../model.js";
-import { AutoClosingOpenCharTypeOperation, AutoClosingOvertypeOperation, AutoClosingOvertypeWithInterceptorsOperation, AutoIndentOperation, CompositionOperation, EnterOperation, InterceptorElectricCharOperation, PasteOperation, shiftIndent, shouldSurroundChar, SimpleCharacterTypeOperation, SurroundSelectionOperation, TabOperation, TypeWithoutInterceptorsOperation, unshiftIndent, } from "./cursorTypeEditOperations.js";
+import { ShiftCommand } from '../commands/shiftCommand.js';
+import { CompositionSurroundSelectionCommand } from '../commands/surroundSelectionCommand.js';
+import { CursorConfiguration, EditOperationResult, EditOperationType, ICursorSimpleModel, isQuote } from '../cursorCommon.js';
+import { Range } from '../core/range.js';
+import { Selection } from '../core/selection.js';
+import { Position } from '../core/position.js';
+import { ICommand } from '../editorCommon.js';
+import { ITextModel } from '../model.js';
+import { AutoClosingOpenCharTypeOperation, AutoClosingOvertypeOperation, AutoClosingOvertypeWithInterceptorsOperation, AutoIndentOperation, CompositionOperation, EnterOperation, InterceptorElectricCharOperation, PasteOperation, shiftIndent, shouldSurroundChar, SimpleCharacterTypeOperation, SurroundSelectionOperation, TabOperation, TypeWithoutInterceptorsOperation, unshiftIndent } from './cursorTypeEditOperations.js';
 export class TypeOperations {
     public static indent(config: CursorConfiguration, model: ICursorSimpleModel | null, selections: Selection[] | null): ICommand[] {
         if (model === null || selections === null) {
@@ -24,7 +24,7 @@ export class TypeOperations {
                 indentSize: config.indentSize,
                 insertSpaces: config.insertSpaces,
                 useTabStops: config.useTabStops,
-                autoIndent: config.autoIndent,
+                autoIndent: config.autoIndent
             }, config.languageConfigurationService);
         }
         return commands;
@@ -38,7 +38,7 @@ export class TypeOperations {
                 indentSize: config.indentSize,
                 insertSpaces: config.insertSpaces,
                 useTabStops: config.useTabStops,
-                autoIndent: config.autoIndent,
+                autoIndent: config.autoIndent
             }, config.languageConfigurationService);
         }
         return commands;
@@ -90,15 +90,12 @@ export class TypeOperations {
         }
         if (hasDeletion) {
             // Check if this could have been a surround selection
-            if (!shouldSurroundChar(config, ch) ||
-                !config.surroundingPairs.hasOwnProperty(ch)) {
+            if (!shouldSurroundChar(config, ch) || !config.surroundingPairs.hasOwnProperty(ch)) {
                 return null;
             }
             const isTypingAQuoteCharacter = isQuote(ch);
             for (const composition of compositions) {
-                if (composition.deletedSelectionStart !== 0 ||
-                    composition.deletedSelectionEnd !==
-                        composition.deletedText.length) {
+                if (composition.deletedSelectionStart !== 0 || composition.deletedSelectionEnd !== composition.deletedText.length) {
                     // more text was deleted than was selected, so this could not have been a surround selection
                     return null;
                 }
@@ -106,8 +103,7 @@ export class TypeOperations {
                     // deleted text was only whitespace
                     return null;
                 }
-                if (isTypingAQuoteCharacter &&
-                    isQuote(composition.deletedText)) {
+                if (isTypingAQuoteCharacter && isQuote(composition.deletedText)) {
                     // deleted text was a quote
                     return null;
                 }
@@ -128,7 +124,7 @@ export class TypeOperations {
             }
             return new EditOperationResult(EditOperationType.TypingOther, commands, {
                 shouldPushStackElementBefore: true,
-                shouldPushStackElementAfter: false,
+                shouldPushStackElementAfter: false
             });
         }
         const autoClosingOvertypeEdits = AutoClosingOvertypeWithInterceptorsOperation.getEdits(config, model, selections, autoClosedCharacters, ch);

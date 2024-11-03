@@ -2,18 +2,18 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Promises, RunOnceScheduler, runWhenGlobalIdle, } from "../../../base/common/async.js";
-import { Emitter, Event, PauseableEmitter, } from "../../../base/common/event.js";
-import { Disposable, DisposableStore, dispose, MutableDisposable, } from "../../../base/common/lifecycle.js";
-import { mark } from "../../../base/common/performance.js";
-import { isUndefinedOrNull } from "../../../base/common/types.js";
-import { InMemoryStorageDatabase, IStorage, IStorageChangeEvent, Storage, StorageHint, StorageValue, } from "../../../base/parts/storage/common/storage.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { isUserDataProfile, IUserDataProfile, } from "../../userDataProfile/common/userDataProfile.js";
-import { IAnyWorkspaceIdentifier } from "../../workspace/common/workspace.js";
-export const IS_NEW_KEY = "__$__isNewStorageMarker";
-export const TARGET_KEY = "__$__targetStorageMarker";
-export const IStorageService = createDecorator<IStorageService>("storageService");
+import { Promises, RunOnceScheduler, runWhenGlobalIdle } from '../../../base/common/async.js';
+import { Emitter, Event, PauseableEmitter } from '../../../base/common/event.js';
+import { Disposable, DisposableStore, dispose, MutableDisposable } from '../../../base/common/lifecycle.js';
+import { mark } from '../../../base/common/performance.js';
+import { isUndefinedOrNull } from '../../../base/common/types.js';
+import { InMemoryStorageDatabase, IStorage, IStorageChangeEvent, Storage, StorageHint, StorageValue } from '../../../base/parts/storage/common/storage.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { isUserDataProfile, IUserDataProfile } from '../../userDataProfile/common/userDataProfile.js';
+import { IAnyWorkspaceIdentifier } from '../../workspace/common/workspace.js';
+export const IS_NEW_KEY = '__$__isNewStorageMarker';
+export const TARGET_KEY = '__$__targetStorageMarker';
+export const IStorageService = createDecorator<IStorageService>('storageService');
 export enum WillSaveStateReason {
     /**
      * No specific reason to save state.
@@ -275,16 +275,14 @@ export abstract class AbstractStorageService extends Disposable implements IStor
     private initializationPromise: Promise<void> | undefined;
     private readonly flushWhenIdleScheduler = this._register(new RunOnceScheduler(() => this.doFlushWhenIdle(), this.options.flushInterval));
     private readonly runFlushWhenIdle = this._register(new MutableDisposable());
-    constructor(private readonly options: IStorageServiceOptions = {
-        flushInterval: AbstractStorageService.DEFAULT_FLUSH_INTERVAL,
-    }) {
+    constructor(private readonly options: IStorageServiceOptions = { flushInterval: AbstractStorageService.DEFAULT_FLUSH_INTERVAL }) {
         super();
     }
     onDidChangeValue(scope: StorageScope.WORKSPACE, key: string | undefined, disposable: DisposableStore): Event<IWorkspaceStorageValueChangeEvent>;
     onDidChangeValue(scope: StorageScope.PROFILE, key: string | undefined, disposable: DisposableStore): Event<IProfileStorageValueChangeEvent>;
     onDidChangeValue(scope: StorageScope.APPLICATION, key: string | undefined, disposable: DisposableStore): Event<IApplicationStorageValueChangeEvent>;
     onDidChangeValue(scope: StorageScope, key: string | undefined, disposable: DisposableStore): Event<IStorageValueChangeEvent> {
-        return Event.filter(this._onDidChangeValue.event, (e) => e.scope === scope && (key === undefined || e.key === key), disposable);
+        return Event.filter(this._onDidChangeValue.event, e => e.scope === scope && (key === undefined || e.key === key), disposable);
     }
     private doFlushWhenIdle(): void {
         this.runFlushWhenIdle.value = runWhenGlobalIdle(() => {
@@ -305,12 +303,12 @@ export abstract class AbstractStorageService extends Disposable implements IStor
         if (!this.initializationPromise) {
             this.initializationPromise = (async () => {
                 // Init all storage locations
-                mark("code/willInitStorage");
+                mark('code/willInitStorage');
                 try {
                     await this.doInitialize(); // Ask subclasses to initialize storage
                 }
                 finally {
-                    mark("code/didInitStorage");
+                    mark('code/didInitStorage');
                 }
                 // On some OS we do not get enough time to persist state on shutdown (e.g. when
                 // Windows restarts after applying updates). In other cases, VSCode might crash,
@@ -346,12 +344,7 @@ export abstract class AbstractStorageService extends Disposable implements IStor
         }
         // Emit any other key to outside
         else {
-            this._onDidChangeValue.fire({
-                scope,
-                key,
-                target: this.getKeyTargets(scope)[key],
-                external,
-            });
+            this._onDidChangeValue.fire({ scope, key, target: this.getKeyTargets(scope)[key], external });
         }
     }
     protected emitWillSaveState(reason: WillSaveStateReason): void {
@@ -434,7 +427,7 @@ export abstract class AbstractStorageService extends Disposable implements IStor
     private updateKeyTarget(key: string, scope: StorageScope, target: StorageTarget | undefined, external = false): void {
         // Add
         const keyTargets = this.getKeyTargets(scope);
-        if (typeof target === "number") {
+        if (typeof target === 'number') {
             if (keyTargets[key] !== target) {
                 keyTargets[key] = target;
                 this.getStorage(scope)?.set(TARGET_KEY, JSON.stringify(keyTargets), external);
@@ -442,7 +435,7 @@ export abstract class AbstractStorageService extends Disposable implements IStor
         }
         // Remove
         else {
-            if (typeof keyTargets[key] === "number") {
+            if (typeof keyTargets[key] === 'number') {
                 delete keyTargets[key];
                 this.getStorage(scope)?.set(TARGET_KEY, JSON.stringify(keyTargets), external);
             }
@@ -500,7 +493,7 @@ export abstract class AbstractStorageService extends Disposable implements IStor
                 await Promises.settled([
                     applicationStorage?.whenFlushed() ?? Promise.resolve(),
                     profileStorage?.whenFlushed() ?? Promise.resolve(),
-                    workspaceStorage?.whenFlushed() ?? Promise.resolve(),
+                    workspaceStorage?.whenFlushed() ?? Promise.resolve()
                 ]);
                 break;
             // Shutdown: we want to flush as soon as possible
@@ -509,19 +502,16 @@ export abstract class AbstractStorageService extends Disposable implements IStor
                 await Promises.settled([
                     applicationStorage?.flush(0) ?? Promise.resolve(),
                     profileStorage?.flush(0) ?? Promise.resolve(),
-                    workspaceStorage?.flush(0) ?? Promise.resolve(),
+                    workspaceStorage?.flush(0) ?? Promise.resolve()
                 ]);
                 break;
         }
     }
     async log(): Promise<void> {
-        const applicationItems = this.getStorage(StorageScope.APPLICATION)?.items ??
-            new Map<string, string>();
-        const profileItems = this.getStorage(StorageScope.PROFILE)?.items ??
-            new Map<string, string>();
-        const workspaceItems = this.getStorage(StorageScope.WORKSPACE)?.items ??
-            new Map<string, string>();
-        return logStorage(applicationItems, profileItems, workspaceItems, this.getLogDetails(StorageScope.APPLICATION) ?? "", this.getLogDetails(StorageScope.PROFILE) ?? "", this.getLogDetails(StorageScope.WORKSPACE) ?? "");
+        const applicationItems = this.getStorage(StorageScope.APPLICATION)?.items ?? new Map<string, string>();
+        const profileItems = this.getStorage(StorageScope.PROFILE)?.items ?? new Map<string, string>();
+        const workspaceItems = this.getStorage(StorageScope.WORKSPACE)?.items ?? new Map<string, string>();
+        return logStorage(applicationItems, profileItems, workspaceItems, this.getLogDetails(StorageScope.APPLICATION) ?? '', this.getLogDetails(StorageScope.PROFILE) ?? '', this.getLogDetails(StorageScope.WORKSPACE) ?? '');
     }
     async optimize(scope: StorageScope): Promise<void> {
         // Await pending data to be flushed to the DB
@@ -541,8 +531,7 @@ export abstract class AbstractStorageService extends Disposable implements IStor
         if (from.id === to.id) {
             return false; // both profiles are same
         }
-        if (isProfileUsingDefaultStorage(to) &&
-            isProfileUsingDefaultStorage(from)) {
+        if (isProfileUsingDefaultStorage(to) && isProfileUsingDefaultStorage(from)) {
             return false; // both profiles are using default
         }
         return true;
@@ -577,20 +566,14 @@ export function isProfileUsingDefaultStorage(profile: IUserDataProfile): boolean
     return profile.isDefault || !!profile.useDefaultFlags?.globalState;
 }
 export class InMemoryStorageService extends AbstractStorageService {
-    private readonly applicationStorage = this._register(new Storage(new InMemoryStorageDatabase(), {
-        hint: StorageHint.STORAGE_IN_MEMORY,
-    }));
-    private readonly profileStorage = this._register(new Storage(new InMemoryStorageDatabase(), {
-        hint: StorageHint.STORAGE_IN_MEMORY,
-    }));
-    private readonly workspaceStorage = this._register(new Storage(new InMemoryStorageDatabase(), {
-        hint: StorageHint.STORAGE_IN_MEMORY,
-    }));
+    private readonly applicationStorage = this._register(new Storage(new InMemoryStorageDatabase(), { hint: StorageHint.STORAGE_IN_MEMORY }));
+    private readonly profileStorage = this._register(new Storage(new InMemoryStorageDatabase(), { hint: StorageHint.STORAGE_IN_MEMORY }));
+    private readonly workspaceStorage = this._register(new Storage(new InMemoryStorageDatabase(), { hint: StorageHint.STORAGE_IN_MEMORY }));
     constructor() {
         super();
-        this._register(this.workspaceStorage.onDidChangeStorage((e) => this.emitDidChangeValue(StorageScope.WORKSPACE, e)));
-        this._register(this.profileStorage.onDidChangeStorage((e) => this.emitDidChangeValue(StorageScope.PROFILE, e)));
-        this._register(this.applicationStorage.onDidChangeStorage((e) => this.emitDidChangeValue(StorageScope.APPLICATION, e)));
+        this._register(this.workspaceStorage.onDidChangeStorage(e => this.emitDidChangeValue(StorageScope.WORKSPACE, e)));
+        this._register(this.profileStorage.onDidChangeStorage(e => this.emitDidChangeValue(StorageScope.PROFILE, e)));
+        this._register(this.applicationStorage.onDidChangeStorage(e => this.emitDidChangeValue(StorageScope.APPLICATION, e)));
     }
     protected getStorage(scope: StorageScope): IStorage {
         switch (scope) {
@@ -605,11 +588,11 @@ export class InMemoryStorageService extends AbstractStorageService {
     protected getLogDetails(scope: StorageScope): string | undefined {
         switch (scope) {
             case StorageScope.APPLICATION:
-                return "inMemory (application)";
+                return 'inMemory (application)';
             case StorageScope.PROFILE:
-                return "inMemory (profile)";
+                return 'inMemory (profile)';
             default:
-                return "inMemory (workspace)";
+                return 'inMemory (workspace)';
         }
     }
     protected async doInitialize(): Promise<void> { }

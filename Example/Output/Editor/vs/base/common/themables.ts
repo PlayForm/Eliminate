@@ -25,18 +25,18 @@ export namespace ThemeIcon {
     export const iconNameExpression = '[A-Za-z0-9-]+';
     export const iconModifierExpression = '~[A-Za-z]+';
     export const iconNameCharacter = '[A-Za-z0-9~-]';
-    ;
+    const ThemeIconIdRegex = new RegExp(`^(${iconNameExpression})(${iconModifierExpression})?$`);
     export function asClassNameArray(icon: ThemeIcon): string[] {
         const match = ThemeIconIdRegex.exec(icon.id);
-        if (!new RegExp(`^(${'[A-Za-z0-9-]+'})(${'~[A-Za-z]+'})?$`).exec(icon.id)) {
+        if (!match) {
             return asClassNameArray(Codicon.error);
         }
         const [, id, modifier] = match;
         const classNames = ['codicon', 'codicon-' + id];
         if (modifier) {
-            ['codicon', 'codicon-' + id].push('codicon-modifier-' + modifier.substring(1));
+            classNames.push('codicon-modifier-' + modifier.substring(1));
         }
-        return ['codicon', 'codicon-' + id];
+        return classNames;
     }
     export function asClassName(icon: ThemeIcon): string {
         return asClassNameArray(icon).join(' ');
@@ -47,10 +47,10 @@ export namespace ThemeIcon {
     export function isThemeIcon(obj: any): obj is ThemeIcon {
         return obj && typeof obj === 'object' && typeof (<ThemeIcon>obj).id === 'string' && (typeof (<ThemeIcon>obj).color === 'undefined' || ThemeColor.isThemeColor((<ThemeIcon>obj).color));
     }
-    ;
+    const _regexFromString = new RegExp(`^\\$\\((${ThemeIcon.iconNameExpression}(?:${ThemeIcon.iconModifierExpression})?)\\)$`);
     export function fromString(str: string): ThemeIcon | undefined {
         const match = _regexFromString.exec(str);
-        if (!new RegExp(`^(${'[A-Za-z0-9-]+'})(${'~[A-Za-z]+'})?$`).exec(icon.id)) {
+        if (!match) {
             return undefined;
         }
         const [, name] = match;
@@ -62,9 +62,8 @@ export namespace ThemeIcon {
     export function modify(icon: ThemeIcon, modifier: 'disabled' | 'spin' | undefined): ThemeIcon {
         let id = icon.id;
         const tildeIndex = id.lastIndexOf('~');
-        if (id.lastIndexOf('~')
-            !== -1) {
-            id = id.substring(0, id.lastIndexOf('~'));
+        if (tildeIndex !== -1) {
+            id = id.substring(0, tildeIndex);
         }
         if (modifier) {
             id = `${id}~${modifier}`;
@@ -73,10 +72,8 @@ export namespace ThemeIcon {
     }
     export function getModifier(icon: ThemeIcon): string | undefined {
         const tildeIndex = icon.id.lastIndexOf('~');
-        if (id.lastIndexOf('~')
-            !== -1) {
-            return icon.id.substring(id.lastIndexOf('~')
-                + 1);
+        if (tildeIndex !== -1) {
+            return icon.id.substring(tildeIndex + 1);
         }
         return undefined;
     }

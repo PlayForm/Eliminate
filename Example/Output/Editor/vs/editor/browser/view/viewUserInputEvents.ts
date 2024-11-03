@@ -2,11 +2,11 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IKeyboardEvent } from "../../../base/browser/keyboardEvent.js";
-import { IMouseWheelEvent } from "../../../base/browser/mouseEvent.js";
-import { Position } from "../../common/core/position.js";
-import { ICoordinatesConverter } from "../../common/viewModel.js";
-import { IEditorMouseEvent, IMouseTarget, IMouseTargetViewZoneData, IPartialEditorMouseEvent, MouseTargetType, } from "../editorBrowser.js";
+import { IKeyboardEvent } from '../../../base/browser/keyboardEvent.js';
+import { IEditorMouseEvent, IMouseTarget, IMouseTargetViewZoneData, IPartialEditorMouseEvent, MouseTargetType } from '../editorBrowser.js';
+import { ICoordinatesConverter } from '../../common/viewModel.js';
+import { IMouseWheelEvent } from '../../../base/browser/mouseEvent.js';
+import { Position } from '../../common/core/position.js';
 export interface EventCallback<T> {
     (event: T): void;
 }
@@ -65,7 +65,7 @@ export class ViewUserInputEvents {
         if (e.target) {
             return {
                 event: e.event,
-                target: this._convertViewToModelMouseTarget(e.target),
+                target: this._convertViewToModelMouseTarget(e.target)
             };
         }
         return e;
@@ -75,28 +75,22 @@ export class ViewUserInputEvents {
     }
     public static convertViewToModelMouseTarget(target: IMouseTarget, coordinatesConverter: ICoordinatesConverter): IMouseTarget {
         const result = { ...target };
-        if ({ ...target }.position) {
-            ({ ...target }.position =
-                coordinatesConverter.convertViewPositionToModelPosition({ ...target }.position));
+        if (result.position) {
+            result.position = coordinatesConverter.convertViewPositionToModelPosition(result.position);
         }
-        if ({ ...target }.range) {
-            ({ ...target }.range = coordinatesConverter.convertViewRangeToModelRange({ ...target }.range));
+        if (result.range) {
+            result.range = coordinatesConverter.convertViewRangeToModelRange(result.range);
         }
-        if ({ ...target }.type === MouseTargetType.GUTTER_VIEW_ZONE ||
-            { ...target }.type === MouseTargetType.CONTENT_VIEW_ZONE) {
-            ({ ...target }.detail = this.convertViewToModelViewZoneData({ ...target }.detail, coordinatesConverter));
+        if (result.type === MouseTargetType.GUTTER_VIEW_ZONE || result.type === MouseTargetType.CONTENT_VIEW_ZONE) {
+            result.detail = this.convertViewToModelViewZoneData(result.detail, coordinatesConverter);
         }
-        return { ...target };
+        return result;
     }
     private static convertViewToModelViewZoneData(data: IMouseTargetViewZoneData, coordinatesConverter: ICoordinatesConverter): IMouseTargetViewZoneData {
         return {
             viewZoneId: data.viewZoneId,
-            positionBefore: data.positionBefore
-                ? coordinatesConverter.convertViewPositionToModelPosition(data.positionBefore)
-                : data.positionBefore,
-            positionAfter: data.positionAfter
-                ? coordinatesConverter.convertViewPositionToModelPosition(data.positionAfter)
-                : data.positionAfter,
+            positionBefore: data.positionBefore ? coordinatesConverter.convertViewPositionToModelPosition(data.positionBefore) : data.positionBefore,
+            positionAfter: data.positionAfter ? coordinatesConverter.convertViewPositionToModelPosition(data.positionAfter) : data.positionAfter,
             position: coordinatesConverter.convertViewPositionToModelPosition(data.position),
             afterLineNumber: coordinatesConverter.convertViewPositionToModelPosition(new Position(data.afterLineNumber, 1)).lineNumber,
         };

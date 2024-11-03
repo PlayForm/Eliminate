@@ -2,17 +2,17 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Codicon } from "../../../base/common/codicons.js";
-import { Color } from "../../../base/common/color.js";
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable, IDisposable, toDisposable, } from "../../../base/common/lifecycle.js";
-import { IEnvironmentService } from "../../environment/common/environment.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import * as platform from "../../registry/common/platform.js";
-import { ColorIdentifier } from "./colorRegistry.js";
-import { IconContribution, IconDefinition } from "./iconRegistry.js";
-import { ColorScheme } from "./theme.js";
-export const IThemeService = createDecorator<IThemeService>("themeService");
+import { Codicon } from '../../../base/common/codicons.js';
+import { Color } from '../../../base/common/color.js';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { IEnvironmentService } from '../../environment/common/environment.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import * as platform from '../../registry/common/platform.js';
+import { ColorIdentifier } from './colorRegistry.js';
+import { IconContribution, IconDefinition } from './iconRegistry.js';
+import { ColorScheme } from './theme.js';
+export const IThemeService = createDecorator<IThemeService>('themeService');
 export function themeColorFromId(id: ColorIdentifier) {
     return { id };
 }
@@ -20,14 +20,10 @@ export const FileThemeIcon = Codicon.file;
 export const FolderThemeIcon = Codicon.folder;
 export function getThemeTypeSelector(type: ColorScheme): string {
     switch (type) {
-        case ColorScheme.DARK:
-            return "vs-dark";
-        case ColorScheme.HIGH_CONTRAST_DARK:
-            return "hc-black";
-        case ColorScheme.HIGH_CONTRAST_LIGHT:
-            return "hc-light";
-        default:
-            return "vs";
+        case ColorScheme.DARK: return 'vs-dark';
+        case ColorScheme.HIGH_CONTRAST_DARK: return 'hc-black';
+        case ColorScheme.HIGH_CONTRAST_LIGHT: return 'hc-light';
+        default: return 'vs';
     }
 }
 export interface ITokenStyle {
@@ -95,7 +91,7 @@ export interface IThemeService {
 }
 // static theming participant
 export const Extensions = {
-    ThemingContribution: "base.contributions.theming",
+    ThemingContribution: 'base.contributions.theming'
 };
 export interface IThemingRegistry {
     /**
@@ -110,8 +106,7 @@ class ThemingRegistry implements IThemingRegistry {
     private readonly onThemingParticipantAddedEmitter: Emitter<IThemingParticipant>;
     constructor() {
         this.themingParticipants = [];
-        this.onThemingParticipantAddedEmitter =
-            new Emitter<IThemingParticipant>();
+        this.onThemingParticipantAddedEmitter = new Emitter<IThemingParticipant>();
     }
     public onColorThemeChange(participant: IThemingParticipant): IDisposable {
         this.themingParticipants.push(participant);
@@ -142,7 +137,7 @@ export class Themable extends Disposable {
         super();
         this.theme = themeService.getColorTheme();
         // Hook up to theme changes
-        this._register(this.themeService.onDidColorThemeChange((theme) => this.onThemeChange(theme)));
+        this._register(this.themeService.onDidColorThemeChange(theme => this.onThemeChange(theme)));
     }
     protected onThemeChange(theme: IColorTheme): void {
         this.theme = theme;

@@ -2,18 +2,18 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { equals } from "../../../base/common/arrays.js";
-import { RunOnceScheduler } from "../../../base/common/async.js";
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { LineRange } from "../core/lineRange.js";
-import { StandardTokenType } from "../encodedTokenAttributes.js";
-import { ILanguageIdCodec } from "../languages.js";
-import { IAttachedView } from "../model.js";
-import { IModelContentChangedEvent, IModelTokensChangedEvent, } from "../textModelEvents.js";
-import { BackgroundTokenizationState, ITokenizeLineWithEditResult, LineEditWithAdditionalLines, } from "../tokenizationTextModelPart.js";
-import { LineTokens } from "../tokens/lineTokens.js";
-import { TextModel } from "./textModel.js";
+import { equals } from '../../../base/common/arrays.js';
+import { RunOnceScheduler } from '../../../base/common/async.js';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { LineRange } from '../core/lineRange.js';
+import { StandardTokenType } from '../encodedTokenAttributes.js';
+import { ILanguageIdCodec } from '../languages.js';
+import { IAttachedView } from '../model.js';
+import { TextModel } from './textModel.js';
+import { IModelContentChangedEvent, IModelTokensChangedEvent } from '../textModelEvents.js';
+import { BackgroundTokenizationState, ITokenizeLineWithEditResult, LineEditWithAdditionalLines } from '../tokenizationTextModelPart.js';
+import { LineTokens } from '../tokens/lineTokens.js';
 /**
  * @internal
  */
@@ -57,9 +57,7 @@ export class AttachedViewHandler extends Disposable {
     private readonly runner = this._register(new RunOnceScheduler(() => this.update(), 50));
     private _computedLineRanges: readonly LineRange[] = [];
     private _lineRanges: readonly LineRange[] = [];
-    public get lineRanges(): readonly LineRange[] {
-        return this._lineRanges;
-    }
+    public get lineRanges(): readonly LineRange[] { return this._lineRanges; }
     constructor(private readonly _refreshTokens: () => void) {
         super();
     }

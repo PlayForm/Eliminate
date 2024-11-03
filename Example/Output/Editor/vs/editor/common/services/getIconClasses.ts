@@ -2,28 +2,24 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Schemas } from "../../../base/common/network.js";
-import { DataUri } from "../../../base/common/resources.js";
-import { ThemeIcon } from "../../../base/common/themables.js";
-import { URI, URI as uri } from "../../../base/common/uri.js";
-import { FileKind } from "../../../platform/files/common/files.js";
-import { ILanguageService } from "../languages/language.js";
-import { PLAINTEXT_LANGUAGE_ID } from "../languages/modesRegistry.js";
-import { IModelService } from "./model.js";
+import { Schemas } from '../../../base/common/network.js';
+import { DataUri } from '../../../base/common/resources.js';
+import { URI, URI as uri } from '../../../base/common/uri.js';
+import { PLAINTEXT_LANGUAGE_ID } from '../languages/modesRegistry.js';
+import { ILanguageService } from '../languages/language.js';
+import { IModelService } from './model.js';
+import { FileKind } from '../../../platform/files/common/files.js';
+import { ThemeIcon } from '../../../base/common/themables.js';
 const fileIconDirectoryRegex = /(?:\/|^)(?:([^\/]+)\/)?([^\/]+)$/;
 export function getIconClasses(modelService: IModelService, languageService: ILanguageService, resource: uri | undefined, fileKind?: FileKind, icon?: ThemeIcon | URI): string[] {
     if (ThemeIcon.isThemeIcon(icon)) {
-        return [`codicon-${icon.id}`, "predefined-file-icon"];
+        return [`codicon-${icon.id}`, 'predefined-file-icon'];
     }
     if (URI.isUri(icon)) {
         return [];
     }
     // we always set these base classes even if we do not have a path
-    const classes = fileKind === FileKind.ROOT_FOLDER
-        ? ["rootfolder-icon"]
-        : fileKind === FileKind.FOLDER
-            ? ["folder-icon"]
-            : ["file-icon"];
+    const classes = fileKind === FileKind.ROOT_FOLDER ? ['rootfolder-icon'] : fileKind === FileKind.FOLDER ? ['folder-icon'] : ['file-icon'];
     if (resource) {
         // Get the path and name of the resource. For data-URIs, we need to parse specially
         let name: string | undefined;
@@ -61,9 +57,9 @@ export function getIconClasses(modelService: IModelService, languageService: ILa
                 // (most file systems do not allow files > 255 length) with lots of `.` characters
                 // https://github.com/microsoft/vscode/issues/116199
                 if (name.length <= 255) {
-                    const dotSegments = name.split(".");
+                    const dotSegments = name.split('.');
                     for (let i = 1; i < dotSegments.length; i++) {
-                        classes.push(`${dotSegments.slice(i).join(".")}-ext-file-icon`); // add each combination of all found extensions if more than one
+                        classes.push(`${dotSegments.slice(i).join('.')}-ext-file-icon`); // add each combination of all found extensions if more than one
                     }
                 }
                 classes.push(`ext-file-icon`); // extra segment to increase file-ext score
@@ -78,7 +74,7 @@ export function getIconClasses(modelService: IModelService, languageService: ILa
     return classes;
 }
 export function getIconClassesForLanguageId(languageId: string): string[] {
-    return ["file-icon", `${cssEscape(languageId)}-lang-file-icon`];
+    return ['file-icon', `${cssEscape(languageId)}-lang-file-icon`];
 }
 function detectLanguageId(modelService: IModelService, languageService: ILanguageService, resource: uri): string | null {
     if (!resource) {
@@ -108,5 +104,5 @@ function detectLanguageId(modelService: IModelService, languageService: ILanguag
     return languageService.guessLanguageIdByFilepathOrFirstLine(resource);
 }
 function cssEscape(str: string): string {
-    return str.replace(/[\s]/g, "/"); // HTML class names can not contain certain whitespace characters (https://dom.spec.whatwg.org/#interface-domtokenlist), use / instead, which doesn't exist in file names.
+    return str.replace(/[\s]/g, '/'); // HTML class names can not contain certain whitespace characters (https://dom.spec.whatwg.org/#interface-domtokenlist), use / instead, which doesn't exist in file names.
 }

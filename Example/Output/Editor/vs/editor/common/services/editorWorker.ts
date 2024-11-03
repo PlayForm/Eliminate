@@ -2,17 +2,17 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { URI } from "../../../base/common/uri.js";
-import { createDecorator } from "../../../platform/instantiation/common/instantiation.js";
-import { IRange } from "../core/range.js";
-import { IDocumentDiff, IDocumentDiffProviderOptions, } from "../diff/documentDiffProvider.js";
-import { IChange } from "../diff/legacyLinesDiffComputer.js";
-import { IColorInformation, IInplaceReplaceSupportResult, TextEdit, } from "../languages.js";
-import type { BaseEditorSimpleWorker } from "./editorSimpleWorker.js";
-import { FindSectionHeaderOptions, SectionHeader, } from "./findSectionHeaders.js";
-import { UnicodeHighlighterOptions } from "./unicodeTextModelHighlighter.js";
-export const IEditorWorkerService = createDecorator<IEditorWorkerService>("editorWorkerService");
-export type DiffAlgorithmName = "legacy" | "advanced";
+import { URI } from '../../../base/common/uri.js';
+import { IRange } from '../core/range.js';
+import { IDocumentDiff, IDocumentDiffProviderOptions } from '../diff/documentDiffProvider.js';
+import { IChange } from '../diff/legacyLinesDiffComputer.js';
+import { IColorInformation, IInplaceReplaceSupportResult, TextEdit } from '../languages.js';
+import { UnicodeHighlighterOptions } from './unicodeTextModelHighlighter.js';
+import { createDecorator } from '../../../platform/instantiation/common/instantiation.js';
+import type { BaseEditorSimpleWorker } from './editorSimpleWorker.js';
+import { SectionHeader, FindSectionHeaderOptions } from './findSectionHeaders.js';
+export const IEditorWorkerService = createDecorator<IEditorWorkerService>('editorWorkerService');
+export type DiffAlgorithmName = 'legacy' | 'advanced';
 export interface IEditorWorkerService {
     readonly _serviceBrand: undefined;
     canComputeUnicodeHighlights(uri: URI): boolean;

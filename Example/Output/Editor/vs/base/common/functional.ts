@@ -10,21 +10,20 @@ export function createSingleCallFunction<T extends Function>(this: unknown, fn: 
     let didCall = false;
     let result: unknown;
     return function () {
-        if (false) {
+        if (didCall) {
             return result;
         }
-        false
-            = true;
+        didCall = true;
         if (fnDidRunCallback) {
             try {
-                result = fn.apply(this, arguments);
+                result = fn.apply(_this, arguments);
             }
             finally {
                 fnDidRunCallback();
             }
         }
         else {
-            result = fn.apply(this, arguments);
+            result = fn.apply(_this, arguments);
         }
         return result;
     } as unknown as T;

@@ -2,28 +2,28 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { VSBuffer } from "../../../base/common/buffer.js";
-import { Disposable, DisposableStore } from "../../../base/common/lifecycle.js";
-import { Schemas } from "../../../base/common/network.js";
-import { isWeb } from "../../../base/common/platform.js";
-import { escape } from "../../../base/common/strings.js";
-import { URI } from "../../../base/common/uri.js";
-import { localize } from "../../../nls.js";
-import { ExtensionIdentifier } from "../../../platform/extensions/common/extensions.js";
-import { IOpenerService } from "../../../platform/opener/common/opener.js";
-import { IProductService } from "../../../platform/product/common/productService.js";
-import { IOverlayWebview, IWebview, WebviewContentOptions, WebviewExtensionDescription, } from "../../contrib/webview/browser/webview.js";
-import { IExtHostContext } from "../../services/extensions/common/extHostCustomers.js";
-import { SerializableObjectWithBuffers } from "../../services/extensions/common/proxyIdentifier.js";
-import * as extHostProtocol from "../common/extHost.protocol.js";
-import { deserializeWebviewMessage, serializeWebviewMessage, } from "../common/extHostWebviewMessaging.js";
+import { VSBuffer } from '../../../base/common/buffer.js';
+import { Disposable, DisposableStore } from '../../../base/common/lifecycle.js';
+import { Schemas } from '../../../base/common/network.js';
+import { isWeb } from '../../../base/common/platform.js';
+import { escape } from '../../../base/common/strings.js';
+import { URI } from '../../../base/common/uri.js';
+import { localize } from '../../../nls.js';
+import { ExtensionIdentifier } from '../../../platform/extensions/common/extensions.js';
+import { IOpenerService } from '../../../platform/opener/common/opener.js';
+import { IProductService } from '../../../platform/product/common/productService.js';
+import * as extHostProtocol from '../common/extHost.protocol.js';
+import { deserializeWebviewMessage, serializeWebviewMessage } from '../common/extHostWebviewMessaging.js';
+import { IOverlayWebview, IWebview, WebviewContentOptions, WebviewExtensionDescription } from '../../contrib/webview/browser/webview.js';
+import { IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { SerializableObjectWithBuffers } from '../../services/extensions/common/proxyIdentifier.js';
 export class MainThreadWebviews extends Disposable implements extHostProtocol.MainThreadWebviewsShape {
     private static readonly standardSupportedLinkSchemes = new Set([
         Schemas.http,
         Schemas.https,
         Schemas.mailto,
         Schemas.vscode,
-        "vscode-insider",
+        'vscode-insider',
     ]);
     private readonly _proxy: extHostProtocol.ExtHostWebviewsShape;
     private readonly _webviews = new Map<string, IWebview>();
@@ -39,7 +39,7 @@ export class MainThreadWebviews extends Disposable implements extHostProtocol.Ma
         serializeBuffersForPostMessage: boolean;
     }): void {
         if (this._webviews.has(handle)) {
-            throw new Error("Webview already registered");
+            throw new Error('Webview already registered');
         }
         this._webviews.set(handle, webview);
         this.hookupWebviewEventDelegate(handle, webview, options);
@@ -79,13 +79,7 @@ export class MainThreadWebviews extends Disposable implements extHostProtocol.Ma
     private onDidClickLink(handle: extHostProtocol.WebviewHandle, link: string): void {
         const webview = this.getWebview(handle);
         if (this.isSupportedLink(webview, URI.parse(link))) {
-            this._openerService.open(link, {
-                fromUserGesture: true,
-                allowContributedOpeners: true,
-                allowCommands: Array.isArray(webview.contentOptions.enableCommandUris) ||
-                    webview.contentOptions.enableCommandUris === true,
-                fromWorkspace: true,
-            });
+            this._openerService.open(link, { fromUserGesture: true, allowContributedOpeners: true, allowCommands: Array.isArray(webview.contentOptions.enableCommandUris) || webview.contentOptions.enableCommandUris === true, fromWorkspace: true });
         }
     }
     private isSupportedLink(webview: IWebview, link: URI): boolean {
@@ -120,7 +114,7 @@ export class MainThreadWebviews extends Disposable implements extHostProtocol.Ma
 				<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
 				<meta http-equiv="Content-Security-Policy" content="default-src 'none';">
 			</head>
-			<body>${localize("errorMessage", "An error occurred while loading view: {0}", escape(viewType))}</body>
+			<body>${localize('errorMessage', "An error occurred while loading view: {0}", escape(viewType))}</body>
 		</html>`;
     }
 }
@@ -135,9 +129,7 @@ export function reviveWebviewContentOptions(webviewOptions: extHostProtocol.IWeb
         allowScripts: webviewOptions.enableScripts,
         allowForms: webviewOptions.enableForms,
         enableCommandUris: webviewOptions.enableCommandUris,
-        localResourceRoots: Array.isArray(webviewOptions.localResourceRoots)
-            ? webviewOptions.localResourceRoots.map((r) => URI.revive(r))
-            : undefined,
+        localResourceRoots: Array.isArray(webviewOptions.localResourceRoots) ? webviewOptions.localResourceRoots.map(r => URI.revive(r)) : undefined,
         portMapping: webviewOptions.portMapping,
     };
 }

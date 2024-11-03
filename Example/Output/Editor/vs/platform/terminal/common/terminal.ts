@@ -2,140 +2,140 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Event } from "../../../base/common/event.js";
-import type * as performance from "../../../base/common/performance.js";
-import { IProcessEnvironment, OperatingSystem, } from "../../../base/common/platform.js";
-import { ThemeIcon } from "../../../base/common/themables.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { RawContextKey } from "../../contextkey/common/contextkey.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { ILogService } from "../../log/common/log.js";
-import { Registry } from "../../registry/common/platform.js";
-import { IWorkspaceFolder } from "../../workspace/common/workspace.js";
-import { IPtyHostProcessReplayEvent, ISerializedCommandDetectionCapability, ITerminalCapabilityStore, } from "./capabilities/capabilities.js";
-import { ISerializableEnvironmentVariableCollections } from "./environmentVariable.js";
-import { IGetTerminalLayoutInfoArgs, IProcessDetails, ISetTerminalLayoutInfoArgs, } from "./terminalProcess.js";
-export const terminalTabFocusModeContextKey = new RawContextKey<boolean>("terminalTabFocusMode", false, true);
+import { Event } from '../../../base/common/event.js';
+import { IProcessEnvironment, OperatingSystem } from '../../../base/common/platform.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { IPtyHostProcessReplayEvent, ISerializedCommandDetectionCapability, ITerminalCapabilityStore } from './capabilities/capabilities.js';
+import { IGetTerminalLayoutInfoArgs, IProcessDetails, ISetTerminalLayoutInfoArgs } from './terminalProcess.js';
+import { ThemeIcon } from '../../../base/common/themables.js';
+import { ISerializableEnvironmentVariableCollections } from './environmentVariable.js';
+import { RawContextKey } from '../../contextkey/common/contextkey.js';
+import { IWorkspaceFolder } from '../../workspace/common/workspace.js';
+import { Registry } from '../../registry/common/platform.js';
+import type * as performance from '../../../base/common/performance.js';
+import { ILogService } from '../../log/common/log.js';
+export const terminalTabFocusModeContextKey = new RawContextKey<boolean>('terminalTabFocusMode', false, true);
 export const enum TerminalSettingPrefix {
-    AutomationProfile = "terminal.integrated.automationProfile.",
-    DefaultProfile = "terminal.integrated.defaultProfile.",
-    Profiles = "terminal.integrated.profiles."
+    AutomationProfile = 'terminal.integrated.automationProfile.',
+    DefaultProfile = 'terminal.integrated.defaultProfile.',
+    Profiles = 'terminal.integrated.profiles.'
 }
 export const enum TerminalSettingId {
-    SendKeybindingsToShell = "terminal.integrated.sendKeybindingsToShell",
-    AutomationProfileLinux = "terminal.integrated.automationProfile.linux",
-    AutomationProfileMacOs = "terminal.integrated.automationProfile.osx",
-    AutomationProfileWindows = "terminal.integrated.automationProfile.windows",
-    ProfilesWindows = "terminal.integrated.profiles.windows",
-    ProfilesMacOs = "terminal.integrated.profiles.osx",
-    ProfilesLinux = "terminal.integrated.profiles.linux",
-    DefaultProfileLinux = "terminal.integrated.defaultProfile.linux",
-    DefaultProfileMacOs = "terminal.integrated.defaultProfile.osx",
-    DefaultProfileWindows = "terminal.integrated.defaultProfile.windows",
-    UseWslProfiles = "terminal.integrated.useWslProfiles",
-    TabsDefaultColor = "terminal.integrated.tabs.defaultColor",
-    TabsDefaultIcon = "terminal.integrated.tabs.defaultIcon",
-    TabsEnabled = "terminal.integrated.tabs.enabled",
-    TabsEnableAnimation = "terminal.integrated.tabs.enableAnimation",
-    TabsHideCondition = "terminal.integrated.tabs.hideCondition",
-    TabsShowActiveTerminal = "terminal.integrated.tabs.showActiveTerminal",
-    TabsShowActions = "terminal.integrated.tabs.showActions",
-    TabsLocation = "terminal.integrated.tabs.location",
-    TabsFocusMode = "terminal.integrated.tabs.focusMode",
-    MacOptionIsMeta = "terminal.integrated.macOptionIsMeta",
-    MacOptionClickForcesSelection = "terminal.integrated.macOptionClickForcesSelection",
-    AltClickMovesCursor = "terminal.integrated.altClickMovesCursor",
-    CopyOnSelection = "terminal.integrated.copyOnSelection",
-    EnableMultiLinePasteWarning = "terminal.integrated.enableMultiLinePasteWarning",
-    DrawBoldTextInBrightColors = "terminal.integrated.drawBoldTextInBrightColors",
-    FontFamily = "terminal.integrated.fontFamily",
-    FontSize = "terminal.integrated.fontSize",
-    LetterSpacing = "terminal.integrated.letterSpacing",
-    LineHeight = "terminal.integrated.lineHeight",
-    MinimumContrastRatio = "terminal.integrated.minimumContrastRatio",
-    TabStopWidth = "terminal.integrated.tabStopWidth",
-    FastScrollSensitivity = "terminal.integrated.fastScrollSensitivity",
-    MouseWheelScrollSensitivity = "terminal.integrated.mouseWheelScrollSensitivity",
-    BellDuration = "terminal.integrated.bellDuration",
-    FontWeight = "terminal.integrated.fontWeight",
-    FontWeightBold = "terminal.integrated.fontWeightBold",
-    CursorBlinking = "terminal.integrated.cursorBlinking",
-    CursorStyle = "terminal.integrated.cursorStyle",
-    CursorStyleInactive = "terminal.integrated.cursorStyleInactive",
-    CursorWidth = "terminal.integrated.cursorWidth",
-    Scrollback = "terminal.integrated.scrollback",
-    DetectLocale = "terminal.integrated.detectLocale",
-    DefaultLocation = "terminal.integrated.defaultLocation",
-    GpuAcceleration = "terminal.integrated.gpuAcceleration",
-    TerminalTitleSeparator = "terminal.integrated.tabs.separator",
-    TerminalTitle = "terminal.integrated.tabs.title",
-    TerminalDescription = "terminal.integrated.tabs.description",
-    RightClickBehavior = "terminal.integrated.rightClickBehavior",
-    MiddleClickBehavior = "terminal.integrated.middleClickBehavior",
-    Cwd = "terminal.integrated.cwd",
-    ConfirmOnExit = "terminal.integrated.confirmOnExit",
-    ConfirmOnKill = "terminal.integrated.confirmOnKill",
-    EnableBell = "terminal.integrated.enableBell",
-    EnableVisualBell = "terminal.integrated.enableVisualBell",
-    CommandsToSkipShell = "terminal.integrated.commandsToSkipShell",
-    AllowChords = "terminal.integrated.allowChords",
-    AllowMnemonics = "terminal.integrated.allowMnemonics",
-    TabFocusMode = "terminal.integrated.tabFocusMode",
-    EnvMacOs = "terminal.integrated.env.osx",
-    EnvLinux = "terminal.integrated.env.linux",
-    EnvWindows = "terminal.integrated.env.windows",
-    EnvironmentChangesIndicator = "terminal.integrated.environmentChangesIndicator",
-    EnvironmentChangesRelaunch = "terminal.integrated.environmentChangesRelaunch",
-    ExperimentalWindowsUseConptyDll = "terminal.integrated.experimental.windowsUseConptyDll",
-    ShowExitAlert = "terminal.integrated.showExitAlert",
-    SplitCwd = "terminal.integrated.splitCwd",
-    WindowsEnableConpty = "terminal.integrated.windowsEnableConpty",
-    WordSeparators = "terminal.integrated.wordSeparators",
-    EnableFileLinks = "terminal.integrated.enableFileLinks",
-    AllowedLinkSchemes = "terminal.integrated.allowedLinkSchemes",
-    UnicodeVersion = "terminal.integrated.unicodeVersion",
-    EnablePersistentSessions = "terminal.integrated.enablePersistentSessions",
-    PersistentSessionReviveProcess = "terminal.integrated.persistentSessionReviveProcess",
-    HideOnStartup = "terminal.integrated.hideOnStartup",
-    CustomGlyphs = "terminal.integrated.customGlyphs",
-    RescaleOverlappingGlyphs = "terminal.integrated.rescaleOverlappingGlyphs",
-    PersistentSessionScrollback = "terminal.integrated.persistentSessionScrollback",
-    InheritEnv = "terminal.integrated.inheritEnv",
-    ShowLinkHover = "terminal.integrated.showLinkHover",
-    IgnoreProcessNames = "terminal.integrated.ignoreProcessNames",
-    ShellIntegrationEnabled = "terminal.integrated.shellIntegration.enabled",
-    ShellIntegrationShowWelcome = "terminal.integrated.shellIntegration.showWelcome",
-    ShellIntegrationDecorationsEnabled = "terminal.integrated.shellIntegration.decorationsEnabled",
-    EnableImages = "terminal.integrated.enableImages",
-    SmoothScrolling = "terminal.integrated.smoothScrolling",
-    IgnoreBracketedPasteMode = "terminal.integrated.ignoreBracketedPasteMode",
-    FocusAfterRun = "terminal.integrated.focusAfterRun",
+    SendKeybindingsToShell = 'terminal.integrated.sendKeybindingsToShell',
+    AutomationProfileLinux = 'terminal.integrated.automationProfile.linux',
+    AutomationProfileMacOs = 'terminal.integrated.automationProfile.osx',
+    AutomationProfileWindows = 'terminal.integrated.automationProfile.windows',
+    ProfilesWindows = 'terminal.integrated.profiles.windows',
+    ProfilesMacOs = 'terminal.integrated.profiles.osx',
+    ProfilesLinux = 'terminal.integrated.profiles.linux',
+    DefaultProfileLinux = 'terminal.integrated.defaultProfile.linux',
+    DefaultProfileMacOs = 'terminal.integrated.defaultProfile.osx',
+    DefaultProfileWindows = 'terminal.integrated.defaultProfile.windows',
+    UseWslProfiles = 'terminal.integrated.useWslProfiles',
+    TabsDefaultColor = 'terminal.integrated.tabs.defaultColor',
+    TabsDefaultIcon = 'terminal.integrated.tabs.defaultIcon',
+    TabsEnabled = 'terminal.integrated.tabs.enabled',
+    TabsEnableAnimation = 'terminal.integrated.tabs.enableAnimation',
+    TabsHideCondition = 'terminal.integrated.tabs.hideCondition',
+    TabsShowActiveTerminal = 'terminal.integrated.tabs.showActiveTerminal',
+    TabsShowActions = 'terminal.integrated.tabs.showActions',
+    TabsLocation = 'terminal.integrated.tabs.location',
+    TabsFocusMode = 'terminal.integrated.tabs.focusMode',
+    MacOptionIsMeta = 'terminal.integrated.macOptionIsMeta',
+    MacOptionClickForcesSelection = 'terminal.integrated.macOptionClickForcesSelection',
+    AltClickMovesCursor = 'terminal.integrated.altClickMovesCursor',
+    CopyOnSelection = 'terminal.integrated.copyOnSelection',
+    EnableMultiLinePasteWarning = 'terminal.integrated.enableMultiLinePasteWarning',
+    DrawBoldTextInBrightColors = 'terminal.integrated.drawBoldTextInBrightColors',
+    FontFamily = 'terminal.integrated.fontFamily',
+    FontSize = 'terminal.integrated.fontSize',
+    LetterSpacing = 'terminal.integrated.letterSpacing',
+    LineHeight = 'terminal.integrated.lineHeight',
+    MinimumContrastRatio = 'terminal.integrated.minimumContrastRatio',
+    TabStopWidth = 'terminal.integrated.tabStopWidth',
+    FastScrollSensitivity = 'terminal.integrated.fastScrollSensitivity',
+    MouseWheelScrollSensitivity = 'terminal.integrated.mouseWheelScrollSensitivity',
+    BellDuration = 'terminal.integrated.bellDuration',
+    FontWeight = 'terminal.integrated.fontWeight',
+    FontWeightBold = 'terminal.integrated.fontWeightBold',
+    CursorBlinking = 'terminal.integrated.cursorBlinking',
+    CursorStyle = 'terminal.integrated.cursorStyle',
+    CursorStyleInactive = 'terminal.integrated.cursorStyleInactive',
+    CursorWidth = 'terminal.integrated.cursorWidth',
+    Scrollback = 'terminal.integrated.scrollback',
+    DetectLocale = 'terminal.integrated.detectLocale',
+    DefaultLocation = 'terminal.integrated.defaultLocation',
+    GpuAcceleration = 'terminal.integrated.gpuAcceleration',
+    TerminalTitleSeparator = 'terminal.integrated.tabs.separator',
+    TerminalTitle = 'terminal.integrated.tabs.title',
+    TerminalDescription = 'terminal.integrated.tabs.description',
+    RightClickBehavior = 'terminal.integrated.rightClickBehavior',
+    MiddleClickBehavior = 'terminal.integrated.middleClickBehavior',
+    Cwd = 'terminal.integrated.cwd',
+    ConfirmOnExit = 'terminal.integrated.confirmOnExit',
+    ConfirmOnKill = 'terminal.integrated.confirmOnKill',
+    EnableBell = 'terminal.integrated.enableBell',
+    EnableVisualBell = 'terminal.integrated.enableVisualBell',
+    CommandsToSkipShell = 'terminal.integrated.commandsToSkipShell',
+    AllowChords = 'terminal.integrated.allowChords',
+    AllowMnemonics = 'terminal.integrated.allowMnemonics',
+    TabFocusMode = 'terminal.integrated.tabFocusMode',
+    EnvMacOs = 'terminal.integrated.env.osx',
+    EnvLinux = 'terminal.integrated.env.linux',
+    EnvWindows = 'terminal.integrated.env.windows',
+    EnvironmentChangesIndicator = 'terminal.integrated.environmentChangesIndicator',
+    EnvironmentChangesRelaunch = 'terminal.integrated.environmentChangesRelaunch',
+    ExperimentalWindowsUseConptyDll = 'terminal.integrated.experimental.windowsUseConptyDll',
+    ShowExitAlert = 'terminal.integrated.showExitAlert',
+    SplitCwd = 'terminal.integrated.splitCwd',
+    WindowsEnableConpty = 'terminal.integrated.windowsEnableConpty',
+    WordSeparators = 'terminal.integrated.wordSeparators',
+    EnableFileLinks = 'terminal.integrated.enableFileLinks',
+    AllowedLinkSchemes = 'terminal.integrated.allowedLinkSchemes',
+    UnicodeVersion = 'terminal.integrated.unicodeVersion',
+    EnablePersistentSessions = 'terminal.integrated.enablePersistentSessions',
+    PersistentSessionReviveProcess = 'terminal.integrated.persistentSessionReviveProcess',
+    HideOnStartup = 'terminal.integrated.hideOnStartup',
+    CustomGlyphs = 'terminal.integrated.customGlyphs',
+    RescaleOverlappingGlyphs = 'terminal.integrated.rescaleOverlappingGlyphs',
+    PersistentSessionScrollback = 'terminal.integrated.persistentSessionScrollback',
+    InheritEnv = 'terminal.integrated.inheritEnv',
+    ShowLinkHover = 'terminal.integrated.showLinkHover',
+    IgnoreProcessNames = 'terminal.integrated.ignoreProcessNames',
+    ShellIntegrationEnabled = 'terminal.integrated.shellIntegration.enabled',
+    ShellIntegrationShowWelcome = 'terminal.integrated.shellIntegration.showWelcome',
+    ShellIntegrationDecorationsEnabled = 'terminal.integrated.shellIntegration.decorationsEnabled',
+    EnableImages = 'terminal.integrated.enableImages',
+    SmoothScrolling = 'terminal.integrated.smoothScrolling',
+    IgnoreBracketedPasteMode = 'terminal.integrated.ignoreBracketedPasteMode',
+    FocusAfterRun = 'terminal.integrated.focusAfterRun',
     // Debug settings that are hidden from user
     /** Simulated latency applied to all calls made to the pty host */
-    DeveloperPtyHostLatency = "terminal.integrated.developer.ptyHost.latency",
+    DeveloperPtyHostLatency = 'terminal.integrated.developer.ptyHost.latency',
     /** Simulated startup delay of the pty host process */
-    DeveloperPtyHostStartupDelay = "terminal.integrated.developer.ptyHost.startupDelay",
+    DeveloperPtyHostStartupDelay = 'terminal.integrated.developer.ptyHost.startupDelay',
     /** Shows the textarea element */
-    DevMode = "terminal.integrated.developer.devMode"
+    DevMode = 'terminal.integrated.developer.devMode'
 }
 export const enum PosixShellType {
-    Bash = "bash",
-    Fish = "fish",
-    Sh = "sh",
-    Csh = "csh",
-    Ksh = "ksh",
-    Zsh = "zsh"
+    Bash = 'bash',
+    Fish = 'fish',
+    Sh = 'sh',
+    Csh = 'csh',
+    Ksh = 'ksh',
+    Zsh = 'zsh'
 }
 export const enum WindowsShellType {
-    CommandPrompt = "cmd",
-    Wsl = "wsl",
-    GitBash = "gitbash"
+    CommandPrompt = 'cmd',
+    Wsl = 'wsl',
+    GitBash = 'gitbash'
 }
 export const enum GeneralShellType {
-    PowerShell = "pwsh",
-    Python = "python",
-    Julia = "julia",
-    NuShell = "nu"
+    PowerShell = 'pwsh',
+    Python = 'python',
+    Julia = 'julia',
+    NuShell = 'nu'
 }
 export type TerminalShellType = PosixShellType | WindowsShellType | GeneralShellType;
 export interface IRawTerminalInstanceLayoutInfo<T> {
@@ -177,7 +177,7 @@ export interface IReconnectionProperties {
     ownerId: string;
     data?: unknown;
 }
-export type TerminalType = "Task" | "Local" | undefined;
+export type TerminalType = 'Task' | 'Local' | undefined;
 export enum TitleEventSource {
     /** From the API or the rename command that overrides any other type */
     Api,
@@ -194,35 +194,35 @@ export enum TerminalIpcChannels {
     /**
      * Communicates between the renderer process and shared process.
      */
-    LocalPty = "localPty",
+    LocalPty = 'localPty',
     /**
      * Communicates between the shared process and the pty host process.
      */
-    PtyHost = "ptyHost",
+    PtyHost = 'ptyHost',
     /**
      * Communicates between the renderer process and the pty host process.
      */
-    PtyHostWindow = "ptyHostWindow",
+    PtyHostWindow = 'ptyHostWindow',
     /**
      * Deals with logging from the pty host process.
      */
-    Logger = "logger",
+    Logger = 'logger',
     /**
      * Enables the detection of unresponsive pty hosts.
      */
-    Heartbeat = "heartbeat"
+    Heartbeat = 'heartbeat'
 }
 export const enum ProcessPropertyType {
-    Cwd = "cwd",
-    InitialCwd = "initialCwd",
-    FixedDimensions = "fixedDimensions",
-    Title = "title",
-    ShellType = "shellType",
-    HasChildProcesses = "hasChildProcesses",
-    ResolvedShellLaunchConfig = "resolvedShellLaunchConfig",
-    OverrideDimensions = "overrideDimensions",
-    FailedShellIntegrationActivation = "failedShellIntegrationActivation",
-    UsedShellIntegrationInjection = "usedShellIntegrationInjection"
+    Cwd = 'cwd',
+    InitialCwd = 'initialCwd',
+    FixedDimensions = 'fixedDimensions',
+    Title = 'title',
+    ShellType = 'shellType',
+    HasChildProcesses = 'hasChildProcesses',
+    ResolvedShellLaunchConfig = 'resolvedShellLaunchConfig',
+    OverrideDimensions = 'overrideDimensions',
+    FailedShellIntegrationActivation = 'failedShellIntegrationActivation',
+    UsedShellIntegrationInjection = 'usedShellIntegrationInjection'
 }
 export interface IProcessProperty<T extends ProcessPropertyType> {
     type: T;
@@ -252,7 +252,7 @@ export interface IFixedTerminalDimensions {
 }
 /**
  * A service that communicates with a pty host.
- */
+*/
 export interface IPtyService {
     readonly _serviceBrand: undefined;
     readonly onProcessData: Event<{
@@ -283,7 +283,7 @@ export interface IPtyService {
         id: number;
         event: number | undefined;
     }>;
-    createProcess(shellLaunchConfig: IShellLaunchConfig, cwd: string, cols: number, rows: number, unicodeVersion: "6" | "11", env: IProcessEnvironment, executableEnv: IProcessEnvironment, options: ITerminalProcessOptions, shouldPersist: boolean, workspaceId: string, workspaceName: string): Promise<number>;
+    createProcess(shellLaunchConfig: IShellLaunchConfig, cwd: string, cols: number, rows: number, unicodeVersion: '6' | '11', env: IProcessEnvironment, executableEnv: IProcessEnvironment, options: ITerminalProcessOptions, shouldPersist: boolean, workspaceId: string, workspaceName: string): Promise<number>;
     attachToProcess(id: number): Promise<void>;
     detachFromProcess(id: number, forcePersist?: boolean): Promise<void>;
     shutdownAll(): Promise<void>;
@@ -306,7 +306,7 @@ export interface IPtyService {
     getInitialCwd(id: number): Promise<string>;
     getCwd(id: number): Promise<string>;
     acknowledgeDataEvent(id: number, charCount: number): Promise<void>;
-    setUnicodeVersion(id: number, version: "6" | "11"): Promise<void>;
+    setUnicodeVersion(id: number, version: '6' | '11'): Promise<void>;
     processBinary(id: number, data: string): Promise<void>;
     /** Confirm the process is _not_ an orphan. */
     orphanQuestionReply(id: number): Promise<void>;
@@ -314,7 +314,7 @@ export interface IPtyService {
     updateIcon(id: number, userInitiated: boolean, icon: TerminalIcon, color?: string): Promise<void>;
     getDefaultSystemShell(osOverride?: OperatingSystem): Promise<string>;
     getEnvironment(): Promise<IProcessEnvironment>;
-    getWslPath(original: string, direction: "unix-to-win" | "win-to-unix"): Promise<string>;
+    getWslPath(original: string, direction: 'unix-to-win' | 'win-to-unix'): Promise<string>;
     getRevivedPtyNewId(workspaceId: string, id: number): Promise<number | undefined>;
     setTerminalLayoutInfo(args: ISetTerminalLayoutInfoArgs): Promise<void>;
     getTerminalLayoutInfo(args: IGetTerminalLayoutInfoArgs): Promise<ITerminalsLayoutInfo | undefined>;
@@ -343,7 +343,7 @@ export interface IPtyService {
     installAutoReply(match: string, reply: string): Promise<void>;
     uninstallAllAutoReplies(): Promise<void>;
 }
-export const IPtyService = createDecorator<IPtyService>("ptyService");
+export const IPtyService = createDecorator<IPtyService>('ptyService');
 export interface IPtyServiceContribution {
     handleProcessReady(persistentProcessId: number, process: ITerminalChildProcess): void;
     handleProcessDispose(persistentProcessId: number): void;
@@ -363,7 +363,7 @@ export interface IPtyHostController {
 /**
  * A service that communicates with a pty host controller (eg. main or server
  * process) and is able to launch and forward requests to the pty host.
- */
+*/
 export interface IPtyHostService extends IPtyService, IPtyHostController {
 }
 export interface IPtyHostLatencyMeasurement {
@@ -383,7 +383,7 @@ export interface ISerializedTerminalState {
     shellLaunchConfig: IShellLaunchConfig;
     processDetails: IProcessDetails;
     processLaunchConfig: IPersistentTerminalProcessLaunchConfig;
-    unicodeVersion: "6" | "11";
+    unicodeVersion: '6' | '11';
     replayEvent: IPtyHostProcessReplayEvent;
     timestamp: number;
 }
@@ -437,7 +437,7 @@ export interface IShellLaunchConfig {
     /**
      * A string to follow the name of the terminal with, indicating the type of terminal
      */
-    type?: "Task" | "Local";
+    type?: 'Task' | 'Local';
     /**
      * The shell executable (bash, cmd, etc.).
      */
@@ -594,8 +594,8 @@ export enum TerminalLocation {
     Editor = 2
 }
 export const enum TerminalLocationString {
-    TerminalView = "view",
-    Editor = "editor"
+    TerminalView = 'view',
+    Editor = 'editor'
 }
 export type TerminalIcon = ThemeIcon | URI | {
     light: URI;
@@ -610,7 +610,7 @@ export interface IShellLaunchConfigDto {
     useShellEnvironment?: boolean;
     hideFromUser?: boolean;
     reconnectionProperties?: IReconnectionProperties;
-    type?: "Task" | "Local";
+    type?: 'Task' | 'Local';
     isFeatureTerminal?: boolean;
 }
 /**
@@ -644,7 +644,7 @@ export interface IProcessReadyWindowsPty {
     /**
      * What pty emulation backend is being used.
      */
-    backend: "conpty" | "winpty";
+    backend: 'conpty' | 'winpty';
     /**
      * The Windows build version (eg. 19045)
      */
@@ -714,7 +714,7 @@ export interface ITerminalChildProcess {
      * Sets the unicode version for the process, this drives the size of some characters in the
      * xterm-headless instance.
      */
-    setUnicodeVersion(version: "6" | "11"): Promise<void>;
+    setUnicodeVersion(version: '6' | '11'): Promise<void>;
     getInitialCwd(): Promise<string>;
     getCwd(): Promise<string>;
     refreshProperty<T extends ProcessPropertyType>(property: T): Promise<IProcessPropertyMap[T]>;
@@ -728,11 +728,11 @@ export interface IReconnectConstants {
 export const enum LocalReconnectConstants {
     /**
      * If there is no reconnection within this time-frame, consider the connection permanently closed...
-     */
+    */
     GraceTime = 60000,// 60 seconds
     /**
      * Maximal grace time between the first and the last reconnection...
-     */
+    */
     ShortGraceTime = 6000
 }
 export const enum FlowControlConstants {
@@ -812,8 +812,8 @@ export interface ITerminalDimensionsOverride extends Readonly<ITerminalDimension
     forceExactSize?: boolean;
 }
 export const enum ProfileSource {
-    GitBash = "Git Bash",
-    Pwsh = "PowerShell"
+    GitBash = 'Git Bash',
+    Pwsh = 'PowerShell'
 }
 export interface IBaseUnresolvedTerminalProfile {
     args?: string | string[] | undefined;
@@ -891,7 +891,7 @@ export interface ITerminalOutputMatcher {
     /**
      * Which side of the output to anchor the {@link offset} and {@link length} against.
      */
-    anchor: "top" | "bottom";
+    anchor: 'top' | 'bottom';
     /**
      * The number of rows above or below the {@link anchor} to start matching against.
      */
@@ -912,8 +912,8 @@ export interface ITerminalCommandSelector {
     commandLineMatcher: string | RegExp;
     outputMatcher?: ITerminalOutputMatcher;
     exitStatus: boolean;
-    commandExitResult: "success" | "error";
-    kind?: "fix" | "explain";
+    commandExitResult: 'success' | 'error';
+    kind?: 'fix' | 'explain';
 }
 export interface ITerminalBackend extends ITerminalBackendPtyServiceContributions {
     readonly remoteAuthority: string | undefined;
@@ -953,7 +953,7 @@ export interface ITerminalBackend extends ITerminalBackendPtyServiceContribution
     getLatency(): Promise<IPtyHostLatencyMeasurement[]>;
     getDefaultSystemShell(osOverride?: OperatingSystem): Promise<string>;
     getProfiles(profiles: unknown, defaultProfile: unknown, includeDetectedProfiles?: boolean): Promise<ITerminalProfile[]>;
-    getWslPath(original: string, direction: "unix-to-win" | "win-to-unix"): Promise<string>;
+    getWslPath(original: string, direction: 'unix-to-win' | 'win-to-unix'): Promise<string>;
     getEnvironment(): Promise<IProcessEnvironment>;
     getShellEnvironment(): Promise<IProcessEnvironment | undefined>;
     setTerminalLayoutInfo(layoutInfo?: ITerminalsLayoutInfoById): Promise<void>;
@@ -965,7 +965,7 @@ export interface ITerminalBackend extends ITerminalBackendPtyServiceContribution
     requestDetachInstance(workspaceId: string, instanceId: number): Promise<IProcessDetails | undefined>;
     acceptDetachInstanceReply(requestId: number, persistentProcessId?: number): Promise<void>;
     persistTerminalState(): Promise<void>;
-    createProcess(shellLaunchConfig: IShellLaunchConfig, cwd: string, cols: number, rows: number, unicodeVersion: "6" | "11", env: IProcessEnvironment, options: ITerminalProcessOptions, shouldPersist: boolean): Promise<ITerminalChildProcess>;
+    createProcess(shellLaunchConfig: IShellLaunchConfig, cwd: string, cols: number, rows: number, unicodeVersion: '6' | '11', env: IProcessEnvironment, options: ITerminalProcessOptions, shouldPersist: boolean): Promise<ITerminalChildProcess>;
     restartPtyHost(): void;
 }
 export interface ITerminalBackendPtyServiceContributions {
@@ -973,7 +973,7 @@ export interface ITerminalBackendPtyServiceContributions {
     uninstallAllAutoReplies(): Promise<void>;
 }
 export const TerminalExtensions = {
-    Backend: "workbench.contributions.terminal.processBackend",
+    Backend: 'workbench.contributions.terminal.processBackend'
 };
 export interface ITerminalBackendRegistry {
     /**
@@ -991,9 +991,7 @@ export interface ITerminalBackendRegistry {
 }
 class TerminalBackendRegistry implements ITerminalBackendRegistry {
     private readonly _backends = new Map<string, ITerminalBackend>();
-    get backends(): ReadonlyMap<string, ITerminalBackend> {
-        return this._backends;
-    }
+    get backends(): ReadonlyMap<string, ITerminalBackend> { return this._backends; }
     registerTerminalBackend(backend: ITerminalBackend): void {
         const key = this._sanitizeRemoteAuthority(backend.remoteAuthority);
         if (this._backends.has(key)) {
@@ -1006,11 +1004,11 @@ class TerminalBackendRegistry implements ITerminalBackendRegistry {
     }
     private _sanitizeRemoteAuthority(remoteAuthority: string | undefined) {
         // Normalize the key to lowercase as the authority is case-insensitive
-        return remoteAuthority?.toLowerCase() ?? "";
+        return remoteAuthority?.toLowerCase() ?? '';
     }
 }
 Registry.add(TerminalExtensions.Backend, new TerminalBackendRegistry());
-export const ILocalPtyService = createDecorator<ILocalPtyService>("localPtyService");
+export const ILocalPtyService = createDecorator<ILocalPtyService>('localPtyService');
 /**
  * A service responsible for communicating with the pty host process on Electron.
  *
@@ -1018,7 +1016,7 @@ export const ILocalPtyService = createDecorator<ILocalPtyService>("localPtyServi
  */
 export interface ILocalPtyService extends IPtyHostService {
 }
-export const ITerminalLogService = createDecorator<ITerminalLogService>("terminalLogService");
+export const ITerminalLogService = createDecorator<ITerminalLogService>('terminalLogService');
 export interface ITerminalLogService extends ILogService {
     /**
      * Similar to _serviceBrand but used to differentiate this service at compile time from

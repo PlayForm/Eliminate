@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as dom from "../../base/browser/dom.js";
-import { GlobalPointerMoveMonitor } from "../../base/browser/globalPointerMoveMonitor.js";
-import { StandardMouseEvent } from "../../base/browser/mouseEvent.js";
-import { RunOnceScheduler } from "../../base/common/async.js";
-import { Disposable, DisposableStore, IDisposable, } from "../../base/common/lifecycle.js";
-import { ThemeColor } from "../../base/common/themables.js";
-import { asCssVariable } from "../../platform/theme/common/colorRegistry.js";
-import { ICodeEditor } from "./editorBrowser.js";
+import * as dom from '../../base/browser/dom.js';
+import { GlobalPointerMoveMonitor } from '../../base/browser/globalPointerMoveMonitor.js';
+import { StandardMouseEvent } from '../../base/browser/mouseEvent.js';
+import { RunOnceScheduler } from '../../base/common/async.js';
+import { Disposable, DisposableStore, IDisposable } from '../../base/common/lifecycle.js';
+import { ICodeEditor } from './editorBrowser.js';
+import { asCssVariable } from '../../platform/theme/common/colorRegistry.js';
+import { ThemeColor } from '../../base/common/themables.js';
 /**
  * Coordinates relative to the whole document (e.g. mouse event's pageX and pageY)
  */
@@ -110,12 +110,12 @@ export class EditorMouseEventFactory {
         return new EditorMouseEvent(e, false, this._editorViewDomNode);
     }
     public onContextMenu(target: HTMLElement, callback: (e: EditorMouseEvent) => void): IDisposable {
-        return dom.addDisposableListener(target, "contextmenu", (e: MouseEvent) => {
+        return dom.addDisposableListener(target, 'contextmenu', (e: MouseEvent) => {
             callback(this._create(e));
         });
     }
     public onMouseUp(target: HTMLElement, callback: (e: EditorMouseEvent) => void): IDisposable {
-        return dom.addDisposableListener(target, "mouseup", (e: MouseEvent) => {
+        return dom.addDisposableListener(target, 'mouseup', (e: MouseEvent) => {
             callback(this._create(e));
         });
     }
@@ -135,7 +135,7 @@ export class EditorMouseEventFactory {
         });
     }
     public onMouseMove(target: HTMLElement, callback: (e: EditorMouseEvent) => void): IDisposable {
-        return dom.addDisposableListener(target, "mousemove", (e) => callback(this._create(e)));
+        return dom.addDisposableListener(target, 'mousemove', (e) => callback(this._create(e)));
     }
 }
 export class EditorPointerEventFactory {
@@ -147,7 +147,7 @@ export class EditorPointerEventFactory {
         return new EditorMouseEvent(e, false, this._editorViewDomNode);
     }
     public onPointerUp(target: HTMLElement, callback: (e: EditorMouseEvent) => void): IDisposable {
-        return dom.addDisposableListener(target, "pointerup", (e: MouseEvent) => {
+        return dom.addDisposableListener(target, 'pointerup', (e: MouseEvent) => {
             callback(this._create(e));
         });
     }
@@ -162,7 +162,7 @@ export class EditorPointerEventFactory {
         });
     }
     public onPointerMove(target: HTMLElement, callback: (e: EditorMouseEvent) => void): IDisposable {
-        return dom.addDisposableListener(target, "pointermove", (e) => callback(this._create(e)));
+        return dom.addDisposableListener(target, 'pointermove', (e) => callback(this._create(e)));
     }
 }
 export class GlobalEditorPointerMoveMonitor extends Disposable {
@@ -178,7 +178,7 @@ export class GlobalEditorPointerMoveMonitor extends Disposable {
     public startMonitoring(initialElement: Element, pointerId: number, initialButtons: number, pointerMoveCallback: (e: EditorMouseEvent) => void, onStopCallback: (browserEvent?: PointerEvent | KeyboardEvent) => void): void {
         // Add a <<capture>> keydown event listener that will cancel the monitoring
         // if something other than a modifier key is pressed
-        this._keydownListener = dom.addStandardDisposableListener(<any>initialElement.ownerDocument, "keydown", (e) => {
+        this._keydownListener = dom.addStandardDisposableListener(<any>initialElement.ownerDocument, 'keydown', (e) => {
             const chord = e.toKeyCodeChord();
             if (chord.isModifierKey()) {
                 // Allow modifier keys
@@ -201,7 +201,7 @@ export class GlobalEditorPointerMoveMonitor extends Disposable {
  * A helper to create dynamic css rules, bound to a class name.
  * Rules are reused.
  * Reference counting and delayed garbage collection ensure that no rules leak.
- */
+*/
 export class DynamicCssRules {
     private static _idPool = 0;
     private readonly _instanceId = ++DynamicCssRules._idPool;
@@ -209,7 +209,8 @@ export class DynamicCssRules {
     private readonly _rules = new Map<string, RefCountedCssRule>();
     // We delay garbage collection so that hanging rules can be reused.
     private readonly _garbageCollectionScheduler = new RunOnceScheduler(() => this.garbageCollect(), 1000);
-    constructor(private readonly _editor: ICodeEditor) { }
+    constructor(private readonly _editor: ICodeEditor) {
+    }
     public createClassNameRef(options: CssProperties): ClassNameReference {
         const rule = this.getOrCreateRule(options);
         rule.increaseRefCount();
@@ -218,7 +219,7 @@ export class DynamicCssRules {
             dispose: () => {
                 rule.decreaseRefCount();
                 this._garbageCollectionScheduler.schedule();
-            },
+            }
         };
     }
     private getOrCreateRule(properties: CssProperties): RefCountedCssRule {
@@ -283,7 +284,7 @@ class RefCountedCssRule {
         for (const prop in properties) {
             const value = (properties as any)[prop] as string | ThemeColor;
             let cssValue;
-            if (typeof value === "object") {
+            if (typeof value === 'object') {
                 cssValue = asCssVariable(value.id);
             }
             else {
@@ -310,7 +311,6 @@ class RefCountedCssRule {
     }
 }
 function camelToDashes(str: string): string {
-    return str
-        .replace(/(^[A-Z])/, ([first]) => first.toLowerCase())
+    return str.replace(/(^[A-Z])/, ([first]) => first.toLowerCase())
         .replace(/([A-Z])/g, ([letter]) => `-${letter.toLowerCase()}`);
 }

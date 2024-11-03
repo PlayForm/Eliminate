@@ -2,11 +2,11 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IDisposable, toDisposable } from "../../../base/common/lifecycle.js";
-import { ISocket } from "../../../base/parts/ipc/common/ipc.net.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { RemoteConnection, RemoteConnectionOfType, RemoteConnectionType, } from "./remoteAuthorityResolver.js";
-export const IRemoteSocketFactoryService = createDecorator<IRemoteSocketFactoryService>("remoteSocketFactoryService");
+import { IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { ISocket } from '../../../base/parts/ipc/common/ipc.net.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { RemoteConnectionOfType, RemoteConnectionType, RemoteConnection } from './remoteAuthorityResolver.js';
+export const IRemoteSocketFactoryService = createDecorator<IRemoteSocketFactoryService>('remoteSocketFactoryService');
 export interface IRemoteSocketFactoryService {
     readonly _serviceBrand: undefined;
     /**
@@ -32,15 +32,14 @@ export class RemoteSocketFactoryService implements IRemoteSocketFactoryService {
         this.factories[type]!.push(factory);
         return toDisposable(() => {
             const idx = this.factories[type]?.indexOf(factory);
-            if (typeof idx === "number" && idx >= 0) {
+            if (typeof idx === 'number' && idx >= 0) {
                 this.factories[type]?.splice(idx, 1);
             }
         });
     }
     private getSocketFactory<T extends RemoteConnectionType>(messagePassing: RemoteConnectionOfType<T>): ISocketFactory<T> | undefined {
-        const factories = (this.factories[messagePassing.type] ||
-            []) as ISocketFactory<T>[];
-        return factories.find((factory) => factory.supports(messagePassing));
+        const factories = (this.factories[messagePassing.type] || []) as ISocketFactory<T>[];
+        return factories.find(factory => factory.supports(messagePassing));
     }
     public connect(connectTo: RemoteConnection, path: string, query: string, debugLabel: string): Promise<ISocket> {
         const socketFactory = this.getSocketFactory(connectTo);

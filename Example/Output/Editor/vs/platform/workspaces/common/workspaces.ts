@@ -2,23 +2,23 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Event } from "../../../base/common/event.js";
-import { isUNC, toSlashes } from "../../../base/common/extpath.js";
-import * as json from "../../../base/common/json.js";
-import * as jsonEdit from "../../../base/common/jsonEdit.js";
-import { FormattingOptions } from "../../../base/common/jsonFormatter.js";
-import { normalizeDriveLetter } from "../../../base/common/labels.js";
-import { Schemas } from "../../../base/common/network.js";
-import { isAbsolute, posix } from "../../../base/common/path.js";
-import { isLinux, isMacintosh, isWindows, } from "../../../base/common/platform.js";
-import { IExtUri, isEqualAuthority } from "../../../base/common/resources.js";
-import { URI } from "../../../base/common/uri.js";
-import { IFolderBackupInfo, IWorkspaceBackupInfo, } from "../../backup/common/backup.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { ILogService } from "../../log/common/log.js";
-import { getRemoteAuthority } from "../../remote/common/remoteHosts.js";
-import { IBaseWorkspace, IRawFileWorkspaceFolder, IRawUriWorkspaceFolder, IWorkspaceIdentifier, WorkspaceFolder, } from "../../workspace/common/workspace.js";
-export const IWorkspacesService = createDecorator<IWorkspacesService>("workspacesService");
+import { Event } from '../../../base/common/event.js';
+import { isUNC, toSlashes } from '../../../base/common/extpath.js';
+import * as json from '../../../base/common/json.js';
+import * as jsonEdit from '../../../base/common/jsonEdit.js';
+import { FormattingOptions } from '../../../base/common/jsonFormatter.js';
+import { normalizeDriveLetter } from '../../../base/common/labels.js';
+import { Schemas } from '../../../base/common/network.js';
+import { isAbsolute, posix } from '../../../base/common/path.js';
+import { isLinux, isMacintosh, isWindows } from '../../../base/common/platform.js';
+import { IExtUri, isEqualAuthority } from '../../../base/common/resources.js';
+import { URI } from '../../../base/common/uri.js';
+import { IWorkspaceBackupInfo, IFolderBackupInfo } from '../../backup/common/backup.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { ILogService } from '../../log/common/log.js';
+import { getRemoteAuthority } from '../../remote/common/remoteHosts.js';
+import { IBaseWorkspace, IRawFileWorkspaceFolder, IRawUriWorkspaceFolder, IWorkspaceIdentifier, WorkspaceFolder } from '../../workspace/common/workspace.js';
+export const IWorkspacesService = createDecorator<IWorkspacesService>('workspacesService');
 export interface IWorkspacesService {
     readonly _serviceBrand: undefined;
     // Workspaces Management
@@ -57,13 +57,13 @@ export interface IRecentFile {
     readonly remoteAuthority?: string;
 }
 export function isRecentWorkspace(curr: IRecent): curr is IRecentWorkspace {
-    return curr.hasOwnProperty("workspace");
+    return curr.hasOwnProperty('workspace');
 }
 export function isRecentFolder(curr: IRecent): curr is IRecentFolder {
-    return curr.hasOwnProperty("folderUri");
+    return curr.hasOwnProperty('folderUri');
 }
 export function isRecentFile(curr: IRecent): curr is IRecentFile {
-    return curr.hasOwnProperty("fileUri");
+    return curr.hasOwnProperty('fileUri');
 }
 //#endregion
 //#region Workspace File Utilities
@@ -72,13 +72,11 @@ export function isStoredWorkspaceFolder(obj: unknown): obj is IStoredWorkspaceFo
 }
 function isRawFileWorkspaceFolder(obj: unknown): obj is IRawFileWorkspaceFolder {
     const candidate = obj as IRawFileWorkspaceFolder | undefined;
-    return (typeof candidate?.path === "string" &&
-        (!candidate.name || typeof candidate.name === "string"));
+    return typeof candidate?.path === 'string' && (!candidate.name || typeof candidate.name === 'string');
 }
 function isRawUriWorkspaceFolder(obj: unknown): obj is IRawUriWorkspaceFolder {
     const candidate = obj as IRawUriWorkspaceFolder | undefined;
-    return (typeof candidate?.uri === "string" &&
-        (!candidate.name || typeof candidate.name === "string"));
+    return typeof candidate?.uri === 'string' && (!candidate.name || typeof candidate.name === 'string');
 }
 export type IStoredWorkspaceFolder = IRawFileWorkspaceFolder | IRawUriWorkspaceFolder;
 export interface IStoredWorkspace extends IBaseWorkspace {
@@ -115,12 +113,10 @@ export function getStoredWorkspaceFolder(folderURI: URI, forceAbsolute: boolean,
     // Always prefer a relative path if possible unless
     // prevented to make the workspace file shareable
     // with other users
-    let folderPath = !forceAbsolute
-        ? extUri.relativePath(targetConfigFolderURI, folderURI)
-        : undefined;
+    let folderPath = !forceAbsolute ? extUri.relativePath(targetConfigFolderURI, folderURI) : undefined;
     if (folderPath !== undefined) {
         if (folderPath.length === 0) {
-            folderPath = ".";
+            folderPath = '.';
         }
         else {
             if (isWindows) {
@@ -203,31 +199,24 @@ export function rewriteWorkspaceFileForNewLocation(rawWorkspaceContents: string,
     const targetConfigFolder = extUri.dirname(targetConfigPathURI);
     const rewrittenFolders: IStoredWorkspaceFolder[] = [];
     for (const folder of storedWorkspace.folders) {
-        const folderURI = isRawFileWorkspaceFolder(folder)
-            ? extUri.resolvePath(sourceConfigFolder, folder.path)
-            : URI.parse(folder.uri);
+        const folderURI = isRawFileWorkspaceFolder(folder) ? extUri.resolvePath(sourceConfigFolder, folder.path) : URI.parse(folder.uri);
         let absolute;
         if (isFromUntitledWorkspace) {
             absolute = false; // if it was an untitled workspace, try to make paths relative
         }
         else {
-            absolute =
-                !isRawFileWorkspaceFolder(folder) || isAbsolute(folder.path); // for existing workspaces, preserve whether a path was absolute or relative
+            absolute = !isRawFileWorkspaceFolder(folder) || isAbsolute(folder.path); // for existing workspaces, preserve whether a path was absolute or relative
         }
         rewrittenFolders.push(getStoredWorkspaceFolder(folderURI, absolute, folder.name, targetConfigFolder, extUri));
     }
     // Preserve as much of the existing workspace as possible by using jsonEdit
     // and only changing the folders portion.
-    const formattingOptions: FormattingOptions = {
-        insertSpaces: false,
-        tabSize: 4,
-        eol: isLinux || isMacintosh ? "\n" : "\r\n",
-    };
-    const edits = jsonEdit.setProperty(rawWorkspaceContents, ["folders"], rewrittenFolders, formattingOptions);
+    const formattingOptions: FormattingOptions = { insertSpaces: false, tabSize: 4, eol: (isLinux || isMacintosh) ? '\n' : '\r\n' };
+    const edits = jsonEdit.setProperty(rawWorkspaceContents, ['folders'], rewrittenFolders, formattingOptions);
     let newContent = jsonEdit.applyEdits(rawWorkspaceContents, edits);
     if (isEqualAuthority(storedWorkspace.remoteAuthority, getRemoteAuthority(targetConfigPathURI))) {
         // unsaved remote workspaces have the remoteAuthority set. Remove it when no longer nexessary.
-        newContent = jsonEdit.applyEdits(newContent, jsonEdit.removeProperty(newContent, ["remoteAuthority"], formattingOptions));
+        newContent = jsonEdit.applyEdits(newContent, jsonEdit.removeProperty(newContent, ['remoteAuthority'], formattingOptions));
     }
     return newContent;
 }
@@ -236,7 +225,7 @@ function doParseStoredWorkspace(path: URI, contents: string): IStoredWorkspace {
     const storedWorkspace: IStoredWorkspace = json.parse(contents); // use fault tolerant parser
     // Filter out folders which do not have a path or uri set
     if (storedWorkspace && Array.isArray(storedWorkspace.folders)) {
-        storedWorkspace.folders = storedWorkspace.folders.filter((folder) => isStoredWorkspaceFolder(folder));
+        storedWorkspace.folders = storedWorkspace.folders.filter(folder => isStoredWorkspaceFolder(folder));
     }
     else {
         throw new Error(`${path} looks like an invalid workspace file.`);
@@ -268,16 +257,13 @@ interface ISerializedRecentlyOpened {
 }
 export type RecentlyOpenedStorageData = object;
 function isSerializedRecentWorkspace(data: any): data is ISerializedRecentWorkspace {
-    return (data.workspace &&
-        typeof data.workspace === "object" &&
-        typeof data.workspace.id === "string" &&
-        typeof data.workspace.configPath === "string");
+    return data.workspace && typeof data.workspace === 'object' && typeof data.workspace.id === 'string' && typeof data.workspace.configPath === 'string';
 }
 function isSerializedRecentFolder(data: any): data is ISerializedRecentFolder {
-    return typeof data.folderUri === "string";
+    return typeof data.folderUri === 'string';
 }
 function isSerializedRecentFile(data: any): data is ISerializedRecentFile {
-    return typeof data.fileUri === "string";
+    return typeof data.fileUri === 'string';
 }
 export function restoreRecentlyOpened(data: RecentlyOpenedStorageData | undefined, logService: ILogService): IRecentlyOpened {
     const result: IRecentlyOpened = { workspaces: [], files: [] };
@@ -294,32 +280,17 @@ export function restoreRecentlyOpened(data: RecentlyOpenedStorageData | undefine
         };
         const storedRecents = data as ISerializedRecentlyOpened;
         if (Array.isArray(storedRecents.entries)) {
-            restoreGracefully(storedRecents.entries, (entry) => {
+            restoreGracefully(storedRecents.entries, entry => {
                 const label = entry.label;
                 const remoteAuthority = entry.remoteAuthority;
                 if (isSerializedRecentWorkspace(entry)) {
-                    result.workspaces.push({
-                        label,
-                        remoteAuthority,
-                        workspace: {
-                            id: entry.workspace.id,
-                            configPath: URI.parse(entry.workspace.configPath),
-                        },
-                    });
+                    result.workspaces.push({ label, remoteAuthority, workspace: { id: entry.workspace.id, configPath: URI.parse(entry.workspace.configPath) } });
                 }
                 else if (isSerializedRecentFolder(entry)) {
-                    result.workspaces.push({
-                        label,
-                        remoteAuthority,
-                        folderUri: URI.parse(entry.folderUri),
-                    });
+                    result.workspaces.push({ label, remoteAuthority, folderUri: URI.parse(entry.folderUri) });
                 }
                 else if (isSerializedRecentFile(entry)) {
-                    result.files.push({
-                        label,
-                        remoteAuthority,
-                        fileUri: URI.parse(entry.fileUri),
-                    });
+                    result.files.push({ label, remoteAuthority, fileUri: URI.parse(entry.fileUri) });
                 }
             });
         }
@@ -330,29 +301,14 @@ export function toStoreData(recents: IRecentlyOpened): RecentlyOpenedStorageData
     const serialized: ISerializedRecentlyOpened = { entries: [] };
     for (const recent of recents.workspaces) {
         if (isRecentFolder(recent)) {
-            serialized.entries.push({
-                folderUri: recent.folderUri.toString(),
-                label: recent.label,
-                remoteAuthority: recent.remoteAuthority,
-            });
+            serialized.entries.push({ folderUri: recent.folderUri.toString(), label: recent.label, remoteAuthority: recent.remoteAuthority });
         }
         else {
-            serialized.entries.push({
-                workspace: {
-                    id: recent.workspace.id,
-                    configPath: recent.workspace.configPath.toString(),
-                },
-                label: recent.label,
-                remoteAuthority: recent.remoteAuthority,
-            });
+            serialized.entries.push({ workspace: { id: recent.workspace.id, configPath: recent.workspace.configPath.toString() }, label: recent.label, remoteAuthority: recent.remoteAuthority });
         }
     }
     for (const recent of recents.files) {
-        serialized.entries.push({
-            fileUri: recent.fileUri.toString(),
-            label: recent.label,
-            remoteAuthority: recent.remoteAuthority,
-        });
+        serialized.entries.push({ fileUri: recent.fileUri.toString(), label: recent.label, remoteAuthority: recent.remoteAuthority });
     }
     return serialized;
 }

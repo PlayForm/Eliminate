@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable, IDisposable } from "../../../base/common/lifecycle.js";
-import { IObservable, observableFromEvent, } from "../../../base/common/observable.js";
-import { URI } from "../../../base/common/uri.js";
-import { ILanguageIdCodec, TokenizationRegistry } from "../languages.js";
-import { ILanguageExtensionPoint, ILanguageIcon, ILanguageNameIdPair, ILanguageSelection, ILanguageService, } from "../languages/language.js";
-import { PLAINTEXT_LANGUAGE_ID } from "../languages/modesRegistry.js";
-import { LanguagesRegistry } from "./languagesRegistry.js";
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable, IDisposable } from '../../../base/common/lifecycle.js';
+import { URI } from '../../../base/common/uri.js';
+import { LanguagesRegistry } from './languagesRegistry.js';
+import { ILanguageNameIdPair, ILanguageSelection, ILanguageService, ILanguageIcon, ILanguageExtensionPoint } from '../languages/language.js';
+import { ILanguageIdCodec, TokenizationRegistry } from '../languages.js';
+import { PLAINTEXT_LANGUAGE_ID } from '../languages/modesRegistry.js';
+import { IObservable, observableFromEvent } from '../../../base/common/observable.js';
 export class LanguageService extends Disposable implements ILanguageService {
     public _serviceBrand: undefined;
     static instanceCount = 0;
@@ -17,9 +17,7 @@ export class LanguageService extends Disposable implements ILanguageService {
     public readonly onDidRequestBasicLanguageFeatures = this._onDidRequestBasicLanguageFeatures.event;
     private readonly _onDidRequestRichLanguageFeatures = this._register(new Emitter<string>());
     public readonly onDidRequestRichLanguageFeatures = this._onDidRequestRichLanguageFeatures.event;
-    protected readonly _onDidChange = this._register(new Emitter<void>({
-        leakWarningThreshold: 200 /* https://github.com/microsoft/vscode/issues/119968 */,
-    }));
+    protected readonly _onDidChange = this._register(new Emitter<void>({ leakWarningThreshold: 200 /* https://github.com/microsoft/vscode/issues/119968 */ }));
     public readonly onDidChange: Event<void> = this._onDidChange.event;
     private readonly _requestedBasicLanguages = new Set<string>();
     private readonly _requestedRichLanguages = new Set<string>();

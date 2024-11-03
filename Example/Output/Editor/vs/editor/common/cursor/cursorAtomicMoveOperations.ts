@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CharCode } from "../../../base/common/charCode.js";
-import { CursorColumns } from "../core/cursorColumns.js";
+import { CharCode } from '../../../base/common/charCode.js';
+import { CursorColumns } from '../core/cursorColumns.js';
 export const enum Direction {
     Left,
     Right,
@@ -27,11 +27,7 @@ export class AtomicTabMoveOperations {
         let prevTabStopVisibleColumn = -1;
         for (let i = 0; i < lineLength; i++) {
             if (i === position) {
-                return [
-                    prevTabStopPosition,
-                    prevTabStopVisibleColumn,
-                    visibleColumn,
-                ];
+                return [prevTabStopPosition, prevTabStopVisibleColumn, visibleColumn];
             }
             if (visibleColumn % tabSize === 0) {
                 prevTabStopPosition = i;
@@ -51,11 +47,7 @@ export class AtomicTabMoveOperations {
             }
         }
         if (position === lineLength) {
-            return [
-                prevTabStopPosition,
-                prevTabStopVisibleColumn,
-                visibleColumn,
-            ];
+            return [prevTabStopPosition, prevTabStopVisibleColumn, visibleColumn];
         }
         return [-1, -1, -1];
     }
@@ -93,7 +85,7 @@ export class AtomicTabMoveOperations {
                     return position;
                 }
                 // Go to the nearest indentation.
-                left = visibleColumn % tabSize <= tabSize / 2;
+                left = visibleColumn % tabSize <= (tabSize / 2);
                 break;
         }
         // If going left, we can just use the info about the last tab stop position and
@@ -109,8 +101,7 @@ export class AtomicTabMoveOperations {
             // tabSize 4, should jump from position 6 to position 5, not 4.
             let currentVisibleColumn = prevTabStopVisibleColumn;
             for (let i = prevTabStopPosition; i < lineLength; ++i) {
-                if (currentVisibleColumn ===
-                    prevTabStopVisibleColumn + tabSize) {
+                if (currentVisibleColumn === prevTabStopVisibleColumn + tabSize) {
                     // It is a full indentation.
                     return prevTabStopPosition;
                 }

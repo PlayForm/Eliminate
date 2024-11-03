@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as arrays from "../../../base/common/arrays.js";
-import { readUInt32BE, writeUInt32BE } from "../../../base/common/buffer.js";
-import { countEOL } from "../core/eolCounter.js";
-import { LineRange } from "../core/lineRange.js";
-import { Position } from "../core/position.js";
-import { IRange } from "../core/range.js";
-import { ContiguousTokensEditing } from "./contiguousTokensEditing.js";
+import * as arrays from '../../../base/common/arrays.js';
+import { readUInt32BE, writeUInt32BE } from '../../../base/common/buffer.js';
+import { Position } from '../core/position.js';
+import { IRange } from '../core/range.js';
+import { countEOL } from '../core/eolCounter.js';
+import { ContiguousTokensEditing } from './contiguousTokensEditing.js';
+import { LineRange } from '../core/lineRange.js';
 /**
  * Represents contiguous tokens over a contiguous range of lines.
  */
@@ -108,8 +108,7 @@ export class ContiguousMultilineTokens {
         this._acceptInsertText(new Position(range.startLineNumber, range.startColumn), eolCount, firstLineLength);
     }
     private _acceptDeleteRange(range: IRange): void {
-        if (range.startLineNumber === range.endLineNumber &&
-            range.startColumn === range.endColumn) {
+        if (range.startLineNumber === range.endLineNumber && range.startColumn === range.endColumn) {
             // Nothing to delete
             return;
         }
@@ -160,8 +159,7 @@ export class ContiguousMultilineTokens {
             const deletedBefore = -firstLineIndex;
             this._startLineNumber -= deletedBefore;
             // Remove beginning from last line
-            this._tokens[lastLineIndex] =
-                ContiguousTokensEditing.deleteBeginning(this._tokens[lastLineIndex], range.endColumn - 1);
+            this._tokens[lastLineIndex] = ContiguousTokensEditing.deleteBeginning(this._tokens[lastLineIndex], range.endColumn - 1);
             // Delete lines
             this._tokens = this._tokens.slice(lastLineIndex);
         }

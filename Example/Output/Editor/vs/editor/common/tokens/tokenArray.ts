@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { OffsetRange } from "../core/offsetRange.js";
+import { OffsetRange } from '../core/offsetRange.js';
 /**
  * This class represents a sequence of tokens.
  * Conceptually, each token has a length and a metadata number.
@@ -10,7 +10,7 @@ import { OffsetRange } from "../core/offsetRange.js";
  * Use {@link TokenArrayBuilder} to efficiently create a token array.
  *
  * TODO: Make this class more efficient (e.g. by using a Int32Array).
- */
+*/
 export class TokenArray {
     public static create(tokenInfo: TokenInfo[]): TokenArray {
         return new TokenArray(tokenInfo);
@@ -49,7 +49,7 @@ export class TokenInfo {
 }
 /**
  * TODO: Make this class more efficient (e.g. by using a Int32Array).
- */
+*/
 export class TokenArrayBuilder {
     private readonly _tokens: TokenInfo[] = [];
     public add(length: number, metadata: TokenMetadata): void {

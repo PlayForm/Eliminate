@@ -2,8 +2,8 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { MutableDisposable } from "../../../base/common/lifecycle.js";
-import { AbstractMessageLogger, DEFAULT_LOG_LEVEL, ILogger, log, LogLevel, } from "./log.js";
+import { MutableDisposable } from '../../../base/common/lifecycle.js';
+import { AbstractMessageLogger, DEFAULT_LOG_LEVEL, ILogger, log, LogLevel } from './log.js';
 interface ILog {
     level: LogLevel;
     message: string;

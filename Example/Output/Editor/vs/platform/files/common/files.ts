@@ -2,25 +2,25 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { VSBuffer, VSBufferReadable, VSBufferReadableStream, } from "../../../base/common/buffer.js";
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Event } from "../../../base/common/event.js";
-import { IExpression, IRelativePattern } from "../../../base/common/glob.js";
-import { IMarkdownString } from "../../../base/common/htmlContent.js";
-import { Lazy } from "../../../base/common/lazy.js";
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { Schemas } from "../../../base/common/network.js";
-import { sep } from "../../../base/common/path.js";
-import { isWeb } from "../../../base/common/platform.js";
-import { ReadableStreamEvents } from "../../../base/common/stream.js";
-import { startsWithIgnoreCase } from "../../../base/common/strings.js";
-import { TernarySearchTree } from "../../../base/common/ternarySearchTree.js";
-import { isNumber } from "../../../base/common/types.js";
-import { URI } from "../../../base/common/uri.js";
-import { localize } from "../../../nls.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
+import { VSBuffer, VSBufferReadable, VSBufferReadableStream } from '../../../base/common/buffer.js';
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { Event } from '../../../base/common/event.js';
+import { IExpression, IRelativePattern } from '../../../base/common/glob.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { TernarySearchTree } from '../../../base/common/ternarySearchTree.js';
+import { sep } from '../../../base/common/path.js';
+import { ReadableStreamEvents } from '../../../base/common/stream.js';
+import { startsWithIgnoreCase } from '../../../base/common/strings.js';
+import { isNumber } from '../../../base/common/types.js';
+import { URI } from '../../../base/common/uri.js';
+import { localize } from '../../../nls.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { isWeb } from '../../../base/common/platform.js';
+import { Schemas } from '../../../base/common/network.js';
+import { IMarkdownString } from '../../../base/common/htmlContent.js';
+import { Lazy } from '../../../base/common/lazy.js';
 //#region file service & providers
-export const IFileService = createDecorator<IFileService>("fileService");
+export const IFileService = createDecorator<IFileService>('fileService');
 export interface IFileService {
     readonly _serviceBrand: undefined;
     /**
@@ -221,7 +221,7 @@ export interface IFileService {
      * The watcher runs uncorrelated and thus will report all events from `IFileService.onDidFilesChange`.
      * This means, most listeners in the application will receive your events. It is encouraged to
      * use correlated watchers (via `IWatchOptionsWithCorrelation`) to limit events to your listener.
-     */
+    */
     watch(resource: URI, options?: IWatchOptionsWithoutCorrelation): IDisposable;
     /**
      * Frees up any resources occupied by this service.
@@ -477,7 +477,7 @@ export interface IFileSystemWatcher extends IDisposable {
 }
 export function isFileSystemWatcher(thing: unknown): thing is IFileSystemWatcher {
     const candidate = thing as IFileSystemWatcher | undefined;
-    return !!candidate && typeof candidate.onDidChange === "function";
+    return !!candidate && typeof candidate.onDidChange === 'function';
 }
 export const enum FileSystemProviderCapabilities {
     /**
@@ -585,8 +585,7 @@ export interface IFileSystemProviderWithOpenReadWriteCloseCapability extends IFi
     write(fd: number, pos: number, data: Uint8Array, offset: number, length: number): Promise<number>;
 }
 export function hasOpenReadWriteCloseCapability(provider: IFileSystemProvider): provider is IFileSystemProviderWithOpenReadWriteCloseCapability {
-    return !!(provider.capabilities &
-        FileSystemProviderCapabilities.FileOpenReadWriteClose);
+    return !!(provider.capabilities & FileSystemProviderCapabilities.FileOpenReadWriteClose);
 }
 export interface IFileSystemProviderWithFileReadStreamCapability extends IFileSystemProvider {
     readFileStream(resource: URI, opts: IFileReadStreamOptions, token: CancellationToken): ReadableStreamEvents<Uint8Array>;
@@ -632,16 +631,16 @@ export function hasReadonlyCapability(provider: IFileSystemProvider): provider i
     return !!(provider.capabilities & FileSystemProviderCapabilities.Readonly);
 }
 export enum FileSystemProviderErrorCode {
-    FileExists = "EntryExists",
-    FileNotFound = "EntryNotFound",
-    FileNotADirectory = "EntryNotADirectory",
-    FileIsADirectory = "EntryIsADirectory",
-    FileExceedsStorageQuota = "EntryExceedsStorageQuota",
-    FileTooLarge = "EntryTooLarge",
-    FileWriteLocked = "EntryWriteLocked",
-    NoPermissions = "NoPermissions",
-    Unavailable = "Unavailable",
-    Unknown = "Unknown"
+    FileExists = 'EntryExists',
+    FileNotFound = 'EntryNotFound',
+    FileNotADirectory = 'EntryNotADirectory',
+    FileIsADirectory = 'EntryIsADirectory',
+    FileExceedsStorageQuota = 'EntryExceedsStorageQuota',
+    FileTooLarge = 'EntryTooLarge',
+    FileWriteLocked = 'EntryWriteLocked',
+    NoPermissions = 'NoPermissions',
+    Unavailable = 'Unavailable',
+    Unknown = 'Unknown'
 }
 export interface IFileSystemProviderError extends Error {
     readonly name: string;
@@ -662,7 +661,7 @@ export function createFileSystemProviderError(error: Error | string, code: FileS
 }
 export function ensureFileSystemProviderError(error?: Error): Error {
     if (!error) {
-        return createFileSystemProviderError(localize("unknownError", "Unknown Error"), FileSystemProviderErrorCode.Unknown); // https://github.com/microsoft/vscode/issues/72798
+        return createFileSystemProviderError(localize('unknownError', "Unknown Error"), FileSystemProviderErrorCode.Unknown); // https://github.com/microsoft/vscode/issues/72798
     }
     return error;
 }
@@ -686,22 +685,14 @@ export function toFileSystemProviderErrorCode(error: Error | undefined | null): 
         return FileSystemProviderErrorCode.Unknown;
     }
     switch (match[1]) {
-        case FileSystemProviderErrorCode.FileExists:
-            return FileSystemProviderErrorCode.FileExists;
-        case FileSystemProviderErrorCode.FileIsADirectory:
-            return FileSystemProviderErrorCode.FileIsADirectory;
-        case FileSystemProviderErrorCode.FileNotADirectory:
-            return FileSystemProviderErrorCode.FileNotADirectory;
-        case FileSystemProviderErrorCode.FileNotFound:
-            return FileSystemProviderErrorCode.FileNotFound;
-        case FileSystemProviderErrorCode.FileTooLarge:
-            return FileSystemProviderErrorCode.FileTooLarge;
-        case FileSystemProviderErrorCode.FileWriteLocked:
-            return FileSystemProviderErrorCode.FileWriteLocked;
-        case FileSystemProviderErrorCode.NoPermissions:
-            return FileSystemProviderErrorCode.NoPermissions;
-        case FileSystemProviderErrorCode.Unavailable:
-            return FileSystemProviderErrorCode.Unavailable;
+        case FileSystemProviderErrorCode.FileExists: return FileSystemProviderErrorCode.FileExists;
+        case FileSystemProviderErrorCode.FileIsADirectory: return FileSystemProviderErrorCode.FileIsADirectory;
+        case FileSystemProviderErrorCode.FileNotADirectory: return FileSystemProviderErrorCode.FileNotADirectory;
+        case FileSystemProviderErrorCode.FileNotFound: return FileSystemProviderErrorCode.FileNotFound;
+        case FileSystemProviderErrorCode.FileTooLarge: return FileSystemProviderErrorCode.FileTooLarge;
+        case FileSystemProviderErrorCode.FileWriteLocked: return FileSystemProviderErrorCode.FileWriteLocked;
+        case FileSystemProviderErrorCode.NoPermissions: return FileSystemProviderErrorCode.NoPermissions;
+        case FileSystemProviderErrorCode.Unavailable: return FileSystemProviderErrorCode.Unavailable;
     }
     return FileSystemProviderErrorCode.Unknown;
 }
@@ -816,7 +807,7 @@ export class FileChangesEvent {
             }
             // Figure out events correlation
             if (this.correlationId !== FileChangesEvent.MIXED_CORRELATION) {
-                if (typeof change.cId === "number") {
+                if (typeof change.cId === 'number') {
                     if (this.correlationId === undefined) {
                         this.correlationId = change.cId; // correlation not yet set, just take it
                     }
@@ -834,17 +825,17 @@ export class FileChangesEvent {
     }
     private readonly added = new Lazy(() => {
         const added = TernarySearchTree.forUris<boolean>(() => this.ignorePathCasing);
-        added.fill(this.rawAdded.map((resource) => [resource, true]));
+        added.fill(this.rawAdded.map(resource => [resource, true]));
         return added;
     });
     private readonly updated = new Lazy(() => {
         const updated = TernarySearchTree.forUris<boolean>(() => this.ignorePathCasing);
-        updated.fill(this.rawUpdated.map((resource) => [resource, true]));
+        updated.fill(this.rawUpdated.map(resource => [resource, true]));
         return updated;
     });
     private readonly deleted = new Lazy(() => {
         const deleted = TernarySearchTree.forUris<boolean>(() => this.ignorePathCasing);
-        deleted.fill(this.rawDeleted.map((resource) => [resource, true]));
+        deleted.fill(this.rawDeleted.map(resource => [resource, true]));
         return deleted;
     });
     /**
@@ -875,8 +866,7 @@ export class FileChangesEvent {
             if (this.added.value.get(resource)) {
                 return true;
             }
-            if (options.includeChildren &&
-                this.added.value.findSuperstr(resource)) {
+            if (options.includeChildren && this.added.value.findSuperstr(resource)) {
                 return true;
             }
         }
@@ -885,8 +875,7 @@ export class FileChangesEvent {
             if (this.updated.value.get(resource)) {
                 return true;
             }
-            if (options.includeChildren &&
-                this.updated.value.findSuperstr(resource)) {
+            if (options.includeChildren && this.updated.value.findSuperstr(resource)) {
                 return true;
             }
         }
@@ -895,8 +884,7 @@ export class FileChangesEvent {
             if (this.deleted.value.findSubstr(resource) /* deleted also considers parent folders */) {
                 return true;
             }
-            if (options.includeChildren &&
-                this.deleted.value.findSuperstr(resource)) {
+            if (options.includeChildren && this.deleted.value.findSuperstr(resource)) {
                 return true;
             }
         }
@@ -942,7 +930,7 @@ export class FileChangesEvent {
      * only to the requestor and not emit them to all listeners.
      */
     hasCorrelation(): boolean {
-        return typeof this.correlationId === "number";
+        return typeof this.correlationId === 'number';
     }
     /**
      * @deprecated use the `contains` or `affects` method to efficiently find
@@ -952,18 +940,18 @@ export class FileChangesEvent {
      */
     readonly rawAdded: URI[] = [];
     /**
-     * @deprecated use the `contains` or `affects` method to efficiently find
-     * out if the event relates to a given resource. these methods ensure:
-     * - that there is no expensive lookup needed (by using a `TernarySearchTree`)
-     * - correctly handles `FileChangeType.DELETED` events
-     */
+    * @deprecated use the `contains` or `affects` method to efficiently find
+    * out if the event relates to a given resource. these methods ensure:
+    * - that there is no expensive lookup needed (by using a `TernarySearchTree`)
+    * - correctly handles `FileChangeType.DELETED` events
+    */
     readonly rawUpdated: URI[] = [];
     /**
-     * @deprecated use the `contains` or `affects` method to efficiently find
-     * out if the event relates to a given resource. these methods ensure:
-     * - that there is no expensive lookup needed (by using a `TernarySearchTree`)
-     * - correctly handles `FileChangeType.DELETED` events
-     */
+    * @deprecated use the `contains` or `affects` method to efficiently find
+    * out if the event relates to a given resource. these methods ensure:
+    * - that there is no expensive lookup needed (by using a `TernarySearchTree`)
+    * - correctly handles `FileChangeType.DELETED` events
+    */
     readonly rawDeleted: URI[] = [];
 }
 export function isParent(path: string, candidate: string, ignoreCase?: boolean): boolean {
@@ -1074,7 +1062,7 @@ export interface IFileStatResult {
 export interface IFileStatResultWithMetadata extends IFileStatResult {
     readonly stat?: IFileStatWithMetadata;
 }
-export interface IFileStatWithPartialMetadata extends Omit<IFileStatWithMetadata, "children"> {
+export interface IFileStatWithPartialMetadata extends Omit<IFileStatWithMetadata, 'children'> {
 }
 export interface IFileContent extends IBaseFileStatWithMetadata {
     /**
@@ -1195,21 +1183,21 @@ export const enum FileOperationResult {
 //#endregion
 //#region Settings
 export const AutoSaveConfiguration = {
-    OFF: "off",
-    AFTER_DELAY: "afterDelay",
-    ON_FOCUS_CHANGE: "onFocusChange",
-    ON_WINDOW_CHANGE: "onWindowChange",
+    OFF: 'off',
+    AFTER_DELAY: 'afterDelay',
+    ON_FOCUS_CHANGE: 'onFocusChange',
+    ON_WINDOW_CHANGE: 'onWindowChange'
 };
 export const HotExitConfiguration = {
-    OFF: "off",
-    ON_EXIT: "onExit",
-    ON_EXIT_AND_WINDOW_CLOSE: "onExitAndWindowClose",
+    OFF: 'off',
+    ON_EXIT: 'onExit',
+    ON_EXIT_AND_WINDOW_CLOSE: 'onExitAndWindowClose'
 };
-export const FILES_ASSOCIATIONS_CONFIG = "files.associations";
-export const FILES_EXCLUDE_CONFIG = "files.exclude";
-export const FILES_READONLY_INCLUDE_CONFIG = "files.readonlyInclude";
-export const FILES_READONLY_EXCLUDE_CONFIG = "files.readonlyExclude";
-export const FILES_READONLY_FROM_PERMISSIONS_CONFIG = "files.readonlyFromPermissions";
+export const FILES_ASSOCIATIONS_CONFIG = 'files.associations';
+export const FILES_EXCLUDE_CONFIG = 'files.exclude';
+export const FILES_READONLY_INCLUDE_CONFIG = 'files.readonlyInclude';
+export const FILES_READONLY_EXCLUDE_CONFIG = 'files.readonlyExclude';
+export const FILES_READONLY_FROM_PERMISSIONS_CONFIG = 'files.readonlyFromPermissions';
 export interface IGlobPatterns {
     [filepattern: string]: boolean;
 }
@@ -1235,7 +1223,7 @@ export interface IFilesConfigurationNode {
     eol: string;
     enableTrash: boolean;
     hotExit: string;
-    saveConflictResolution: "askUser" | "overwriteFileOnDisk";
+    saveConflictResolution: 'askUser' | 'overwriteFileOnDisk';
     readonlyInclude: IGlobPatterns;
     readonlyExclude: IGlobPatterns;
     readonlyFromPermissions: boolean;
@@ -1250,7 +1238,7 @@ export enum FileKind {
 /**
  * A hint to disable etag checking for reading/writing.
  */
-export const ETAG_DISABLED = "";
+export const ETAG_DISABLED = '';
 export function etag(stat: {
     mtime: number;
     size: number;
@@ -1263,7 +1251,7 @@ export function etag(stat: {
     mtime: number | undefined;
     size: number | undefined;
 }): string | undefined {
-    if (typeof stat.size !== "number" || typeof stat.mtime !== "number") {
+    if (typeof stat.size !== 'number' || typeof stat.mtime !== 'number') {
         return undefined;
     }
     return stat.mtime.toString(29) + stat.size.toString(31);
@@ -1272,8 +1260,8 @@ export async function whenProviderRegistered(file: URI, fileService: IFileServic
     if (fileService.hasProvider(URI.from({ scheme: file.scheme }))) {
         return;
     }
-    return new Promise((resolve) => {
-        const disposable = fileService.onDidChangeFileSystemProviderRegistrations((e) => {
+    return new Promise(resolve => {
+        const disposable = fileService.onDidChangeFileSystemProviderRegistrations(e => {
             if (e.scheme === file.scheme && e.added) {
                 disposable.dispose();
                 resolve();
@@ -1294,26 +1282,26 @@ export class ByteSize {
             size = 0;
         }
         if (size < ByteSize.KB) {
-            return localize("sizeB", "{0}B", size.toFixed(0));
+            return localize('sizeB', "{0}B", size.toFixed(0));
         }
         if (size < ByteSize.MB) {
-            return localize("sizeKB", "{0}KB", (size / ByteSize.KB).toFixed(2));
+            return localize('sizeKB', "{0}KB", (size / ByteSize.KB).toFixed(2));
         }
         if (size < ByteSize.GB) {
-            return localize("sizeMB", "{0}MB", (size / ByteSize.MB).toFixed(2));
+            return localize('sizeMB', "{0}MB", (size / ByteSize.MB).toFixed(2));
         }
         if (size < ByteSize.TB) {
-            return localize("sizeGB", "{0}GB", (size / ByteSize.GB).toFixed(2));
+            return localize('sizeGB', "{0}GB", (size / ByteSize.GB).toFixed(2));
         }
-        return localize("sizeTB", "{0}TB", (size / ByteSize.TB).toFixed(2));
+        return localize('sizeTB', "{0}TB", (size / ByteSize.TB).toFixed(2));
     }
 }
 // File limits
 export function getLargeFileConfirmationLimit(remoteAuthority?: string): number;
 export function getLargeFileConfirmationLimit(uri?: URI): number;
 export function getLargeFileConfirmationLimit(arg?: string | URI): number {
-    const isRemote = typeof arg === "string" || arg?.scheme === Schemas.vscodeRemote;
-    const isLocal = typeof arg !== "string" && arg?.scheme === Schemas.file;
+    const isRemote = typeof arg === 'string' || arg?.scheme === Schemas.vscodeRemote;
+    const isLocal = typeof arg !== 'string' && arg?.scheme === Schemas.file;
     if (isLocal) {
         // Local almost has no limit in file size
         return 1024 * ByteSize.MB;

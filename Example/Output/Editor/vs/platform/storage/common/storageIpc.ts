@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable } from "../../../base/common/lifecycle.js";
-import { UriDto } from "../../../base/common/uri.js";
-import { IChannel } from "../../../base/parts/ipc/common/ipc.js";
-import { IStorageDatabase, IStorageItemsChangeEvent, IUpdateRequest, } from "../../../base/parts/storage/common/storage.js";
-import { IUserDataProfile } from "../../userDataProfile/common/userDataProfile.js";
-import { IAnyWorkspaceIdentifier, IEmptyWorkspaceIdentifier, ISerializedSingleFolderWorkspaceIdentifier, ISerializedWorkspaceIdentifier, } from "../../workspace/common/workspace.js";
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable } from '../../../base/common/lifecycle.js';
+import { UriDto } from '../../../base/common/uri.js';
+import { IChannel } from '../../../base/parts/ipc/common/ipc.js';
+import { IStorageDatabase, IStorageItemsChangeEvent, IUpdateRequest } from '../../../base/parts/storage/common/storage.js';
+import { IUserDataProfile } from '../../userDataProfile/common/userDataProfile.js';
+import { ISerializedSingleFolderWorkspaceIdentifier, ISerializedWorkspaceIdentifier, IEmptyWorkspaceIdentifier, IAnyWorkspaceIdentifier } from '../../workspace/common/workspace.js';
 export type Key = string;
 export type Value = string;
 export type Item = [
@@ -46,32 +46,23 @@ abstract class BaseStorageDatabaseClient extends Disposable implements IStorageD
         super();
     }
     async getItems(): Promise<Map<string, string>> {
-        const serializableRequest: IBaseSerializableStorageRequest = {
-            profile: this.profile,
-            workspace: this.workspace,
-        };
-        const items: Item[] = await this.channel.call("getItems", serializableRequest);
+        const serializableRequest: IBaseSerializableStorageRequest = { profile: this.profile, workspace: this.workspace };
+        const items: Item[] = await this.channel.call('getItems', serializableRequest);
         return new Map(items);
     }
     updateItems(request: IUpdateRequest): Promise<void> {
-        const serializableRequest: ISerializableUpdateRequest = {
-            profile: this.profile,
-            workspace: this.workspace,
-        };
+        const serializableRequest: ISerializableUpdateRequest = { profile: this.profile, workspace: this.workspace };
         if (request.insert) {
             serializableRequest.insert = Array.from(request.insert.entries());
         }
         if (request.delete) {
             serializableRequest.delete = Array.from(request.delete.values());
         }
-        return this.channel.call("updateItems", serializableRequest);
+        return this.channel.call('updateItems', serializableRequest);
     }
     optimize(): Promise<void> {
-        const serializableRequest: IBaseSerializableStorageRequest = {
-            profile: this.profile,
-            workspace: this.workspace,
-        };
-        return this.channel.call("optimize", serializableRequest);
+        const serializableRequest: IBaseSerializableStorageRequest = { profile: this.profile, workspace: this.workspace };
+        return this.channel.call('optimize', serializableRequest);
     }
     abstract close(): Promise<void>;
 }
@@ -83,13 +74,13 @@ abstract class BaseProfileAwareStorageDatabaseClient extends BaseStorageDatabase
         this.registerListeners();
     }
     private registerListeners(): void {
-        this._register(this.channel.listen<ISerializableItemsChangeEvent>("onDidChangeStorage", { profile: this.profile })((e: ISerializableItemsChangeEvent) => this.onDidChangeStorage(e)));
+        this._register(this.channel.listen<ISerializableItemsChangeEvent>('onDidChangeStorage', { profile: this.profile })((e: ISerializableItemsChangeEvent) => this.onDidChangeStorage(e)));
     }
     private onDidChangeStorage(e: ISerializableItemsChangeEvent): void {
         if (Array.isArray(e.changed) || Array.isArray(e.deleted)) {
             this._onDidChangeItemsExternal.fire({
                 changed: e.changed ? new Map(e.changed) : undefined,
-                deleted: e.deleted ? new Set<string>(e.deleted) : undefined,
+                deleted: e.deleted ? new Set<string>(e.deleted) : undefined
             });
         }
     }
@@ -132,11 +123,7 @@ export class WorkspaceStorageDatabaseClient extends BaseStorageDatabaseClient im
 export class StorageClient {
     constructor(private readonly channel: IChannel) { }
     isUsed(path: string): Promise<boolean> {
-        const serializableRequest: ISerializableUpdateRequest = {
-            payload: path,
-            profile: undefined,
-            workspace: undefined,
-        };
-        return this.channel.call("isUsed", serializableRequest);
+        const serializableRequest: ISerializableUpdateRequest = { payload: path, profile: undefined, workspace: undefined };
+        return this.channel.call('isUsed', serializableRequest);
     }
 }

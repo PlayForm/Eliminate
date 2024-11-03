@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Disposable, DisposableMap, IDisposable, } from "../../../base/common/lifecycle.js";
-import { URI } from "../../../base/common/uri.js";
-import { ICodeMapperProvider, ICodeMapperRequest, ICodeMapperResponse, ICodeMapperService, } from "../../contrib/chat/common/chatCodeMapperService.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { ExtHostCodeMapperShape, ExtHostContext, ICodeMapperProgressDto, ICodeMapperRequestDto, MainContext, MainThreadCodeMapperShape, } from "../common/extHost.protocol.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { Disposable, DisposableMap, IDisposable } from '../../../base/common/lifecycle.js';
+import { URI } from '../../../base/common/uri.js';
+import { ICodeMapperProvider, ICodeMapperRequest, ICodeMapperResponse, ICodeMapperService } from '../../contrib/chat/common/chatCodeMapperService.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { ExtHostCodeMapperShape, ExtHostContext, ICodeMapperProgressDto, ICodeMapperRequestDto, MainContext, MainThreadCodeMapperShape } from '../common/extHost.protocol.js';
 @extHostNamedCustomer(MainContext.MainThreadCodeMapper)
 export class MainThreadChatCodemapper extends Disposable implements MainThreadCodeMapperShape {
     private providers = this._register(new DisposableMap<number, IDisposable>());
@@ -28,17 +28,15 @@ export class MainThreadChatCodemapper extends Disposable implements MainThreadCo
                 const extHostRequest: ICodeMapperRequestDto = {
                     requestId,
                     codeBlocks: uiRequest.codeBlocks,
-                    conversation: uiRequest.conversation,
+                    conversation: uiRequest.conversation
                 };
                 try {
-                    return await this._proxy
-                        .$mapCode(handle, extHostRequest, token)
-                        .then((result) => result ?? undefined);
+                    return await this._proxy.$mapCode(handle, extHostRequest, token).then((result) => result ?? undefined);
                 }
                 finally {
                     this._responseMap.delete(requestId);
                 }
-            },
+            }
         };
         const disposable = this.codeMapperService.registerCodeMapperProvider(handle, impl);
         this.providers.set(handle, disposable);

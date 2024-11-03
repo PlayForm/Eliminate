@@ -2,15 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable, dispose, toDisposable, type IDisposable, } from "../../../base/common/lifecycle.js";
-import { LinkedList } from "../../../base/common/linkedList.js";
-import { BufferDirtyTracker, type IBufferDirtyTrackerReader, } from "./bufferDirtyTracker.js";
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable, dispose, toDisposable, type IDisposable } from '../../../base/common/lifecycle.js';
+import { LinkedList } from '../../../base/common/linkedList.js';
+import { BufferDirtyTracker, type IBufferDirtyTrackerReader } from './bufferDirtyTracker.js';
 export interface ObjectCollectionBufferPropertySpec {
     name: string;
 }
 export type ObjectCollectionPropertyValues<T extends ObjectCollectionBufferPropertySpec[]> = {
-    [K in T[number]["name"]]: number;
+    [K in T[number]['name']]: number;
 };
 export interface IObjectCollectionBuffer<T extends ObjectCollectionBufferPropertySpec[]> extends IDisposable {
     /**
@@ -57,8 +57,8 @@ export interface IObjectCollectionBuffer<T extends ObjectCollectionBufferPropert
  * their values will be updated automatically in the buffer.
  */
 export interface IObjectCollectionBufferEntry<T extends ObjectCollectionBufferPropertySpec[]> extends IDisposable {
-    set(propertyName: T[number]["name"], value: number): void;
-    get(propertyName: T[number]["name"]): number;
+    set(propertyName: T[number]['name'], value: number): void;
+    get(propertyName: T[number]['name']): number;
     setRaw(data: ArrayLike<number>): void;
 }
 export function createObjectCollectionBuffer<T extends ObjectCollectionBufferPropertySpec[]>(propertySpecs: T, capacity: number): IObjectCollectionBuffer<T> {
@@ -77,9 +77,7 @@ class ObjectCollectionBuffer<T extends ObjectCollectionBufferPropertySpec[]> ext
         return this._entries.size;
     }
     private _dirtyTracker = new BufferDirtyTracker();
-    get dirtyTracker(): IBufferDirtyTrackerReader {
-        return this._dirtyTracker;
-    }
+    get dirtyTracker(): IBufferDirtyTrackerReader { return this._dirtyTracker; }
     private readonly _propertySpecsMap: Map<string, ObjectCollectionBufferPropertySpec & {
         offset: number;
     }> = new Map();
@@ -97,7 +95,7 @@ class ObjectCollectionBuffer<T extends ObjectCollectionBufferPropertySpec[]> ext
         for (let i = 0; i < propertySpecs.length; i++) {
             const spec = {
                 offset: i,
-                ...propertySpecs[i],
+                ...propertySpecs[i]
             };
             this._propertySpecsMap.set(spec.name, spec);
         }
@@ -154,15 +152,13 @@ class ObjectCollectionBufferEntry<T extends ObjectCollectionBufferPropertySpec[]
         this._onWillDispose.fire();
         super.dispose();
     }
-    set(propertyName: T[number]["name"], value: number): void {
-        const i = this.i * this._propertySpecsMap.size +
-            this._propertySpecsMap.get(propertyName)!.offset;
+    set(propertyName: T[number]['name'], value: number): void {
+        const i = this.i * this._propertySpecsMap.size + this._propertySpecsMap.get(propertyName)!.offset;
         this._view[this._dirtyTracker.flag(i)] = value;
         this._onDidChange.fire();
     }
-    get(propertyName: T[number]["name"]): number {
-        return this._view[this.i * this._propertySpecsMap.size +
-            this._propertySpecsMap.get(propertyName)!.offset];
+    get(propertyName: T[number]['name']): number {
+        return this._view[this.i * this._propertySpecsMap.size + this._propertySpecsMap.get(propertyName)!.offset];
     }
     setRaw(data: ArrayLike<number>): void {
         if (data.length !== this._propertySpecsMap.size) {

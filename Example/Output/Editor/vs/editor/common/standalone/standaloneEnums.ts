@@ -746,23 +746,23 @@ export enum PartialAcceptTriggerKind {
 export enum PositionAffinity {
     /**
      * Prefers the left most position.
-     */
+    */
     Left = 0,
     /**
      * Prefers the right most position.
-     */
+    */
     Right = 1,
     /**
      * No preference.
-     */
+    */
     None = 2,
     /**
      * If the given position is on injected text, prefers the position left of it.
-     */
+    */
     LeftOfInjectedText = 3,
     /**
      * If the given position is on injected text, prefers the position right of it.
-     */
+    */
     RightOfInjectedText = 4
 }
 export enum RenderLineNumbersType {
@@ -800,9 +800,9 @@ export enum SelectionDirection {
     RTL = 1
 }
 export enum ShowLightbulbIconMode {
-    Off = "off",
-    OnCode = "onCode",
-    On = "on"
+    Off = 'off',
+    OnCode = 'onCode',
+    On = 'on'
 }
 export enum SignatureHelpTriggerKind {
     Invoke = 1,

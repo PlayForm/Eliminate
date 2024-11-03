@@ -2,19 +2,19 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { DisposableStore, dispose } from "../../../base/common/lifecycle.js";
-import { equals } from "../../../base/common/objects.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { IConfigurationService } from "../../../platform/configuration/common/configuration.js";
-import { EditorActivation } from "../../../platform/editor/common/editor.js";
-import { getNotebookEditorFromEditorPane, INotebookEditor, INotebookEditorOptions, } from "../../contrib/notebook/browser/notebookBrowser.js";
-import { INotebookEditorService } from "../../contrib/notebook/browser/services/notebookEditorService.js";
-import { ICellRange } from "../../contrib/notebook/common/notebookRange.js";
-import { columnToEditorGroup, editorGroupToColumn, } from "../../services/editor/common/editorGroupColumn.js";
-import { IEditorGroupsService } from "../../services/editor/common/editorGroupsService.js";
-import { IEditorService } from "../../services/editor/common/editorService.js";
-import { IExtHostContext } from "../../services/extensions/common/extHostCustomers.js";
-import { ExtHostContext, ExtHostNotebookEditorsShape, INotebookDocumentShowOptions, INotebookEditorViewColumnInfo, MainThreadNotebookEditorsShape, NotebookEditorRevealType, } from "../common/extHost.protocol.js";
+import { DisposableStore, dispose } from '../../../base/common/lifecycle.js';
+import { equals } from '../../../base/common/objects.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { IConfigurationService } from '../../../platform/configuration/common/configuration.js';
+import { EditorActivation } from '../../../platform/editor/common/editor.js';
+import { getNotebookEditorFromEditorPane, INotebookEditor, INotebookEditorOptions } from '../../contrib/notebook/browser/notebookBrowser.js';
+import { INotebookEditorService } from '../../contrib/notebook/browser/services/notebookEditorService.js';
+import { ICellRange } from '../../contrib/notebook/common/notebookRange.js';
+import { columnToEditorGroup, editorGroupToColumn } from '../../services/editor/common/editorGroupColumn.js';
+import { IEditorGroupsService } from '../../services/editor/common/editorGroupsService.js';
+import { IEditorService } from '../../services/editor/common/editorService.js';
+import { IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { ExtHostContext, ExtHostNotebookEditorsShape, INotebookDocumentShowOptions, INotebookEditorViewColumnInfo, MainThreadNotebookEditorsShape, NotebookEditorRevealType } from '../common/extHost.protocol.js';
 class MainThreadNotebook {
     constructor(readonly editor: INotebookEditor, readonly disposables: DisposableStore) { }
     dispose() {
@@ -48,14 +48,10 @@ export class MainThreadNotebookEditors implements MainThreadNotebookEditorsShape
         for (const editor of editors) {
             const editorDisposables = new DisposableStore();
             editorDisposables.add(editor.onDidChangeVisibleRanges(() => {
-                this._proxy.$acceptEditorPropertiesChanged(editor.getId(), {
-                    visibleRanges: { ranges: editor.visibleRanges },
-                });
+                this._proxy.$acceptEditorPropertiesChanged(editor.getId(), { visibleRanges: { ranges: editor.visibleRanges } });
             }));
             editorDisposables.add(editor.onDidChangeSelection(() => {
-                this._proxy.$acceptEditorPropertiesChanged(editor.getId(), {
-                    selections: { selections: editor.getSelections() },
-                });
+                this._proxy.$acceptEditorPropertiesChanged(editor.getId(), { selections: { selections: editor.getSelections() } });
             }));
             const wrapper = new MainThreadNotebook(editor, editorDisposables);
             this._mainThreadEditors.set(editor.getId(), wrapper);
@@ -88,11 +84,9 @@ export class MainThreadNotebookEditors implements MainThreadNotebookEditorsShape
             // selection: options.selection,
             // preserve pre 1.38 behaviour to not make group active when preserveFocus: true
             // but make sure to restore the editor to fix https://github.com/microsoft/vscode/issues/79633
-            activation: options.preserveFocus
-                ? EditorActivation.RESTORE
-                : undefined,
+            activation: options.preserveFocus ? EditorActivation.RESTORE : undefined,
             label: options.label,
-            override: viewType,
+            override: viewType
         };
         const editorPane = await this._editorService.openEditor({ resource: URI.revive(resource), options: editorOptions }, columnToEditorGroup(this._editorGroupService, this._configurationService, options.position));
         const notebookEditor = getNotebookEditorFromEditorPane(editorPane);
@@ -134,10 +128,7 @@ export class MainThreadNotebookEditors implements MainThreadNotebookEditorsShape
         }
         editor.setSelections(ranges);
         if (ranges.length) {
-            editor.setFocus({
-                start: ranges[0].start,
-                end: ranges[0].start + 1,
-            });
+            editor.setFocus({ start: ranges[0].start, end: ranges[0].start + 1 });
         }
     }
 }

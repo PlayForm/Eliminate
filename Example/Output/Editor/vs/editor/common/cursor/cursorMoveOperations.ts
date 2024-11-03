@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import * as strings from "../../../base/common/strings.js";
-import { Constants } from "../../../base/common/uint.js";
-import { CursorColumns } from "../core/cursorColumns.js";
-import { Position } from "../core/position.js";
-import { Range } from "../core/range.js";
-import { CursorConfiguration, ICursorSimpleModel, SelectionStartKind, SingleCursorState, } from "../cursorCommon.js";
-import { PositionAffinity } from "../model.js";
-import { AtomicTabMoveOperations, Direction, } from "./cursorAtomicMoveOperations.js";
+import * as strings from '../../../base/common/strings.js';
+import { Constants } from '../../../base/common/uint.js';
+import { CursorColumns } from '../core/cursorColumns.js';
+import { Position } from '../core/position.js';
+import { Range } from '../core/range.js';
+import { AtomicTabMoveOperations, Direction } from './cursorAtomicMoveOperations.js';
+import { CursorConfiguration, ICursorSimpleModel, SelectionStartKind, SingleCursorState } from '../cursorCommon.js';
+import { PositionAffinity } from '../model.js';
 export class CursorPosition {
     _cursorPositionBrand: void = undefined;
     public readonly lineNumber: number;
@@ -54,7 +54,7 @@ export class MoveOperations {
     /**
      * @param noOfColumns Must be either `1`
      * or `Math.round(viewModel.getLineContent(viewLineNumber).length / 2)` (for half lines).
-     */
+    */
     public static moveLeft(config: CursorConfiguration, model: ICursorSimpleModel, cursor: SingleCursorState, inSelectionMode: boolean, noOfColumns: number): SingleCursorState {
         let lineNumber: number, column: number;
         if (cursor.hasSelection() && !inSelectionMode) {
@@ -78,7 +78,7 @@ export class MoveOperations {
     }
     /**
      * Adjusts the column so that it is within min/max of the line.
-     */
+    */
     private static clipPositionColumn(position: Position, model: ICursorSimpleModel): Position {
         return new Position(position.lineNumber, MoveOperations.clipRange(position.column, model.getLineMinColumn(position.lineNumber), model.getLineMaxColumn(position.lineNumber)));
     }
@@ -93,9 +93,7 @@ export class MoveOperations {
     }
     public static rightPosition(model: ICursorSimpleModel, lineNumber: number, column: number): Position {
         if (column < model.getLineMaxColumn(lineNumber)) {
-            column =
-                column +
-                    strings.nextCharLength(model.getLineContent(lineNumber), column - 1);
+            column = column + strings.nextCharLength(model.getLineContent(lineNumber), column - 1);
         }
         else if (lineNumber < model.getLineCount()) {
             lineNumber = lineNumber + 1;
@@ -138,10 +136,9 @@ export class MoveOperations {
     public static vertical(config: CursorConfiguration, model: ICursorSimpleModel, lineNumber: number, column: number, leftoverVisibleColumns: number, newLineNumber: number, allowMoveOnEdgeLine: boolean, normalizationAffinity?: PositionAffinity): CursorPosition {
         const currentVisibleColumn = CursorColumns.visibleColumnFromColumn(model.getLineContent(lineNumber), column, config.tabSize) + leftoverVisibleColumns;
         const lineCount = model.getLineCount();
-        const wasOnFirstPosition = lineNumber === 1 && column === 1;
-        const wasOnLastPosition = lineNumber === lineCount &&
-            column === model.getLineMaxColumn(lineNumber);
-        const wasAtEdgePosition = newLineNumber < lineNumber ? wasOnFirstPosition : wasOnLastPosition;
+        const wasOnFirstPosition = (lineNumber === 1 && column === 1);
+        const wasOnLastPosition = (lineNumber === lineCount && column === model.getLineMaxColumn(lineNumber));
+        const wasAtEdgePosition = (newLineNumber < lineNumber ? wasOnFirstPosition : wasOnLastPosition);
         lineNumber = newLineNumber;
         if (lineNumber < 1) {
             lineNumber = 1;
@@ -168,15 +165,12 @@ export class MoveOperations {
             leftoverVisibleColumns = 0;
         }
         else {
-            leftoverVisibleColumns =
-                currentVisibleColumn -
-                    CursorColumns.visibleColumnFromColumn(model.getLineContent(lineNumber), column, config.tabSize);
+            leftoverVisibleColumns = currentVisibleColumn - CursorColumns.visibleColumnFromColumn(model.getLineContent(lineNumber), column, config.tabSize);
         }
         if (normalizationAffinity !== undefined) {
             const position = new Position(lineNumber, column);
             const newPosition = model.normalizePosition(position, normalizationAffinity);
-            leftoverVisibleColumns =
-                leftoverVisibleColumns + (column - newPosition.column);
+            leftoverVisibleColumns = leftoverVisibleColumns + (column - newPosition.column);
             lineNumber = newPosition.lineNumber;
             column = newPosition.column;
         }
@@ -263,8 +257,7 @@ export class MoveOperations {
             lineNumber++;
         }
         // Find the next blank line
-        while (lineNumber < lineCount &&
-            !this._isBlankLine(model, lineNumber)) {
+        while (lineNumber < lineCount && !this._isBlankLine(model, lineNumber)) {
             lineNumber++;
         }
         return cursor.move(inSelectionMode, lineNumber, model.getLineMinColumn(lineNumber), 0);

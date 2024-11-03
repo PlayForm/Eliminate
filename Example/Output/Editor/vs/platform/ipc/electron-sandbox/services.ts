@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IChannel, ProxyChannel } from "../../../base/parts/ipc/common/ipc.js";
-import { SyncDescriptor } from "../../instantiation/common/descriptors.js";
-import { registerSingleton } from "../../instantiation/common/extensions.js";
-import { createDecorator, IInstantiationService, ServiceIdentifier, } from "../../instantiation/common/instantiation.js";
-import { IMainProcessService } from "../common/mainProcessService.js";
-import { IRemoteService } from "../common/services.js";
+import { IChannel, ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
+import { SyncDescriptor } from '../../instantiation/common/descriptors.js';
+import { registerSingleton } from '../../instantiation/common/extensions.js';
+import { createDecorator, IInstantiationService, ServiceIdentifier } from '../../instantiation/common/instantiation.js';
+import { IMainProcessService } from '../common/mainProcessService.js';
+import { IRemoteService } from '../common/services.js';
 type ChannelClientCtor<T> = {
     new (channel: IChannel, ...args: any[]): T;
 };
@@ -48,7 +48,7 @@ export function registerMainProcessRemoteService<T>(id: ServiceIdentifier<T>, ch
 }
 //#endregion
 //#region Shared Process
-export const ISharedProcessService = createDecorator<ISharedProcessService>("sharedProcessService");
+export const ISharedProcessService = createDecorator<ISharedProcessService>('sharedProcessService');
 export interface ISharedProcessService extends IRemoteService {
     /**
      * Allows to create a `MessagePort` connection between the

@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { BugIndicatingError } from "../../../base/common/errors.js";
-import { OffsetRange } from "./offsetRange.js";
+import { BugIndicatingError } from '../../../base/common/errors.js';
+import { OffsetRange } from './offsetRange.js';
 /**
  * Describes an edit to a (0-based) string.
  * Use `TextEdit` to describe edits for a 1-based line/column text.
- */
+*/
 export class OffsetEdit {
     public static readonly empty = new OffsetEdit([]);
     public static fromJson(data: IOffsetEdit): OffsetEdit {
@@ -35,8 +35,7 @@ export class OffsetEdit {
             if (edit.newText.length === 0 && edit.replaceRange.length === 0) {
                 continue;
             }
-            if (lastEdit &&
-                lastEdit.replaceRange.endExclusive === edit.replaceRange.start) {
+            if (lastEdit && lastEdit.replaceRange.endExclusive === edit.replaceRange.start) {
                 lastEdit = new SingleOffsetEdit(lastEdit.replaceRange.join(edit.replaceRange), lastEdit.newText + edit.newText);
             }
             else {
@@ -52,7 +51,7 @@ export class OffsetEdit {
         return new OffsetEdit(edits);
     }
     toString() {
-        const edits = this.edits.map((e) => e.toString()).join(", ");
+        const edits = this.edits.map(e => e.toString()).join(', ');
         return `[${edits}]`;
     }
     apply(str: string): string {
@@ -64,7 +63,7 @@ export class OffsetEdit {
             pos = edit.replaceRange.endExclusive;
         }
         resultText.push(str.substring(pos));
-        return resultText.join("");
+        return resultText.join('');
     }
     compose(other: OffsetEdit): OffsetEdit {
         return joinEdits(this, other);
@@ -132,8 +131,7 @@ export class OffsetEdit {
             }
             else {
                 baseIdx++;
-                offset +=
-                    baseEdit.newText.length - baseEdit.replaceRange.length;
+                offset += baseEdit.newText.length - baseEdit.replaceRange.length;
             }
         }
         return new OffsetEdit(newEdits);
@@ -146,8 +144,7 @@ export class OffsetEdit {
                     // the offset is in the replaced range
                     return edit.replaceRange.start + accumulatedDelta;
                 }
-                accumulatedDelta +=
-                    edit.newText.length - edit.replaceRange.length;
+                accumulatedDelta += edit.newText.length - edit.replaceRange.length;
             }
             else {
                 break;
@@ -163,8 +160,7 @@ export class OffsetEdit {
         for (const edit of this.edits) {
             const editLength = edit.newText.length;
             if (edit.replaceRange.start <= postEditsOffset - accumulatedDelta) {
-                if (postEditsOffset - accumulatedDelta <
-                    edit.replaceRange.start + editLength) {
+                if (postEditsOffset - accumulatedDelta < edit.replaceRange.start + editLength) {
                     // the offset is in the replaced range
                     return edit.replaceRange.start;
                 }
@@ -220,11 +216,7 @@ function joinEdits(edits1: OffsetEdit, edits2: OffsetEdit): OffsetEdit {
         // Copy over edit1 unmodified until it touches edit2.
         while (true) {
             const edit1 = edit1Queue[0]!;
-            if (!edit1 ||
-                edit1.replaceRange.start +
-                    edit1ToEdit2 +
-                    edit1.newText.length >=
-                    edit2.replaceRange.start) {
+            if (!edit1 || edit1.replaceRange.start + edit1ToEdit2 + edit1.newText.length >= edit2.replaceRange.start) {
                 break;
             }
             edit1Queue.shift();
@@ -236,9 +228,7 @@ function joinEdits(edits1: OffsetEdit, edits2: OffsetEdit): OffsetEdit {
         let lastIntersecting: SingleOffsetEdit | undefined; // or touching
         while (true) {
             const edit1 = edit1Queue[0];
-            if (!edit1 ||
-                edit1.replaceRange.start + edit1ToEdit2 >
-                    edit2.replaceRange.endExclusive) {
+            if (!edit1 || edit1.replaceRange.start + edit1ToEdit2 > edit2.replaceRange.endExclusive) {
                 break;
             }
             // else we intersect, because the new end of edit1 is after or equal to our start
@@ -253,15 +243,12 @@ function joinEdits(edits1: OffsetEdit, edits2: OffsetEdit): OffsetEdit {
             result.push(new SingleOffsetEdit(edit2.replaceRange.delta(-edit1ToEdit2), edit2.newText));
         }
         else {
-            let prefix = "";
-            const prefixLength = edit2.replaceRange.start -
-                (firstIntersecting.replaceRange.start + firstEdit1ToEdit2);
+            let prefix = '';
+            const prefixLength = edit2.replaceRange.start - (firstIntersecting.replaceRange.start + firstEdit1ToEdit2);
             if (prefixLength > 0) {
                 prefix = firstIntersecting.newText.slice(0, prefixLength);
             }
-            const suffixLength = lastIntersecting!.replaceRange.endExclusive +
-                edit1ToEdit2 -
-                edit2.replaceRange.endExclusive;
+            const suffixLength = (lastIntersecting!.replaceRange.endExclusive + edit1ToEdit2) - edit2.replaceRange.endExclusive;
             if (suffixLength > 0) {
                 const e = new SingleOffsetEdit(OffsetRange.ofStartAndLength(lastIntersecting!.replaceRange.endExclusive, 0), lastIntersecting!.newText.slice(-suffixLength));
                 edit1Queue.unshift(e);

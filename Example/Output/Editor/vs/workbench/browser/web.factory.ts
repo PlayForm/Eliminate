@@ -2,18 +2,18 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { asArray } from "../../base/common/arrays.js";
-import { DeferredPromise } from "../../base/common/async.js";
-import { IDisposable, toDisposable } from "../../base/common/lifecycle.js";
-import { mark, PerformanceMark } from "../../base/common/performance.js";
-import { URI } from "../../base/common/uri.js";
-import { MenuId, MenuRegistry } from "../../platform/actions/common/actions.js";
-import { CommandsRegistry } from "../../platform/commands/common/commands.js";
-import { LogLevel } from "../../platform/log/common/log.js";
-import { IProgress, IProgressCompositeOptions, IProgressDialogOptions, IProgressNotificationOptions, IProgressOptions, IProgressStep, IProgressWindowOptions, } from "../../platform/progress/common/progress.js";
-import { IEmbedderTerminalOptions } from "../services/terminal/common/embedderTerminalService.js";
-import { ITunnel, ITunnelOptions, IWorkbench, IWorkbenchConstructionOptions, Menu, } from "./web.api.js";
-import { BrowserMain } from "./web.main.js";
+import { ITunnel, ITunnelOptions, IWorkbench, IWorkbenchConstructionOptions, Menu } from './web.api.js';
+import { BrowserMain } from './web.main.js';
+import { URI } from '../../base/common/uri.js';
+import { IDisposable, toDisposable } from '../../base/common/lifecycle.js';
+import { CommandsRegistry } from '../../platform/commands/common/commands.js';
+import { mark, PerformanceMark } from '../../base/common/performance.js';
+import { MenuId, MenuRegistry } from '../../platform/actions/common/actions.js';
+import { DeferredPromise } from '../../base/common/async.js';
+import { asArray } from '../../base/common/arrays.js';
+import { IProgress, IProgressCompositeOptions, IProgressDialogOptions, IProgressNotificationOptions, IProgressOptions, IProgressStep, IProgressWindowOptions } from '../../platform/progress/common/progress.js';
+import { LogLevel } from '../../platform/log/common/log.js';
+import { IEmbedderTerminalOptions } from '../services/terminal/common/embedderTerminalService.js';
 let created = false;
 const workbenchPromise = new DeferredPromise<IWorkbench>();
 /**
@@ -24,11 +24,11 @@ const workbenchPromise = new DeferredPromise<IWorkbench>();
  */
 export function create(domElement: HTMLElement, options: IWorkbenchConstructionOptions): IDisposable {
     // Mark start of workbench
-    mark("code/didLoadWorkbenchMain");
+    mark('code/didLoadWorkbenchMain');
     // Assert that the workbench is not created more than once. We currently
     // do not support this and require a full context switch to clean-up.
     if (created) {
-        throw new Error("Unable to create the VSCode workbench more than once.");
+        throw new Error('Unable to create the VSCode workbench more than once.');
     }
     else {
         created = true;
@@ -44,16 +44,14 @@ export function create(domElement: HTMLElement, options: IWorkbenchConstructionO
             // Commands with labels appear in the command palette
             if (command.label) {
                 for (const menu of asArray(command.menu ?? Menu.CommandPalette)) {
-                    MenuRegistry.appendMenuItem(asMenuId(menu), {
-                        command: { id: command.id, title: command.label },
-                    });
+                    MenuRegistry.appendMenuItem(asMenuId(menu), { command: { id: command.id, title: command.label } });
                 }
             }
         }
     }
     // Startup workbench and resolve waiters
     let instantiatedWorkbench: IWorkbench | undefined = undefined;
-    new BrowserMain(domElement, options).open().then((workbench) => {
+    new BrowserMain(domElement, options).open().then(workbench => {
         instantiatedWorkbench = workbench;
         workbenchPromise.complete(workbench);
     });
@@ -62,16 +60,14 @@ export function create(domElement: HTMLElement, options: IWorkbenchConstructionO
             instantiatedWorkbench.shutdown();
         }
         else {
-            workbenchPromise.p.then((instantiatedWorkbench) => instantiatedWorkbench.shutdown());
+            workbenchPromise.p.then(instantiatedWorkbench => instantiatedWorkbench.shutdown());
         }
     });
 }
 function asMenuId(menu: Menu): MenuId {
     switch (menu) {
-        case Menu.CommandPalette:
-            return MenuId.CommandPalette;
-        case Menu.StatusBarWindowIndicatorMenu:
-            return MenuId.StatusBarWindowIndicatorMenu;
+        case Menu.CommandPalette: return MenuId.CommandPalette;
+        case Menu.StatusBarWindowIndicatorMenu: return MenuId.StatusBarWindowIndicatorMenu;
     }
 }
 export namespace commands {
@@ -88,7 +84,7 @@ export namespace logger {
      * {@linkcode IWorkbench.logger IWorkbench.logger.log}
      */
     export function log(level: LogLevel, message: string) {
-        workbenchPromise.p.then((workbench) => workbench.logger.log(level, message));
+        workbenchPromise.p.then(workbench => workbench.logger.log(level, message));
     }
 }
 export namespace env {

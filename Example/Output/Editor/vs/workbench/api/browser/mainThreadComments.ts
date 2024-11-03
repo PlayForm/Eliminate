@@ -2,33 +2,33 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { Codicon } from "../../../base/common/codicons.js";
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable, DisposableMap, DisposableStore, IDisposable, } from "../../../base/common/lifecycle.js";
-import { MarshalledId } from "../../../base/common/marshallingIds.js";
-import { Schemas } from "../../../base/common/network.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { IRange, Range } from "../../../editor/common/core/range.js";
-import * as languages from "../../../editor/common/languages.js";
-import { localize } from "../../../nls.js";
-import { ExtensionIdentifier } from "../../../platform/extensions/common/extensions.js";
-import { SyncDescriptor } from "../../../platform/instantiation/common/descriptors.js";
-import { Registry } from "../../../platform/registry/common/platform.js";
-import { registerIcon } from "../../../platform/theme/common/iconRegistry.js";
-import { IUriIdentityService } from "../../../platform/uriIdentity/common/uriIdentity.js";
-import { ViewPaneContainer } from "../../browser/parts/views/viewPaneContainer.js";
-import { MarshalledCommentThread } from "../../common/comments.js";
-import { IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation, Extensions as ViewExtensions, } from "../../common/views.js";
-import { revealCommentThread } from "../../contrib/comments/browser/commentsController.js";
-import { ICommentController, ICommentService, } from "../../contrib/comments/browser/commentService.js";
-import { COMMENTS_VIEW_ID, COMMENTS_VIEW_STORAGE_ID, COMMENTS_VIEW_TITLE, } from "../../contrib/comments/browser/commentsTreeViewer.js";
-import { CommentsPanel } from "../../contrib/comments/browser/commentsView.js";
-import { ICellRange } from "../../contrib/notebook/common/notebookRange.js";
-import { IEditorService } from "../../services/editor/common/editorService.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { IViewsService } from "../../services/views/common/viewsService.js";
-import { CommentProviderFeatures, CommentThreadChanges, ExtHostCommentsShape, ExtHostContext, MainContext, MainThreadCommentsShape, } from "../common/extHost.protocol.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable, DisposableMap, DisposableStore, IDisposable } from '../../../base/common/lifecycle.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { IRange, Range } from '../../../editor/common/core/range.js';
+import * as languages from '../../../editor/common/languages.js';
+import { ExtensionIdentifier } from '../../../platform/extensions/common/extensions.js';
+import { Registry } from '../../../platform/registry/common/platform.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { ICommentController, ICommentService } from '../../contrib/comments/browser/commentService.js';
+import { CommentsPanel } from '../../contrib/comments/browser/commentsView.js';
+import { CommentProviderFeatures, ExtHostCommentsShape, ExtHostContext, MainContext, MainThreadCommentsShape, CommentThreadChanges } from '../common/extHost.protocol.js';
+import { COMMENTS_VIEW_ID, COMMENTS_VIEW_STORAGE_ID, COMMENTS_VIEW_TITLE } from '../../contrib/comments/browser/commentsTreeViewer.js';
+import { ViewContainer, IViewContainersRegistry, Extensions as ViewExtensions, ViewContainerLocation, IViewsRegistry, IViewDescriptorService } from '../../common/views.js';
+import { SyncDescriptor } from '../../../platform/instantiation/common/descriptors.js';
+import { ViewPaneContainer } from '../../browser/parts/views/viewPaneContainer.js';
+import { Codicon } from '../../../base/common/codicons.js';
+import { registerIcon } from '../../../platform/theme/common/iconRegistry.js';
+import { localize } from '../../../nls.js';
+import { MarshalledId } from '../../../base/common/marshallingIds.js';
+import { ICellRange } from '../../contrib/notebook/common/notebookRange.js';
+import { Schemas } from '../../../base/common/network.js';
+import { IViewsService } from '../../services/views/common/viewsService.js';
+import { MarshalledCommentThread } from '../../common/comments.js';
+import { revealCommentThread } from '../../contrib/comments/browser/commentsController.js';
+import { IEditorService } from '../../services/editor/common/editorService.js';
+import { IUriIdentityService } from '../../../platform/uriIdentity/common/uriIdentity.js';
 export class MainThreadCommentThread<T> implements languages.CommentThread<T> {
     private _input?: languages.CommentInput;
     get input(): languages.CommentInput | undefined {
@@ -39,9 +39,7 @@ export class MainThreadCommentThread<T> implements languages.CommentThread<T> {
         this._onDidChangeInput.fire(value);
     }
     private readonly _onDidChangeInput = new Emitter<languages.CommentInput | undefined>();
-    get onDidChangeInput(): Event<languages.CommentInput | undefined> {
-        return this._onDidChangeInput.event;
-    }
+    get onDidChangeInput(): Event<languages.CommentInput | undefined> { return this._onDidChangeInput.event; }
     private _label: string | undefined;
     get label(): string | undefined {
         return this._label;
@@ -68,9 +66,7 @@ export class MainThreadCommentThread<T> implements languages.CommentThread<T> {
         this._onDidChangeComments.fire(this._comments);
     }
     private readonly _onDidChangeComments = new Emitter<readonly languages.Comment[] | undefined>();
-    get onDidChangeComments(): Event<readonly languages.Comment[] | undefined> {
-        return this._onDidChangeComments.event;
-    }
+    get onDidChangeComments(): Event<readonly languages.Comment[] | undefined> { return this._onDidChangeComments.event; }
     set range(range: T | undefined) {
         this._range = range;
     }
@@ -78,9 +74,7 @@ export class MainThreadCommentThread<T> implements languages.CommentThread<T> {
         return this._range;
     }
     private readonly _onDidChangeCanReply = new Emitter<boolean>();
-    get onDidChangeCanReply(): Event<boolean> {
-        return this._onDidChangeCanReply.event;
-    }
+    get onDidChangeCanReply(): Event<boolean> { return this._onDidChangeCanReply.event; }
     set canReply(state: boolean) {
         this._canReply = state;
         this._onDidChangeCanReply.fire(this._canReply);
@@ -154,34 +148,31 @@ export class MainThreadCommentThread<T> implements languages.CommentThread<T> {
     }
     batchUpdate(changes: CommentThreadChanges<T>) {
         const modified = (value: keyof CommentThreadChanges): boolean => Object.prototype.hasOwnProperty.call(changes, value);
-        if (modified("range")) {
+        if (modified('range')) {
             this._range = changes.range!;
         }
-        if (modified("label")) {
+        if (modified('label')) {
             this._label = changes.label;
         }
-        if (modified("contextValue")) {
-            this._contextValue =
-                changes.contextValue === null
-                    ? undefined
-                    : changes.contextValue;
+        if (modified('contextValue')) {
+            this._contextValue = changes.contextValue === null ? undefined : changes.contextValue;
         }
-        if (modified("comments")) {
+        if (modified('comments')) {
             this.comments = changes.comments;
         }
-        if (modified("collapseState")) {
+        if (modified('collapseState')) {
             this.collapsibleState = changes.collapseState;
         }
-        if (modified("canReply")) {
+        if (modified('canReply')) {
             this.canReply = changes.canReply!;
         }
-        if (modified("state")) {
+        if (modified('state')) {
             this.state = changes.state!;
         }
-        if (modified("applicability")) {
+        if (modified('applicability')) {
             this.applicability = changes.applicability!;
         }
-        if (modified("isTemplate")) {
+        if (modified('isTemplate')) {
             this._isTemplate = changes.isTemplate!;
         }
     }
@@ -258,12 +249,7 @@ export class MainThreadCommentController implements ICommentController {
         comment?: languages.Comment;
     } | undefined) {
         this._activeComment = commentInfo;
-        return this._proxy.$setActiveComment(this._handle, commentInfo
-            ? {
-                commentThreadHandle: commentInfo.thread.commentThreadHandle,
-                uniqueIdInThread: commentInfo.comment?.uniqueIdInThread,
-            }
-            : undefined);
+        return this._proxy.$setActiveComment(this._handle, commentInfo ? { commentThreadHandle: commentInfo.thread.commentThreadHandle, uniqueIdInThread: commentInfo.comment?.uniqueIdInThread } : undefined);
     }
     updateFeatures(features: CommentProviderFeatures) {
         this._features = features;
@@ -280,7 +266,7 @@ export class MainThreadCommentController implements ICommentController {
                 added: [thread],
                 removed: [],
                 changed: [],
-                pending: [],
+                pending: []
             });
         }
         else {
@@ -288,7 +274,7 @@ export class MainThreadCommentController implements ICommentController {
                 added: [thread as MainThreadCommentThread<ICellRange>],
                 removed: [],
                 changed: [],
-                pending: [],
+                pending: []
             });
         }
         return thread;
@@ -301,7 +287,7 @@ export class MainThreadCommentController implements ICommentController {
                 added: [],
                 removed: [],
                 changed: [thread],
-                pending: [],
+                pending: []
             });
         }
         else {
@@ -309,7 +295,7 @@ export class MainThreadCommentController implements ICommentController {
                 added: [],
                 removed: [],
                 changed: [thread as MainThreadCommentThread<ICellRange>],
-                pending: [],
+                pending: []
             });
         }
     }
@@ -322,7 +308,7 @@ export class MainThreadCommentController implements ICommentController {
                 added: [],
                 removed: [thread],
                 changed: [],
-                pending: [],
+                pending: []
             });
         }
         else {
@@ -330,7 +316,7 @@ export class MainThreadCommentController implements ICommentController {
                 added: [],
                 removed: [thread as MainThreadCommentThread<ICellRange>],
                 changed: [],
-                pending: [],
+                pending: []
             });
         }
     }
@@ -355,7 +341,7 @@ export class MainThreadCommentController implements ICommentController {
     private getKnownThread(commentThreadHandle: number): MainThreadCommentThread<IRange | ICellRange> {
         const thread = this._threads.get(commentThreadHandle);
         if (!thread) {
-            throw new Error("unknown thread");
+            throw new Error('unknown thread');
         }
         return thread.thread;
     }
@@ -368,8 +354,8 @@ export class MainThreadCommentController implements ICommentController {
                 commentingRanges: {
                     resource: resource,
                     ranges: [],
-                    fileComments: false,
-                },
+                    fileComments: false
+                }
             };
         }
         const ret: languages.CommentThread<IRange>[] = [];
@@ -389,8 +375,8 @@ export class MainThreadCommentController implements ICommentController {
             commentingRanges: {
                 resource: resource,
                 ranges: commentingRanges?.ranges || [],
-                fileComments: !!commentingRanges?.fileComments,
-            },
+                fileComments: !!commentingRanges?.fileComments
+            }
         };
     }
     async getNotebookComments(resource: URI, token: CancellationToken) {
@@ -398,7 +384,7 @@ export class MainThreadCommentController implements ICommentController {
             return {
                 uniqueOwner: this._uniqueId,
                 label: this.label,
-                threads: [],
+                threads: []
             };
         }
         const ret: languages.CommentThread<ICellRange>[] = [];
@@ -413,7 +399,7 @@ export class MainThreadCommentController implements ICommentController {
         return {
             uniqueOwner: this._uniqueId,
             label: this.label,
-            threads: ret,
+            threads: ret
         };
     }
     async toggleReaction(uri: URI, thread: languages.CommentThread, comment: languages.Comment, reaction: languages.CommentReaction, token: CancellationToken): Promise<void> {
@@ -435,11 +421,11 @@ export class MainThreadCommentController implements ICommentController {
     toJSON(): any {
         return {
             $mid: MarshalledId.CommentController,
-            handle: this.handle,
+            handle: this.handle
         };
     }
 }
-const commentsViewIcon = registerIcon("comments-view-icon", Codicon.commentDiscussion, localize("commentsViewIcon", "View icon of the comments view."));
+const commentsViewIcon = registerIcon('comments-view-icon', Codicon.commentDiscussion, localize('commentsViewIcon', 'View icon of the comments view.'));
 @extHostNamedCustomer(MainContext.MainThreadComments)
 export class MainThreadComments extends Disposable implements MainThreadCommentsShape {
     private readonly _proxy: ExtHostCommentsShape;
@@ -469,10 +455,8 @@ export class MainThreadComments extends Disposable implements MainThreadComments
                 return;
             }
             this._activeEditingCommentThreadDisposables.clear();
-            this._activeEditingCommentThread =
-                thread as MainThreadCommentThread<IRange | ICellRange>;
-            controller.activeEditingCommentThread =
-                this._activeEditingCommentThread;
+            this._activeEditingCommentThread = thread as MainThreadCommentThread<IRange | ICellRange>;
+            controller.activeEditingCommentThread = this._activeEditingCommentThread;
         }));
     }
     $registerCommentController(handle: number, id: string, label: string, extensionId: string): void {
@@ -492,7 +476,7 @@ export class MainThreadComments extends Disposable implements MainThreadComments
         const providerId = this._handlers.get(handle);
         this._handlers.delete(handle);
         this._commentControllers.delete(handle);
-        if (typeof providerId !== "string") {
+        if (typeof providerId !== 'string') {
             return;
             // throw new Error('unknown handler');
         }
@@ -540,13 +524,11 @@ export class MainThreadComments extends Disposable implements MainThreadComments
         if (!provider) {
             return Promise.resolve();
         }
-        const thread = provider
-            .getAllComments()
-            .find((thread) => thread.commentThreadHandle === commentThreadHandle);
+        const thread = provider.getAllComments().find(thread => thread.commentThreadHandle === commentThreadHandle);
         if (!thread || !thread.isDocumentCommentThread()) {
             return Promise.resolve();
         }
-        const comment = thread.comments?.find((comment) => comment.uniqueIdInThread === commentUniqueIdInThread);
+        const comment = thread.comments?.find(comment => comment.uniqueIdInThread === commentUniqueIdInThread);
         revealCommentThread(this._commentService, this._editorService, this._uriIdentityService, thread, comment, options.focusReply, undefined, options.preserveFocus);
     }
     async $hideCommentThread(handle: number, commentThreadHandle: number): Promise<void> {
@@ -554,31 +536,24 @@ export class MainThreadComments extends Disposable implements MainThreadComments
         if (!provider) {
             return Promise.resolve();
         }
-        const thread = provider
-            .getAllComments()
-            .find((thread) => thread.commentThreadHandle === commentThreadHandle);
+        const thread = provider.getAllComments().find(thread => thread.commentThreadHandle === commentThreadHandle);
         if (!thread || !thread.isDocumentCommentThread()) {
             return Promise.resolve();
         }
-        thread.collapsibleState =
-            languages.CommentThreadCollapsibleState.Collapsed;
+        thread.collapsibleState = languages.CommentThreadCollapsibleState.Collapsed;
     }
     private registerView(commentsViewAlreadyRegistered: boolean) {
         if (!commentsViewAlreadyRegistered) {
             const VIEW_CONTAINER: ViewContainer = Registry.as<IViewContainersRegistry>(ViewExtensions.ViewContainersRegistry).registerViewContainer({
                 id: COMMENTS_VIEW_ID,
                 title: COMMENTS_VIEW_TITLE,
-                ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [
-                    COMMENTS_VIEW_ID,
-                    { mergeViewWithContainerWhenSingleView: true },
-                ]),
+                ctorDescriptor: new SyncDescriptor(ViewPaneContainer, [COMMENTS_VIEW_ID, { mergeViewWithContainerWhenSingleView: true }]),
                 storageId: COMMENTS_VIEW_STORAGE_ID,
                 hideIfEmpty: true,
                 icon: commentsViewIcon,
                 order: 10,
             }, ViewContainerLocation.Panel);
-            Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([
-                {
+            Registry.as<IViewsRegistry>(ViewExtensions.ViewsRegistry).registerViews([{
                     id: COMMENTS_VIEW_ID,
                     name: COMMENTS_VIEW_TITLE,
                     canToggleVisibility: false,
@@ -586,17 +561,14 @@ export class MainThreadComments extends Disposable implements MainThreadComments
                     canMoveView: true,
                     containerIcon: commentsViewIcon,
                     focusCommand: {
-                        id: "workbench.action.focusCommentsPanel",
-                    },
-                },
-            ], VIEW_CONTAINER);
+                        id: 'workbench.action.focusCommentsPanel'
+                    }
+                }], VIEW_CONTAINER);
         }
     }
     private setComments() {
-        [...this._commentControllers.keys()].forEach((handle) => {
-            const threads = this._commentControllers
-                .get(handle)!
-                .getAllComments();
+        [...this._commentControllers.keys()].forEach(handle => {
+            const threads = this._commentControllers.get(handle)!.getAllComments();
             if (threads.length) {
                 const providerId = this.getHandler(handle);
                 this._commentService.setWorkspaceComments(providerId, threads);
@@ -605,16 +577,15 @@ export class MainThreadComments extends Disposable implements MainThreadComments
     }
     private registerViewOpenedListener() {
         if (!this._openViewListener) {
-            this._openViewListener =
-                this._viewsService.onDidChangeViewVisibility((e) => {
-                    if (e.id === COMMENTS_VIEW_ID && e.visible) {
-                        this.setComments();
-                        if (this._openViewListener) {
-                            this._openViewListener.dispose();
-                            this._openViewListener = null;
-                        }
+            this._openViewListener = this._viewsService.onDidChangeViewVisibility(e => {
+                if (e.id === COMMENTS_VIEW_ID && e.visible) {
+                    this.setComments();
+                    if (this._openViewListener) {
+                        this._openViewListener.dispose();
+                        this._openViewListener = null;
                     }
-                });
+                }
+            });
         }
     }
     /**
@@ -626,13 +597,13 @@ export class MainThreadComments extends Disposable implements MainThreadComments
         if (!commentsPanelAlreadyConstructed) {
             this.registerViewOpenedListener();
         }
-        this._register(this._viewDescriptorService.onDidChangeContainer((e) => {
-            if (e.views.find((view) => view.id === COMMENTS_VIEW_ID)) {
+        this._register(this._viewDescriptorService.onDidChangeContainer(e => {
+            if (e.views.find(view => view.id === COMMENTS_VIEW_ID)) {
                 this.setComments();
                 this.registerViewOpenedListener();
             }
         }));
-        this._register(this._viewDescriptorService.onDidChangeContainerLocation((e) => {
+        this._register(this._viewDescriptorService.onDidChangeContainerLocation(e => {
             const commentsContainer = this._viewDescriptorService.getViewContainerByViewId(COMMENTS_VIEW_ID);
             if (e.viewContainer.id === commentsContainer?.id) {
                 this.setComments();
@@ -642,7 +613,7 @@ export class MainThreadComments extends Disposable implements MainThreadComments
     }
     private getHandler(handle: number) {
         if (!this._handlers.has(handle)) {
-            throw new Error("Unknown handler");
+            throw new Error('Unknown handler');
         }
         return this._handlers.get(handle)!;
     }

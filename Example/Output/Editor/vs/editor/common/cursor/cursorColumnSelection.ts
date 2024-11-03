@@ -2,15 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Position } from "../core/position.js";
-import { Range } from "../core/range.js";
-import { CursorConfiguration, IColumnSelectData, ICursorSimpleModel, SelectionStartKind, SingleCursorState, } from "../cursorCommon.js";
+import { CursorConfiguration, ICursorSimpleModel, SingleCursorState, IColumnSelectData, SelectionStartKind } from '../cursorCommon.js';
+import { Position } from '../core/position.js';
+import { Range } from '../core/range.js';
 export class ColumnSelection {
     public static columnSelect(config: CursorConfiguration, model: ICursorSimpleModel, fromLineNumber: number, fromVisibleColumn: number, toLineNumber: number, toVisibleColumn: number): IColumnSelectResult {
         const lineCount = Math.abs(toLineNumber - fromLineNumber) + 1;
-        const reversed = fromLineNumber > toLineNumber;
-        const isRTL = fromVisibleColumn > toVisibleColumn;
-        const isLTR = fromVisibleColumn < toVisibleColumn;
+        const reversed = (fromLineNumber > toLineNumber);
+        const isRTL = (fromVisibleColumn > toVisibleColumn);
+        const isLTR = (fromVisibleColumn < toVisibleColumn);
         const result: SingleCursorState[] = [];
         // console.log(`fromVisibleColumn: ${fromVisibleColumn}, toVisibleColumn: ${toVisibleColumn}`);
         for (let i = 0; i < lineCount; i++) {
@@ -52,7 +52,7 @@ export class ColumnSelection {
             fromLineNumber: fromLineNumber,
             fromVisualColumn: fromVisibleColumn,
             toLineNumber: toLineNumber,
-            toVisualColumn: toVisibleColumn,
+            toVisualColumn: toVisibleColumn
         };
     }
     public static columnSelectLeft(config: CursorConfiguration, model: ICursorSimpleModel, prevColumnSelectData: IColumnSelectData): IColumnSelectResult {

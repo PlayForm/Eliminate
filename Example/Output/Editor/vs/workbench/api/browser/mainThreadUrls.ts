@@ -2,13 +2,13 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IDisposable } from "../../../base/common/lifecycle.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { ExtensionIdentifier } from "../../../platform/extensions/common/extensions.js";
-import { IOpenURLOptions, IURLService, } from "../../../platform/url/common/url.js";
-import { IExtensionContributedURLHandler, IExtensionUrlHandler, } from "../../services/extensions/browser/extensionUrlHandler.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { ExtHostContext, ExtHostUrlsShape, MainContext, MainThreadUrlsShape, } from "../common/extHost.protocol.js";
+import { ExtHostContext, MainContext, MainThreadUrlsShape, ExtHostUrlsShape } from '../common/extHost.protocol.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
+import { IURLService, IOpenURLOptions } from '../../../platform/url/common/url.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { IDisposable } from '../../../base/common/lifecycle.js';
+import { IExtensionContributedURLHandler, IExtensionUrlHandler } from '../../services/extensions/browser/extensionUrlHandler.js';
+import { ExtensionIdentifier } from '../../../platform/extensions/common/extensions.js';
 class ExtensionUrlHandler implements IExtensionContributedURLHandler {
     constructor(private readonly proxy: ExtHostUrlsShape, private readonly handle: number, readonly extensionId: ExtensionIdentifier, readonly extensionDisplayName: string) { }
     handleURL(uri: URI, options?: IOpenURLOptions): Promise<boolean> {

@@ -2,11 +2,11 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { timeout } from "../../../base/common/async.js";
-import { CancellationTokenSource } from "../../../base/common/cancellation.js";
-import { Emitter } from "../../../base/common/event.js";
-import { Disposable, dispose, IDisposable, toDisposable, } from "../../../base/common/lifecycle.js";
-import { ILogService } from "../../log/common/log.js";
+import { timeout } from '../../../base/common/async.js';
+import { CancellationTokenSource } from '../../../base/common/cancellation.js';
+import { Emitter } from '../../../base/common/event.js';
+import { Disposable, dispose, IDisposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { ILogService } from '../../log/common/log.js';
 /**
  * A helper class to track requests that have replies. Using this it's easy to implement an event
  * that accepts a reply.
@@ -46,9 +46,7 @@ export class RequestStore<T, RequestArgs> extends Disposable {
             this._onCreateRequest.fire({ requestId, ...args });
             const tokenSource = new CancellationTokenSource();
             timeout(this._timeout, tokenSource.token).then(() => reject(`Request ${requestId} timed out (${this._timeout}ms)`));
-            this._pendingRequestDisposables.set(requestId, [
-                toDisposable(() => tokenSource.cancel()),
-            ]);
+            this._pendingRequestDisposables.set(requestId, [toDisposable(() => tokenSource.cancel())]);
         });
     }
     /**

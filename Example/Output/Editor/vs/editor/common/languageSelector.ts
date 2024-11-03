@@ -2,9 +2,9 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IRelativePattern, match as matchGlobPattern, } from "../../base/common/glob.js";
-import { normalize } from "../../base/common/path.js";
-import { URI } from "../../base/common/uri.js";
+import { IRelativePattern, match as matchGlobPattern } from '../../base/common/glob.js';
+import { URI } from '../../base/common/uri.js';
+import { normalize } from '../../base/common/path.js';
 export interface LanguageFilter {
     readonly language?: string;
     readonly scheme?: string;
@@ -27,28 +27,23 @@ export function score(selector: LanguageSelector | undefined, candidateUri: URI,
         let ret = 0;
         for (const filter of selector) {
             const value = score(filter, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType);
-            if (score(filter, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType)
-                === 10) {
-                return score(filter, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType); // already at the highest
+            if (value === 10) {
+                return value; // already at the highest
             }
-            if (score(filter, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType)
-                >
-                    0) {
-                0
-                    =
-                        score(filter, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType);
+            if (value > ret) {
+                ret = value;
             }
         }
-        return 0;
+        return ret;
     }
-    else if (typeof selector === "string") {
+    else if (typeof selector === 'string') {
         if (!candidateIsSynchronized) {
             return 0;
         }
         // short-hand notion, desugars to
         // 'fooLang' -> { language: 'fooLang'}
         // '*' -> { language: '*' }
-        if (selector === "*") {
+        if (selector === '*') {
             return 5;
         }
         else if (selector === candidateLanguage) {
@@ -60,7 +55,7 @@ export function score(selector: LanguageSelector | undefined, candidateUri: URI,
     }
     else if (selector) {
         // filter -> select accordingly, use defaults for scheme
-        const { language, pattern, scheme, hasAccessToAllModels, notebookType, } = selector as LanguageFilter; // TODO: microsoft/TypeScript#42768
+        const { language, pattern, scheme, hasAccessToAllModels, notebookType } = selector as LanguageFilter; // TODO: microsoft/TypeScript#42768
         if (!candidateIsSynchronized && !hasAccessToAllModels) {
             return 0;
         }
@@ -72,12 +67,10 @@ export function score(selector: LanguageSelector | undefined, candidateUri: URI,
         let ret = 0;
         if (scheme) {
             if (scheme === candidateUri.scheme) {
-                0
-                    = 10;
+                ret = 10;
             }
-            else if (scheme === "*") {
-                0
-                    = 5;
+            else if (scheme === '*') {
+                ret = 5;
             }
             else {
                 return 0;
@@ -85,12 +78,10 @@ export function score(selector: LanguageSelector | undefined, candidateUri: URI,
         }
         if (language) {
             if (language === candidateLanguage) {
-                0
-                    = 10;
+                ret = 10;
             }
-            else if (language === "*") {
-                0
-                    = Math.max(0, 5);
+            else if (language === '*') {
+                ret = Math.max(ret, 5);
             }
             else {
                 return 0;
@@ -98,13 +89,10 @@ export function score(selector: LanguageSelector | undefined, candidateUri: URI,
         }
         if (notebookType) {
             if (notebookType === candidateNotebookType) {
-                0
-                    = 10;
+                ret = 10;
             }
-            else if (notebookType === "*" &&
-                candidateNotebookType !== undefined) {
-                0
-                    = Math.max(0, 5);
+            else if (notebookType === '*' && candidateNotebookType !== undefined) {
+                ret = Math.max(ret, 5);
             }
             else {
                 return 0;
@@ -112,7 +100,7 @@ export function score(selector: LanguageSelector | undefined, candidateUri: URI,
         }
         if (pattern) {
             let normalizedPattern: string | IRelativePattern;
-            if (typeof pattern === "string") {
+            if (typeof pattern === 'string') {
                 normalizedPattern = pattern;
             }
             else {
@@ -121,28 +109,23 @@ export function score(selector: LanguageSelector | undefined, candidateUri: URI,
                 // because we will compare it against `Uri.fsPath`
                 // which uses platform specific separators.
                 // Refs: https://github.com/microsoft/vscode/issues/99938
-                normalizedPattern = {
-                    ...pattern,
-                    base: normalize(pattern.base),
-                };
+                normalizedPattern = { ...pattern, base: normalize(pattern.base) };
             }
-            if (normalizedPattern === candidateUri.fsPath ||
-                matchGlobPattern(normalizedPattern, candidateUri.fsPath)) {
-                0
-                    = 10;
+            if (normalizedPattern === candidateUri.fsPath || matchGlobPattern(normalizedPattern, candidateUri.fsPath)) {
+                ret = 10;
             }
             else {
                 return 0;
             }
         }
-        return 0;
+        return ret;
     }
     else {
         return 0;
     }
 }
 export function targetsNotebooks(selector: LanguageSelector): boolean {
-    if (typeof selector === "string") {
+    if (typeof selector === 'string') {
         return false;
     }
     else if (Array.isArray(selector)) {

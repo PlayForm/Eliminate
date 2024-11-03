@@ -2,24 +2,24 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Emitter, Event } from "../../../base/common/event.js";
-import { Disposable, toDisposable } from "../../../base/common/lifecycle.js";
-import * as performance from "../../../base/common/performance.js";
-import { IProcessEnvironment, isWindows, OperatingSystem, OS, } from "../../../base/common/platform.js";
-import { StopWatch } from "../../../base/common/stopwatch.js";
-import { getSystemShell } from "../../../base/node/shell.js";
-import { ProxyChannel } from "../../../base/parts/ipc/common/ipc.js";
-import { IConfigurationService } from "../../configuration/common/configuration.js";
-import { ILoggerService, ILogService, LogLevel } from "../../log/common/log.js";
-import { RemoteLoggerChannelClient } from "../../log/common/logIpc.js";
-import { getResolvedShellEnv } from "../../shell/node/shellEnv.js";
-import { IPtyHostProcessReplayEvent } from "../common/capabilities/capabilities.js";
-import { RequestStore } from "../common/requestStore.js";
-import { HeartbeatConstants, IHeartbeatService, IProcessDataEvent, IProcessProperty, IProcessPropertyMap, IProcessReadyEvent, IPtyHostLatencyMeasurement, IPtyHostService, IPtyService, IRequestResolveVariablesEvent, ISerializedTerminalState, IShellLaunchConfig, ITerminalLaunchError, ITerminalProcessOptions, ITerminalProfile, ITerminalsLayoutInfo, ProcessPropertyType, TerminalIcon, TerminalIpcChannels, TerminalSettingId, TitleEventSource, } from "../common/terminal.js";
-import { registerTerminalPlatformConfiguration } from "../common/terminalPlatformConfiguration.js";
-import { IGetTerminalLayoutInfoArgs, IProcessDetails, ISetTerminalLayoutInfoArgs, } from "../common/terminalProcess.js";
-import { IPtyHostConnection, IPtyHostStarter } from "./ptyHost.js";
-import { detectAvailableProfiles } from "./terminalProfiles.js";
+import { Emitter, Event } from '../../../base/common/event.js';
+import { Disposable, toDisposable } from '../../../base/common/lifecycle.js';
+import { IProcessEnvironment, OS, OperatingSystem, isWindows } from '../../../base/common/platform.js';
+import { ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
+import { IConfigurationService } from '../../configuration/common/configuration.js';
+import { ILogService, ILoggerService, LogLevel } from '../../log/common/log.js';
+import { RemoteLoggerChannelClient } from '../../log/common/logIpc.js';
+import { getResolvedShellEnv } from '../../shell/node/shellEnv.js';
+import { IPtyHostProcessReplayEvent } from '../common/capabilities/capabilities.js';
+import { RequestStore } from '../common/requestStore.js';
+import { HeartbeatConstants, IHeartbeatService, IProcessDataEvent, IProcessProperty, IProcessPropertyMap, IProcessReadyEvent, IPtyHostLatencyMeasurement, IPtyHostService, IPtyService, IRequestResolveVariablesEvent, ISerializedTerminalState, IShellLaunchConfig, ITerminalLaunchError, ITerminalProcessOptions, ITerminalProfile, ITerminalsLayoutInfo, ProcessPropertyType, TerminalIcon, TerminalIpcChannels, TerminalSettingId, TitleEventSource } from '../common/terminal.js';
+import { registerTerminalPlatformConfiguration } from '../common/terminalPlatformConfiguration.js';
+import { IGetTerminalLayoutInfoArgs, IProcessDetails, ISetTerminalLayoutInfoArgs } from '../common/terminalProcess.js';
+import { IPtyHostConnection, IPtyHostStarter } from './ptyHost.js';
+import { detectAvailableProfiles } from './terminalProfiles.js';
+import * as performance from '../../../base/common/performance.js';
+import { getSystemShell } from '../../../base/node/shell.js';
+import { StopWatch } from '../../../base/common/stopwatch.js';
 enum Constants {
     MaxRestarts = 5
 }
@@ -126,7 +126,7 @@ export class PtyHostService extends Disposable implements IPtyHostService {
             this._register(Event.once(this._ptyHostStarter.onRequestConnection)(() => this._ensurePtyHost()));
         }
         if (this._ptyHostStarter.onWillShutdown) {
-            this._register(this._ptyHostStarter.onWillShutdown(() => (this._wasQuitRequested = true)));
+            this._register(this._ptyHostStarter.onWillShutdown(() => this._wasQuitRequested = true));
         }
     }
     private get _ignoreProcessNames(): string[] {
@@ -143,7 +143,7 @@ export class PtyHostService extends Disposable implements IPtyHostService {
             return await getResolvedShellEnv(this._configurationService, this._logService, { _: [] }, process.env);
         }
         catch (error) {
-            this._logService.error("ptyHost was unable to resolve shell environment", error);
+            this._logService.error('ptyHost was unable to resolve shell environment', error);
             return {};
         }
     }
@@ -155,14 +155,14 @@ export class PtyHostService extends Disposable implements IPtyHostService {
         const client = connection.client;
         // Log a full stack trace which will tell the exact reason the pty host is starting up
         if (this._logService.getLevel() === LogLevel.Trace) {
-            this._logService.trace("PtyHostService#_startPtyHost", new Error().stack?.replace(/^Error/, ""));
+            this._logService.trace('PtyHostService#_startPtyHost', new Error().stack?.replace(/^Error/, ''));
         }
         // Setup heartbeat service and trigger a heartbeat immediately to reset the timeouts
         const heartbeatService = ProxyChannel.toService<IHeartbeatService>(client.getChannel(TerminalIpcChannels.Heartbeat));
         heartbeatService.onBeat(() => this._handleHeartbeat());
         this._handleHeartbeat(true);
         // Handle exit
-        this._register(connection.onDidProcessExit((e) => {
+        this._register(connection.onDidProcessExit(e => {
             this._onPtyHostExit.fire(e.code);
             if (!this._wasQuitRequested && !this._store.isDisposed) {
                 if (this._restartCount <= Constants.MaxRestarts) {
@@ -177,13 +177,13 @@ export class PtyHostService extends Disposable implements IPtyHostService {
         }));
         // Create proxy and forward events
         const proxy = ProxyChannel.toService<IPtyService>(client.getChannel(TerminalIpcChannels.PtyHost));
-        this._register(proxy.onProcessData((e) => this._onProcessData.fire(e)));
-        this._register(proxy.onProcessReady((e) => this._onProcessReady.fire(e)));
-        this._register(proxy.onProcessExit((e) => this._onProcessExit.fire(e)));
-        this._register(proxy.onDidChangeProperty((e) => this._onDidChangeProperty.fire(e)));
-        this._register(proxy.onProcessReplay((e) => this._onProcessReplay.fire(e)));
-        this._register(proxy.onProcessOrphanQuestion((e) => this._onProcessOrphanQuestion.fire(e)));
-        this._register(proxy.onDidRequestDetach((e) => this._onDidRequestDetach.fire(e)));
+        this._register(proxy.onProcessData(e => this._onProcessData.fire(e)));
+        this._register(proxy.onProcessReady(e => this._onProcessReady.fire(e)));
+        this._register(proxy.onProcessExit(e => this._onProcessExit.fire(e)));
+        this._register(proxy.onDidChangeProperty(e => this._onDidChangeProperty.fire(e)));
+        this._register(proxy.onProcessReplay(e => this._onProcessReplay.fire(e)));
+        this._register(proxy.onProcessOrphanQuestion(e => this._onProcessOrphanQuestion.fire(e)));
+        this._register(proxy.onDidRequestDetach(e => this._onDidRequestDetach.fire(e)));
         this._register(new RemoteLoggerChannelClient(this._loggerService, client.getChannel(TerminalIpcChannels.Logger)));
         this.__connection = connection;
         this.__proxy = proxy;
@@ -196,7 +196,7 @@ export class PtyHostService extends Disposable implements IPtyHostService {
         this._refreshIgnoreProcessNames();
         return [connection, proxy];
     }
-    async createProcess(shellLaunchConfig: IShellLaunchConfig, cwd: string, cols: number, rows: number, unicodeVersion: "6" | "11", env: IProcessEnvironment, executableEnv: IProcessEnvironment, options: ITerminalProcessOptions, shouldPersist: boolean, workspaceId: string, workspaceName: string): Promise<number> {
+    async createProcess(shellLaunchConfig: IShellLaunchConfig, cwd: string, cols: number, rows: number, unicodeVersion: '6' | '11', env: IProcessEnvironment, executableEnv: IProcessEnvironment, options: ITerminalProcessOptions, shouldPersist: boolean, workspaceId: string, workspaceName: string): Promise<number> {
         const timeout = setTimeout(() => this._handleUnresponsiveCreateProcess(), HeartbeatConstants.CreateProcessTimeout);
         const id = await this._proxy.createProcess(shellLaunchConfig, cwd, cols, rows, unicodeVersion, env, executableEnv, options, shouldPersist, workspaceId, workspaceName);
         clearTimeout(timeout);
@@ -249,7 +249,7 @@ export class PtyHostService extends Disposable implements IPtyHostService {
     acknowledgeDataEvent(id: number, charCount: number): Promise<void> {
         return this._proxy.acknowledgeDataEvent(id, charCount);
     }
-    setUnicodeVersion(id: number, version: "6" | "11"): Promise<void> {
+    setUnicodeVersion(id: number, version: '6' | '11'): Promise<void> {
         return this._proxy.setUnicodeVersion(id, version);
     }
     getInitialCwd(id: number): Promise<string> {
@@ -264,10 +264,10 @@ export class PtyHostService extends Disposable implements IPtyHostService {
         sw.stop();
         return [
             {
-                label: "ptyhostservice<->ptyhost",
-                latency: sw.elapsed(),
+                label: 'ptyhostservice<->ptyhost',
+                latency: sw.elapsed()
             },
-            ...results,
+            ...results
         ];
     }
     orphanQuestionReply(id: number): Promise<void> {
@@ -280,8 +280,7 @@ export class PtyHostService extends Disposable implements IPtyHostService {
         return this._proxy.uninstallAllAutoReplies();
     }
     getDefaultSystemShell(osOverride?: OperatingSystem): Promise<string> {
-        return (this._optionalProxy?.getDefaultSystemShell(osOverride) ??
-            getSystemShell(osOverride ?? OS, process.env));
+        return this._optionalProxy?.getDefaultSystemShell(osOverride) ?? getSystemShell(osOverride ?? OS, process.env);
     }
     async getProfiles(workspaceId: string, profiles: unknown, defaultProfile: unknown, includeDetectedProfiles: boolean = false): Promise<ITerminalProfile[]> {
         const shellEnv = await this._resolveShellEnv();
@@ -295,7 +294,7 @@ export class PtyHostService extends Disposable implements IPtyHostService {
         }
         return this._proxy.getEnvironment();
     }
-    getWslPath(original: string, direction: "unix-to-win" | "win-to-unix"): Promise<string> {
+    getWslPath(original: string, direction: 'unix-to-win' | 'win-to-unix'): Promise<string> {
         return this._proxy.getWslPath(original, direction);
     }
     getRevivedPtyNewId(workspaceId: string, id: number): Promise<number | undefined> {
@@ -321,7 +320,7 @@ export class PtyHostService extends Disposable implements IPtyHostService {
         processId: string;
     }> {
         if (!this._proxy.freePortKillProcess) {
-            throw new Error("freePortKillProcess does not exist on the pty proxy");
+            throw new Error('freePortKillProcess does not exist on the pty proxy');
         }
         return this._proxy.freePortKillProcess(port);
     }
@@ -348,20 +347,16 @@ export class PtyHostService extends Disposable implements IPtyHostService {
     }
     private _handleHeartbeat(isConnecting?: boolean) {
         this._clearHeartbeatTimeouts();
-        this._heartbeatFirstTimeout = setTimeout(() => this._handleHeartbeatFirstTimeout(), isConnecting
-            ? HeartbeatConstants.ConnectingBeatInterval
-            : HeartbeatConstants.BeatInterval *
-                HeartbeatConstants.FirstWaitMultiplier);
+        this._heartbeatFirstTimeout = setTimeout(() => this._handleHeartbeatFirstTimeout(), isConnecting ? HeartbeatConstants.ConnectingBeatInterval : (HeartbeatConstants.BeatInterval * HeartbeatConstants.FirstWaitMultiplier));
         if (!this._isResponsive) {
             this._isResponsive = true;
             this._onPtyHostResponsive.fire();
         }
     }
     private _handleHeartbeatFirstTimeout() {
-        this._logService.warn(`No ptyHost heartbeat after ${(HeartbeatConstants.BeatInterval * HeartbeatConstants.FirstWaitMultiplier) / 1000} seconds`);
+        this._logService.warn(`No ptyHost heartbeat after ${HeartbeatConstants.BeatInterval * HeartbeatConstants.FirstWaitMultiplier / 1000} seconds`);
         this._heartbeatFirstTimeout = undefined;
-        this._heartbeatSecondTimeout = setTimeout(() => this._handleHeartbeatSecondTimeout(), HeartbeatConstants.BeatInterval *
-            HeartbeatConstants.SecondWaitMultiplier);
+        this._heartbeatSecondTimeout = setTimeout(() => this._handleHeartbeatSecondTimeout(), HeartbeatConstants.BeatInterval * HeartbeatConstants.SecondWaitMultiplier);
     }
     private _handleHeartbeatSecondTimeout() {
         this._logService.error(`No ptyHost heartbeat after ${(HeartbeatConstants.BeatInterval * HeartbeatConstants.FirstWaitMultiplier + HeartbeatConstants.BeatInterval * HeartbeatConstants.FirstWaitMultiplier) / 1000} seconds`);
@@ -390,10 +385,7 @@ export class PtyHostService extends Disposable implements IPtyHostService {
         }
     }
     private _resolveVariables(workspaceId: string, text: string[]): Promise<string[]> {
-        return this._resolveVariablesRequestStore.createRequest({
-            workspaceId,
-            originalText: text,
-        });
+        return this._resolveVariablesRequestStore.createRequest({ workspaceId, originalText: text });
     }
     async acceptPtyHostResolvedVariables(requestId: number, resolved: string[]) {
         this._resolveVariablesRequestStore.acceptReply(requestId, resolved);

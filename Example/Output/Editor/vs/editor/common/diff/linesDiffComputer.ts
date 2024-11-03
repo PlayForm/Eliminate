@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { DetailedLineRangeMapping, LineRangeMapping } from "./rangeMapping.js";
+import { DetailedLineRangeMapping, LineRangeMapping } from './rangeMapping.js';
 export interface ILinesDiffComputer {
     computeDiff(originalLines: string[], modifiedLines: string[], options: ILinesDiffComputerOptions): LinesDiff;
 }
@@ -22,7 +22,8 @@ export class LinesDiff {
      * Indicates if the time out was reached.
      * In that case, the diffs might be an approximation and the user should be asked to rerun the diff with more time.
      */
-    readonly hitTimeout: boolean) { }
+    readonly hitTimeout: boolean) {
+    }
 }
 export class MovedText {
     public readonly lineRangeMapping: LineRangeMapping;
@@ -37,6 +38,6 @@ export class MovedText {
         this.changes = changes;
     }
     public flip(): MovedText {
-        return new MovedText(this.lineRangeMapping.flip(), this.changes.map((c) => c.flip()));
+        return new MovedText(this.lineRangeMapping.flip(), this.changes.map(c => c.flip()));
     }
 }

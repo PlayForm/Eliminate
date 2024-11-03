@@ -2,15 +2,15 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { AddFirstParameterToFunctions } from "../../../base/common/types.js";
-import { URI } from "../../../base/common/uri.js";
-import { IFolderBackupInfo, IWorkspaceBackupInfo, } from "../../backup/common/backup.js";
-import { IBackupMainService } from "../../backup/electron-main/backup.js";
-import { IWindowsMainService } from "../../windows/electron-main/windows.js";
-import { IWorkspaceIdentifier } from "../../workspace/common/workspace.js";
-import { IEnterWorkspaceResult, IRecent, IRecentlyOpened, IWorkspaceFolderCreationData, IWorkspacesService, } from "../common/workspaces.js";
-import { IWorkspacesHistoryMainService } from "./workspacesHistoryMainService.js";
-import { IWorkspacesManagementMainService } from "./workspacesManagementMainService.js";
+import { AddFirstParameterToFunctions } from '../../../base/common/types.js';
+import { URI } from '../../../base/common/uri.js';
+import { IBackupMainService } from '../../backup/electron-main/backup.js';
+import { IWindowsMainService } from '../../windows/electron-main/windows.js';
+import { IEnterWorkspaceResult, IRecent, IRecentlyOpened, IWorkspaceFolderCreationData, IWorkspacesService } from '../common/workspaces.js';
+import { IWorkspaceIdentifier } from '../../workspace/common/workspace.js';
+import { IWorkspacesHistoryMainService } from './workspacesHistoryMainService.js';
+import { IWorkspacesManagementMainService } from './workspacesManagementMainService.js';
+import { IWorkspaceBackupInfo, IFolderBackupInfo } from '../../backup/common/backup.js';
 export class WorkspacesMainService implements AddFirstParameterToFunctions<IWorkspacesService, Promise<unknown> /* only methods, not events */, number /* window ID */> {
     declare readonly _serviceBrand: undefined;
     constructor(
@@ -21,7 +21,8 @@ export class WorkspacesMainService implements AddFirstParameterToFunctions<IWork
     @IWorkspacesHistoryMainService
     private readonly workspacesHistoryMainService: IWorkspacesHistoryMainService, 
     @IBackupMainService
-    private readonly backupMainService: IBackupMainService) { }
+    private readonly backupMainService: IBackupMainService) {
+    }
     //#region Workspace Management
     async enterWorkspace(windowId: number, path: URI): Promise<IEnterWorkspaceResult | undefined> {
         const window = this.windowsMainService.getWindowById(windowId);

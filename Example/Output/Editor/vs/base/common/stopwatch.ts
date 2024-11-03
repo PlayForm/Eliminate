@@ -8,7 +8,7 @@ declare const globalThis: {
         now(): number;
     };
 };
-;
+const hasPerformanceNow = (globalThis.performance && typeof globalThis.performance.now === 'function');
 export class StopWatch {
     private _startTime: number;
     private _stopTime: number;
@@ -17,8 +17,7 @@ export class StopWatch {
         return new StopWatch(highResolution);
     }
     constructor(highResolution?: boolean) {
-        this._now = (globalThis.performance && typeof globalThis.performance.now === 'function')
-            && highResolution === false ? Date.now : globalThis.performance!.now.bind(globalThis.performance);
+        this._now = hasPerformanceNow && highResolution === false ? Date.now : globalThis.performance!.now.bind(globalThis.performance);
         this._startTime = this._now();
         this._stopTime = -1;
     }

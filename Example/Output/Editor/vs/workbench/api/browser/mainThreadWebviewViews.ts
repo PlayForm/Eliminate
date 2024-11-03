@@ -2,16 +2,16 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { onUnexpectedError } from "../../../base/common/errors.js";
-import { Disposable, DisposableMap } from "../../../base/common/lifecycle.js";
-import { generateUuid } from "../../../base/common/uuid.js";
-import { ITelemetryService } from "../../../platform/telemetry/common/telemetry.js";
-import { IViewBadge } from "../../common/views.js";
-import { IWebviewViewService, WebviewView, } from "../../contrib/webviewView/browser/webviewViewService.js";
-import { IExtHostContext } from "../../services/extensions/common/extHostCustomers.js";
-import * as extHostProtocol from "../common/extHost.protocol.js";
-import { MainThreadWebviews, reviveWebviewExtension, } from "./mainThreadWebviews.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../base/common/errors.js';
+import { Disposable, DisposableMap } from '../../../base/common/lifecycle.js';
+import { generateUuid } from '../../../base/common/uuid.js';
+import { MainThreadWebviews, reviveWebviewExtension } from './mainThreadWebviews.js';
+import * as extHostProtocol from '../common/extHost.protocol.js';
+import { IViewBadge } from '../../common/views.js';
+import { IWebviewViewService, WebviewView } from '../../contrib/webviewView/browser/webviewViewService.js';
+import { ITelemetryService } from '../../../platform/telemetry/common/telemetry.js';
+import { IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
 export class MainThreadWebviewsViews extends Disposable implements extHostProtocol.MainThreadWebviewViewsShape {
     private readonly _proxy: extHostProtocol.ExtHostWebviewViewsShape;
     private readonly _webviewViews = this._register(new DisposableMap<string, WebviewView>());
@@ -52,23 +52,21 @@ export class MainThreadWebviewsViews extends Disposable implements extHostProtoc
             resolve: async (webviewView: WebviewView, cancellation: CancellationToken) => {
                 const handle = generateUuid();
                 this._webviewViews.set(handle, webviewView);
-                this.mainThreadWebviews.addWebview(handle, webviewView.webview, {
-                    serializeBuffersForPostMessage: options.serializeBuffersForPostMessage,
-                });
+                this.mainThreadWebviews.addWebview(handle, webviewView.webview, { serializeBuffersForPostMessage: options.serializeBuffersForPostMessage });
                 let state = undefined;
                 if (webviewView.webview.state) {
                     try {
                         state = JSON.parse(webviewView.webview.state);
                     }
                     catch (e) {
-                        console.error("Could not load webview state", e, webviewView.webview.state);
+                        console.error('Could not load webview state', e, webviewView.webview.state);
                     }
                 }
                 webviewView.webview.extension = extension;
                 if (options) {
                     webviewView.webview.options = options;
                 }
-                webviewView.onDidChangeVisibility((visible) => {
+                webviewView.onDidChangeVisibility(visible => {
                     this._proxy.$onDidChangeWebviewViewVisibility(handle, visible);
                 });
                 webviewView.onDispose(() => {
@@ -81,19 +79,19 @@ export class MainThreadWebviewsViews extends Disposable implements extHostProtoc
                 };
                 type Classification = {
                     extensionId: {
-                        classification: "SystemMetaData";
-                        purpose: "FeatureInsight";
-                        comment: "Id of the extension";
+                        classification: 'SystemMetaData';
+                        purpose: 'FeatureInsight';
+                        comment: 'Id of the extension';
                     };
                     id: {
-                        classification: "SystemMetaData";
-                        purpose: "FeatureInsight";
-                        comment: "Id of the view";
+                        classification: 'SystemMetaData';
+                        purpose: 'FeatureInsight';
+                        comment: 'Id of the view';
                     };
-                    owner: "digitarald";
-                    comment: "Helps to gain insights on what extension contributed views are most popular";
+                    owner: 'digitarald';
+                    comment: 'Helps to gain insights on what extension contributed views are most popular';
                 };
-                this._telemetryService.publicLog2<CreateWebviewViewTelemetry, Classification>("webviews:createWebviewView", {
+                this._telemetryService.publicLog2<CreateWebviewViewTelemetry, Classification>('webviews:createWebviewView', {
                     extensionId: extension.id.value,
                     id: viewType,
                 });
@@ -104,7 +102,7 @@ export class MainThreadWebviewsViews extends Disposable implements extHostProtoc
                     onUnexpectedError(error);
                     webviewView.webview.setHtml(this.mainThreadWebviews.getWebviewResolvedFailedContent(viewType));
                 }
-            },
+            }
         });
         this._webviewViewProviders.set(viewType, registration);
     }
@@ -117,7 +115,7 @@ export class MainThreadWebviewsViews extends Disposable implements extHostProtoc
     private getWebviewView(handle: string): WebviewView {
         const webviewView = this._webviewViews.get(handle);
         if (!webviewView) {
-            throw new Error("unknown webview view");
+            throw new Error('unknown webview view');
         }
         return webviewView;
     }

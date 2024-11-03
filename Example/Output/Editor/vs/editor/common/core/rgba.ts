@@ -32,10 +32,10 @@ export class RGBA8 {
         this.a = RGBA8._clamp(a);
     }
     public equals(other: RGBA8): boolean {
-        return (this.r === other.r &&
-            this.g === other.g &&
-            this.b === other.b &&
-            this.a === other.a);
+        return (this.r === other.r
+            && this.g === other.g
+            && this.b === other.b
+            && this.a === other.a);
     }
     public static _clamp(c: number): number {
         if (c < 0) {

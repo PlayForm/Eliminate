@@ -2,7 +2,7 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Emitter, Event } from "../../../base/common/event.js";
+import { Emitter, Event } from '../../../base/common/event.js';
 class TabFocusImpl {
     private _tabFocus: boolean = false;
     private readonly _onDidChangeTabFocus = new Emitter<boolean>();

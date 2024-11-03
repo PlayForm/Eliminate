@@ -2,44 +2,44 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IAction } from "../../../base/common/actions.js";
-import { Event } from "../../../base/common/event.js";
-import { Disposable, IDisposable } from "../../../base/common/lifecycle.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { IKeyboardEvent } from "../../keybinding/common/keybinding.js";
-import { IPickerQuickAccessItem } from "../../quickinput/browser/pickerQuickAccess.js";
-import { IQuickPickItem } from "../../quickinput/common/quickInput.js";
-export const IAccessibleViewService = createDecorator<IAccessibleViewService>("accessibleViewService");
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { IKeyboardEvent } from '../../keybinding/common/keybinding.js';
+import { IPickerQuickAccessItem } from '../../quickinput/browser/pickerQuickAccess.js';
+import { Event } from '../../../base/common/event.js';
+import { IAction } from '../../../base/common/actions.js';
+import { IQuickPickItem } from '../../quickinput/common/quickInput.js';
+import { IDisposable, Disposable } from '../../../base/common/lifecycle.js';
+export const IAccessibleViewService = createDecorator<IAccessibleViewService>('accessibleViewService');
 export const enum AccessibleViewProviderId {
-    Terminal = "terminal",
-    TerminalChat = "terminal-chat",
-    TerminalHelp = "terminal-help",
-    DiffEditor = "diffEditor",
-    PanelChat = "panelChat",
-    InlineChat = "inlineChat",
-    QuickChat = "quickChat",
-    InlineCompletions = "inlineCompletions",
-    KeybindingsEditor = "keybindingsEditor",
-    Notebook = "notebook",
-    ReplEditor = "replEditor",
-    Editor = "editor",
-    Hover = "hover",
-    Notification = "notification",
-    EmptyEditorHint = "emptyEditorHint",
-    Comments = "comments",
-    CommentThread = "commentThread",
-    Repl = "repl",
-    ReplHelp = "replHelp",
-    RunAndDebug = "runAndDebug",
-    Walkthrough = "walkthrough"
+    Terminal = 'terminal',
+    TerminalChat = 'terminal-chat',
+    TerminalHelp = 'terminal-help',
+    DiffEditor = 'diffEditor',
+    PanelChat = 'panelChat',
+    InlineChat = 'inlineChat',
+    QuickChat = 'quickChat',
+    InlineCompletions = 'inlineCompletions',
+    KeybindingsEditor = 'keybindingsEditor',
+    Notebook = 'notebook',
+    ReplEditor = 'replEditor',
+    Editor = 'editor',
+    Hover = 'hover',
+    Notification = 'notification',
+    EmptyEditorHint = 'emptyEditorHint',
+    Comments = 'comments',
+    CommentThread = 'commentThread',
+    Repl = 'repl',
+    ReplHelp = 'replHelp',
+    RunAndDebug = 'runAndDebug',
+    Walkthrough = 'walkthrough'
 }
 export const enum AccessibleViewType {
-    Help = "help",
-    View = "view"
+    Help = 'help',
+    View = 'view'
 }
 export const enum NavigationType {
-    Previous = "previous",
-    Next = "next"
+    Previous = 'previous',
+    Next = 'next'
 }
 export interface IAccessibleViewOptions {
     readMoreUrl?: string;
@@ -53,7 +53,7 @@ export interface IAccessibleViewOptions {
      * If set to 'initial-bottom', places the cursor on the bottom line of the accessible view and preserves it henceforth.
      * If set to 'bottom', places the cursor on the bottom line of the accessible view.
      */
-    position?: "bottom" | "initial-bottom";
+    position?: 'bottom' | 'initial-bottom';
     /**
      * @returns a string that will be used as the content of the help dialog
      * instead of the one provided by default.
@@ -107,7 +107,7 @@ export interface IAccessibleViewService {
     showAccessibleViewHelp(): void;
     next(): void;
     previous(): void;
-    navigateToCodeBlock(type: "next" | "previous"): void;
+    navigateToCodeBlock(type: 'next' | 'previous'): void;
     goToSymbol(): void;
     disableHint(): void;
     getPosition(id: AccessibleViewProviderId): IPosition | undefined;

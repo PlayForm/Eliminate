@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Event } from "../../../base/common/event.js";
-import { URI } from "../../../base/common/uri.js";
-import { ConfigurationTarget, IConfigurationValue, } from "../../../platform/configuration/common/configuration.js";
-import { createDecorator } from "../../../platform/instantiation/common/instantiation.js";
-import { IPosition } from "../core/position.js";
-export const ITextResourceConfigurationService = createDecorator<ITextResourceConfigurationService>("textResourceConfigurationService");
+import { Event } from '../../../base/common/event.js';
+import { URI } from '../../../base/common/uri.js';
+import { IPosition } from '../core/position.js';
+import { ConfigurationTarget, IConfigurationValue } from '../../../platform/configuration/common/configuration.js';
+import { createDecorator } from '../../../platform/instantiation/common/instantiation.js';
+export const ITextResourceConfigurationService = createDecorator<ITextResourceConfigurationService>('textResourceConfigurationService');
 export interface ITextResourceConfigurationChangeEvent {
     /**
      * All affected keys. Also includes language overrides and keys changed under language overrides.
@@ -63,7 +63,7 @@ export interface ITextResourceConfigurationService {
      */
     updateValue(resource: URI, key: string, value: any, configurationTarget?: ConfigurationTarget): Promise<void>;
 }
-export const ITextResourcePropertiesService = createDecorator<ITextResourcePropertiesService>("textResourcePropertiesService");
+export const ITextResourcePropertiesService = createDecorator<ITextResourcePropertiesService>('textResourcePropertiesService');
 export interface ITextResourcePropertiesService {
     readonly _serviceBrand: undefined;
     /**

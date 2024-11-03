@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { CancellationToken } from "../../../base/common/cancellation.js";
-import { DisposableMap, IDisposable } from "../../../base/common/lifecycle.js";
-import { URI, UriComponents } from "../../../base/common/uri.js";
-import { IQuickDiffService, QuickDiffProvider, } from "../../contrib/scm/common/quickDiff.js";
-import { extHostNamedCustomer, IExtHostContext, } from "../../services/extensions/common/extHostCustomers.js";
-import { ExtHostContext, ExtHostQuickDiffShape, IDocumentFilterDto, MainContext, MainThreadQuickDiffShape, } from "../common/extHost.protocol.js";
+import { CancellationToken } from '../../../base/common/cancellation.js';
+import { DisposableMap, IDisposable } from '../../../base/common/lifecycle.js';
+import { URI, UriComponents } from '../../../base/common/uri.js';
+import { ExtHostContext, ExtHostQuickDiffShape, IDocumentFilterDto, MainContext, MainThreadQuickDiffShape } from '../common/extHost.protocol.js';
+import { IQuickDiffService, QuickDiffProvider } from '../../contrib/scm/common/quickDiff.js';
+import { extHostNamedCustomer, IExtHostContext } from '../../services/extensions/common/extHostCustomers.js';
 @extHostNamedCustomer(MainContext.MainThreadQuickDiff)
 export class MainThreadQuickDiff implements MainThreadQuickDiffShape {
     private readonly proxy: ExtHostQuickDiffShape;
@@ -25,7 +25,7 @@ export class MainThreadQuickDiff implements MainThreadQuickDiffShape {
             isSCM: false,
             getOriginalResource: async (uri: URI) => {
                 return URI.revive(await this.proxy.$provideOriginalResource(handle, uri, CancellationToken.None));
-            },
+            }
         };
         const disposable = this.quickDiffService.addQuickDiffProvider(provider);
         this.providerDisposables.set(handle, disposable);

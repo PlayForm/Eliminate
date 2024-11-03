@@ -2,16 +2,16 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { createWebWorker } from "../../../base/browser/defaultWorkerFactory.js";
-import { URI } from "../../../base/common/uri.js";
-import { Proxied } from "../../../base/common/worker/simpleWorker.js";
-import { InstantiationType, registerSingleton, } from "../../instantiation/common/extensions.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { ILogService } from "../../log/common/log.js";
-import { ITelemetryService } from "../../telemetry/common/telemetry.js";
-import { IV8Profile } from "../common/profiling.js";
-import { BottomUpSample } from "../common/profilingModel.js";
-import { reportSample } from "../common/profilingTelemetrySpec.js";
+import { createWebWorker } from '../../../base/browser/defaultWorkerFactory.js';
+import { URI } from '../../../base/common/uri.js';
+import { Proxied } from '../../../base/common/worker/simpleWorker.js';
+import { InstantiationType, registerSingleton } from '../../instantiation/common/extensions.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { ILogService } from '../../log/common/log.js';
+import { IV8Profile } from '../common/profiling.js';
+import { BottomUpSample } from '../common/profilingModel.js';
+import { reportSample } from '../common/profilingTelemetrySpec.js';
+import { ITelemetryService } from '../../telemetry/common/telemetry.js';
 export const enum ProfilingOutput {
     Failure,
     Irrelevant,
@@ -20,7 +20,7 @@ export const enum ProfilingOutput {
 export interface IScriptUrlClassifier {
     (scriptUrl: string): string;
 }
-export const IProfileAnalysisWorkerService = createDecorator<IProfileAnalysisWorkerService>("IProfileAnalysisWorkerService");
+export const IProfileAnalysisWorkerService = createDecorator<IProfileAnalysisWorkerService>('IProfileAnalysisWorkerService');
 export interface IProfileAnalysisWorkerService {
     readonly _serviceBrand: undefined;
     analyseBottomUp(profile: IV8Profile, callFrameClassifier: IScriptUrlClassifier, perfBaseline: number, sendAsErrorTelemtry: boolean): Promise<ProfilingOutput>;
@@ -41,7 +41,7 @@ class ProfileAnalysisWorkerService implements IProfileAnalysisWorkerService {
     @ILogService
     private readonly _logService: ILogService) { }
     private async _withWorker<R>(callback: (worker: Proxied<IProfileAnalysisWorker>) => Promise<R>): Promise<R> {
-        const worker = createWebWorker<IProfileAnalysisWorker>("vs/platform/profiling/electron-sandbox/profileAnalysisWorker", "CpuProfileAnalysisWorker");
+        const worker = createWebWorker<IProfileAnalysisWorker>('vs/platform/profiling/electron-sandbox/profileAnalysisWorker', 'CpuProfileAnalysisWorker');
         try {
             const r = await callback(worker.proxy);
             return r;
@@ -58,7 +58,7 @@ class ProfileAnalysisWorkerService implements IProfileAnalysisWorkerService {
                     reportSample({
                         sample,
                         perfBaseline,
-                        source: callFrameClassifier(sample.url),
+                        source: callFrameClassifier(sample.url)
                     }, this._telemetryService, this._logService, sendAsErrorTelemtry);
                 }
             }

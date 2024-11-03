@@ -2,14 +2,14 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Event } from "../../../base/common/event.js";
-import { DisposableStore } from "../../../base/common/lifecycle.js";
-import { ExtUri, IExtUri, normalizePath, } from "../../../base/common/resources.js";
-import { SkipList } from "../../../base/common/skipList.js";
-import { URI } from "../../../base/common/uri.js";
-import { FileSystemProviderCapabilities, IFileService, IFileSystemProviderCapabilitiesChangeEvent, IFileSystemProviderRegistrationEvent, } from "../../files/common/files.js";
-import { InstantiationType, registerSingleton, } from "../../instantiation/common/extensions.js";
-import { IUriIdentityService } from "./uriIdentity.js";
+import { IUriIdentityService } from './uriIdentity.js';
+import { URI } from '../../../base/common/uri.js';
+import { InstantiationType, registerSingleton } from '../../instantiation/common/extensions.js';
+import { IFileService, FileSystemProviderCapabilities, IFileSystemProviderCapabilitiesChangeEvent, IFileSystemProviderRegistrationEvent } from '../../files/common/files.js';
+import { ExtUri, IExtUri, normalizePath } from '../../../base/common/resources.js';
+import { SkipList } from '../../../base/common/skipList.js';
+import { Event } from '../../../base/common/event.js';
+import { DisposableStore } from '../../../base/common/lifecycle.js';
 class Entry {
     static _clock = 0;
     time: number = Entry._clock++;
@@ -38,14 +38,12 @@ export class UriIdentityService implements IUriIdentityService {
             let ignorePathCasing = schemeIgnoresPathCasingCache.get(uri.scheme);
             if (ignorePathCasing === undefined) {
                 // retrieve once and then case per scheme until a change happens
-                ignorePathCasing =
-                    _fileService.hasProvider(uri) &&
-                        !this._fileService.hasCapability(uri, FileSystemProviderCapabilities.PathCaseSensitive);
+                ignorePathCasing = _fileService.hasProvider(uri) && !this._fileService.hasCapability(uri, FileSystemProviderCapabilities.PathCaseSensitive);
                 schemeIgnoresPathCasingCache.set(uri.scheme, ignorePathCasing);
             }
             return ignorePathCasing;
         };
-        this._dispooables.add(Event.any<IFileSystemProviderCapabilitiesChangeEvent | IFileSystemProviderRegistrationEvent>(_fileService.onDidChangeFileSystemProviderRegistrations, _fileService.onDidChangeFileSystemProviderCapabilities)((e) => {
+        this._dispooables.add(Event.any<IFileSystemProviderCapabilitiesChangeEvent | IFileSystemProviderRegistrationEvent>(_fileService.onDidChangeFileSystemProviderRegistrations, _fileService.onDidChangeFileSystemProviderCapabilities)(e => {
             // remove from cache
             schemeIgnoresPathCasingCache.delete(e.scheme);
         }));

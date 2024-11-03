@@ -2,12 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { Event } from "../../../base/common/event.js";
-import { ScanCode, ScanCodeUtils } from "../../../base/common/keyCodes.js";
-import { createDecorator } from "../../instantiation/common/instantiation.js";
-import { IKeyboardEvent } from "../../keybinding/common/keybinding.js";
-import { IKeyboardMapper } from "./keyboardMapper.js";
-export const IKeyboardLayoutService = createDecorator<IKeyboardLayoutService>("keyboardLayoutService");
+import { Event } from '../../../base/common/event.js';
+import { ScanCode, ScanCodeUtils } from '../../../base/common/keyCodes.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import { IKeyboardEvent } from '../../keybinding/common/keybinding.js';
+import { IKeyboardMapper } from './keyboardMapper.js';
+export const IKeyboardLayoutService = createDecorator<IKeyboardLayoutService>('keyboardLayoutService');
 export interface IWindowsKeyMapping {
     vkey: string;
     value: string;
@@ -78,23 +78,16 @@ export function areKeyboardLayoutsEqual(a: IKeyboardLayoutInfo | null, b: IKeybo
     if (!a || !b) {
         return false;
     }
-    if ((<IWindowsKeyboardLayoutInfo>a).name &&
-        (<IWindowsKeyboardLayoutInfo>b).name &&
-        (<IWindowsKeyboardLayoutInfo>a).name ===
-            (<IWindowsKeyboardLayoutInfo>b).name) {
+    if ((<IWindowsKeyboardLayoutInfo>a).name && (<IWindowsKeyboardLayoutInfo>b).name && (<IWindowsKeyboardLayoutInfo>a).name === (<IWindowsKeyboardLayoutInfo>b).name) {
         return true;
     }
-    if ((<IMacKeyboardLayoutInfo>a).id &&
-        (<IMacKeyboardLayoutInfo>b).id &&
-        (<IMacKeyboardLayoutInfo>a).id === (<IMacKeyboardLayoutInfo>b).id) {
+    if ((<IMacKeyboardLayoutInfo>a).id && (<IMacKeyboardLayoutInfo>b).id && (<IMacKeyboardLayoutInfo>a).id === (<IMacKeyboardLayoutInfo>b).id) {
         return true;
     }
     if ((<ILinuxKeyboardLayoutInfo>a).model &&
         (<ILinuxKeyboardLayoutInfo>b).model &&
-        (<ILinuxKeyboardLayoutInfo>a).model ===
-            (<ILinuxKeyboardLayoutInfo>b).model &&
-        (<ILinuxKeyboardLayoutInfo>a).layout ===
-            (<ILinuxKeyboardLayoutInfo>b).layout) {
+        (<ILinuxKeyboardLayoutInfo>a).model === (<ILinuxKeyboardLayoutInfo>b).model &&
+        (<ILinuxKeyboardLayoutInfo>a).layout === (<ILinuxKeyboardLayoutInfo>b).layout) {
         return true;
     }
     return false;
@@ -104,14 +97,14 @@ export function parseKeyboardLayoutDescription(layout: IKeyboardLayoutInfo | nul
     description: string;
 } {
     if (!layout) {
-        return { label: "", description: "" };
+        return { label: '', description: '' };
     }
     if ((<IWindowsKeyboardLayoutInfo>layout).name) {
         // windows
         const windowsLayout = <IWindowsKeyboardLayoutInfo>layout;
         return {
             label: windowsLayout.text,
-            description: "",
+            description: ''
         };
     }
     if ((<IMacKeyboardLayoutInfo>layout).id) {
@@ -119,34 +112,30 @@ export function parseKeyboardLayoutDescription(layout: IKeyboardLayoutInfo | nul
         if (macLayout.localizedName) {
             return {
                 label: macLayout.localizedName,
-                description: "",
+                description: ''
             };
         }
         if (/^com\.apple\.keylayout\./.test(macLayout.id)) {
             return {
-                label: macLayout.id
-                    .replace(/^com\.apple\.keylayout\./, "")
-                    .replace(/-/, " "),
-                description: "",
+                label: macLayout.id.replace(/^com\.apple\.keylayout\./, '').replace(/-/, ' '),
+                description: ''
             };
         }
         if (/^.*inputmethod\./.test(macLayout.id)) {
             return {
-                label: macLayout.id
-                    .replace(/^.*inputmethod\./, "")
-                    .replace(/[-\.]/, " "),
-                description: `Input Method (${macLayout.lang})`,
+                label: macLayout.id.replace(/^.*inputmethod\./, '').replace(/[-\.]/, ' '),
+                description: `Input Method (${macLayout.lang})`
             };
         }
         return {
             label: macLayout.lang,
-            description: "",
+            description: ''
         };
     }
     const linuxLayout = <ILinuxKeyboardLayoutInfo>layout;
     return {
         label: linuxLayout.layout,
-        description: "",
+        description: ''
     };
 }
 export function getKeyboardLayoutId(layout: IKeyboardLayoutInfo): string {
@@ -165,11 +154,11 @@ function windowsKeyMappingEquals(a: IWindowsKeyMapping, b: IWindowsKeyMapping): 
     if (!a || !b) {
         return false;
     }
-    return (a.vkey === b.vkey &&
-        a.value === b.value &&
-        a.withShift === b.withShift &&
-        a.withAltGr === b.withAltGr &&
-        a.withShiftAltGr === b.withShiftAltGr);
+    return (a.vkey === b.vkey
+        && a.value === b.value
+        && a.withShift === b.withShift
+        && a.withAltGr === b.withAltGr
+        && a.withShiftAltGr === b.withShiftAltGr);
 }
 export function windowsKeyboardMappingEquals(a: IWindowsKeyboardMapping | null, b: IWindowsKeyboardMapping | null): boolean {
     if (!a && !b) {
@@ -195,10 +184,10 @@ function macLinuxKeyMappingEquals(a: IMacLinuxKeyMapping, b: IMacLinuxKeyMapping
     if (!a || !b) {
         return false;
     }
-    return (a.value === b.value &&
-        a.withShift === b.withShift &&
-        a.withAltGr === b.withAltGr &&
-        a.withShiftAltGr === b.withShiftAltGr);
+    return (a.value === b.value
+        && a.withShift === b.withShift
+        && a.withAltGr === b.withAltGr
+        && a.withShiftAltGr === b.withShiftAltGr);
 }
 export function macLinuxKeyboardMappingEquals(a: IMacLinuxKeyboardMapping | null, b: IMacLinuxKeyboardMapping | null): boolean {
     if (!a && !b) {
