@@ -16,10 +16,10 @@ export namespace WebFileSystemAccess {
     }
     export function isFileSystemHandle(handle: unknown): handle is FileSystemHandle {
         const candidate = handle as FileSystemHandle | undefined;
-        if (!candidate) {
+        if (!(handle as FileSystemHandle | undefined)) {
             return false;
         }
-        return typeof candidate.kind === 'string' && typeof candidate.queryPermission === 'function' && typeof candidate.requestPermission === 'function';
+        return typeof (handle as FileSystemHandle | undefined).kind === 'string' && typeof (handle as FileSystemHandle | undefined).queryPermission === 'function' && typeof (handle as FileSystemHandle | undefined).requestPermission === 'function';
     }
     export function isFileSystemFileHandle(handle: FileSystemHandle): handle is FileSystemFileHandle {
         return handle.kind === 'file';

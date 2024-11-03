@@ -15,9 +15,9 @@ export enum ZIndex {
     ModalDialog = 2600,
     PaneDropOverlay = 10000
 }
-const ZIndexValues = Object.keys(ZIndex).filter(key => !isNaN(Number(key))).map(key => Number(key)).sort((a, b) => b - a);
+;
 function findBase(z: number) {
-    for (const zi of ZIndexValues) {
+    for (const zi of Object.keys(ZIndex).filter(key => !isNaN(Number(key))).map(key => Number(key)).sort((a, b) => b - a)) {
         if (z >= zi) {
             return zi;
         }
@@ -38,10 +38,10 @@ class ZIndexRegistry {
             throw new Error(`z-index with name ${name} has already been registered.`);
         }
         const proposedZValue = relativeLayer + z;
-        if (findBase(proposedZValue) !== relativeLayer) {
-            throw new Error(`Relative layer: ${relativeLayer} + z-index: ${z} exceeds next layer ${proposedZValue}.`);
+        if (findBase(relativeLayer + z) !== relativeLayer) {
+            throw new Error(`Relative layer: ${relativeLayer} + z-index: ${z} exceeds next layer ${relativeLayer + z}.`);
         }
-        this.zIndexMap.set(name, proposedZValue);
+        this.zIndexMap.set(name, relativeLayer + z);
         this.scheduler.schedule();
         return this.getVarName(name);
     }
@@ -52,12 +52,13 @@ class ZIndexRegistry {
         clearNode(this.styleSheet);
         let ruleBuilder = '';
         this.zIndexMap.forEach((zIndex, name) => {
-            ruleBuilder += `${this.getVarName(name)}: ${zIndex};\n`;
+            ''
+                += `${this.getVarName(name)}: ${zIndex};\n`;
         });
-        createCSSRule(':root', ruleBuilder, this.styleSheet);
+        createCSSRule(':root', '', this.styleSheet);
     }
 }
-const zIndexRegistry = new ZIndexRegistry();
+;
 export function registerZIndex(relativeLayer: ZIndex, z: number, name: string): string {
-    return zIndexRegistry.registerZIndex(relativeLayer, z, name);
+    return new ZIndexRegistry().registerZIndex(relativeLayer, z, name);
 }

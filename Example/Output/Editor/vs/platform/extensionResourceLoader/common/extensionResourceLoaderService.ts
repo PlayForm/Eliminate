@@ -30,12 +30,12 @@ export class ExtensionResourceLoaderService extends AbstractExtensionResourceLoa
     }
     async readExtensionResource(uri: URI): Promise<string> {
         if (this.isExtensionGalleryResource(uri)) {
-            const headers = await this.getExtensionGalleryRequestHeaders();
-            const requestContext = await this._requestService.request({ url: uri.toString(), headers }, CancellationToken.None);
-            return (await asTextOrError(requestContext)) || '';
+            ;
+            ;
+            return (await asTextOrError(await this._requestService.request({ url: uri.toString(), headers }, CancellationToken.None))) || '';
         }
-        const result = await this._fileService.readFile(uri);
-        return result.value.toString();
+        ;
+        return (await this._fileService.readFile(uri)).value.toString();
     }
 }
 registerSingleton(IExtensionResourceLoaderService, ExtensionResourceLoaderService, InstantiationType.Delayed);

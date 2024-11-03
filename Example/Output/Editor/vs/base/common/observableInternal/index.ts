@@ -12,8 +12,9 @@ export { derivedWithCancellationToken, waitForState } from './utilsCancellation.
 export { constObservable, debouncedObservable, derivedConstOnceDefined, derivedObservableWithCache, derivedObservableWithWritableCache, keepObserved, latestChangedValue, mapObservableArrayCached, observableFromEvent, observableFromEventOpts, observableFromPromise, observableFromValueWithChangeEvent, observableSignal, observableSignalFromEvent, recomputeInitiallyAndOnChange, runOnChange, runOnChangeWithStore, signalFromObservable, ValueWithChangeEventFromObservable, wasEventTriggeredRecently, type IObservableSignal, } from './utils.js';
 export { type DebugOwner } from './debugName.js';
 import { ConsoleObservableLogger, setLogger } from './logging.js';
-// Remove "//" in the next line to enable logging
-const enableLogging = false;
-if (enableLogging) {
+;
+if (false
+// || Boolean("true") // done "weirdly" so that a lint warning prevents you from pushing this
+) {
     setLogger(new ConsoleObservableLogger());
 }

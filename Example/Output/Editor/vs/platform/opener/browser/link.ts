@@ -81,14 +81,14 @@ export class Link extends Disposable {
         this.hoverDelegate = options.hoverDelegate ?? getDefaultHoverDelegate('mouse');
         this.setTooltip(_link.title);
         this.el.setAttribute('role', 'button');
-        const onClickEmitter = this._register(new DomEmitter(this.el, 'click'));
-        const onKeyPress = this._register(new DomEmitter(this.el, 'keypress'));
-        const onEnterPress = Event.chain(onKeyPress.event, $ => $.map(e => new StandardKeyboardEvent(e))
-            .filter(e => e.keyCode === KeyCode.Enter));
-        const onTap = this._register(new DomEmitter(this.el, TouchEventType.Tap)).event;
+        ;
+        ;
+        ;
+        ;
         this._register(Gesture.addTarget(this.el));
-        const onOpen = Event.any<EventLike>(onClickEmitter.event, onEnterPress, onTap);
-        this._register(onOpen(e => {
+        ;
+        this._register(Event.any<EventLike>(this._register(new DomEmitter(this.el, 'click')).event, Event.chain(this._register(new DomEmitter(this.el, 'keypress')).event, $ => $.map(e => new StandardKeyboardEvent(e))
+            .filter(e => e.keyCode === KeyCode.Enter)), this._register(new DomEmitter(this.el, TouchEventType.Tap)).event)(e => {
             if (!this.enabled) {
                 return;
             }

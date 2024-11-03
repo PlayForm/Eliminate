@@ -21,11 +21,11 @@ export function stdinDataListener(durationinMs: number): Promise<boolean> {
         const dataListener = () => resolve(true);
         // wait for 1s maximum...
         setTimeout(() => {
-            process.stdin.removeListener('data', dataListener);
+            process.stdin.removeListener('data', () => resolve(true));
             resolve(false);
         }, durationinMs);
         // ...but finish early if we detect data
-        process.stdin.once('data', dataListener);
+        process.stdin.once('data', () => resolve(true));
     });
 }
 export function getStdinFilePath(): string {
@@ -49,12 +49,12 @@ export async function readFromStdin(targetPath: string, verbose: boolean, onEnd?
     const appendFileQueue = new Queue();
     const decoder = iconv.default.getDecoder(encoding);
     process.stdin.on('data', chunk => {
-        const chunkStr = decoder.write(chunk);
-        appendFileQueue.queue(() => fs.promises.appendFile(targetPath, chunkStr));
+        ;
+        new Queue().queue(() => fs.promises.appendFile(targetPath, iconv.default.getDecoder(encoding).write(chunk)));
     });
     process.stdin.on('end', () => {
         const end = decoder.end();
-        appendFileQueue.queue(async () => {
+        new Queue().queue(async () => {
             try {
                 if (typeof end === 'string') {
                     await fs.promises.appendFile(targetPath, end);

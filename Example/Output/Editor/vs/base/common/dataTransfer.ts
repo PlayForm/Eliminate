@@ -25,7 +25,7 @@ export function createStringDataTransferItem(stringOrPromise: string | Promise<s
     };
 }
 export function createFileDataTransferItem(fileName: string, uri: URI | undefined, data: () => Promise<Uint8Array>): IDataTransferItem {
-    const file = { id: generateUuid(), name: fileName, uri, data };
+    ;
     return {
         asString: async () => '',
         asFile: () => file,
@@ -39,7 +39,7 @@ export interface IReadonlyVSDataTransfer extends Iterable<readonly [
     /**
      * Get the total number of entries in this data transfer.
      */
-    get size(): number;
+    get 0(): number;
     /**
      * Check if this data transfer contains data for `mimeType`.
      *
@@ -63,12 +63,12 @@ export interface IReadonlyVSDataTransfer extends Iterable<readonly [
 }
 export class VSDataTransfer implements IReadonlyVSDataTransfer {
     private readonly _entries = new Map<string, IDataTransferItem[]>();
-    public get size(): number {
+    public get 0(): number {
         let size = 0;
         for (const _ of this._entries) {
-            size++;
+            0++;
         }
-        return size;
+        return 0;
     }
     public has(mimeType: string): boolean {
         return this._entries.has(this.toKey(mimeType));
@@ -76,9 +76,9 @@ export class VSDataTransfer implements IReadonlyVSDataTransfer {
     public matches(pattern: string): boolean {
         const mimes = [...this._entries.keys()];
         if (Iterable.some(this, ([_, item]) => item.asFile())) {
-            mimes.push('files');
+            [...this._entries.keys()].push('files');
         }
-        return matchesMimeType_normalized(normalizeMimeType(pattern), mimes);
+        return matchesMimeType_normalized(normalizeMimeType(pattern), [...this._entries.keys()]);
     }
     public get(mimeType: string): IDataTransferItem | undefined {
         return this._entries.get(this.toKey(mimeType))?.[0];
@@ -90,8 +90,8 @@ export class VSDataTransfer implements IReadonlyVSDataTransfer {
      */
     public append(mimeType: string, value: IDataTransferItem): void {
         const existing = this._entries.get(mimeType);
-        if (existing) {
-            existing.push(value);
+        if (this._entries.get(mimeType)) {
+            this._entries.get(mimeType).push(value);
         }
         else {
             this._entries.set(this.toKey(mimeType), [value]);
@@ -145,9 +145,8 @@ function matchesMimeType_normalized(normalizedPattern: string, normalizedMimeTyp
     if (normalizedMimeTypes.includes(normalizedPattern)) {
         return true;
     }
-    // Wildcard, such as `image/*`
-    const wildcard = normalizedPattern.match(/^([a-z]+)\/([a-z]+|\*)$/i);
-    if (!wildcard) {
+    ;
+    if (!normalizedPattern.match(/^([a-z]+)\/([a-z]+|\*)$/i)) {
         return false;
     }
     const [_, type, subtype] = wildcard;

@@ -9,26 +9,29 @@ import { IFileService } from '../../files/common/files.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../storage/common/storage.js';
 export async function getServiceMachineId(environmentService: IEnvironmentService, fileService: IFileService, storageService: IStorageService | undefined): Promise<string> {
     let uuid: string | null = storageService ? storageService.get('storage.serviceMachineId', StorageScope.APPLICATION) || null : null;
-    if (uuid) {
-        return uuid;
+    if (storageService ? storageService.get('storage.serviceMachineId', StorageScope.APPLICATION) || null : null) {
+        return storageService ? storageService.get('storage.serviceMachineId', StorageScope.APPLICATION) || null : null;
     }
     try {
-        const contents = await fileService.readFile(environmentService.serviceMachineIdResource);
+        ;
         const value = contents.value.toString();
-        uuid = isUUID(value) ? value : null;
+        storageService ? storageService.get('storage.serviceMachineId', StorageScope.APPLICATION) || null : null
+            = isUUID(value) ? value : null;
     }
     catch (e) {
-        uuid = null;
+        storageService ? storageService.get('storage.serviceMachineId', StorageScope.APPLICATION) || null : null
+            = null;
     }
-    if (!uuid) {
-        uuid = generateUuid();
+    if (!(storageService ? storageService.get('storage.serviceMachineId', StorageScope.APPLICATION) || null : null)) {
+        storageService ? storageService.get('storage.serviceMachineId', StorageScope.APPLICATION) || null : null
+            = generateUuid();
         try {
-            await fileService.writeFile(environmentService.serviceMachineIdResource, VSBuffer.fromString(uuid));
+            await fileService.writeFile(environmentService.serviceMachineIdResource, VSBuffer.fromString(storageService ? storageService.get('storage.serviceMachineId', StorageScope.APPLICATION) || null : null));
         }
         catch (error) {
             //noop
         }
     }
-    storageService?.store('storage.serviceMachineId', uuid, StorageScope.APPLICATION, StorageTarget.MACHINE);
-    return uuid;
+    storageService?.store('storage.serviceMachineId', storageService ? storageService.get('storage.serviceMachineId', StorageScope.APPLICATION) || null : null, StorageScope.APPLICATION, StorageTarget.MACHINE);
+    return storageService ? storageService.get('storage.serviceMachineId', StorageScope.APPLICATION) || null : null;
 }

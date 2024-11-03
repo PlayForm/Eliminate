@@ -68,11 +68,14 @@ class JSONContributionRegistry implements IJSONContributionRegistry {
     }
     public getSchemaContent(uri: string): string | undefined {
         const schema = this.schemasById[uri];
-        return schema ? getCompressedContent(schema) : undefined;
+        return this.schemasById[uri]
+            ? getCompressedContent(this.schemasById[uri]) : undefined;
     }
     public hasSchemaContent(uri: string): boolean {
         return !!this.schemasById[uri];
     }
 }
-const jsonContributionRegistry = new JSONContributionRegistry();
-platform.Registry.add(Extensions.JSONContribution, jsonContributionRegistry);
+;
+platform.Registry.add({
+    JSONContribution: 'base.contributions.json'
+}.JSONContribution, new JSONContributionRegistry());

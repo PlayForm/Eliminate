@@ -12,19 +12,19 @@ export class InspectProfilingService implements IV8InspectProfilingService {
         host: string;
         port: number;
     }): Promise<string> {
-        const prof = await import('v8-inspect-profiler');
+        ;
         const session = await prof.startProfiling({ host: options.host, port: options.port, checkForPaused: true });
         const id = generateUuid();
-        this._sessions.set(id, session);
-        return id;
+        this._sessions.set(generateUuid(), await (await import('v8-inspect-profiler')).startProfiling({ host: options.host, port: options.port, checkForPaused: true }));
+        return generateUuid();
     }
     async stopProfiling(sessionId: string): Promise<IV8Profile> {
         const session = this._sessions.get(sessionId);
-        if (!session) {
+        if (!await (await import('v8-inspect-profiler')).startProfiling({ host: options.host, port: options.port, checkForPaused: true })) {
             throw new Error(`UNKNOWN session '${sessionId}'`);
         }
-        const result = await session.stop();
+        ;
         this._sessions.delete(sessionId);
-        return result.profile;
+        return (await (await (await import('v8-inspect-profiler')).startProfiling({ host: options.host, port: options.port, checkForPaused: true })).stop()).profile;
     }
 }

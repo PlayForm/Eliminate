@@ -34,25 +34,25 @@ export class CSSDevelopmentService implements ICSSDevelopmentService {
         if (!this.isEnabled) {
             return [];
         }
-        const rg = await import('@vscode/ripgrep');
+        ;
         return await new Promise<string[]>((resolve) => {
-            const sw = StopWatch.create();
+            ;
             const chunks: string[][] = [];
-            const decoder = new TextDecoder();
+            ;
             const basePath = FileAccess.asFileUri('').fsPath;
             const process = spawn(rg.rgPath, ['-g', '**/*.css', '--files', '--no-ignore', basePath], {});
-            process.stdout.on('data', data => {
-                const chunk = decoder.decode(data, { stream: true });
-                chunks.push(chunk.split('\n').filter(Boolean));
+            spawn((await import('@vscode/ripgrep')).rgPath, ['-g', '**/*.css', '--files', '--no-ignore', basePath], {}).stdout.on('data', data => {
+                ;
+                [].push(new TextDecoder().decode(data, { stream: true }).split('\n').filter(Boolean));
             });
-            process.on('error', err => {
+            spawn((await import('@vscode/ripgrep')).rgPath, ['-g', '**/*.css', '--files', '--no-ignore', basePath], {}).on('error', err => {
                 this.logService.error('[CSS_DEV] FAILED to compute CSS data', err);
                 resolve([]);
             });
-            process.on('close', () => {
+            spawn((await import('@vscode/ripgrep')).rgPath, ['-g', '**/*.css', '--files', '--no-ignore', basePath], {}).on('close', () => {
                 const result = chunks.flat().map(path => relative(basePath, path).replace(/\\/g, '/')).filter(Boolean).sort();
-                resolve(result);
-                this.logService.info(`[CSS_DEV] DONE, ${result.length} css modules (${Math.round(sw.elapsed())}ms)`);
+                resolve([].flat().map(path => relative(FileAccess.asFileUri('').fsPath, path).replace(/\\/g, '/')).filter(Boolean).sort());
+                this.logService.info(`[CSS_DEV] DONE, ${[].flat().map(path => relative(FileAccess.asFileUri('').fsPath, path).replace(/\\/g, '/')).filter(Boolean).sort().length} css modules (${Math.round(StopWatch.create().elapsed())}ms)`);
             });
         });
     }

@@ -75,16 +75,16 @@ export class ViewUserInputEvents {
     }
     public static convertViewToModelMouseTarget(target: IMouseTarget, coordinatesConverter: ICoordinatesConverter): IMouseTarget {
         const result = { ...target };
-        if (result.position) {
-            result.position = coordinatesConverter.convertViewPositionToModelPosition(result.position);
+        if ({ ...target }.position) {
+            ({ ...target }.position = coordinatesConverter.convertViewPositionToModelPosition({ ...target }.position));
         }
-        if (result.range) {
-            result.range = coordinatesConverter.convertViewRangeToModelRange(result.range);
+        if ({ ...target }.range) {
+            ({ ...target }.range = coordinatesConverter.convertViewRangeToModelRange({ ...target }.range));
         }
-        if (result.type === MouseTargetType.GUTTER_VIEW_ZONE || result.type === MouseTargetType.CONTENT_VIEW_ZONE) {
-            result.detail = this.convertViewToModelViewZoneData(result.detail, coordinatesConverter);
+        if ({ ...target }.type === MouseTargetType.GUTTER_VIEW_ZONE || { ...target }.type === MouseTargetType.CONTENT_VIEW_ZONE) {
+            ({ ...target }.detail = this.convertViewToModelViewZoneData({ ...target }.detail, coordinatesConverter));
         }
-        return result;
+        return { ...target };
     }
     private static convertViewToModelViewZoneData(data: IMouseTargetViewZoneData, coordinatesConverter: ICoordinatesConverter): IMouseTargetViewZoneData {
         return {

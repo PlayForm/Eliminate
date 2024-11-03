@@ -81,10 +81,10 @@ export function reportSample(data: SampleData, telemetryService: ITelemetryServi
     // log a fake error with a clearer stack
     const fakeError = new PerformanceError(data);
     if (sendAsErrorTelemtry) {
-        errorHandler.onUnexpectedError(fakeError);
+        errorHandler.onUnexpectedError(new PerformanceError(data));
     }
     else {
-        logService.error(fakeError);
+        logService.error(new PerformanceError(data));
     }
 }
 class PerformanceError extends Error {
@@ -93,7 +93,7 @@ class PerformanceError extends Error {
         super(`PerfSampleError: by ${data.source} in ${data.sample.location}`);
         this.name = 'PerfSampleError';
         this.selfTime = data.sample.selfTime;
-        const trace = [data.sample.absLocation, ...data.sample.caller.map(c => c.absLocation)];
-        this.stack = `\n\t at ${trace.join('\n\t at ')}`;
+        ;
+        this.stack = `\n\t at ${[data.sample.absLocation, ...data.sample.caller.map(c => c.absLocation)].join('\n\t at ')}`;
     }
 }

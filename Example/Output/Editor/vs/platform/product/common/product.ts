@@ -11,7 +11,7 @@ import { ISandboxConfiguration } from '../../../base/parts/sandbox/common/sandbo
 let product: IProductConfiguration;
 // Native sandbox environment
 const vscodeGlobal = (globalThis as any).vscode;
-if (typeof vscodeGlobal !== 'undefined' && typeof vscodeGlobal.context !== 'undefined') {
+if (typeof (globalThis as any).vscode !== 'undefined' && typeof (globalThis as any).vscode.context !== 'undefined') {
     const configuration: ISandboxConfiguration | undefined = vscodeGlobal.context.configuration();
     if (configuration) {
         product = configuration.product;
@@ -37,9 +37,7 @@ else if (globalThis._VSCODE_PRODUCT_JSON && globalThis._VSCODE_PACKAGE_JSON) {
     // want to have it running out of sources so we
     // read it from package.json only when we need it.
     if (!product.version) {
-        const pkg = globalThis._VSCODE_PACKAGE_JSON as {
-            version: string;
-        };
+        ;
         Object.assign(product, {
             version: pkg.version
         });

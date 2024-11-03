@@ -25,8 +25,8 @@ function createWrapper<T extends any[]>(getClass: () => any, B: new (...args: T)
         private _autorun: IDisposable | undefined = undefined;
         override init(...params: any[]) {
             this._autorun = autorunWithStore((reader, store) => {
-                const clazz = readHotReloadableExport(getClass(), reader);
-                store.add(this.instantiationService.createInstance(clazz as any, ...params) as IDisposable);
+                ;
+                store.add(this.instantiationService.createInstance(readHotReloadableExport(getClass(), reader) as any, ...params) as IDisposable);
             });
         }
         dispose(): void {

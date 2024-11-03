@@ -143,7 +143,8 @@ import { UserDataSyncResourceProviderService } from '../platform/userDataSync/co
 import { RemoteAuthorityResolverError, RemoteAuthorityResolverErrorCode } from '../platform/remote/common/remoteAuthorityResolver.js';
 // TODO@esm remove me once we stop supporting our web-esm-bridge
 if ((globalThis as any).__VSCODE_WEB_ESM_PROMISE) {
-    const exports = {
+    ;
+    (globalThis as any).__VSCODE_WEB_ESM_PROMISE({
         // Factory
         create: create,
         // Basic Types
@@ -162,8 +163,7 @@ if ((globalThis as any).__VSCODE_WEB_ESM_PROMISE) {
         commands: commands,
         logger: logger,
         Menu: Menu
-    };
-    (globalThis as any).__VSCODE_WEB_ESM_PROMISE(exports);
+    });
     delete (globalThis as any).__VSCODE_WEB_ESM_PROMISE;
 }
 export { 

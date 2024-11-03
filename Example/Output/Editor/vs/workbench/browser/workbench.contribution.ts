@@ -20,7 +20,7 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
     // Dynamic Configuration
     registerWorkbenchContribution2(DynamicWorkbenchSecurityConfiguration.ID, DynamicWorkbenchSecurityConfiguration, WorkbenchPhase.AfterRestored);
     // Workbench
-    registry.registerConfiguration({
+    Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
         ...workbenchConfigurationNodeBase,
         'properties': {
             'workbench.externalBrowser': {
@@ -628,28 +628,29 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
     });
     // Window
     let windowTitleDescription = localize('windowTitle', "Controls the window title based on the current context such as the opened workspace or active editor. Variables are substituted based on the context:");
-    windowTitleDescription += '\n- ' + [
-        localize('activeEditorShort', "`${activeEditorShort}`: the file name (e.g. myFile.txt)."),
-        localize('activeEditorMedium', "`${activeEditorMedium}`: the path of the file relative to the workspace folder (e.g. myFolder/myFileFolder/myFile.txt)."),
-        localize('activeEditorLong', "`${activeEditorLong}`: the full path of the file (e.g. /Users/Development/myFolder/myFileFolder/myFile.txt)."),
-        localize('activeFolderShort', "`${activeFolderShort}`: the name of the folder the file is contained in (e.g. myFileFolder)."),
-        localize('activeFolderMedium', "`${activeFolderMedium}`: the path of the folder the file is contained in, relative to the workspace folder (e.g. myFolder/myFileFolder)."),
-        localize('activeFolderLong', "`${activeFolderLong}`: the full path of the folder the file is contained in (e.g. /Users/Development/myFolder/myFileFolder)."),
-        localize('folderName', "`${folderName}`: name of the workspace folder the file is contained in (e.g. myFolder)."),
-        localize('folderPath', "`${folderPath}`: file path of the workspace folder the file is contained in (e.g. /Users/Development/myFolder)."),
-        localize('rootName', "`${rootName}`: name of the workspace with optional remote name and workspace indicator if applicable (e.g. myFolder, myRemoteFolder [SSH] or myWorkspace (Workspace))."),
-        localize('rootNameShort', "`${rootNameShort}`: shortened name of the workspace without suffixes (e.g. myFolder, myRemoteFolder or myWorkspace)."),
-        localize('rootPath', "`${rootPath}`: file path of the opened workspace or folder (e.g. /Users/Development/myWorkspace)."),
-        localize('profileName', "`${profileName}`: name of the profile in which the workspace is opened (e.g. Data Science (Profile)). Ignored if default profile is used."),
-        localize('appName', "`${appName}`: e.g. VS Code."),
-        localize('remoteName', "`${remoteName}`: e.g. SSH"),
-        localize('dirty', "`${dirty}`: an indicator for when the active editor has unsaved changes."),
-        localize('focusedView', "`${focusedView}`: the name of the view that is currently focused."),
-        localize('activeRepositoryName', "`${activeRepositoryName}`: the name of the active repository (e.g. vscode)."),
-        localize('activeRepositoryBranchName', "`${activeRepositoryBranchName}`: the name of the active branch in the active repository (e.g. main)."),
-        localize('separator', "`${separator}`: a conditional separator (\" - \") that only shows when surrounded by variables with values or static text.")
-    ].join('\n- '); // intentionally concatenated to not produce a string that is too long for translations
-    registry.registerConfiguration({
+    localize('windowTitle', "Controls the window title based on the current context such as the opened workspace or active editor. Variables are substituted based on the context:")
+        += '\n- ' + [
+            localize('activeEditorShort', "`${activeEditorShort}`: the file name (e.g. myFile.txt)."),
+            localize('activeEditorMedium', "`${activeEditorMedium}`: the path of the file relative to the workspace folder (e.g. myFolder/myFileFolder/myFile.txt)."),
+            localize('activeEditorLong', "`${activeEditorLong}`: the full path of the file (e.g. /Users/Development/myFolder/myFileFolder/myFile.txt)."),
+            localize('activeFolderShort', "`${activeFolderShort}`: the name of the folder the file is contained in (e.g. myFileFolder)."),
+            localize('activeFolderMedium', "`${activeFolderMedium}`: the path of the folder the file is contained in, relative to the workspace folder (e.g. myFolder/myFileFolder)."),
+            localize('activeFolderLong', "`${activeFolderLong}`: the full path of the folder the file is contained in (e.g. /Users/Development/myFolder/myFileFolder)."),
+            localize('folderName', "`${folderName}`: name of the workspace folder the file is contained in (e.g. myFolder)."),
+            localize('folderPath', "`${folderPath}`: file path of the workspace folder the file is contained in (e.g. /Users/Development/myFolder)."),
+            localize('rootName', "`${rootName}`: name of the workspace with optional remote name and workspace indicator if applicable (e.g. myFolder, myRemoteFolder [SSH] or myWorkspace (Workspace))."),
+            localize('rootNameShort', "`${rootNameShort}`: shortened name of the workspace without suffixes (e.g. myFolder, myRemoteFolder or myWorkspace)."),
+            localize('rootPath', "`${rootPath}`: file path of the opened workspace or folder (e.g. /Users/Development/myWorkspace)."),
+            localize('profileName', "`${profileName}`: name of the profile in which the workspace is opened (e.g. Data Science (Profile)). Ignored if default profile is used."),
+            localize('appName', "`${appName}`: e.g. VS Code."),
+            localize('remoteName', "`${remoteName}`: e.g. SSH"),
+            localize('dirty', "`${dirty}`: an indicator for when the active editor has unsaved changes."),
+            localize('focusedView', "`${focusedView}`: the name of the view that is currently focused."),
+            localize('activeRepositoryName', "`${activeRepositoryName}`: the name of the active repository (e.g. vscode)."),
+            localize('activeRepositoryBranchName', "`${activeRepositoryBranchName}`: the name of the active branch in the active repository (e.g. main)."),
+            localize('separator', "`${separator}`: a conditional separator (\" - \") that only shows when surrounded by variables with values or static text.")
+        ].join('\n- '); // intentionally concatenated to not produce a string that is too long for translations
+    Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
         ...windowConfigurationNodeBase,
         'properties': {
             'window.title': {
@@ -757,7 +758,7 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
     // Dynamic Window Configuration
     registerWorkbenchContribution2(DynamicWindowConfiguration.ID, DynamicWindowConfiguration, WorkbenchPhase.Eventually);
     // Problems
-    registry.registerConfiguration({
+    Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
         ...problemsConfigurationNodeBase,
         'properties': {
             'problems.visibility': {
@@ -768,7 +769,7 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
         }
     });
     // Zen Mode
-    registry.registerConfiguration({
+    Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
         'id': 'zenMode',
         'order': 9,
         'title': localize('zenModeConfigurationTitle', "Zen Mode"),

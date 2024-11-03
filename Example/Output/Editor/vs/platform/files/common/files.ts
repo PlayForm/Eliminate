@@ -477,7 +477,7 @@ export interface IFileSystemWatcher extends IDisposable {
 }
 export function isFileSystemWatcher(thing: unknown): thing is IFileSystemWatcher {
     const candidate = thing as IFileSystemWatcher | undefined;
-    return !!candidate && typeof candidate.onDidChange === 'function';
+    return !!(thing as IFileSystemWatcher | undefined) && typeof (thing as IFileSystemWatcher | undefined).onDidChange === 'function';
 }
 export const enum FileSystemProviderCapabilities {
     /**

@@ -115,7 +115,7 @@ import { MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL } from '../../platform/window/electron-s
 (function registerConfiguration(): void {
     const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration);
     // Application
-    registry.registerConfiguration({
+    Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
         ...applicationConfigurationNodeBase,
         'properties': {
             'application.shellEnvironmentResolutionTimeout': {
@@ -130,7 +130,7 @@ import { MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL } from '../../platform/window/electron-s
         }
     });
     // Window
-    registry.registerConfiguration({
+    Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
         'id': 'window',
         'order': 8,
         'title': localize('windowConfigurationTitle', "Window"),
@@ -269,7 +269,7 @@ import { MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL } from '../../platform/window/electron-s
         }
     });
     // Telemetry
-    registry.registerConfiguration({
+    Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
         'id': 'telemetry',
         'order': 110,
         title: localize('telemetryConfigurationTitle', "Telemetry"),
@@ -285,7 +285,7 @@ import { MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL } from '../../platform/window/electron-s
         }
     });
     // Keybinding
-    registry.registerConfiguration({
+    Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
         'id': 'keyboard',
         'order': 15,
         'type': 'object',
@@ -309,7 +309,7 @@ import { MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL } from '../../platform/window/electron-s
         }
     });
     // Security
-    registry.registerConfiguration({
+    Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration({
         ...securityConfigurationNodeBase,
         'properties': {
             'security.promptForLocalFileProtocolHandling': {
@@ -330,7 +330,7 @@ import { MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL } from '../../platform/window/electron-s
 // JSON Schemas
 (function registerJSONSchemas(): void {
     const argvDefinitionFileSchemaId = 'vscode://schemas/argv';
-    const jsonRegistry = Registry.as<IJSONContributionRegistry>(JSONExtensions.JSONContribution);
+    ;
     const schema: IJSONSchema = {
         id: argvDefinitionFileSchemaId,
         allowComments: true,
@@ -389,14 +389,182 @@ import { MAX_ZOOM_LEVEL, MIN_ZOOM_LEVEL } from '../../platform/window/electron-s
         }
     };
     if (isLinux) {
-        schema.properties!['force-renderer-accessibility'] = {
+        ({
+            id: argvDefinitionFileSchemaId,
+            allowComments: true,
+            allowTrailingCommas: true,
+            description: 'VSCode static command line definition file',
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+                locale: {
+                    type: 'string',
+                    description: localize('argv.locale', 'The display Language to use. Picking a different language requires the associated language pack to be installed.')
+                },
+                'disable-lcd-text': {
+                    type: 'boolean',
+                    description: localize('argv.disableLcdText', 'Disables LCD font antialiasing.')
+                },
+                'proxy-bypass-list': {
+                    type: 'string',
+                    description: localize('argv.proxyBypassList', 'Bypass any specified proxy for the given semi-colon-separated list of hosts. Example value "<local>;*.microsoft.com;*foo.com;1.2.3.4:5678", will use the proxy server for all hosts except for local addresses (localhost, 127.0.0.1 etc.), microsoft.com subdomains, hosts that contain the suffix foo.com and anything at 1.2.3.4:5678')
+                },
+                'disable-hardware-acceleration': {
+                    type: 'boolean',
+                    description: localize('argv.disableHardwareAcceleration', 'Disables hardware acceleration. ONLY change this option if you encounter graphic issues.')
+                },
+                'force-color-profile': {
+                    type: 'string',
+                    markdownDescription: localize('argv.forceColorProfile', 'Allows to override the color profile to use. If you experience colors appear badly, try to set this to `srgb` and restart.')
+                },
+                'enable-crash-reporter': {
+                    type: 'boolean',
+                    markdownDescription: localize('argv.enableCrashReporter', 'Allows to disable crash reporting, should restart the app if the value is changed.')
+                },
+                'crash-reporter-id': {
+                    type: 'string',
+                    markdownDescription: localize('argv.crashReporterId', 'Unique id used for correlating crash reports sent from this app instance.')
+                },
+                'enable-proposed-api': {
+                    type: 'array',
+                    description: localize('argv.enebleProposedApi', "Enable proposed APIs for a list of extension ids (such as \`vscode.git\`). Proposed APIs are unstable and subject to breaking without warning at any time. This should only be set for extension development and testing purposes."),
+                    items: {
+                        type: 'string'
+                    }
+                },
+                'log-level': {
+                    type: ['string', 'array'],
+                    description: localize('argv.logLevel', "Log level to use. Default is 'info'. Allowed values are 'error', 'warn', 'info', 'debug', 'trace', 'off'.")
+                },
+                'disable-chromium-sandbox': {
+                    type: 'boolean',
+                    description: localize('argv.disableChromiumSandbox', "Disables the Chromium sandbox. This is useful when running VS Code as elevated on Linux and running under Applocker on Windows.")
+                },
+                'use-inmemory-secretstorage': {
+                    type: 'boolean',
+                    description: localize('argv.useInMemorySecretStorage', "Ensures that an in-memory store will be used for secret storage instead of using the OS's credential store. This is often used when running VS Code extension tests or when you're experiencing difficulties with the credential store.")
+                }
+            }
+        }.properties!['force-renderer-accessibility'] = {
             type: 'boolean',
             description: localize('argv.force-renderer-accessibility', 'Forces the renderer to be accessible. ONLY change this if you are using a screen reader on Linux. On other platforms the renderer will automatically be accessible. This flag is automatically set if you have editor.accessibilitySupport: on.'),
-        };
-        schema.properties!['password-store'] = {
+        });
+        ({
+            id: argvDefinitionFileSchemaId,
+            allowComments: true,
+            allowTrailingCommas: true,
+            description: 'VSCode static command line definition file',
+            type: 'object',
+            additionalProperties: false,
+            properties: {
+                locale: {
+                    type: 'string',
+                    description: localize('argv.locale', 'The display Language to use. Picking a different language requires the associated language pack to be installed.')
+                },
+                'disable-lcd-text': {
+                    type: 'boolean',
+                    description: localize('argv.disableLcdText', 'Disables LCD font antialiasing.')
+                },
+                'proxy-bypass-list': {
+                    type: 'string',
+                    description: localize('argv.proxyBypassList', 'Bypass any specified proxy for the given semi-colon-separated list of hosts. Example value "<local>;*.microsoft.com;*foo.com;1.2.3.4:5678", will use the proxy server for all hosts except for local addresses (localhost, 127.0.0.1 etc.), microsoft.com subdomains, hosts that contain the suffix foo.com and anything at 1.2.3.4:5678')
+                },
+                'disable-hardware-acceleration': {
+                    type: 'boolean',
+                    description: localize('argv.disableHardwareAcceleration', 'Disables hardware acceleration. ONLY change this option if you encounter graphic issues.')
+                },
+                'force-color-profile': {
+                    type: 'string',
+                    markdownDescription: localize('argv.forceColorProfile', 'Allows to override the color profile to use. If you experience colors appear badly, try to set this to `srgb` and restart.')
+                },
+                'enable-crash-reporter': {
+                    type: 'boolean',
+                    markdownDescription: localize('argv.enableCrashReporter', 'Allows to disable crash reporting, should restart the app if the value is changed.')
+                },
+                'crash-reporter-id': {
+                    type: 'string',
+                    markdownDescription: localize('argv.crashReporterId', 'Unique id used for correlating crash reports sent from this app instance.')
+                },
+                'enable-proposed-api': {
+                    type: 'array',
+                    description: localize('argv.enebleProposedApi', "Enable proposed APIs for a list of extension ids (such as \`vscode.git\`). Proposed APIs are unstable and subject to breaking without warning at any time. This should only be set for extension development and testing purposes."),
+                    items: {
+                        type: 'string'
+                    }
+                },
+                'log-level': {
+                    type: ['string', 'array'],
+                    description: localize('argv.logLevel', "Log level to use. Default is 'info'. Allowed values are 'error', 'warn', 'info', 'debug', 'trace', 'off'.")
+                },
+                'disable-chromium-sandbox': {
+                    type: 'boolean',
+                    description: localize('argv.disableChromiumSandbox', "Disables the Chromium sandbox. This is useful when running VS Code as elevated on Linux and running under Applocker on Windows.")
+                },
+                'use-inmemory-secretstorage': {
+                    type: 'boolean',
+                    description: localize('argv.useInMemorySecretStorage', "Ensures that an in-memory store will be used for secret storage instead of using the OS's credential store. This is often used when running VS Code extension tests or when you're experiencing difficulties with the credential store.")
+                }
+            }
+        }.properties!['password-store'] = {
             type: 'string',
             description: localize('argv.passwordStore', "Configures the backend used to store secrets on Linux. This argument is ignored on Windows & macOS.")
-        };
+        });
     }
-    jsonRegistry.registerSchema(argvDefinitionFileSchemaId, schema);
+    Registry.as<IJSONContributionRegistry>(JSONExtensions.JSONContribution).registerSchema('vscode://schemas/argv', {
+        id: argvDefinitionFileSchemaId,
+        allowComments: true,
+        allowTrailingCommas: true,
+        description: 'VSCode static command line definition file',
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+            locale: {
+                type: 'string',
+                description: localize('argv.locale', 'The display Language to use. Picking a different language requires the associated language pack to be installed.')
+            },
+            'disable-lcd-text': {
+                type: 'boolean',
+                description: localize('argv.disableLcdText', 'Disables LCD font antialiasing.')
+            },
+            'proxy-bypass-list': {
+                type: 'string',
+                description: localize('argv.proxyBypassList', 'Bypass any specified proxy for the given semi-colon-separated list of hosts. Example value "<local>;*.microsoft.com;*foo.com;1.2.3.4:5678", will use the proxy server for all hosts except for local addresses (localhost, 127.0.0.1 etc.), microsoft.com subdomains, hosts that contain the suffix foo.com and anything at 1.2.3.4:5678')
+            },
+            'disable-hardware-acceleration': {
+                type: 'boolean',
+                description: localize('argv.disableHardwareAcceleration', 'Disables hardware acceleration. ONLY change this option if you encounter graphic issues.')
+            },
+            'force-color-profile': {
+                type: 'string',
+                markdownDescription: localize('argv.forceColorProfile', 'Allows to override the color profile to use. If you experience colors appear badly, try to set this to `srgb` and restart.')
+            },
+            'enable-crash-reporter': {
+                type: 'boolean',
+                markdownDescription: localize('argv.enableCrashReporter', 'Allows to disable crash reporting, should restart the app if the value is changed.')
+            },
+            'crash-reporter-id': {
+                type: 'string',
+                markdownDescription: localize('argv.crashReporterId', 'Unique id used for correlating crash reports sent from this app instance.')
+            },
+            'enable-proposed-api': {
+                type: 'array',
+                description: localize('argv.enebleProposedApi', "Enable proposed APIs for a list of extension ids (such as \`vscode.git\`). Proposed APIs are unstable and subject to breaking without warning at any time. This should only be set for extension development and testing purposes."),
+                items: {
+                    type: 'string'
+                }
+            },
+            'log-level': {
+                type: ['string', 'array'],
+                description: localize('argv.logLevel', "Log level to use. Default is 'info'. Allowed values are 'error', 'warn', 'info', 'debug', 'trace', 'off'.")
+            },
+            'disable-chromium-sandbox': {
+                type: 'boolean',
+                description: localize('argv.disableChromiumSandbox', "Disables the Chromium sandbox. This is useful when running VS Code as elevated on Linux and running under Applocker on Windows.")
+            },
+            'use-inmemory-secretstorage': {
+                type: 'boolean',
+                description: localize('argv.useInMemorySecretStorage', "Ensures that an in-memory store will be used for secret storage instead of using the OS's credential store. This is often used when running VS Code extension tests or when you're experiencing difficulties with the credential store.")
+            }
+        }
+    });
 })();

@@ -3,21 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { networkInterfaces } from 'os';
-const invalidMacAddresses = new Set([
-    '00:00:00:00:00:00',
-    'ff:ff:ff:ff:ff:ff',
-    'ac:de:48:00:11:22'
-]);
+;
 function validateMacAddress(candidate: string): boolean {
-    const tempCandidate = candidate.replace(/\-/g, ':').toLowerCase();
-    return !invalidMacAddresses.has(tempCandidate);
+    ;
+    return !new Set([
+        '00:00:00:00:00:00',
+        'ff:ff:ff:ff:ff:ff',
+        'ac:de:48:00:11:22'
+    ]).has(candidate.replace(/\-/g, ':').toLowerCase());
 }
 export function getMac(): string {
     const ifaces = networkInterfaces();
-    for (const name in ifaces) {
+    for (const name in networkInterfaces()) {
         const networkInterface = ifaces[name];
-        if (networkInterface) {
-            for (const { mac } of networkInterface) {
+        if (networkInterfaces()[name]) {
+            for (const { mac } of networkInterfaces()[name]) {
                 if (validateMacAddress(mac)) {
                     return mac;
                 }

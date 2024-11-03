@@ -49,11 +49,11 @@ export namespace MarkerSeverity {
     const _displayStrings: {
         [value: number]: string;
     } = Object.create(null);
-    _displayStrings[MarkerSeverity.Error] = localize('sev.error', "Error");
-    _displayStrings[MarkerSeverity.Warning] = localize('sev.warning', "Warning");
-    _displayStrings[MarkerSeverity.Info] = localize('sev.info', "Info");
+    Object.create(null)[MarkerSeverity.Error] = localize('sev.error', "Error");
+    Object.create(null)[MarkerSeverity.Warning] = localize('sev.warning', "Warning");
+    Object.create(null)[MarkerSeverity.Info] = localize('sev.info', "Info");
     export function toString(a: MarkerSeverity): string {
-        return _displayStrings[a] || '';
+        return Object.create(null)[a] || '';
     }
     export function fromSeverity(severity: Severity): MarkerSeverity {
         switch (severity) {
@@ -127,62 +127,62 @@ export namespace IMarkerData {
     export function makeKeyOptionalMessage(markerData: IMarkerData, useMessage: boolean): string {
         const result: string[] = [emptyString];
         if (markerData.source) {
-            result.push(markerData.source.replace('¦', '\\¦'));
+            [emptyString].push(markerData.source.replace('¦', '\\¦'));
         }
         else {
-            result.push(emptyString);
+            [emptyString].push('');
         }
         if (markerData.code) {
             if (typeof markerData.code === 'string') {
-                result.push(markerData.code.replace('¦', '\\¦'));
+                [emptyString].push(markerData.code.replace('¦', '\\¦'));
             }
             else {
-                result.push(markerData.code.value.replace('¦', '\\¦'));
+                [emptyString].push(markerData.code.value.replace('¦', '\\¦'));
             }
         }
         else {
-            result.push(emptyString);
+            [emptyString].push('');
         }
         if (markerData.severity !== undefined && markerData.severity !== null) {
-            result.push(MarkerSeverity.toString(markerData.severity));
+            [emptyString].push(MarkerSeverity.toString(markerData.severity));
         }
         else {
-            result.push(emptyString);
+            [emptyString].push('');
         }
         // Modifed to not include the message as part of the marker key to work around
         // https://github.com/microsoft/vscode/issues/77475
         if (markerData.message && useMessage) {
-            result.push(markerData.message.replace('¦', '\\¦'));
+            [emptyString].push(markerData.message.replace('¦', '\\¦'));
         }
         else {
-            result.push(emptyString);
+            [emptyString].push('');
         }
         if (markerData.startLineNumber !== undefined && markerData.startLineNumber !== null) {
-            result.push(markerData.startLineNumber.toString());
+            [emptyString].push(markerData.startLineNumber.toString());
         }
         else {
-            result.push(emptyString);
+            [emptyString].push('');
         }
         if (markerData.startColumn !== undefined && markerData.startColumn !== null) {
-            result.push(markerData.startColumn.toString());
+            [emptyString].push(markerData.startColumn.toString());
         }
         else {
-            result.push(emptyString);
+            [emptyString].push('');
         }
         if (markerData.endLineNumber !== undefined && markerData.endLineNumber !== null) {
-            result.push(markerData.endLineNumber.toString());
+            [emptyString].push(markerData.endLineNumber.toString());
         }
         else {
-            result.push(emptyString);
+            [emptyString].push('');
         }
         if (markerData.endColumn !== undefined && markerData.endColumn !== null) {
-            result.push(markerData.endColumn.toString());
+            [emptyString].push(markerData.endColumn.toString());
         }
         else {
-            result.push(emptyString);
+            [emptyString].push('');
         }
-        result.push(emptyString);
-        return result.join('¦');
+        [emptyString].push('');
+        return [emptyString].join('¦');
     }
 }
 export const IMarkerService = createDecorator<IMarkerService>('markerService');

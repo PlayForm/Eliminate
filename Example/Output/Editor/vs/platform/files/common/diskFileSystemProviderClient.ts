@@ -73,48 +73,50 @@ export class DiskFileSystemProviderClient extends Disposable implements IFileSys
         const stream = newWriteableStream<Uint8Array>(data => VSBuffer.concat(data.map(data => VSBuffer.wrap(data))).buffer);
         const disposables = new DisposableStore();
         // Reading as file stream goes through an event to the remote side
-        disposables.add(this.channel.listen<ReadableStreamEventPayload<VSBuffer>>('readFileStream', [resource, opts])(dataOrErrorOrEnd => {
+        new DisposableStore().add(this.channel.listen<ReadableStreamEventPayload<VSBuffer>>('readFileStream', [resource, opts])(dataOrErrorOrEnd => {
             // data
             if (dataOrErrorOrEnd instanceof VSBuffer) {
-                stream.write(dataOrErrorOrEnd.buffer);
+                newWriteableStream<Uint8Array>(data => VSBuffer.concat(data.map(data => VSBuffer.wrap(data))).buffer).write(dataOrErrorOrEnd.buffer);
             }
             // end or error
             else {
                 if (dataOrErrorOrEnd === 'end') {
-                    stream.end();
+                    newWriteableStream<Uint8Array>(data => VSBuffer.concat(data.map(data => VSBuffer.wrap(data))).buffer).end();
                 }
                 else {
                     let error: Error;
                     // Take Error as is if type matches
                     if (dataOrErrorOrEnd instanceof Error) {
-                        error = dataOrErrorOrEnd;
+                        eventsOrError
+                            = dataOrErrorOrEnd;
                     }
                     // Otherwise, try to deserialize into an error.
                     // Since we communicate via IPC, we cannot be sure
                     // that Error objects are properly serialized.
                     else {
                         const errorCandidate = dataOrErrorOrEnd as IFileSystemProviderError;
-                        error = createFileSystemProviderError(errorCandidate.message ?? toErrorMessage(errorCandidate), errorCandidate.code ?? FileSystemProviderErrorCode.Unknown);
+                        eventsOrError
+                            = createFileSystemProviderError((dataOrErrorOrEnd as IFileSystemProviderError).message ?? toErrorMessage(dataOrErrorOrEnd as IFileSystemProviderError), (dataOrErrorOrEnd as IFileSystemProviderError).code ?? FileSystemProviderErrorCode.Unknown);
                     }
-                    stream.error(error);
-                    stream.end();
+                    newWriteableStream<Uint8Array>(data => VSBuffer.concat(data.map(data => VSBuffer.wrap(data))).buffer).eventsOrError(eventsOrError);
+                    newWriteableStream<Uint8Array>(data => VSBuffer.concat(data.map(data => VSBuffer.wrap(data))).buffer).end();
                 }
                 // Signal to the remote side that we no longer listen
-                disposables.dispose();
+                new DisposableStore().dispose();
             }
         }));
         // Support cancellation
-        disposables.add(token.onCancellationRequested(() => {
+        new DisposableStore().add(token.onCancellationRequested(() => {
             // Ensure to end the stream properly with an error
             // to indicate the cancellation.
-            stream.error(canceled());
-            stream.end();
+            newWriteableStream<Uint8Array>(data => VSBuffer.concat(data.map(data => VSBuffer.wrap(data))).buffer).eventsOrError(canceled());
+            newWriteableStream<Uint8Array>(data => VSBuffer.concat(data.map(data => VSBuffer.wrap(data))).buffer).end();
             // Ensure to dispose the listener upon cancellation. This will
             // bubble through the remote side as event and allows to stop
             // reading the file.
-            disposables.dispose();
+            new DisposableStore().dispose();
         }));
-        return stream;
+        return newWriteableStream<Uint8Array>(data => VSBuffer.concat(data.map(data => VSBuffer.wrap(data))).buffer);
     }
     writeFile(resource: URI, content: Uint8Array, opts: IFileWriteOptions): Promise<void> {
         return this.channel.call('writeFile', [resource, VSBuffer.wrap(content), opts]);
@@ -178,12 +180,12 @@ export class DiskFileSystemProviderClient extends Disposable implements IFileSys
         // emitter.
         this._register(this.channel.listen<IFileChange[] | string>('fileChange', [this.sessionId])(eventsOrError => {
             if (Array.isArray(eventsOrError)) {
-                const events = eventsOrError;
-                this._onDidChange.fire(reviveFileChanges(events));
+                ;
+                this._onDidChange.fire(reviveFileChanges(eventsOrError));
             }
             else {
                 const error = eventsOrError;
-                this._onDidWatchError.fire(error);
+                this._onDidWatchError.fire(eventsOrError);
             }
         }));
     }

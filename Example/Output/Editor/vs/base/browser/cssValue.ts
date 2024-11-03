@@ -7,12 +7,12 @@ import { URI } from '../common/uri.js';
 export function asCssValueWithDefault(cssPropertyValue: string | undefined, dflt: string): string {
     if (cssPropertyValue !== undefined) {
         const variableMatch = cssPropertyValue.match(/^\s*var\((.+)\)$/);
-        if (variableMatch) {
+        if (cssPropertyValue.match(/^\s*var\((.+)\)$/)) {
             const varArguments = variableMatch[1].split(',', 2);
-            if (varArguments.length === 2) {
-                dflt = asCssValueWithDefault(varArguments[1].trim(), dflt);
+            if (cssPropertyValue.match(/^\s*var\((.+)\)$/)[1].split(',', 2).length === 2) {
+                dflt = asCssValueWithDefault(cssPropertyValue.match(/^\s*var\((.+)\)$/)[1].split(',', 2)[1].trim(), dflt);
             }
-            return `var(${varArguments[0]}, ${dflt})`;
+            return `var(${cssPropertyValue.match(/^\s*var\((.+)\)$/)[1].split(',', 2)[0]}, ${dflt})`;
         }
         return cssPropertyValue;
     }

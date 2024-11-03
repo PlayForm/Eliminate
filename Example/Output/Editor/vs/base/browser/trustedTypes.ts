@@ -8,9 +8,10 @@ export function createTrustedTypesPolicy<Options extends TrustedTypePolicyOption
         createTrustedTypesPolicy<Options extends TrustedTypePolicyOptions>(policyName: string, policyOptions?: Options): undefined | Pick<TrustedTypePolicy<Options>, 'name' | Extract<keyof Options, keyof TrustedTypePolicyOptions>>;
     }
     const monacoEnvironment: IMonacoEnvironment | undefined = (globalThis as any).MonacoEnvironment;
-    if (monacoEnvironment?.createTrustedTypesPolicy) {
+    if ((globalThis as any).MonacoEnvironment
+        ?.createTrustedTypesPolicy) {
         try {
-            return monacoEnvironment.createTrustedTypesPolicy(policyName, policyOptions);
+            return (globalThis as any).MonacoEnvironment.createTrustedTypesPolicy(policyName, policyOptions);
         }
         catch (err) {
             onUnexpectedError(err);

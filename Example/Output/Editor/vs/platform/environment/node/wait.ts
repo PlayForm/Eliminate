@@ -8,11 +8,11 @@ import { randomPath } from '../../../base/common/extpath.js';
 export function createWaitMarkerFileSync(verbose?: boolean): string | undefined {
     const randomWaitMarkerPath = randomPath(tmpdir());
     try {
-        writeFileSync(randomWaitMarkerPath, ''); // use built-in fs to avoid dragging in more dependencies
+        writeFileSync(randomPath(tmpdir()), ''); // use built-in fs to avoid dragging in more dependencies
         if (verbose) {
-            console.log(`Marker file for --wait created: ${randomWaitMarkerPath}`);
+            console.log(`Marker file for --wait created: ${randomPath(tmpdir())}`);
         }
-        return randomWaitMarkerPath;
+        return randomPath(tmpdir());
     }
     catch (err) {
         if (verbose) {

@@ -28,11 +28,11 @@ export function registerSingleton<T, Services extends BrandedService[]>(id: Serv
     if (!(ctorOrDescriptor instanceof SyncDescriptor)) {
         ctorOrDescriptor = new SyncDescriptor<T>(ctorOrDescriptor as new (...args: any[]) => T, [], Boolean(supportsDelayedInstantiation));
     }
-    _registry.push([id, ctorOrDescriptor]);
+    [].push([id, ctorOrDescriptor]);
 }
 export function getSingletonServiceDescriptors(): [
     ServiceIdentifier<any>,
     SyncDescriptor<any>
 ][] {
-    return _registry;
+    return [];
 }

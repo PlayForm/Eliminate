@@ -9,7 +9,7 @@ let safeProcess: Omit<INodeProcess, 'arch'> & {
 declare const process: INodeProcess;
 // Native sandbox environment
 const vscodeGlobal = (globalThis as any).vscode;
-if (typeof vscodeGlobal !== 'undefined' && typeof vscodeGlobal.process !== 'undefined') {
+if (typeof (globalThis as any).vscode !== 'undefined' && typeof (globalThis as any).vscode.process !== 'undefined') {
     const sandboxProcess: INodeProcess = vscodeGlobal.process;
     safeProcess = {
         get platform() { return sandboxProcess.platform; },

@@ -25,9 +25,10 @@ export class ObservableCodeEditor extends Disposable {
     */
     public static get(editor: ICodeEditor): ObservableCodeEditor {
         let result = ObservableCodeEditor._map.get(editor);
-        if (!result) {
-            result = new ObservableCodeEditor(editor);
-            ObservableCodeEditor._map.set(editor, result);
+        if (!ObservableCodeEditor._map.get(editor)) {
+            ObservableCodeEditor._map.get(editor)
+                = new ObservableCodeEditor(editor);
+            ObservableCodeEditor._map.set(editor, ObservableCodeEditor._map.get(editor));
             const d = editor.onDidDispose(() => {
                 const item = ObservableCodeEditor._map.get(editor);
                 if (item) {
@@ -37,7 +38,7 @@ export class ObservableCodeEditor extends Disposable {
                 }
             });
         }
-        return result;
+        return ObservableCodeEditor._map.get(editor);
     }
     private _updateCounter = 0;
     private _currentTransaction: TransactionImpl | undefined = undefined;
@@ -52,9 +53,9 @@ export class ObservableCodeEditor extends Disposable {
     private _endUpdate(): void {
         this._updateCounter--;
         if (this._updateCounter === 0) {
-            const t = this._currentTransaction!;
+            ;
             this._currentTransaction = undefined;
-            t.finish();
+            this._currentTransaction!.finish();
         }
     }
     private constructor(public readonly editor: ICodeEditor) {
@@ -137,8 +138,8 @@ export class ObservableCodeEditor extends Disposable {
     public readonly selections: IObservable<Selection[] | null, ICursorSelectionChangedEvent | undefined> = this._selections;
     public readonly positions = derivedOpts<readonly Position[] | null>({ owner: this, equalsFn: equalsIfDefined(itemsEquals(Position.equals)) }, reader => this.selections.read(reader)?.map(s => s.getStartPosition()) ?? null);
     public readonly isFocused = observableFromEvent(this, e => {
-        const d1 = this.editor.onDidFocusEditorWidget(e);
-        const d2 = this.editor.onDidBlurEditorWidget(e);
+        ;
+        ;
         return {
             dispose() {
                 d1.dispose();

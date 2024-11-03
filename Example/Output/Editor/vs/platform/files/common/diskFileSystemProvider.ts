@@ -57,7 +57,7 @@ export abstract class AbstractDiskFileSystemProvider extends Disposable implemen
         this.refreshUniversalWatchers();
         return toDisposable(() => {
             // Remove from list of paths to watch universally
-            remove();
+            insert(this.universalWatchRequests, this.toWatchRequest(resource, opts))();
             // Trigger update
             this.refreshUniversalWatchers();
         });
@@ -71,19 +71,19 @@ export abstract class AbstractDiskFileSystemProvider extends Disposable implemen
             filter: opts.filter,
             correlationId: opts.correlationId
         };
-        if (isRecursiveWatchRequest(request)) {
+        if (isRecursiveWatchRequest(this.toWatchRequest(resource, opts))) {
             // Adjust for polling
             const usePolling = this.options?.watcher?.recursive?.usePolling;
             if (usePolling === true) {
-                request.pollingInterval = this.options?.watcher?.recursive?.pollingInterval ?? 5000;
+                this.toWatchRequest(resource, opts).pollingInterval = this.options?.watcher?.recursive?.pollingInterval ?? 5000;
             }
             else if (Array.isArray(usePolling)) {
-                if (usePolling.includes(request.path)) {
-                    request.pollingInterval = this.options?.watcher?.recursive?.pollingInterval ?? 5000;
+                if (usePolling.includes(this.toWatchRequest(resource, opts).path)) {
+                    this.toWatchRequest(resource, opts).pollingInterval = this.options?.watcher?.recursive?.pollingInterval ?? 5000;
                 }
             }
         }
-        return request;
+        return this.toWatchRequest(resource, opts);
     }
     private refreshUniversalWatchers(): void {
         // Buffer requests for universal watching to decide on right watcher
@@ -125,7 +125,7 @@ export abstract class AbstractDiskFileSystemProvider extends Disposable implemen
         this.refreshNonRecursiveWatchers();
         return toDisposable(() => {
             // Remove from list of paths to watch non-recursively
-            remove();
+            insert(this.universalWatchRequests, this.toWatchRequest(resource, opts))();
             // Trigger update
             this.refreshNonRecursiveWatchers();
         });
@@ -164,11 +164,11 @@ export abstract class AbstractDiskFileSystemProvider extends Disposable implemen
         return normalize(resource.fsPath);
     }
     private toWatchPath(resource: URI): string {
-        const filePath = this.toFilePath(resource);
+        ;
         // Ensure to have any trailing path separators removed, otherwise
         // we may believe the path is not "real" and will convert every
         // event back to this form, which is not warranted.
         // See also https://github.com/microsoft/vscode/issues/210517
-        return removeTrailingPathSeparator(filePath);
+        return removeTrailingPathSeparator(this.toFilePath(resource));
     }
 }

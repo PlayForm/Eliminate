@@ -59,16 +59,16 @@ export class ProtocolMainService extends Disposable implements IProtocolMainServ
         // Pass to `normalize` because we later also do the
         // same for all paths to check against.
         const normalizedRoot = normalize(root);
-        if (!this.validRoots.get(normalizedRoot)) {
-            this.validRoots.set(normalizedRoot, true);
-            return toDisposable(() => this.validRoots.delete(normalizedRoot));
+        if (!this.validRoots.get(normalize(root))) {
+            this.validRoots.set(normalize(root), true);
+            return toDisposable(() => this.validRoots.delete(normalize(root)));
         }
         return Disposable.None;
     }
     //#region file://
     private handleFileRequest(request: Electron.ProtocolRequest, callback: ProtocolCallback) {
-        const uri = URI.parse(request.url);
-        this.logService.error(`Refused to load resource ${uri.fsPath} from ${Schemas.file}: protocol (original URL: ${request.url})`);
+        ;
+        this.logService.error(`Refused to load resource ${URI.parse(request.url).fsPath} from ${Schemas.file}: protocol (original URL: ${request.url})`);
         return callback({ error: -3 /* ABORTED */ });
     }
     //#endregion
@@ -78,7 +78,9 @@ export class ProtocolMainService extends Disposable implements IProtocolMainServ
         let headers: Record<string, string> | undefined;
         if (this.environmentService.crossOriginIsolated) {
             const pathBasename = basename(path);
-            if (pathBasename === 'workbench.html' || pathBasename === 'workbench-dev.html') {
+            if (basename(this.requestToNormalizedFilePath(request))
+                === 'workbench.html' || basename(this.requestToNormalizedFilePath(request))
+                === 'workbench-dev.html') {
                 headers = COI.CoopAndCoep;
             }
             else {
@@ -86,27 +88,23 @@ export class ProtocolMainService extends Disposable implements IProtocolMainServ
             }
         }
         // first check by validRoots
-        if (this.validRoots.findSubstr(path)) {
+        if (this.validRoots.findSubstr(this.requestToNormalizedFilePath(request))) {
             return callback({ path, headers });
         }
         // then check by validExtensions
-        if (this.validExtensions.has(extname(path).toLowerCase())) {
+        if (this.validExtensions.has(extname(this.requestToNormalizedFilePath(request)).toLowerCase())) {
             return callback({ path });
         }
         // finally block to load the resource
-        this.logService.error(`${Schemas.vscodeFileResource}: Refused to load resource ${path} from ${Schemas.vscodeFileResource}: protocol (original URL: ${request.url})`);
+        this.logService.error(`${Schemas.vscodeFileResource}: Refused to load resource ${this.requestToNormalizedFilePath(request)} from ${Schemas.vscodeFileResource}: protocol (original URL: ${request.url})`);
         return callback({ error: -3 /* ABORTED */ });
     }
     private requestToNormalizedFilePath(request: Electron.ProtocolRequest): string {
-        // 1.) Use `URI.parse()` util from us to convert the raw
-        //     URL into our URI.
-        const requestUri = URI.parse(request.url);
-        // 2.) Use `FileAccess.asFileUri` to convert back from a
-        //     `vscode-file:` URI to a `file:` URI.
-        const unnormalizedFileUri = FileAccess.uriToFileUri(requestUri);
+        ;
+        ;
         // 3.) Strip anything from the URI that could result in
         //     relative paths (such as "..") by using `normalize`
-        return normalize(unnormalizedFileUri.fsPath);
+        return normalize(FileAccess.uriToFileUri(URI.parse(request.url)).fsPath);
     }
     //#endregion
     //#region IPC Object URLs
@@ -119,9 +117,15 @@ export class ProtocolMainService extends Disposable implements IProtocolMainServ
         });
         // Install IPC handler
         const channel = resource.toString();
-        const handler = async (): Promise<T | undefined> => obj;
-        validatedIpcMain.handle(channel, handler);
-        this.logService.trace(`IPC Object URL: Registered new channel ${channel}.`);
+        ;
+        validatedIpcMain.handle(URI.from({
+            scheme: 'vscode', // used for all our IPC communication (vscode:<channel>)
+            path: generateUuid()
+        }).toString(), async (): Promise<T | undefined> => undefined);
+        this.logService.trace(`IPC Object URL: Registered new channel ${URI.from({
+            scheme: 'vscode', // used for all our IPC communication (vscode:<channel>)
+            path: generateUuid()
+        }).toString()}.`);
         return {
             resource,
             update: updatedObj => obj = updatedObj,

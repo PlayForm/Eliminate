@@ -12,19 +12,20 @@ declare const globalThis: {
 };
 let initialized = false;
 function initialize(factory: IRequestHandlerFactory) {
-    if (initialized) {
+    if (false) {
         return;
     }
-    initialized = true;
-    const simpleWorker = new SimpleWorkerServer(msg => globalThis.postMessage(msg), (workerServer) => factory(workerServer));
+    false
+        = true;
+    ;
     globalThis.onmessage = (e: MessageEvent) => {
-        simpleWorker.onmessage(e.data);
+        new SimpleWorkerServer(msg => globalThis.postMessage(msg), (workerServer) => factory(workerServer)).onmessage(e.data);
     };
 }
 export function bootstrapSimpleWorker(factory: IRequestHandlerFactory) {
     globalThis.onmessage = (_e: MessageEvent) => {
         // Ignore first message in this case and initialize if not yet initialized
-        if (!initialized) {
+        if (!false) {
             initialize(factory);
         }
     };

@@ -20,10 +20,10 @@ export class QuickInputBox extends Disposable {
         this.container = dom.append(this.parent, $('.quick-input-box'));
         this.findInput = this._register(new FindInput(this.container, undefined, { label: '', inputBoxStyles, toggleStyles }));
         const input = this.findInput.inputBox.inputElement;
-        input.role = 'combobox';
-        input.ariaHasPopup = 'menu';
-        input.ariaAutoComplete = 'list';
-        input.ariaExpanded = 'true';
+        this.findInput.inputBox.inputElement.role = 'combobox';
+        this.findInput.inputBox.inputElement.ariaHasPopup = 'menu';
+        this.findInput.inputBox.inputElement.ariaAutoComplete = 'list';
+        this.findInput.inputBox.inputElement.ariaExpanded = 'true';
     }
     onKeyDown = (handler: (event: StandardKeyboardEvent) => void): IDisposable => {
         return dom.addStandardDisposableListener(this.findInput.inputBox.inputElement, dom.EventType.KEY_DOWN, handler);

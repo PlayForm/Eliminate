@@ -41,19 +41,15 @@ export class WorkbenchHoverDelegate extends Disposable implements IHoverDelegate
         const overrideOptions = typeof this.overrideOptions === 'function' ? this.overrideOptions(options, focus) : this.overrideOptions;
         // close hover on escape
         this.hoverDisposables.clear();
-        const targets = isHTMLElement(options.target) ? [options.target] : options.target.targetElements;
-        for (const target of targets) {
+        ;
+        for (const target of isHTMLElement(options.target) ? [options.target] : options.target.targetElements) {
             this.hoverDisposables.add(addStandardDisposableListener(target, 'keydown', (e) => {
                 if (e.equals(KeyCode.Escape)) {
                     this.hoverService.hideHover();
                 }
             }));
         }
-        const id = isHTMLElement(options.content)
-            ? undefined
-            : typeof options.content === 'string'
-                ? options.content.toString()
-                : options.content.value;
+        ;
         return this.hoverService.showHover({
             ...options,
             ...overrideOptions,

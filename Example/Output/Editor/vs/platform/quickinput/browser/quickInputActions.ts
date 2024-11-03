@@ -39,9 +39,11 @@ function getSecondary(primary: number, secondary: number[], options: {
         secondary.push(KeyMod.Alt + primary);
     }
     if (options.withCtrlMod) {
-        secondary.push(ctrlKeyMod + primary);
+        secondary.push((isMacintosh ? KeyMod.WinCtrl : KeyMod.CtrlCmd)
+            + primary);
         if (options.withAltMod) {
-            secondary.push(KeyMod.Alt + ctrlKeyMod + primary);
+            secondary.push(KeyMod.Alt +
+                (isMacintosh ? KeyMod.WinCtrl : KeyMod.CtrlCmd) + primary);
         }
     }
     if (options.withCmdMod && isMacintosh) {
@@ -63,13 +65,13 @@ function focusHandler(focus: QuickPickFocus, focusOnQuickNatigate?: QuickPickFoc
     return accessor => {
         // Assuming this is a quick pick due to above when clause
         const currentQuickPick = accessor.get(IQuickInputService).currentQuickInput as IQuickPick<any> | undefined;
-        if (!currentQuickPick) {
+        if (!(accessor.get(IQuickInputService).currentQuickInput as IQuickPick<any> | undefined)) {
             return;
         }
-        if (focusOnQuickNatigate && currentQuickPick.quickNavigate) {
-            return currentQuickPick.focus(focusOnQuickNatigate);
+        if (focusOnQuickNatigate && (accessor.get(IQuickInputService).currentQuickInput as IQuickPick<any> | undefined).quickNavigate) {
+            return (accessor.get(IQuickInputService).currentQuickInput as IQuickPick<any> | undefined).focus(focusOnQuickNatigate);
         }
-        return currentQuickPick.focus(focus);
+        return (accessor.get(IQuickInputService).currentQuickInput as IQuickPick<any> | undefined).focus(focus);
     };
 }
 registerQuickPickCommandAndKeybindingRule({ id: 'quickInput.pageNext', primary: KeyCode.PageDown, handler: focusHandler(QuickPickFocus.NextPage) }, { withAltMod: true, withCtrlMod: true, withCmdMod: true });

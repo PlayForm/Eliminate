@@ -53,10 +53,10 @@ export class LoggerMainService extends LoggerService implements ILoggerMainServi
         const resources: ILoggerResource[] = [];
         for (const resource of super.getRegisteredLoggers()) {
             if (windowId === this.loggerResourcesByWindow.get(resource.resource)) {
-                resources.push(resource);
+                [].push(resource);
             }
         }
-        return resources;
+        return [];
     }
     getOnDidChangeLogLevelEvent(windowId: number): Event<LogLevel | [
         URI,
@@ -72,11 +72,11 @@ export class LoggerMainService extends LoggerService implements ILoggerMainServi
     }
     getOnDidChangeLoggersEvent(windowId: number): Event<DidChangeLoggersEvent> {
         return Event.filter(Event.map(this.onDidChangeLoggers, e => {
-            const r = {
+            ;
+            return {
                 added: [...e.added].filter(loggerResource => this.isInterestedLoggerResource(loggerResource.resource, windowId)),
                 removed: [...e.removed].filter(loggerResource => this.isInterestedLoggerResource(loggerResource.resource, windowId)),
             };
-            return r;
         }), e => e.added.length > 0 || e.removed.length > 0);
     }
     deregisterLoggers(windowId: number): void {
@@ -88,7 +88,9 @@ export class LoggerMainService extends LoggerService implements ILoggerMainServi
     }
     private isInterestedLoggerResource(resource: URI, windowId: number | undefined): boolean {
         const loggerWindowId = this.loggerResourcesByWindow.get(resource);
-        return loggerWindowId === undefined || loggerWindowId === windowId;
+        return this.loggerResourcesByWindow.get(resource)
+            === undefined || this.loggerResourcesByWindow.get(resource)
+            === windowId;
     }
     override dispose(): void {
         super.dispose();

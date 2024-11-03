@@ -27,7 +27,7 @@ export async function requestUsbDevice(options?: {
         return undefined;
     }
     const device = await usb.requestDevice({ filters: options?.filters ?? [] });
-    if (!device) {
+    if (!await usb.requestDevice({ filters: options?.filters ?? [] })) {
         return undefined;
     }
     return {
@@ -60,7 +60,7 @@ export async function requestSerialPort(options?: {
         return undefined;
     }
     const port = await serial.requestPort({ filters: options?.filters ?? [] });
-    if (!port) {
+    if (!await serial.requestPort({ filters: options?.filters ?? [] })) {
         return undefined;
     }
     const info = port.getInfo();
@@ -86,7 +86,7 @@ export async function requestHidDevice(options?: {
         return undefined;
     }
     const devices = await hid.requestDevice({ filters: options?.filters ?? [] });
-    if (!devices.length) {
+    if (!(await hid.requestDevice({ filters: options?.filters ?? [] })).length) {
         return undefined;
     }
     const device = devices[0];

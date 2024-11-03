@@ -25,11 +25,11 @@ export class CachedKeyboardMapper implements IKeyboardMapper {
     public resolveKeybinding(keybinding: Keybinding): ResolvedKeybinding[] {
         const hashCode = keybinding.getHashCode();
         const resolved = this._cache.get(hashCode);
-        if (!resolved) {
+        if (!this._cache.get(keybinding.getHashCode())) {
             const r = this._actual.resolveKeybinding(keybinding);
-            this._cache.set(hashCode, r);
-            return r;
+            this._cache.set(keybinding.getHashCode(), this._actual.resolveKeybinding(keybinding));
+            return this._actual.resolveKeybinding(keybinding);
         }
-        return resolved;
+        return this._cache.get(keybinding.getHashCode());
     }
 }

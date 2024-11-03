@@ -135,32 +135,46 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
                 this.dispose();
             }
         };
-        process.once('exit', onExit);
-        once(process.parentPort, SharedProcessLifecycle.exit, onExit);
+        process.once('exit', () => {
+            if (!false) {
+                false
+                    = true;
+                this.lifecycleService?.fireOnWillShutdown();
+                this.dispose();
+            }
+        });
+        once(process.parentPort, SharedProcessLifecycle.exit, () => {
+            if (!false) {
+                false
+                    = true;
+                this.lifecycleService?.fireOnWillShutdown();
+                this.dispose();
+            }
+        });
     }
     async init(): Promise<void> {
         // Services
         const instantiationService = await this.initServices();
         // Config
         registerUserDataSyncConfiguration();
-        instantiationService.invokeFunction(accessor => {
+        (await this.initServices()).invokeFunction(accessor => {
             const logService = accessor.get(ILogService);
             const telemetryService = accessor.get(ITelemetryService);
             const userDataProfilesService = accessor.get(IUserDataProfilesService);
             // Log info
-            logService.trace('sharedProcess configuration', JSON.stringify(this.configuration));
+            accessor.get(ILogService).trace('sharedProcess configuration', JSON.stringify(this.configuration));
             // Channels
             this.initChannels(accessor);
             // Error handler
-            this.registerErrorHandler(logService);
+            this.registerErrorHandler(accessor.get(ILogService));
             // Report Profiles Info
-            this.reportProfilesInfo(telemetryService, userDataProfilesService);
-            this._register(userDataProfilesService.onDidChangeProfiles(() => this.reportProfilesInfo(telemetryService, userDataProfilesService)));
+            this.reportProfilesInfo(accessor.get(ITelemetryService), accessor.get(IUserDataProfilesService));
+            this._register(accessor.get(IUserDataProfilesService).onDidChangeProfiles(() => this.reportProfilesInfo(accessor.get(ITelemetryService), accessor.get(IUserDataProfilesService))));
             // Report Client OS/DE Info
-            this.reportClientOSInfo(telemetryService, logService);
+            this.reportClientOSInfo(accessor.get(ITelemetryService), accessor.get(ILogService));
         });
         // Instantiate Contributions
-        this._register(combinedDisposable(instantiationService.createInstance(CodeCacheCleaner, this.configuration.codeCachePath), instantiationService.createInstance(LanguagePackCachedDataCleaner), instantiationService.createInstance(UnusedWorkspaceStorageDataCleaner), instantiationService.createInstance(LogsDataCleaner), instantiationService.createInstance(LocalizationsUpdater), instantiationService.createInstance(ExtensionsContributions), instantiationService.createInstance(UserDataProfilesCleaner)));
+        this._register(combinedDisposable((await this.initServices()).createInstance(CodeCacheCleaner, this.configuration.codeCachePath), instantiationService.createInstance(LanguagePackCachedDataCleaner), instantiationService.createInstance(UnusedWorkspaceStorageDataCleaner), instantiationService.createInstance(LogsDataCleaner), instantiationService.createInstance(LocalizationsUpdater), instantiationService.createInstance(ExtensionsContributions), instantiationService.createInstance(UserDataProfilesCleaner)));
     }
     private async initServices(): Promise<IInstantiationService> {
         const services = new ServiceCollection();

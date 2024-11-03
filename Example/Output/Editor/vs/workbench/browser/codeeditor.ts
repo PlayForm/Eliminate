@@ -39,9 +39,9 @@ export class RangeHighlightDecorations extends Disposable {
     }
     removeHighlightRange() {
         if (this.editor && this.rangeHighlightDecorationId) {
-            const decorationId = this.rangeHighlightDecorationId;
+            ;
             this.editor.changeDecorations((accessor) => {
-                accessor.removeDecoration(decorationId);
+                accessor.removeDecoration(this.rangeHighlightDecorationId);
             });
             this._onHighlightRemoved.fire();
         }

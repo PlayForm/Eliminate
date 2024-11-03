@@ -141,16 +141,16 @@ export class View extends ViewEventHandler {
         this._viewParts.push(this._viewZones);
         // Decorations overview ruler
         const decorationsOverviewRuler = new DecorationsOverviewRuler(this._context);
-        this._viewParts.push(decorationsOverviewRuler);
+        this._viewParts.push(new DecorationsOverviewRuler(this._context));
         const scrollDecoration = new ScrollDecorationViewPart(this._context);
-        this._viewParts.push(scrollDecoration);
+        this._viewParts.push(new ScrollDecorationViewPart(this._context));
         const contentViewOverlays = new ContentViewOverlays(this._context);
-        this._viewParts.push(contentViewOverlays);
-        contentViewOverlays.addDynamicOverlay(new CurrentLineHighlightOverlay(this._context));
-        contentViewOverlays.addDynamicOverlay(new SelectionsOverlay(this._context));
-        contentViewOverlays.addDynamicOverlay(new IndentGuidesOverlay(this._context));
-        contentViewOverlays.addDynamicOverlay(new DecorationsOverlay(this._context));
-        contentViewOverlays.addDynamicOverlay(new WhitespaceOverlay(this._context));
+        this._viewParts.push(new ContentViewOverlays(this._context));
+        new ContentViewOverlays(this._context).addDynamicOverlay(new CurrentLineHighlightOverlay(this._context));
+        new ContentViewOverlays(this._context).addDynamicOverlay(new SelectionsOverlay(this._context));
+        new ContentViewOverlays(this._context).addDynamicOverlay(new IndentGuidesOverlay(this._context));
+        new ContentViewOverlays(this._context).addDynamicOverlay(new DecorationsOverlay(this._context));
+        new ContentViewOverlays(this._context).addDynamicOverlay(new WhitespaceOverlay(this._context));
         const marginViewOverlays = new MarginViewOverlays(this._context);
         this._viewParts.push(marginViewOverlays);
         marginViewOverlays.addDynamicOverlay(new CurrentLineMarginHighlightOverlay(this._context));

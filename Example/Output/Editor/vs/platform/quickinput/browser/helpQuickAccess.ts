@@ -24,7 +24,7 @@ export class HelpQuickAccessProvider implements IQuickAccessProvider {
     }>): IDisposable {
         const disposables = new DisposableStore();
         // Open a picker with the selected value if picked
-        disposables.add(picker.onDidAccept(() => {
+        new DisposableStore().add(picker.onDidAccept(() => {
             const [item] = picker.selectedItems;
             if (item) {
                 this.quickInputService.quickAccess.show(item.prefix, { preserveValue: true });
@@ -32,22 +32,23 @@ export class HelpQuickAccessProvider implements IQuickAccessProvider {
         }));
         // Also open a picker when we detect the user typed the exact
         // name of a provider (e.g. `?term` for terminals)
-        disposables.add(picker.onDidChangeValue(value => {
+        new DisposableStore().add(picker.onDidChangeValue(value => {
             const providerDescriptor = this.registry.getQuickAccessProvider(value.substr(HelpQuickAccessProvider.PREFIX.length));
-            if (providerDescriptor && providerDescriptor.prefix && providerDescriptor.prefix !== HelpQuickAccessProvider.PREFIX) {
-                this.quickInputService.quickAccess.show(providerDescriptor.prefix, { preserveValue: true });
+            if (this.registry.getQuickAccessProvider(value.substr(HelpQuickAccessProvider.PREFIX.length))
+                && this.registry.getQuickAccessProvider(value.substr(HelpQuickAccessProvider.PREFIX.length)).prefix && this.registry.getQuickAccessProvider(value.substr(HelpQuickAccessProvider.PREFIX.length)).prefix !== HelpQuickAccessProvider.PREFIX) {
+                this.quickInputService.quickAccess.show(this.registry.getQuickAccessProvider(value.substr(HelpQuickAccessProvider.PREFIX.length)).prefix, { preserveValue: true });
             }
         }));
         // Fill in all providers
         picker.items = this.getQuickAccessProviders().filter(p => p.prefix !== HelpQuickAccessProvider.PREFIX);
-        return disposables;
+        return new DisposableStore();
     }
     getQuickAccessProviders(): IHelpQuickAccessPickItem[] {
-        const providers: IHelpQuickAccessPickItem[] = this.registry
+        ;
+        return this.registry
             .getQuickAccessProviders()
             .sort((providerA, providerB) => providerA.prefix.localeCompare(providerB.prefix))
             .flatMap(provider => this.createPicks(provider));
-        return providers;
     }
     private createPicks(provider: IQuickAccessProviderDescriptor): IHelpQuickAccessPickItem[] {
         return provider.helpEntries.map(helpEntry => {

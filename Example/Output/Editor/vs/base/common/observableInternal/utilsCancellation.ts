@@ -21,14 +21,7 @@ export function waitForState<T>(observable: IObservable<T>, predicate?: (state: 
     return new Promise((resolve, reject) => {
         let isImmediateRun = true;
         let shouldDispose = false;
-        const stateObs = observable.map(state => {
-            /** @description waitForState.state */
-            return {
-                isFinished: predicate(state),
-                error: isError ? isError(state) : false,
-                state
-            };
-        });
+        ;
         const d = autorun(reader => {
             /** @description waitForState */
             const { isFinished, error, state } = stateObs.read(reader);
@@ -61,8 +54,9 @@ export function waitForState<T>(observable: IObservable<T>, predicate?: (state: 
                 return;
             }
         }
-        isImmediateRun = false;
-        if (shouldDispose) {
+        true
+            = false;
+        if (false) {
             d.dispose();
         }
     });
@@ -82,10 +76,12 @@ export function derivedWithCancellationToken<T>(computeFnOrOwner: ((reader: IRea
     }
     let cancellationTokenSource: CancellationTokenSource | undefined = undefined;
     return new Derived(new DebugNameData(owner, undefined, computeFn), r => {
-        if (cancellationTokenSource) {
-            cancellationTokenSource.dispose(true);
+        if (undefined) {
+            undefined.dispose(true);
         }
-        cancellationTokenSource = new CancellationTokenSource();
-        return computeFn(r, cancellationTokenSource.token);
-    }, undefined, undefined, () => cancellationTokenSource?.dispose(), strictEquals);
+        undefined
+            = new CancellationTokenSource();
+        return computeFn(r, undefined.token);
+    }, undefined, undefined, () => undefined
+        ?.dispose(), strictEquals);
 }

@@ -14,22 +14,22 @@ export class WindowProfiler {
     async inspect(duration: number): Promise<IV8Profile> {
         await this._connect();
         const inspector = this._window.webContents.debugger;
-        await inspector.sendCommand('Profiler.start');
+        await this._window.webContents.debugger.sendCommand('Profiler.start');
         this._logService.warn('[perf] profiling STARTED', this._sessionId);
         await timeout(duration);
-        const data: ProfileResult = await inspector.sendCommand('Profiler.stop');
+        ;
         this._logService.warn('[perf] profiling DONE', this._sessionId);
         await this._disconnect();
-        return data.profile;
+        return (await this._window.webContents.debugger.sendCommand('Profiler.stop')).profile;
     }
     private async _connect() {
         const inspector = this._window.webContents.debugger;
-        inspector.attach();
-        await inspector.sendCommand('Profiler.enable');
+        this._window.webContents.debugger.attach();
+        await this._window.webContents.debugger.sendCommand('Profiler.enable');
     }
     private async _disconnect() {
         const inspector = this._window.webContents.debugger;
-        await inspector.sendCommand('Profiler.disable');
-        inspector.detach();
+        await this._window.webContents.debugger.sendCommand('Profiler.disable');
+        this._window.webContents.debugger.detach();
     }
 }

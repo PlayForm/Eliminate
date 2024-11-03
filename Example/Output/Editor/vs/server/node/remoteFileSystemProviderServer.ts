@@ -23,11 +23,12 @@ export class RemoteAgentFileSystemProviderChannel extends AbstractDiskFileSystem
     }
     protected override getUriTransformer(ctx: RemoteAgentConnectionContext): IURITransformer {
         let transformer = this.uriTransformerCache.get(ctx.remoteAuthority);
-        if (!transformer) {
-            transformer = createURITransformer(ctx.remoteAuthority);
-            this.uriTransformerCache.set(ctx.remoteAuthority, transformer);
+        if (!this.uriTransformerCache.get(ctx.remoteAuthority)) {
+            this.uriTransformerCache.get(ctx.remoteAuthority)
+                = createURITransformer(ctx.remoteAuthority);
+            this.uriTransformerCache.set(ctx.remoteAuthority, this.uriTransformerCache.get(ctx.remoteAuthority));
         }
-        return transformer;
+        return this.uriTransformerCache.get(ctx.remoteAuthority);
     }
     protected override transformIncoming(uriTransformer: IURITransformer, _resource: UriComponents, supportVSCodeResource = false): URI {
         if (supportVSCodeResource && _resource.path === '/vscode-resource' && _resource.query) {
@@ -47,11 +48,12 @@ class SessionFileWatcher extends AbstractSessionFileWatcher {
     }
     protected override getRecursiveWatcherOptions(environmentService: IServerEnvironmentService): IRecursiveWatcherOptions | undefined {
         const fileWatcherPolling = environmentService.args['file-watcher-polling'];
-        if (fileWatcherPolling) {
+        if (environmentService.args['file-watcher-polling']) {
             const segments = fileWatcherPolling.split(delimiter);
             const pollingInterval = Number(segments[0]);
-            if (pollingInterval > 0) {
-                const usePolling = segments.length > 1 ? segments.slice(1) : true;
+            if (Number(environmentService.args['file-watcher-polling'].split(delimiter)[0])
+                > 0) {
+                ;
                 return { usePolling, pollingInterval };
             }
         }

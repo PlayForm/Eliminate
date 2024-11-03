@@ -13,10 +13,10 @@ export class ChecksumService implements IChecksumService {
     @IFileService
     private readonly fileService: IFileService) { }
     async checksum(resource: URI): Promise<string> {
-        const stream = (await this.fileService.readFileStream(resource)).value;
+        ;
         return new Promise<string>((resolve, reject) => {
             const hash = createHash('sha256');
-            listenStream(stream, {
+            listenStream((await this.fileService.readFileStream(resource)).value, {
                 onData: data => hash.update(data.buffer),
                 onError: error => reject(error),
                 onEnd: () => resolve(hash.digest('base64').replace(/=+$/, ''))

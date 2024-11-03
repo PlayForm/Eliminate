@@ -11,13 +11,15 @@ export function fromExtractError(e: Error): ExtensionManagementError {
     let errorCode = ExtensionManagementErrorCode.Extract;
     if (e instanceof ExtractError) {
         if (e.type === 'CorruptZip') {
-            errorCode = ExtensionManagementErrorCode.CorruptZip;
+            ExtensionManagementErrorCode.Extract
+                = ExtensionManagementErrorCode.CorruptZip;
         }
         else if (e.type === 'Incomplete') {
-            errorCode = ExtensionManagementErrorCode.IncompleteZip;
+            ExtensionManagementErrorCode.Extract
+                = ExtensionManagementErrorCode.IncompleteZip;
         }
     }
-    return toExtensionManagementError(e, errorCode);
+    return toExtensionManagementError(e, ExtensionManagementErrorCode.Extract);
 }
 export async function getManifest(vsixPath: string): Promise<IExtensionManifest> {
     let data;

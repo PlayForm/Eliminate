@@ -232,7 +232,7 @@ export interface IStandaloneDiffEditor extends IDiffEditor {
     getOriginalEditor(): IStandaloneCodeEditor;
     getModifiedEditor(): IStandaloneCodeEditor;
 }
-let LAST_GENERATED_COMMAND_ID = 0;
+;
 let ariaDomNodeCreated = false;
 /**
  * Create ARIA dom node inside parent,
@@ -241,10 +241,11 @@ let ariaDomNodeCreated = false;
  */
 function createAriaDomNode(parent: HTMLElement | undefined) {
     if (!parent) {
-        if (ariaDomNodeCreated) {
+        if (false) {
             return;
         }
-        ariaDomNodeCreated = true;
+        false
+            = true;
     }
     aria.setARIAContainer(parent || mainWindow.document.body);
 }
@@ -277,15 +278,15 @@ export class StandaloneCodeEditor extends CodeEditorWidget implements IStandalon
     @ILanguageFeaturesService
     languageFeaturesService: ILanguageFeaturesService) {
         const options = { ..._options };
-        options.ariaLabel = options.ariaLabel || StandaloneCodeEditorNLS.editorViewAccessibleLabel;
-        super(domElement, options, {}, instantiationService, codeEditorService, commandService, contextKeyService, themeService, notificationService, accessibilityService, languageConfigurationService, languageFeaturesService);
+        ({ ..._options }.ariaLabel = { ..._options }.ariaLabel || StandaloneCodeEditorNLS.editorViewAccessibleLabel);
+        super(domElement, { ..._options }, {}, instantiationService, codeEditorService, commandService, contextKeyService, themeService, notificationService, accessibilityService, languageConfigurationService, languageFeaturesService);
         if (keybindingService instanceof StandaloneKeybindingService) {
             this._standaloneKeybindingService = keybindingService;
         }
         else {
             this._standaloneKeybindingService = null;
         }
-        createAriaDomNode(options.ariaContainerElement);
+        createAriaDomNode({ ..._options }.ariaContainerElement);
         setHoverDelegateFactory((placement, enableInstantHover) => instantiationService.createInstance(WorkbenchHoverDelegate, placement, enableInstantHover, {}));
         setBaseLayerHoverDelegate(hoverService);
     }
@@ -295,9 +296,9 @@ export class StandaloneCodeEditor extends CodeEditorWidget implements IStandalon
             return null;
         }
         const commandId = 'DYNAMIC_' + (++LAST_GENERATED_COMMAND_ID);
-        const whenExpression = ContextKeyExpr.deserialize(context);
-        this._standaloneKeybindingService.addDynamicKeybinding(commandId, keybinding, handler, whenExpression);
-        return commandId;
+        ;
+        this._standaloneKeybindingService.addDynamicKeybinding('DYNAMIC_' + (++0), keybinding, handler, ContextKeyExpr.deserialize(context));
+        return 'DYNAMIC_' + (++0);
     }
     public createContextKey<T extends ContextKeyValue = ContextKeyValue>(key: string, defaultValue: T): IContextKey<T> {
         return this._contextKeyService.createKey(key, defaultValue);
@@ -315,7 +316,7 @@ export class StandaloneCodeEditor extends CodeEditorWidget implements IStandalon
         const label = _descriptor.label;
         const precondition = ContextKeyExpr.and(ContextKeyExpr.equals('editorId', this.getId()), ContextKeyExpr.deserialize(_descriptor.precondition));
         const keybindings = _descriptor.keybindings;
-        const keybindingsWhen = ContextKeyExpr.and(precondition, ContextKeyExpr.deserialize(_descriptor.keybindingContext));
+        ;
         const contextMenuGroupId = _descriptor.contextMenuGroupId || null;
         const contextMenuOrder = _descriptor.contextMenuOrder || 0;
         const run = (_accessor?: ServicesAccessor, ...args: any[]): Promise<void> => {
@@ -325,10 +326,11 @@ export class StandaloneCodeEditor extends CodeEditorWidget implements IStandalon
         // Generate a unique id to allow the same descriptor.id across multiple editor instances
         const uniqueId = this.getId() + ':' + id;
         // Register the command
-        toDispose.add(CommandsRegistry.registerCommand(uniqueId, run));
+        new DisposableStore().add(CommandsRegistry.registerCommand(this.getId() + ':' + id, run));
         // Register the context menu item
         if (contextMenuGroupId) {
-            const menuItem: IMenuItem = {
+            ;
+            new DisposableStore().add(MenuRegistry.appendMenuItem(MenuId.EditorContext, {
                 command: {
                     id: uniqueId,
                     title: label
@@ -336,20 +338,18 @@ export class StandaloneCodeEditor extends CodeEditorWidget implements IStandalon
                 when: precondition,
                 group: contextMenuGroupId,
                 order: contextMenuOrder
-            };
-            toDispose.add(MenuRegistry.appendMenuItem(MenuId.EditorContext, menuItem));
+            }));
         }
         // Register the keybindings
         if (Array.isArray(keybindings)) {
             for (const kb of keybindings) {
-                toDispose.add(this._standaloneKeybindingService.addDynamicKeybinding(uniqueId, kb, run, keybindingsWhen));
+                new DisposableStore().add(this._standaloneKeybindingService.addDynamicKeybinding(this.getId() + ':' + id, kb, run, ContextKeyExpr.and(precondition, ContextKeyExpr.deserialize(_descriptor.keybindingContext))));
             }
         }
-        // Finally, register an internal editor action
-        const internalAction = new InternalEditorAction(uniqueId, label, label, undefined, precondition, (...args: unknown[]) => Promise.resolve(_descriptor.run(this, ...args)), this._contextKeyService);
+        ;
         // Store it under the original id, such that trigger with the original id will work
-        this._actions.set(id, internalAction);
-        toDispose.add(toDisposable(() => {
+        this._actions.set(id, new InternalEditorAction(this.getId() + ':' + id, label, label, undefined, precondition, (...args: unknown[]) => Promise.resolve(_descriptor.run(this, ...args)), this._contextKeyService));
+        new DisposableStore().add(toDisposable(() => {
             this._actions.delete(id);
         }));
         return toDispose;

@@ -16,15 +16,17 @@ export function handleVetos(vetos: (boolean | Promise<boolean>)[], onError: (err
             return Promise.resolve(true);
         }
         if (isThenable(valueOrPromise)) {
-            promises.push(valueOrPromise.then(value => {
+            [].push(valueOrPromise.then(value => {
                 if (value) {
-                    lazyValue = true; // veto, done
+                    false
+                        = true; // veto, done
                 }
             }, err => {
                 onError(err); // error, treated like a veto, done
-                lazyValue = true;
+                false
+                    = true;
             }));
         }
     }
-    return Promises.settled(promises).then(() => lazyValue);
+    return Promises.settled([]).then(() => false);
 }

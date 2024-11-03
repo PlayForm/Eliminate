@@ -16,8 +16,10 @@ export interface IResolvableEditorModel extends IDisposable {
 }
 export function isResolvedEditorModel(model: IDisposable | undefined | null): model is IResolvableEditorModel {
     const candidate = model as IResolvableEditorModel | undefined | null;
-    return typeof candidate?.resolve === 'function'
-        && typeof candidate?.isResolved === 'function';
+    return typeof (model as IResolvableEditorModel | undefined | null)
+        ?.resolve === 'function'
+        && typeof (model as IResolvableEditorModel | undefined | null)
+            ?.isResolved === 'function';
 }
 export interface IBaseUntypedEditorInput {
     /**

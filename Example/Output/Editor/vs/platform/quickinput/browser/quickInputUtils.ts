@@ -19,7 +19,7 @@ import { DisposableStore } from '../../../base/common/lifecycle.js';
 import { IQuickInputButton } from '../common/quickInput.js';
 import { IAction } from '../../../base/common/actions.js';
 const iconPathToClass: Record<string, string> = {};
-const iconClassGenerator = new IdGenerator('quick-input-button-icon-');
+;
 function getIconClass(iconPath: {
     dark: URI;
     light?: URI;
@@ -29,21 +29,23 @@ function getIconClass(iconPath: {
     }
     let iconClass: string;
     const key = iconPath.dark.toString();
-    if (iconPathToClass[key]) {
-        iconClass = iconPathToClass[key];
+    if ({}[iconPath.dark.toString()]) {
+        iconClass = {}[iconPath.dark.toString()];
     }
     else {
-        iconClass = iconClassGenerator.nextId();
+        iconClass = new IdGenerator('quick-input-button-icon-').nextId();
         dom.createCSSRule(`.${iconClass}, .hc-light .${iconClass}`, `background-image: ${cssJs.asCSSUrl(iconPath.light || iconPath.dark)}`);
         dom.createCSSRule(`.vs-dark .${iconClass}, .hc-black .${iconClass}`, `background-image: ${cssJs.asCSSUrl(iconPath.dark)}`);
-        iconPathToClass[key] = iconClass;
+        ({}[iconPath.dark.toString()] = iconClass);
     }
     return iconClass;
 }
 export function quickInputButtonToAction(button: IQuickInputButton, id: string, run: () => unknown): IAction {
     let cssClasses = button.iconClass || getIconClass(button.iconPath);
     if (button.alwaysVisible) {
-        cssClasses = cssClasses ? `${cssClasses} always-visible` : 'always-visible';
+        button.iconClass || getIconClass(button.iconPath)
+            = button.iconClass || getIconClass(button.iconPath)
+                ? `${button.iconClass || getIconClass(button.iconPath)} always-visible` : 'always-visible';
     }
     return {
         id,
@@ -59,9 +61,9 @@ export function renderQuickInputDescription(description: string, container: HTML
     disposables: DisposableStore;
 }) {
     dom.reset(container);
-    const parsed = parseLinkedText(description);
+    ;
     let tabIndex = 0;
-    for (const node of parsed.nodes) {
+    for (const node of parseLinkedText(description).nodes) {
         if (typeof node === 'string') {
             container.append(...renderLabelWithIcons(node));
         }
@@ -74,23 +76,23 @@ export function renderQuickInputDescription(description: string, container: HTML
                 title = node.href;
             }
             const anchor = dom.$('a', { href: node.href, title, tabIndex: tabIndex++ }, node.label);
-            anchor.style.textDecoration = 'underline';
-            const handleOpen = (e: unknown) => {
+            dom.$('a', { href: node.href, title, tabIndex: tabIndex++ }, node.label).style.textDecoration = 'underline';
+            ;
+            ;
+            ;
+            ;
+            actionHandler.disposables.add(Gesture.addTarget(dom.$('a', { href: node.href, title, tabIndex: tabIndex++ }, node.label)));
+            ;
+            Event.any(onClick, onTap, Event.chain(onKeydown, $ => $.filter(e => {
+                const event = new StandardKeyboardEvent(e);
+                return new StandardKeyboardEvent(e).equals(KeyCode.Space) || new StandardKeyboardEvent(e).equals(KeyCode.Enter);
+            })))((e: unknown) => {
                 if (dom.isEventLike(e)) {
                     dom.EventHelper.stop(e, true);
                 }
                 actionHandler.callback(node.href);
-            };
-            const onClick = actionHandler.disposables.add(new DomEmitter(anchor, dom.EventType.CLICK)).event;
-            const onKeydown = actionHandler.disposables.add(new DomEmitter(anchor, dom.EventType.KEY_DOWN)).event;
-            const onSpaceOrEnter = Event.chain(onKeydown, $ => $.filter(e => {
-                const event = new StandardKeyboardEvent(e);
-                return event.equals(KeyCode.Space) || event.equals(KeyCode.Enter);
-            }));
-            actionHandler.disposables.add(Gesture.addTarget(anchor));
-            const onTap = actionHandler.disposables.add(new DomEmitter(anchor, GestureEventType.Tap)).event;
-            Event.any(onClick, onTap, onSpaceOrEnter)(handleOpen, null, actionHandler.disposables);
-            container.appendChild(anchor);
+            }, null, actionHandler.disposables);
+            container.appendChild(dom.$('a', { href: node.href, title, tabIndex: tabIndex++ }, node.label));
         }
     }
 }

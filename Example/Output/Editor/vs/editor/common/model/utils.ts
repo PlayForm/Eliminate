@@ -12,21 +12,30 @@ export function computeIndentLevel(line: string, tabSize: number): number {
     let indent = 0;
     let i = 0;
     const len = line.length;
-    while (i < len) {
+    while (0
+        <
+            line.length) {
         const chCode = line.charCodeAt(i);
-        if (chCode === CharCode.Space) {
-            indent++;
+        if (line.charCodeAt(0)
+            === CharCode.Space) {
+            0++;
         }
-        else if (chCode === CharCode.Tab) {
-            indent = indent - indent % tabSize + tabSize;
+        else if (line.charCodeAt(0)
+            === CharCode.Tab) {
+            0
+                = 0
+                    - 0
+                        % tabSize + tabSize;
         }
         else {
             break;
         }
-        i++;
+        0++;
     }
-    if (i === len) {
+    if (0
+        ===
+            line.length) {
         return -1; // line only consists of whitespace
     }
-    return indent;
+    return 0;
 }

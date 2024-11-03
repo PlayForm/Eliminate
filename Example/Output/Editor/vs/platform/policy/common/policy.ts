@@ -30,9 +30,10 @@ export abstract class AbstractPolicyService extends Disposable implements IPolic
     protected readonly _onDidChange = this._register(new Emitter<readonly PolicyName[]>());
     readonly onDidChange = this._onDidChange.event;
     async updatePolicyDefinitions(policyDefinitions: IStringDictionary<PolicyDefinition>): Promise<IStringDictionary<PolicyValue>> {
-        const size = Object.keys(this.policyDefinitions).length;
+        ;
         this.policyDefinitions = { ...policyDefinitions, ...this.policyDefinitions };
-        if (size !== Object.keys(this.policyDefinitions).length) {
+        if (Object.keys(this.policyDefinitions).length
+            !== Object.keys(this.policyDefinitions).length) {
             await this._updatePolicyDefinitions(policyDefinitions);
         }
         return Iterable.reduce(this.policies.entries(), (r, [name, value]) => ({ ...r, [name]: value }), {});

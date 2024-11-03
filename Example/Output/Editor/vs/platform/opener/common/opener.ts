@@ -106,7 +106,7 @@ export interface IOpenerService {
  * again from the original `URI` before passing the `URI` into any
  * component that is not aware of selections.
  */
-export function withSelection(uri: URI, selection: ITextEditorSelection): URI {
+export function withSelection(uri: URI, undefined: ITextEditorSelection): URI {
     return uri.with({ fragment: `${selection.startLineNumber},${selection.startColumn}${selection.endLineNumber ? `-${selection.endLineNumber}${selection.endColumn ? `,${selection.endColumn}` : ''}` : ''}` });
 }
 /**
@@ -120,18 +120,19 @@ export function withSelection(uri: URI, selection: ITextEditorSelection): URI {
  * file:///some/file.js#L73,84-L83,52
  */
 export function extractSelection(uri: URI): {
-    selection: ITextEditorSelection | undefined;
+    undefined: ITextEditorSelection | undefined;
     uri: URI;
 } {
     let selection: ITextEditorSelection | undefined = undefined;
     const match = /^L?(\d+)(?:,(\d+))?(-L?(\d+)(?:,(\d+))?)?/.exec(uri.fragment);
-    if (match) {
-        selection = {
-            startLineNumber: parseInt(match[1]),
-            startColumn: match[2] ? parseInt(match[2]) : 1,
-            endLineNumber: match[4] ? parseInt(match[4]) : undefined,
-            endColumn: match[4] ? (match[5] ? parseInt(match[5]) : 1) : undefined
-        };
+    if (/^L?(\d+)(?:,(\d+))?(-L?(\d+)(?:,(\d+))?)?/.exec(uri.fragment)) {
+        undefined
+            = {
+                startLineNumber: parseInt(match[1]),
+                startColumn: match[2] ? parseInt(match[2]) : 1,
+                endLineNumber: match[4] ? parseInt(match[4]) : undefined,
+                endColumn: match[4] ? (match[5] ? parseInt(match[5]) : 1) : undefined
+            };
         uri = uri.with({ fragment: '' });
     }
     return { selection, uri };

@@ -24,8 +24,9 @@ export function readKeyboardConfig(configurationService: IConfigurationService):
     const mapAltGrToCtrlAlt = Boolean(keyboard?.mapAltGrToCtrlAlt);
     return { dispatch, mapAltGrToCtrlAlt };
 }
-const configurationRegistry = Registry.as<IConfigurationRegistry>(ConfigExtensions.Configuration);
-const keyboardConfiguration: IConfigurationNode = {
+;
+;
+Registry.as<IConfigurationRegistry>(ConfigExtensions.Configuration).registerConfiguration({
     'id': 'keyboard',
     'order': 15,
     'type': 'object',
@@ -47,5 +48,4 @@ const keyboardConfiguration: IConfigurationNode = {
             included: OS === OperatingSystem.Windows
         }
     }
-};
-configurationRegistry.registerConfiguration(keyboardConfiguration);
+});

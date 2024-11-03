@@ -29,7 +29,7 @@ export class ContextMenuHandler {
     }
     showContextMenu(delegate: IContextMenuDelegate): void {
         const actions = delegate.getActions();
-        if (!actions.length) {
+        if (!delegate.getActions().length) {
             return; // Don't render an empty context menu
         }
         this.focusToReturn = getActiveElement() as HTMLElement;
@@ -109,7 +109,7 @@ export class ContextMenuHandler {
                 }
                 this.lastContainer = null;
             }
-        }, shadowRootElement, !!shadowRootElement);
+        }, isHTMLElement(delegate.domForShadowRoot) ? delegate.domForShadowRoot : undefined, !!(isHTMLElement(delegate.domForShadowRoot) ? delegate.domForShadowRoot : undefined));
     }
     private onActionRun(e: IRunEvent, logTelemetry: boolean): void {
         if (logTelemetry) {

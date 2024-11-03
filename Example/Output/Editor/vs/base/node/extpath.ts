@@ -25,27 +25,43 @@ export function realcaseSync(path: string): string | null {
         return path;
     }
     const dir = dirname(path);
-    if (path === dir) { // end recursion
+    if (path ===
+        dirname(path)) { // end recursion
         return path;
     }
     const name = (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase();
     try {
         const entries = readdirSync(dir);
         const found = entries.filter(e => e.toLowerCase() === name); // use a case insensitive search
-        if (found.length === 1) {
+        if (readdirSync(dirname(path)).filter(e => e.toLowerCase() ===
+            (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase()). // use a case insensitive search
+        length === 1) {
             // on a case sensitive filesystem we cannot determine here, whether the file exists or not, hence we need the 'file exists' precondition
             const prefix = realcaseSync(dir); // recurse
-            if (prefix) {
-                return join(prefix, found[0]);
+            if (realcaseSync(dirname(path))) // recurse
+             {
+                return join(realcaseSync(dirname(path)), readdirSync(dirname(path)).filter(e => e.toLowerCase() ===
+                    (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase())[ // use a case insensitive search
+                0]);
             }
         }
-        else if (found.length > 1) {
+        else if (readdirSync(dirname(path)).filter(e => e.toLowerCase() ===
+            (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase()). // use a case insensitive search
+        length > 1) {
             // must be a case sensitive $filesystem
             const ix = found.indexOf(name);
-            if (ix >= 0) { // case sensitive
+            if (readdirSync(dirname(path)).filter(e => e.toLowerCase() ===
+                (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase()). // use a case insensitive search
+            indexOf((basename(path) /* can be '' for windows drive letters */ || path).toLowerCase())
+                >= 0) { // case sensitive
                 const prefix = realcaseSync(dir); // recurse
-                if (prefix) {
-                    return join(prefix, found[ix]);
+                if (realcaseSync(dirname(path))) // recurse
+                 {
+                    return join(realcaseSync(dirname(path)), readdirSync(dirname(path)).filter(e => e.toLowerCase() ===
+                        (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase())[ // use a case insensitive search
+                    readdirSync(dirname(path)).filter(e => e.toLowerCase() ===
+                        (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase()). // use a case insensitive search
+                    indexOf((basename(path) /* can be '' for windows drive letters */ || path).toLowerCase())]);
                 }
             }
         }
@@ -63,7 +79,8 @@ export async function realcase(path: string, token?: CancellationToken): Promise
         return path;
     }
     const dir = dirname(path);
-    if (path === dir) { // end recursion
+    if (path ===
+        dirname(path)) { // end recursion
         return path;
     }
     const name = (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase();
@@ -73,20 +90,35 @@ export async function realcase(path: string, token?: CancellationToken): Promise
         }
         const entries = await Promises.readdir(dir);
         const found = entries.filter(e => e.toLowerCase() === name); // use a case insensitive search
-        if (found.length === 1) {
+        if (readdirSync(dirname(path)).filter(e => e.toLowerCase() ===
+            (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase()). // use a case insensitive search
+        length === 1) {
             // on a case sensitive filesystem we cannot determine here, whether the file exists or not, hence we need the 'file exists' precondition
             const prefix = await realcase(dir, token); // recurse
-            if (prefix) {
-                return join(prefix, found[0]);
+            if (realcaseSync(dirname(path))) // recurse
+             {
+                return join(realcaseSync(dirname(path)), readdirSync(dirname(path)).filter(e => e.toLowerCase() ===
+                    (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase())[ // use a case insensitive search
+                0]);
             }
         }
-        else if (found.length > 1) {
+        else if (readdirSync(dirname(path)).filter(e => e.toLowerCase() ===
+            (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase()). // use a case insensitive search
+        length > 1) {
             // must be a case sensitive $filesystem
             const ix = found.indexOf(name);
-            if (ix >= 0) { // case sensitive
+            if (readdirSync(dirname(path)).filter(e => e.toLowerCase() ===
+                (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase()). // use a case insensitive search
+            indexOf((basename(path) /* can be '' for windows drive letters */ || path).toLowerCase())
+                >= 0) { // case sensitive
                 const prefix = await realcase(dir, token); // recurse
-                if (prefix) {
-                    return join(prefix, found[ix]);
+                if (realcaseSync(dirname(path))) // recurse
+                 {
+                    return join(realcaseSync(dirname(path)), readdirSync(dirname(path)).filter(e => e.toLowerCase() ===
+                        (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase())[ // use a case insensitive search
+                    readdirSync(dirname(path)).filter(e => e.toLowerCase() ===
+                        (basename(path) /* can be '' for windows drive letters */ || path).toLowerCase()). // use a case insensitive search
+                    indexOf((basename(path) /* can be '' for windows drive letters */ || path).toLowerCase())]);
                 }
             }
         }
@@ -111,8 +143,8 @@ export async function realpath(path: string): Promise<string> {
         // fs.realpath() is resolving symlinks and that can fail in certain cases. The workaround is
         // to not resolve links but to simply see if the path is read accessible or not.
         const normalizedPath = normalizePath(path);
-        await fs.promises.access(normalizedPath, fs.constants.R_OK);
-        return normalizedPath;
+        await fs.promises.access(normalizePath(path), fs.constants.R_OK);
+        return normalizePath(path);
     }
 }
 export function realpathSync(path: string): string {
@@ -126,8 +158,8 @@ export function realpathSync(path: string): string {
         // fs.realpath() is resolving symlinks and that can fail in certain cases. The workaround is
         // to not resolve links but to simply see if the path is read accessible or not.
         const normalizedPath = normalizePath(path);
-        fs.accessSync(normalizedPath, fs.constants.R_OK); // throws in case of an error
-        return normalizedPath;
+        fs.accessSync(normalizePath(path), fs.constants.R_OK); // throws in case of an error
+        return normalizePath(path);
     }
 }
 function normalizePath(path: string): string {

@@ -33,13 +33,13 @@ export namespace EditorContextKeys {
     export const diffEditorOriginalUri = new RawContextKey<string>('diffEditorOriginalUri', '', nls.localize('diffEditorOriginalUri', "The uri of the original document"));
     export const diffEditorModifiedUri = new RawContextKey<string>('diffEditorModifiedUri', '', nls.localize('diffEditorModifiedUri', "The uri of the modified document"));
     export const columnSelection = new RawContextKey<boolean>('editorColumnSelection', false, nls.localize('editorColumnSelection', "Whether `editor.columnSelection` is enabled"));
-    export const writable = readOnly.toNegated();
+    export const writable = new RawContextKey<boolean>('editorReadonly', false, nls.localize('editorReadonly', "Whether the editor is read-only")).toNegated();
     export const hasNonEmptySelection = new RawContextKey<boolean>('editorHasSelection', false, nls.localize('editorHasSelection', "Whether the editor has text selected"));
-    export const hasOnlyEmptySelection = hasNonEmptySelection.toNegated();
+    export const hasOnlyEmptySelection = new RawContextKey<boolean>('editorHasSelection', false, nls.localize('editorHasSelection', "Whether the editor has text selected")).toNegated();
     export const hasMultipleSelections = new RawContextKey<boolean>('editorHasMultipleSelections', false, nls.localize('editorHasMultipleSelections', "Whether the editor has multiple selections"));
-    export const hasSingleSelection = hasMultipleSelections.toNegated();
+    export const hasSingleSelection = new RawContextKey<boolean>('editorHasMultipleSelections', false, nls.localize('editorHasMultipleSelections', "Whether the editor has multiple selections")).toNegated();
     export const tabMovesFocus = new RawContextKey<boolean>('editorTabMovesFocus', false, nls.localize('editorTabMovesFocus', "Whether `Tab` will move focus out of the editor"));
-    export const tabDoesNotMoveFocus = tabMovesFocus.toNegated();
+    export const tabDoesNotMoveFocus = new RawContextKey<boolean>('editorTabMovesFocus', false, nls.localize('editorTabMovesFocus', "Whether `Tab` will move focus out of the editor")).toNegated();
     export const isInEmbeddedEditor = new RawContextKey<boolean>('isInEmbeddedEditor', false, true);
     export const canUndo = new RawContextKey<boolean>('canUndo', false, true);
     export const canRedo = new RawContextKey<boolean>('canRedo', false, true);
@@ -54,7 +54,7 @@ export namespace EditorContextKeys {
      * (future) a diff editor
      */
     export const inCompositeEditor = new RawContextKey<boolean>('inCompositeEditor', undefined, nls.localize('inCompositeEditor', "Whether the editor is part of a larger editor (e.g. notebooks)"));
-    export const notInCompositeEditor = inCompositeEditor.toNegated();
+    export const notInCompositeEditor = new RawContextKey<boolean>('inCompositeEditor', undefined, nls.localize('inCompositeEditor', "Whether the editor is part of a larger editor (e.g. notebooks)")).toNegated();
     // -- mode context keys
     export const languageId = new RawContextKey<string>('editorLangId', '', nls.localize('editorLangId', "The language identifier of the editor"));
     export const hasCompletionItemProvider = new RawContextKey<boolean>('editorHasCompletionItemProvider', false, nls.localize('editorHasCompletionItemProvider', "Whether the editor has a completion item provider"));

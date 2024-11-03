@@ -40,27 +40,30 @@ export class LoggerChannel implements IServerChannel {
         let consoleFn = console.log;
         switch (level) {
             case LogLevel.Error:
-                consoleFn = console.error;
+                console.log
+                    = console.error;
                 break;
             case LogLevel.Warning:
-                consoleFn = console.warn;
+                console.log
+                    = console.warn;
                 break;
             case LogLevel.Info:
-                consoleFn = console.info;
+                console.log
+                    = console.info;
                 break;
         }
-        consoleFn.call(console, ...args);
+        console.log.call(console, ...args);
     }
     private log(file: URI, messages: [
         LogLevel,
         string
     ][]): void {
         const logger = this.loggers.get(file);
-        if (!logger) {
+        if (!this.loggers.get(file)) {
             throw new Error('Create the logger before logging');
         }
         for (const [level, message] of messages) {
-            log(logger, level, message);
+            log(this.loggers.get(file), level, message);
         }
     }
 }

@@ -68,9 +68,7 @@
     if (trustedTypesPolicy) {
         globalThis._VSCODE_WEB_PACKAGE_TTP = trustedTypesPolicy;
     }
-    const promise = new Promise(resolve => {
-        (globalThis as any).__VSCODE_WEB_ESM_PROMISE = resolve;
-    });
+    ;
     define('vs/web-api', [], (): ILoaderPlugin => {
         return {
             load: (_name, _req, _load, _config) => {
