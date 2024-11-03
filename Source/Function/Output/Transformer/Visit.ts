@@ -250,10 +250,14 @@ export const Fn = ((usageMap, initializerMap) => {
 			}
 
 			try {
-				const transformed = this.transformNodeSafely(initializer);
+				// Instead of just returning the transformed node, we need to visit it
+				// to handle nested identifiers that might need inlining
+				const transformedNode = this.transformNodeSafely(initializer);
+
+				const result = this.visitNode(transformedNode);
 
 				return this.createVisitResult(
-					transformed as Identifier,
+					result.node as Identifier,
 					true,
 					dependencies,
 				);
@@ -265,7 +269,7 @@ export const Fn = ((usageMap, initializerMap) => {
 		}
 
 		private isSelfReference(node: Identifier, initializer: Node): boolean {
-			if (!ts.isIdentifier(initializer)) return false;
+			if (!isIdentifier(initializer)) return false;
 
 			return node.text === initializer.text;
 		}
@@ -274,7 +278,7 @@ export const Fn = ((usageMap, initializerMap) => {
 			const dependencies = new Set<string>();
 
 			const visitor = (node: Node): void => {
-				if (ts.isIdentifier(node)) {
+				if (isIdentifier(node)) {
 					dependencies.add(node.text);
 				}
 
@@ -341,7 +345,7 @@ export const Fn = ((usageMap, initializerMap) => {
 
 			let result: VisitResult;
 
-			if (ts.isIdentifier(node)) {
+			if (isIdentifier(node)) {
 				result = this.handleIdentifier(node);
 			} else if (ts.isVariableStatement(node)) {
 				result = this.handleVariableStatement(node);
@@ -362,7 +366,7 @@ export const Fn = ((usageMap, initializerMap) => {
 			let modified = false;
 
 			for (const declaration of node.declarationList.declarations) {
-				if (!ts.isIdentifier(declaration.name)) {
+				if (!isIdentifier(declaration.name)) {
 					newDeclarations.push(declaration);
 
 					continue;
@@ -370,11 +374,50 @@ export const Fn = ((usageMap, initializerMap) => {
 
 				const usage = usageMap.get(declaration.name.text);
 
+				// Keep exported variables
+				if (
+					node.modifiers?.some(
+						(mod) => mod.kind === ts.SyntaxKind.ExportKeyword,
+					)
+				) {
+					// If it has an initializer that can be simplified, do so
+					if (declaration.initializer) {
+						const result = this.visitNode(declaration.initializer);
+
+						if (result.modified) {
+							modified = true;
+
+							newDeclarations.push(
+								factory.updateVariableDeclaration(
+									declaration,
+									declaration.name,
+									declaration.exclamationToken,
+									declaration.type,
+									result.node,
+								),
+							);
+						} else {
+							newDeclarations.push(declaration);
+						}
+					} else {
+						newDeclarations.push(declaration);
+					}
+					continue;
+				}
+
+				// For non-exported variables, inline them if used only once
 				if (!usage || usage > 1 || !declaration.initializer) {
 					newDeclarations.push(declaration);
 
+					
 					continue;
 				}
+
+				// Store the initializer for inlining
+				initializerMap.set(
+					declaration.initializer,
+					declaration.name.text,
+				);
 
 				modified = true;
 			}
@@ -449,7 +492,6 @@ export const Fn = ((usageMap, initializerMap) => {
 			if (state.errors.length > 0) {
 				console.error("Transformation errors:", state.errors);
 			}
-
 			if (state.warnings.length > 0) {
 				console.warn("Transformation warnings:", state.warnings);
 			}
