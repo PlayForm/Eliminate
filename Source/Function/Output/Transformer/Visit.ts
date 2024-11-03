@@ -9,65 +9,172 @@ import type {
     EmptyStatement,
     SourceFile,
     TransformerFactory,
-    Visitor
+    Visitor,
+    Expression,
+    Declaration,
+    Statement
 } from "typescript";
 
 /**
  * @module Output
- * Advanced transformer with validation, error handling, and performance optimizations
+ * Enhanced transformer with comprehensive validation, error handling, 
+ * circular reference detection, and performance optimizations
  */
 
-type VisitResult = {
-    readonly Node: Node;
-    readonly Use: boolean;
+type VisitResult<T extends Node = Node> = {
+    readonly node: T;
+    readonly modified: boolean;
+    readonly dependencies?: Set<string>;
 };
 
-type TransformerState = {
-    visit: number;
-    iteration: number;
-    context: TransformationContext;
-    errors: TransformError[];
-    warnings: TransformWarning[];
-};
+interface TransformerState {
+    readonly visitCount: number;
+    readonly iterationCount: number;
+    readonly context: TransformationContext;
+    readonly errors: ReadonlyArray<TransformError>;
+    readonly warnings: ReadonlyArray<TransformWarning>;
+    readonly processedNodes: ReadonlySet<string>;
+    readonly dependencyGraph: Map<string, Set<string>>;
+}
 
-type TransformError = {
-    code: string;
-    message: string;
-    node: Node;
-    stack?: string;
-};
+interface TransformError {
+    readonly code: ErrorCode;
+    readonly message: string;
+    readonly node: Node;
+    readonly stack?: string;
+}
 
-type TransformWarning = {
-    code: string;
-    message: string;
-    node: Node;
-};
+interface TransformWarning {
+    readonly code: WarningCode;
+    readonly message: string;
+    readonly node: Node;
+}
 
-type ValidationResult = {
-    isValid: boolean;
-    error?: TransformError;
-    warning?: TransformWarning;
-};
+interface ValidationResult {
+    readonly isValid: boolean;
+    readonly error?: TransformError;
+    readonly warning?: TransformWarning;
+}
 
 const enum ErrorCode {
     MAX_DEPTH_EXCEEDED = 'MAX_DEPTH_EXCEEDED',
     MAX_VISITS_EXCEEDED = 'MAX_VISITS_EXCEEDED',
     MAX_ITERATIONS_EXCEEDED = 'MAX_ITERATIONS_EXCEEDED',
+    CIRCULAR_REFERENCE = 'CIRCULAR_REFERENCE',
     TRANSFORM_ERROR = 'TRANSFORM_ERROR',
     INVALID_IDENTIFIER = 'INVALID_IDENTIFIER',
-    INVALID_PROPERTY_ACCESS = 'INVALID_PROPERTY_ACCESS'
+    INVALID_PROPERTY_ACCESS = 'INVALID_PROPERTY_ACCESS',
+    UNINITIALIZED_VARIABLE = 'UNINITIALIZED_VARIABLE',
+    SELF_REFERENCE = 'SELF_REFERENCE'
+}
+
+const enum WarningCode {
+    POTENTIAL_SIDE_EFFECT = 'POTENTIAL_SIDE_EFFECT',
+    UNUSED_DECLARATION = 'UNUSED_DECLARATION',
+    COMPLEX_INITIALIZATION = 'COMPLEX_INITIALIZATION'
 }
 
 const CONFIG = {
     MAX_RECURSIVE_DEPTH: 100,
-    MAX_NODE_VISITS: 100,
+    MAX_NODE_VISITS: 1000,
     MAX_ITERATIONS: 100,
-    BATCH_SIZE: 50 // Number of nodes to process before checking state
+    BATCH_SIZE: 50,
+    CACHE_SIZE_LIMIT: 10000
 } as const;
 
-export const Fn = ((Usage: Map<string, number>, Initializer: Map<string, Node>) => {
-    class TransformerValidator {
-        static validateNode(node: Node, state: TransformerState, depth: number): ValidationResult {
+export const Fn = ((usageMap: Map<string, number>, initializerMap: Map<string, Node>) => {
+    class CircularReferenceDetector {
+        private readonly dependencies = new Map<string, Set<string>>();
+
+        detectCircular(identifier: string, dependencies: Set<string>): boolean {
+            const visited = new Set<string>();
+            const stack = [identifier];
+
+            while (stack.length > 0) {
+                const current = stack.pop()!;
+                visited.add(current);
+
+                const deps = this.dependencies.get(current) || dependencies;
+                if (!deps) continue;
+
+                for (const dep of deps) {
+                    if (dep === identifier) return true;
+                    if (!visited.has(dep)) {
+                        stack.push(dep);
+                    }
+                }
+            }
+
+            this.dependencies.set(identifier, dependencies);
+            return false;
+        }
+
+        clear(): void {
+            this.dependencies.clear();
+        }
+    }
+
+    class TransformerCache {
+        private readonly cache = new Map<string, VisitResult>();
+        private size = 0;
+
+        get(key: string): VisitResult | undefined {
+            return this.cache.get(key);
+        }
+
+        set(key: string, value: VisitResult): void {
+            if (this.size >= CONFIG.CACHE_SIZE_LIMIT) {
+                // Implement LRU eviction if needed
+                const firstKey = this.cache.keys().next().value;
+                this.cache.delete(firstKey);
+                this.size--;
+            }
+            this.cache.set(key, value);
+            this.size++;
+        }
+
+        clear(): void {
+            this.cache.clear();
+            this.size = 0;
+        }
+    }
+
+    class NodeTransformer {
+        private readonly state: TransformerState;
+        private readonly cache: TransformerCache;
+        private readonly circularDetector: CircularReferenceDetector;
+
+        constructor(context: TransformationContext) {
+            this.state = {
+                visitCount: 0,
+                iterationCount: 0,
+                context,
+                errors: [],
+                warnings: [],
+                processedNodes: new Set(),
+                dependencyGraph: new Map()
+            };
+            this.cache = new TransformerCache();
+            this.circularDetector = new CircularReferenceDetector();
+        }
+
+        private createVisitResult<T extends Node>(
+            node: T, 
+            modified: boolean, 
+            dependencies?: Set<string>
+        ): VisitResult<T> {
+            return Object.freeze({
+                node,
+                modified,
+                dependencies
+            });
+        }
+
+        private getCacheKey(node: Node): string {
+            return `${node.kind}-${node.pos}-${node.end}-${this.state.iterationCount}`;
+        }
+
+        private validateNode(node: Node, depth: number): ValidationResult {
             if (depth > CONFIG.MAX_RECURSIVE_DEPTH) {
                 return {
                     isValid: false,
@@ -79,7 +186,7 @@ export const Fn = ((Usage: Map<string, number>, Initializer: Map<string, Node>) 
                 };
             }
 
-            if (state.visit > CONFIG.MAX_NODE_VISITS) {
+            if (this.state.visitCount > CONFIG.MAX_NODE_VISITS) {
                 return {
                     isValid: false,
                     error: {
@@ -90,246 +197,150 @@ export const Fn = ((Usage: Map<string, number>, Initializer: Map<string, Node>) 
                 };
             }
 
-            if (state.iteration >= CONFIG.MAX_ITERATIONS) {
-                return {
-                    isValid: false,
-                    error: {
-                        code: ErrorCode.MAX_ITERATIONS_EXCEEDED,
-                        message: `Maximum iterations of ${CONFIG.MAX_ITERATIONS} exceeded`,
-                        node
-                    }
-                };
-            }
-
             return { isValid: true };
         }
 
-        static validateIdentifier(node: Identifier): ValidationResult {
-            if (!node.text || node.text.length === 0) {
-                return {
-                    isValid: false,
-                    error: {
-                        code: ErrorCode.INVALID_IDENTIFIER,
-                        message: 'Invalid identifier: empty text',
-                        node
-                    }
-                };
-            }
-            return { isValid: true };
-        }
+        private async handleIdentifier(node: Identifier): Promise<VisitResult<Identifier>> {
+            const name = node.text;
+            const usage = usageMap.get(name);
+            const initializer = Get(name, initializerMap);
 
-        static validatePropertyAccess(node: PropertyAccessExpression): ValidationResult {
-            if (!node.name || !ts.isIdentifier(node.name)) {
-                return {
-                    isValid: false,
-                    error: {
-                        code: ErrorCode.INVALID_PROPERTY_ACCESS,
-                        message: 'Invalid property access expression',
-                        node
-                    }
-                };
-            }
-            return { isValid: true };
-        }
-    }
-
-    class NodeTransformer {
-        private state: TransformerState;
-        private nodeCache: Map<string, VisitResult>;
-
-        constructor(context: TransformationContext) {
-            this.state = {
-                visit: 0,
-                iteration: 0,
-                context,
-                errors: [],
-                warnings: []
-            };
-            this.nodeCache = new Map();
-        }
-
-        private createVisitResult(node: Node, use: boolean): VisitResult {
-            return Object.freeze({
-                Node: node,
-                Use: use
-            });
-        }
-
-        private getCacheKey(node: Node): string {
-            return `${node.kind}-${node.pos}-${node.end}`;
-        }
-
-        private getCachedResult(node: Node): VisitResult | undefined {
-            return this.nodeCache.get(this.getCacheKey(node));
-        }
-
-        private setCachedResult(node: Node, result: VisitResult): void {
-            this.nodeCache.set(this.getCacheKey(node), result);
-        }
-
-        private handleArrayLiteral(node: ArrayLiteralExpression): VisitResult {
-            const parent = node.parent;
-            if (ts.isIdentifier(parent) || ts.isPropertyAccessExpression(parent)) {
-                return this.createVisitResult(
-                    factory.createIdentifier("array_expression"),
-                    true
-                );
-            }
-            return this.createVisitResult(node, false);
-        }
-
-        private handleEmptyStatement(node: EmptyStatement): VisitResult {
-            return this.createVisitResult(
-                factory.createNotEmittedStatement(node),
-                true
-            );
-        }
-
-        private handlePropertyAccess(node: PropertyAccessExpression): VisitResult {
-            const validation = TransformerValidator.validatePropertyAccess(node);
-            if (!validation.isValid) {
-                this.state.errors.push(validation.error!);
+            if (!initializer || !usage) {
                 return this.createVisitResult(node, false);
             }
 
-            if (ts.isPropertyAssignment(node.parent)) {
-                return this.createVisitResult(
-                    factory.createIdentifier(node.name.text),
-                    true
-                );
-            }
-            return this.createVisitResult(node, false);
-        }
-
-        private shouldPreserveIdentifier(
-            node: Identifier, 
-            parent: Node, 
-            initializer: Node | undefined
-        ): boolean {
-            if (ts.isPropertyAccessExpression(parent)) {
-                return parent.name.text === node.text;
+            // Detect self-references
+            if (this.isSelfReference(node, initializer)) {
+                return this.createVisitResult(node, false, new Set([name]));
             }
 
-            if (ts.isPropertyAssignment(parent)) {
-                return ts.isIdentifier(parent.name) && parent.name.text === node.text;
-            }
-
-            if (isIdentifier(initializer)) {
-                return (ts.isPropertyAccessExpression(parent) || 
-                       ts.isPropertyAssignment(parent)) && 
-                       parent.name === node;
-            }
-
-            return false;
-        }
-
-        private async transformIdentifier(
-            node: Identifier, 
-            initializer: Node
-        ): Promise<VisitResult> {
-            if (isIdentifier(initializer)) {
-                return this.createVisitResult(
-                    factory.createIdentifier(initializer.text),
-                    true
-                );
+            // Check for circular references
+            const dependencies = this.collectDependencies(initializer);
+            if (this.circularDetector.detectCircular(name, dependencies)) {
+                return this.createVisitResult(node, false);
             }
 
             try {
                 const transformed = await this.transformNodeSafely(initializer);
-                if (!transformed) {
-                    return this.createVisitResult(node, false);
-                }
-
-                const validation = this.validateTransformedNode(transformed, node);
-                if (!validation.isValid) {
-                    return this.createVisitResult(node, false);
-                }
-
-                return this.createVisitResult(transformed as Node, true);
+                return this.createVisitResult(
+                    transformed as Identifier,
+                    true,
+                    dependencies
+                );
             } catch (error) {
-                this.handleTransformError(error, node);
+                this.handleError(error, node);
                 return this.createVisitResult(node, false);
             }
         }
 
-        private async transformNodeSafely(node: Node): Promise<Node | null> {
-            return new Promise((resolve) => {
+        private isSelfReference(node: Identifier, initializer: Node): boolean {
+            if (!ts.isIdentifier(initializer)) return false;
+            return node.text === initializer.text;
+        }
+
+        private collectDependencies(node: Node): Set<string> {
+            const dependencies = new Set<string>();
+            
+            const visitor = (node: Node): void => {
+                if (ts.isIdentifier(node)) {
+                    dependencies.add(node.text);
+                }
+                ts.forEachChild(node, visitor);
+            };
+
+            visitor(node);
+            return dependencies;
+        }
+
+        private async transformNodeSafely(node: Node): Promise<Node> {
+            return new Promise((resolve, reject) => {
                 try {
                     const transformed = ts.transform(
                         node,
                         [(context) => (node) => node],
-                        { noEmitHelpers: true }
+                        { 
+                            noEmitHelpers: true,
+                            preserveConstEnums: true,
+                            preserveValueImports: true
+                        }
                     ).transformed[0];
-                    resolve(transformed || null);
+                    
+                    resolve(transformed || node);
                 } catch (error) {
-                    console.error('Transform error:', error);
-                    resolve(null);
+                    reject(error);
                 }
             });
         }
 
-        private validateTransformedNode(transformed: Node, originalNode: Identifier): ValidationResult {
-            const newParent = transformed.parent;
-            if (ts.isPropertyAccessExpression(newParent) &&
-                ts.isIdentifier(newParent.name) &&
-                newParent.name.text === originalNode.text) {
-                return {
-                    isValid: false,
-                    warning: {
-                        code: 'INVALID_TRANSFORM_RESULT',
-                        message: 'Transform resulted in invalid property access',
-                        node: transformed
-                    }
-                };
-            }
-            return { isValid: true };
-        }
-
-        private handleTransformError(error: unknown, node: Node): void {
-            this.state.errors.push({
+        private handleError(error: unknown, node: Node): void {
+            const transformError: TransformError = {
                 code: ErrorCode.TRANSFORM_ERROR,
                 message: error instanceof Error ? error.message : String(error),
                 node,
                 stack: error instanceof Error ? error.stack : undefined
-            });
+            };
+            
+            (this.state as any).errors = [...this.state.errors, transformError];
         }
 
-        private async handleIdentifier(node: Identifier): Promise<VisitResult> {
-            const validation = TransformerValidator.validateIdentifier(node);
+        public async visitNode(node: Node, depth = 0): Promise<VisitResult> {
+            const validation = this.validateNode(node, depth);
             if (!validation.isValid) {
-                this.state.errors.push(validation.error!);
+                this.handleError(validation.error!, node);
                 return this.createVisitResult(node, false);
             }
 
-            const nodeName = node.text;
-            const usage = Usage.get(nodeName);
-            const initializer = Get(nodeName, Initializer);
+            const cacheKey = this.getCacheKey(node);
+            const cached = this.cache.get(cacheKey);
+            if (cached) return cached;
 
-            if (!initializer || usage !== 1) {
-                return this.createVisitResult(node, false);
+            (this.state as any).visitCount++;
+
+            let result: VisitResult;
+            
+            if (ts.isIdentifier(node)) {
+                result = await this.handleIdentifier(node);
+            } else if (ts.isVariableStatement(node)) {
+                result = await this.handleVariableStatement(node);
+            } else {
+                result = await this.handleGenericNode(node, depth);
             }
 
-            if (this.shouldPreserveIdentifier(node, node.parent, initializer)) {
-                return this.createVisitResult(node, false);
-            }
-
-            return this.transformIdentifier(node, initializer);
+            this.cache.set(cacheKey, result);
+            return result;
         }
 
-        private handleVariableStatement(node: VariableStatement): VisitResult {
-            const declarations = node.declarationList.declarations.filter(declaration => {
-                if (!isIdentifier(declaration.name)) return true;
-                
-                const count = Usage.get(declaration.name.text);
-                return !count || count > 1 || !declaration.initializer;
-            });
+        private async handleVariableStatement(
+            node: VariableStatement
+        ): Promise<VisitResult<VariableStatement>> {
+            const declarations = node.declarationList.declarations;
+            const newDeclarations = [];
+            let modified = false;
 
-            if (declarations.length === 0) {
-                return this.createVisitResult(factory.createEmptyStatement(), true);
+            for (const declaration of declarations) {
+                if (!ts.isIdentifier(declaration.name)) {
+                    newDeclarations.push(declaration);
+                    continue;
+                }
+
+                const usage = usageMap.get(declaration.name.text);
+                if (!usage || usage > 1 || !declaration.initializer) {
+                    newDeclarations.push(declaration);
+                    continue;
+                }
+
+                modified = true;
             }
 
-            if (declarations.length === node.declarationList.declarations.length) {
+            if (!modified) {
                 return this.createVisitResult(node, false);
+            }
+
+            if (newDeclarations.length === 0) {
+                return this.createVisitResult(
+                    factory.createEmptyStatement() as any,
+                    true
+                );
             }
 
             return this.createVisitResult(
@@ -337,7 +348,7 @@ export const Fn = ((Usage: Map<string, number>, Initializer: Map<string, Node>) 
                     node,
                     node.modifiers,
                     factory.createVariableDeclarationList(
-                        declarations,
+                        newDeclarations,
                         node.declarationList.flags
                     )
                 ),
@@ -345,57 +356,23 @@ export const Fn = ((Usage: Map<string, number>, Initializer: Map<string, Node>) 
             );
         }
 
-        public async visitNode(
-            node: Node,
-            depth = 0
-        ): Promise<VisitResult> {
-            const validation = TransformerValidator.validateNode(node, this.state, depth);
-            if (!validation.isValid) {
-                this.state.errors.push(validation.error!);
-                return this.createVisitResult(node, false);
-            }
+        private async handleGenericNode(node: Node, depth: number): Promise<VisitResult> {
+            let modified = false;
+            const newNode = await ts.visitEachChild(
+                node,
+                async (child) => {
+                    const result = await this.visitNode(child, depth + 1);
+                    modified = modified || result.modified;
+                    return result.node;
+                },
+                this.state.context
+            );
 
-            // Check cache first
-            const cached = this.getCachedResult(node);
-            if (cached) return cached;
-
-            this.state.visit++;
-
-            // Handle specific node types
-            let result: VisitResult;
-            if (ts.isArrayLiteralExpression(node)) {
-                result = this.handleArrayLiteral(node);
-            } else if (ts.isEmptyStatement(node)) {
-                result = this.handleEmptyStatement(node);
-            } else if (ts.isVariableStatement(node)) {
-                result = this.handleVariableStatement(node);
-            } else if (isIdentifier(node)) {
-                result = await this.handleIdentifier(node);
-            } else if (ts.isPropertyAccessExpression(node)) {
-                result = this.handlePropertyAccess(node);
-            } else {
-                // Handle child nodes
-                let use = false;
-                const newNode = ts.visitEachChild(
-                    node,
-                    async (child) => {
-                        const output = await this.visitNode(child, depth + 1);
-                        use = use || output.Use;
-                        return output.Node;
-                    },
-                    this.state.context
-                );
-
-                result = this.createVisitResult(newNode, use);
-            }
-
-            // Cache the result
-            this.setCachedResult(node, result);
-            return result;
+            return this.createVisitResult(newNode, modified);
         }
 
         public getState(): Readonly<TransformerState> {
-            return Object.freeze({ ...this.state });
+            return this.state;
         }
     }
 
@@ -403,13 +380,17 @@ export const Fn = ((Usage: Map<string, number>, Initializer: Map<string, Node>) 
         async (rootNode: Node): Promise<Node> => {
             const transformer = new NodeTransformer(context);
             let currentNode = rootNode;
+            let iterationCount = 0;
 
-            while (transformer.getState().iteration < CONFIG.MAX_ITERATIONS) {
-                const output = await transformer.visitNode(currentNode);
+            while (iterationCount < CONFIG.MAX_ITERATIONS) {
+                const result = await transformer.visitNode(currentNode);
                 
-                if (!output.Use) {
-                    return output.Node;
+                if (!result.modified) {
+                    return result.node;
                 }
+
+                currentNode = result.node;
+                iterationCount++;
 
                 const state = transformer.getState();
                 if (state.errors.length > 0) {
@@ -418,9 +399,6 @@ export const Fn = ((Usage: Map<string, number>, Initializer: Map<string, Node>) 
                 if (state.warnings.length > 0) {
                     console.warn('Transformation warnings:', state.warnings);
                 }
-
-                currentNode = output.Node;
-                state.iteration++;
             }
 
             return currentNode;
