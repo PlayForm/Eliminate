@@ -3,12 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDisposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
-import { URI } from '../../../../../base/common/uri.js';
-import { ITextModel, TrackedRangeStickiness } from '../../../../../editor/common/model.js';
-import { ModelDecorationOptions } from '../../../../../editor/common/model/textModel.js';
-import { IModelService } from '../../../../../editor/common/services/model.js';
-import { Range } from '../../../../../editor/common/core/range.js';
+import {
+	DisposableStore,
+	IDisposable,
+} from "../../../../../base/common/lifecycle.js";
+import { URI } from "../../../../../base/common/uri.js";
+import { Range } from "../../../../../editor/common/core/range.js";
+import {
+	ITextModel,
+	TrackedRangeStickiness,
+} from "../../../../../editor/common/model.js";
+import { ModelDecorationOptions } from "../../../../../editor/common/model/textModel.js";
+import { IModelService } from "../../../../../editor/common/services/model.js";
 
 /**
  * Can add a range highlight decoration to a model.
@@ -16,15 +22,11 @@ import { Range } from '../../../../../editor/common/core/range.js';
  */
 
 export class RangeHighlightDecorations implements IDisposable {
-
 	private _decorationId: string | null = null;
 	private _model: ITextModel | null = null;
 	private readonly _modelDisposables = new DisposableStore();
 
-	constructor(
-		@IModelService private readonly _modelService: IModelService
-	) {
-	}
+	constructor(@IModelService private readonly _modelService: IModelService) {}
 
 	removeHighlightRange() {
 		if (this._model && this._decorationId) {
@@ -36,7 +38,11 @@ export class RangeHighlightDecorations implements IDisposable {
 		this._decorationId = null;
 	}
 
-	highlightRange(resource: URI | ITextModel, range: Range, ownerId: number = 0): void {
+	highlightRange(
+		resource: URI | ITextModel,
+		range: Range,
+		ownerId: number = 0,
+	): void {
 		let model: ITextModel | null;
 		if (URI.isUri(resource)) {
 			model = this._modelService.getModel(resource);
@@ -52,7 +58,10 @@ export class RangeHighlightDecorations implements IDisposable {
 	private doHighlightRange(model: ITextModel, range: Range) {
 		this.removeHighlightRange();
 		model.changeDecorations((accessor) => {
-			this._decorationId = accessor.addDecoration(range, RangeHighlightDecorations._RANGE_HIGHLIGHT_DECORATION);
+			this._decorationId = accessor.addDecoration(
+				range,
+				RangeHighlightDecorations._RANGE_HIGHLIGHT_DECORATION,
+			);
 		});
 		this.setModel(model);
 	}
@@ -61,16 +70,20 @@ export class RangeHighlightDecorations implements IDisposable {
 		if (this._model !== model) {
 			this.clearModelListeners();
 			this._model = model;
-			this._modelDisposables.add(this._model.onDidChangeDecorations((e) => {
-				this.clearModelListeners();
-				this.removeHighlightRange();
-				this._model = null;
-			}));
-			this._modelDisposables.add(this._model.onWillDispose(() => {
-				this.clearModelListeners();
-				this.removeHighlightRange();
-				this._model = null;
-			}));
+			this._modelDisposables.add(
+				this._model.onDidChangeDecorations((e) => {
+					this.clearModelListeners();
+					this.removeHighlightRange();
+					this._model = null;
+				}),
+			);
+			this._modelDisposables.add(
+				this._model.onWillDispose(() => {
+					this.clearModelListeners();
+					this.removeHighlightRange();
+					this._model = null;
+				}),
+			);
 		}
 	}
 
@@ -86,10 +99,11 @@ export class RangeHighlightDecorations implements IDisposable {
 		this._modelDisposables.dispose();
 	}
 
-	private static readonly _RANGE_HIGHLIGHT_DECORATION = ModelDecorationOptions.register({
-		description: 'search-range-highlight',
-		stickiness: TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
-		className: 'rangeHighlight',
-		isWholeLine: true
-	});
+	private static readonly _RANGE_HIGHLIGHT_DECORATION =
+		ModelDecorationOptions.register({
+			description: "search-range-highlight",
+			stickiness: TrackedRangeStickiness.NeverGrowsWhenTypingAtEdges,
+			className: "rangeHighlight",
+			isWholeLine: true,
+		});
 }

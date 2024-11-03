@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { UriComponents } from '../../../../base/common/uri.js';
-import { ISandboxConfiguration } from '../../../../base/parts/sandbox/common/sandboxTypes.js';
-import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
+import { UriComponents } from "../../../../base/common/uri.js";
+import { ISandboxConfiguration } from "../../../../base/parts/sandbox/common/sandboxTypes.js";
+import { createDecorator } from "../../../../platform/instantiation/common/instantiation.js";
 
 // Since data sent through the service is serialized to JSON, functions will be lost, so Color objects
 // should not be sent as their 'toString' method will be stripped. Instead convert to strings before sending.
@@ -21,13 +21,13 @@ export interface WindowData {
 export const enum IssueType {
 	Bug,
 	PerformanceIssue,
-	FeatureRequest
+	FeatureRequest,
 }
 
 export enum IssueSource {
-	VSCode = 'vscode',
-	Extension = 'extension',
-	Marketplace = 'marketplace'
+	VSCode = "vscode",
+	Extension = "extension",
+	Marketplace = "marketplace",
 }
 
 export interface IssueReporterStyles extends WindowStyles {
@@ -108,11 +108,13 @@ export interface ProcessExplorerData extends WindowData {
 	applicationName: string;
 }
 
-export interface ProcessExplorerWindowConfiguration extends ISandboxConfiguration {
+export interface ProcessExplorerWindowConfiguration
+	extends ISandboxConfiguration {
 	data: ProcessExplorerData;
 }
 
-export const IIssueFormService = createDecorator<IIssueFormService>('issueFormService');
+export const IIssueFormService =
+	createDecorator<IIssueFormService>("issueFormService");
 
 export interface IIssueFormService {
 	readonly _serviceBrand: undefined;
@@ -122,21 +124,25 @@ export interface IIssueFormService {
 	reloadWithExtensionsDisabled(): Promise<void>;
 	showConfirmCloseDialog(): Promise<void>;
 	showClipboardDialog(): Promise<boolean>;
-	sendReporterMenu(extensionId: string): Promise<IssueReporterData | undefined>;
+	sendReporterMenu(
+		extensionId: string,
+	): Promise<IssueReporterData | undefined>;
 	closeReporter(): Promise<void>;
 }
 
-export const IWorkbenchIssueService = createDecorator<IWorkbenchIssueService>('workbenchIssueService');
+export const IWorkbenchIssueService = createDecorator<IWorkbenchIssueService>(
+	"workbenchIssueService",
+);
 
 export interface IWorkbenchIssueService {
 	readonly _serviceBrand: undefined;
 	openReporter(dataOverrides?: Partial<IssueReporterData>): Promise<void>;
 }
 
-export const IWorkbenchProcessService = createDecorator<IWorkbenchProcessService>('workbenchProcessService');
+export const IWorkbenchProcessService =
+	createDecorator<IWorkbenchProcessService>("workbenchProcessService");
 
 export interface IWorkbenchProcessService {
 	readonly _serviceBrand: undefined;
 	openProcessExplorer(): Promise<void>;
 }
-

@@ -3,13 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IMatchInNotebook, isIMatchInNotebook } from './notebookSearch/notebookSearchModelBase.js';
-import { compareFileExtensions, compareFileNames, comparePaths } from '../../../../base/common/comparers.js';
-import { SearchSortOrder } from '../../../services/search/common/search.js';
-import { Range } from '../../../../editor/common/core/range.js';
-import { createParentList, isSearchTreeFileMatch, isSearchTreeFolderMatch, isSearchTreeMatch, RenderableMatch } from './searchTreeModel/searchTreeCommon.js';
-import { isSearchTreeAIFileMatch } from './AISearch/aiSearchModelBase.js';
-
+import {
+	compareFileExtensions,
+	compareFileNames,
+	comparePaths,
+} from "../../../../base/common/comparers.js";
+import { Range } from "../../../../editor/common/core/range.js";
+import { SearchSortOrder } from "../../../services/search/common/search.js";
+import { isSearchTreeAIFileMatch } from "./AISearch/aiSearchModelBase.js";
+import {
+	IMatchInNotebook,
+	isIMatchInNotebook,
+} from "./notebookSearch/notebookSearchModelBase.js";
+import {
+	createParentList,
+	isSearchTreeFileMatch,
+	isSearchTreeFolderMatch,
+	isSearchTreeMatch,
+	RenderableMatch,
+} from "./searchTreeModel/searchTreeCommon.js";
 
 let elemAIndex: number = -1;
 let elemBIndex: number = -1;
@@ -18,7 +30,11 @@ let elemBIndex: number = -1;
  * Compares instances of the same match type. Different match types should not be siblings
  * and their sort order is undefined.
  */
-export function searchMatchComparer(elementA: RenderableMatch, elementB: RenderableMatch, sortOrder: SearchSortOrder = SearchSortOrder.Default): number {
+export function searchMatchComparer(
+	elementA: RenderableMatch,
+	elementB: RenderableMatch,
+	sortOrder: SearchSortOrder = SearchSortOrder.Default,
+): number {
 	if (isSearchTreeFileMatch(elementA) && isSearchTreeFolderMatch(elementB)) {
 		return 1;
 	}
@@ -27,14 +43,20 @@ export function searchMatchComparer(elementA: RenderableMatch, elementB: Rendera
 		return -1;
 	}
 
-	if (isSearchTreeFolderMatch(elementA) && isSearchTreeFolderMatch(elementB)) {
+	if (
+		isSearchTreeFolderMatch(elementA) &&
+		isSearchTreeFolderMatch(elementB)
+	) {
 		elemAIndex = elementA.index();
 		elemBIndex = elementB.index();
 		if (elemAIndex !== -1 && elemBIndex !== -1) {
 			return elemAIndex - elemBIndex;
 		}
 
-		if (isSearchTreeAIFileMatch(elementA) && isSearchTreeAIFileMatch(elementB)) {
+		if (
+			isSearchTreeAIFileMatch(elementA) &&
+			isSearchTreeAIFileMatch(elementB)
+		) {
 			return elementA.rank - elementB.rank;
 		}
 		switch (sortOrder) {
@@ -51,7 +73,12 @@ export function searchMatchComparer(elementA: RenderableMatch, elementB: Rendera
 				if (!elementA.resource || !elementB.resource) {
 					return 0;
 				}
-				return comparePaths(elementA.resource.fsPath, elementB.resource.fsPath) || compareFileNames(elementA.name(), elementB.name());
+				return (
+					comparePaths(
+						elementA.resource.fsPath,
+						elementB.resource.fsPath,
+					) || compareFileNames(elementA.name(), elementB.name())
+				);
 		}
 	}
 
@@ -70,12 +97,16 @@ export function searchMatchComparer(elementA: RenderableMatch, elementB: Rendera
 				const fileStatB = elementB.fileStat;
 				if (fileStatA && fileStatB) {
 					return fileStatB.mtime - fileStatA.mtime;
-
 				}
 			}
 			// Fall through otherwise
 			default:
-				return comparePaths(elementA.resource.fsPath, elementB.resource.fsPath) || compareFileNames(elementA.name(), elementB.name());
+				return (
+					comparePaths(
+						elementA.resource.fsPath,
+						elementB.resource.fsPath,
+					) || compareFileNames(elementA.name(), elementB.name())
+				);
 		}
 	}
 
@@ -84,19 +115,33 @@ export function searchMatchComparer(elementA: RenderableMatch, elementB: Rendera
 	}
 
 	if (isSearchTreeMatch(elementA) && isSearchTreeMatch(elementB)) {
-		return Range.compareRangesUsingStarts(elementA.range(), elementB.range());
+		return Range.compareRangesUsingStarts(
+			elementA.range(),
+			elementB.range(),
+		);
 	}
 
 	return 0;
 }
 
-function compareNotebookPos(match1: IMatchInNotebook, match2: IMatchInNotebook): number {
+function compareNotebookPos(
+	match1: IMatchInNotebook,
+	match2: IMatchInNotebook,
+): number {
 	if (match1.cellIndex === match2.cellIndex) {
-
-		if (match1.webviewIndex !== undefined && match2.webviewIndex !== undefined) {
+		if (
+			match1.webviewIndex !== undefined &&
+			match2.webviewIndex !== undefined
+		) {
 			return match1.webviewIndex - match2.webviewIndex;
-		} else if (match1.webviewIndex === undefined && match2.webviewIndex === undefined) {
-			return Range.compareRangesUsingStarts(match1.range(), match2.range());
+		} else if (
+			match1.webviewIndex === undefined &&
+			match2.webviewIndex === undefined
+		) {
+			return Range.compareRangesUsingStarts(
+				match1.range(),
+				match2.range(),
+			);
 		} else {
 			// webview matches should always be after content matches
 			if (match1.webviewIndex !== undefined) {
@@ -112,7 +157,11 @@ function compareNotebookPos(match1: IMatchInNotebook, match2: IMatchInNotebook):
 	}
 }
 
-export function searchComparer(elementA: RenderableMatch, elementB: RenderableMatch, sortOrder: SearchSortOrder = SearchSortOrder.Default): number {
+export function searchComparer(
+	elementA: RenderableMatch,
+	elementB: RenderableMatch,
+	sortOrder: SearchSortOrder = SearchSortOrder.Default,
+): number {
 	const elemAParents = createParentList(elementA);
 	const elemBParents = createParentList(elementB);
 
@@ -120,7 +169,11 @@ export function searchComparer(elementA: RenderableMatch, elementB: RenderableMa
 	let j = elemBParents.length - 1;
 	while (i >= 0 && j >= 0) {
 		if (elemAParents[i].id() !== elemBParents[j].id()) {
-			return searchMatchComparer(elemAParents[i], elemBParents[j], sortOrder);
+			return searchMatchComparer(
+				elemAParents[i],
+				elemBParents[j],
+				sortOrder,
+			);
 		}
 		i--;
 		j--;
@@ -135,4 +188,3 @@ export function searchComparer(elementA: RenderableMatch, elementB: RenderableMa
 	}
 	return 0;
 }
-

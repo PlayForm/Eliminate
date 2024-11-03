@@ -8,12 +8,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { asArray, coalesce } from '../../../../base/common/arrays.js';
-import { CancellationToken } from '../../../../base/common/cancellation.js';
-import { URI } from '../../../../base/common/uri.js';
-import { IProgress } from '../../../../platform/progress/common/progress.js';
-import { DEFAULT_TEXT_SEARCH_PREVIEW_OPTIONS } from './search.js';
-import { Range, FileSearchProvider2, FileSearchProviderOptions, ProviderResult, TextSearchComplete2, TextSearchContext2, TextSearchMatch2, TextSearchProvider2, TextSearchProviderOptions, TextSearchQuery2, TextSearchResult2, TextSearchCompleteMessage } from './searchExtTypes.js';
+import { asArray, coalesce } from "../../../../base/common/arrays.js";
+import { CancellationToken } from "../../../../base/common/cancellation.js";
+import { URI } from "../../../../base/common/uri.js";
+import { IProgress } from "../../../../platform/progress/common/progress.js";
+import { DEFAULT_TEXT_SEARCH_PREVIEW_OPTIONS } from "./search.js";
+import {
+	FileSearchProvider2,
+	FileSearchProviderOptions,
+	ProviderResult,
+	Range,
+	TextSearchComplete2,
+	TextSearchCompleteMessage,
+	TextSearchContext2,
+	TextSearchMatch2,
+	TextSearchProvider2,
+	TextSearchProviderOptions,
+	TextSearchQuery2,
+	TextSearchResult2,
+} from "./searchExtTypes.js";
 
 // old types that are retained for backward compatibility
 // TODO: delete this when search apis are adopted by all first-party extensions
@@ -24,7 +37,6 @@ import { Range, FileSearchProvider2, FileSearchProviderOptions, ProviderResult, 
  * or a [workspace folder](#WorkspaceFolder).
  */
 export interface RelativePattern {
-
 	/**
 	 * A base file path to which this pattern will be matched against relatively.
 	 */
@@ -313,7 +325,7 @@ export interface TextSearchMatch {
  * @returns True if the object is a TextSearchMatch, false otherwise.
  */
 function isTextSearchMatch(object: any): object is TextSearchMatch {
-	return 'uri' in object && 'ranges' in object && 'preview' in object;
+	return "uri" in object && "ranges" in object && "preview" in object;
 }
 
 /**
@@ -356,7 +368,11 @@ export interface FileSearchProvider {
 	 * @param progress A progress callback that must be invoked for all results.
 	 * @param token A cancellation token.
 	 */
-	provideFileSearchResults(query: FileSearchQuery, options: FileSearchOptions, token: CancellationToken): ProviderResult<URI[]>;
+	provideFileSearchResults(
+		query: FileSearchQuery,
+		options: FileSearchOptions,
+		token: CancellationToken,
+	): ProviderResult<URI[]>;
 }
 
 /**
@@ -370,7 +386,12 @@ export interface TextSearchProvider {
 	 * @param progress A progress callback that must be invoked for all results.
 	 * @param token A cancellation token.
 	 */
-	provideTextSearchResults(query: TextSearchQuery, options: TextSearchOptions, progress: IProgress<TextSearchResult>, token: CancellationToken): ProviderResult<TextSearchComplete>;
+	provideTextSearchResults(
+		query: TextSearchQuery,
+		options: TextSearchOptions,
+		progress: IProgress<TextSearchResult>,
+		token: CancellationToken,
+	): ProviderResult<TextSearchComplete>;
 }
 /**
  * Options that can be set on a findTextInFiles search.
@@ -441,66 +462,100 @@ export interface FindTextInFilesOptions {
 	afterContext?: number;
 }
 
-function newToOldFileProviderOptions(options: FileSearchProviderOptions): FileSearchOptions[] {
-	return options.folderOptions.map(folderOption => ({
-		folder: folderOption.folder,
-		excludes: folderOption.excludes.map(e => typeof (e) === 'string' ? e : e.pattern),
-		includes: folderOption.includes,
-		useGlobalIgnoreFiles: folderOption.useIgnoreFiles.global,
-		useIgnoreFiles: folderOption.useIgnoreFiles.local,
-		useParentIgnoreFiles: folderOption.useIgnoreFiles.parent,
-		followSymlinks: folderOption.followSymlinks,
-		maxResults: options.maxResults,
-		session: <CancellationToken | undefined>options.session // TODO: make sure that we actually use a cancellation token here.
-	} satisfies FileSearchOptions));
+function newToOldFileProviderOptions(
+	options: FileSearchProviderOptions,
+): FileSearchOptions[] {
+	return options.folderOptions.map(
+		(folderOption) =>
+			({
+				folder: folderOption.folder,
+				excludes: folderOption.excludes.map((e) =>
+					typeof e === "string" ? e : e.pattern,
+				),
+				includes: folderOption.includes,
+				useGlobalIgnoreFiles: folderOption.useIgnoreFiles.global,
+				useIgnoreFiles: folderOption.useIgnoreFiles.local,
+				useParentIgnoreFiles: folderOption.useIgnoreFiles.parent,
+				followSymlinks: folderOption.followSymlinks,
+				maxResults: options.maxResults,
+				session: <CancellationToken | undefined>options.session, // TODO: make sure that we actually use a cancellation token here.
+			}) satisfies FileSearchOptions,
+	);
 }
 
 export class OldFileSearchProviderConverter implements FileSearchProvider2 {
-	constructor(private provider: FileSearchProvider) { }
+	constructor(private provider: FileSearchProvider) {}
 
-	provideFileSearchResults(pattern: string, options: FileSearchProviderOptions, token: CancellationToken): ProviderResult<URI[]> {
+	provideFileSearchResults(
+		pattern: string,
+		options: FileSearchProviderOptions,
+		token: CancellationToken,
+	): ProviderResult<URI[]> {
 		const getResult = async () => {
 			const newOpts = newToOldFileProviderOptions(options);
-			return Promise.all(newOpts.map(
-				o => this.provider.provideFileSearchResults({ pattern }, o, token)));
+			return Promise.all(
+				newOpts.map((o) =>
+					this.provider.provideFileSearchResults(
+						{ pattern },
+						o,
+						token,
+					),
+				),
+			);
 		};
-		return getResult().then(e => coalesce(e).flat());
+		return getResult().then((e) => coalesce(e).flat());
 	}
 }
 
-function newToOldTextProviderOptions(options: TextSearchProviderOptions): TextSearchOptions[] {
-	return options.folderOptions.map(folderOption => ({
-		folder: folderOption.folder,
-		excludes: folderOption.excludes.map(e => typeof (e) === 'string' ? e : e.pattern),
-		includes: folderOption.includes,
-		useGlobalIgnoreFiles: folderOption.useIgnoreFiles.global,
-		useIgnoreFiles: folderOption.useIgnoreFiles.local,
-		useParentIgnoreFiles: folderOption.useIgnoreFiles.parent,
-		followSymlinks: folderOption.followSymlinks,
-		maxResults: options.maxResults,
-		previewOptions: newToOldPreviewOptions(options.previewOptions),
-		maxFileSize: options.maxFileSize,
-		encoding: folderOption.encoding,
-		afterContext: options.surroundingContext,
-		beforeContext: options.surroundingContext
-	} satisfies TextSearchOptions));
+function newToOldTextProviderOptions(
+	options: TextSearchProviderOptions,
+): TextSearchOptions[] {
+	return options.folderOptions.map(
+		(folderOption) =>
+			({
+				folder: folderOption.folder,
+				excludes: folderOption.excludes.map((e) =>
+					typeof e === "string" ? e : e.pattern,
+				),
+				includes: folderOption.includes,
+				useGlobalIgnoreFiles: folderOption.useIgnoreFiles.global,
+				useIgnoreFiles: folderOption.useIgnoreFiles.local,
+				useParentIgnoreFiles: folderOption.useIgnoreFiles.parent,
+				followSymlinks: folderOption.followSymlinks,
+				maxResults: options.maxResults,
+				previewOptions: newToOldPreviewOptions(options.previewOptions),
+				maxFileSize: options.maxFileSize,
+				encoding: folderOption.encoding,
+				afterContext: options.surroundingContext,
+				beforeContext: options.surroundingContext,
+			}) satisfies TextSearchOptions,
+	);
 }
 
-export function newToOldPreviewOptions(options: {
-	matchLines?: number;
-	charsPerLine?: number;
-} | undefined
+export function newToOldPreviewOptions(
+	options:
+		| {
+				matchLines?: number;
+				charsPerLine?: number;
+		  }
+		| undefined,
 ): {
 	matchLines: number;
 	charsPerLine: number;
 } {
 	return {
-		matchLines: options?.matchLines ?? DEFAULT_TEXT_SEARCH_PREVIEW_OPTIONS.matchLines,
-		charsPerLine: options?.charsPerLine ?? DEFAULT_TEXT_SEARCH_PREVIEW_OPTIONS.charsPerLine
+		matchLines:
+			options?.matchLines ??
+			DEFAULT_TEXT_SEARCH_PREVIEW_OPTIONS.matchLines,
+		charsPerLine:
+			options?.charsPerLine ??
+			DEFAULT_TEXT_SEARCH_PREVIEW_OPTIONS.charsPerLine,
 	};
 }
 
-export function oldToNewTextSearchResult(result: TextSearchResult): TextSearchResult2 {
+export function oldToNewTextSearchResult(
+	result: TextSearchResult,
+): TextSearchResult2 {
 	if (isTextSearchMatch(result)) {
 		const ranges = asArray(result.ranges).map((r, i) => {
 			const previewArr = asArray(result.preview.matches);
@@ -509,15 +564,23 @@ export function oldToNewTextSearchResult(result: TextSearchResult): TextSearchRe
 		});
 		return new TextSearchMatch2(result.uri, ranges, result.preview.text);
 	} else {
-		return new TextSearchContext2(result.uri, result.text, result.lineNumber);
+		return new TextSearchContext2(
+			result.uri,
+			result.text,
+			result.lineNumber,
+		);
 	}
 }
 
 export class OldTextSearchProviderConverter implements TextSearchProvider2 {
-	constructor(private provider: TextSearchProvider) { }
+	constructor(private provider: TextSearchProvider) {}
 
-	provideTextSearchResults(query: TextSearchQuery2, options: TextSearchProviderOptions, progress: IProgress<TextSearchResult2>, token: CancellationToken): ProviderResult<TextSearchComplete2> {
-
+	provideTextSearchResults(
+		query: TextSearchQuery2,
+		options: TextSearchProviderOptions,
+		progress: IProgress<TextSearchResult2>,
+		token: CancellationToken,
+	): ProviderResult<TextSearchComplete2> {
 		const progressShim = (oldResult: TextSearchResult) => {
 			if (!validateProviderResult(oldResult)) {
 				return;
@@ -526,19 +589,27 @@ export class OldTextSearchProviderConverter implements TextSearchProvider2 {
 		};
 
 		const getResult = async () => {
-			return coalesce(await Promise.all(
-				newToOldTextProviderOptions(options).map(
-					o => this.provider.provideTextSearchResults(query, o, { report: (e) => progressShim(e) }, token))))
-				.reduce(
-					(prev, cur) => ({ limitHit: prev.limitHit || cur.limitHit }),
-					{ limitHit: false }
-				);
+			return coalesce(
+				await Promise.all(
+					newToOldTextProviderOptions(options).map((o) =>
+						this.provider.provideTextSearchResults(
+							query,
+							o,
+							{ report: (e) => progressShim(e) },
+							token,
+						),
+					),
+				),
+			).reduce(
+				(prev, cur) => ({ limitHit: prev.limitHit || cur.limitHit }),
+				{ limitHit: false },
+			);
 		};
 		const oldResult = getResult();
 		return oldResult.then((e) => {
 			return {
 				limitHit: e.limitHit,
-				message: coalesce(asArray(e.message))
+				message: coalesce(asArray(e.message)),
 			} satisfies TextSearchComplete2;
 		});
 	}
@@ -548,17 +619,26 @@ function validateProviderResult(result: TextSearchResult): boolean {
 	if (extensionResultIsMatch(result)) {
 		if (Array.isArray(result.ranges)) {
 			if (!Array.isArray(result.preview.matches)) {
-				console.warn('INVALID - A text search provider match\'s`ranges` and`matches` properties must have the same type.');
+				console.warn(
+					"INVALID - A text search provider match's`ranges` and`matches` properties must have the same type.",
+				);
 				return false;
 			}
 
-			if ((<Range[]>result.preview.matches).length !== result.ranges.length) {
-				console.warn('INVALID - A text search provider match\'s`ranges` and`matches` properties must have the same length.');
+			if (
+				(<Range[]>result.preview.matches).length !==
+				result.ranges.length
+			) {
+				console.warn(
+					"INVALID - A text search provider match's`ranges` and`matches` properties must have the same length.",
+				);
 				return false;
 			}
 		} else {
 			if (Array.isArray(result.preview.matches)) {
-				console.warn('INVALID - A text search provider match\'s`ranges` and`matches` properties must have the same length.');
+				console.warn(
+					"INVALID - A text search provider match's`ranges` and`matches` properties must have the same length.",
+				);
 				return false;
 			}
 		}
@@ -567,6 +647,8 @@ function validateProviderResult(result: TextSearchResult): boolean {
 	return true;
 }
 
-export function extensionResultIsMatch(data: TextSearchResult): data is TextSearchMatch {
+export function extensionResultIsMatch(
+	data: TextSearchResult,
+): data is TextSearchMatch {
 	return !!(<TextSearchMatch>data).preview;
 }
