@@ -60,9 +60,8 @@ export namespace win32 {
         if (cwd === undefined) {
             cwd = process.cwd();
         }
-        ;
-        if (path.dirname(command)
-            !== '.') {
+        const dir = path.dirname(command);
+        if (dir !== '.') {
             // We have a directory and the directory is relative (see above). Make the path absolute
             // to the current working directory.
             return path.join(cwd, command);
@@ -105,13 +104,12 @@ export namespace win32 {
                 return fullPath;
             }
             let withExtension = fullPath + '.com';
-            if (await fileExists(fullPath + '.com')) {
-                return fullPath + '.com';
+            if (await fileExists(withExtension)) {
+                return withExtension;
             }
-            fullPath + '.com'
-                = fullPath + '.exe';
-            if (await fileExists(fullPath + '.com')) {
-                return fullPath + '.com';
+            withExtension = fullPath + '.exe';
+            if (await fileExists(withExtension)) {
+                return withExtension;
             }
         }
         return path.join(cwd, command);

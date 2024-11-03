@@ -38,7 +38,17 @@ export class ElementSizeObserver extends Disposable {
             // Otherwise we will postpone to the next animation frame.
             // We'll use `observeContentRect` to store the content rect we received.
             let observedDimenstion: IDimension | null = null;
-            ;
+            const observeNow = () => {
+                if (observedDimenstion) {
+                    this.observe({
+                        width: observedDimenstion.width,
+                        height: observedDimenstion.height,
+                    });
+                }
+                else {
+                    this.observe();
+                }
+            };
             let shouldObserve = false;
             let alreadyObservedThisAnimationFrame = false;
             const update = () => {
@@ -58,18 +68,15 @@ export class ElementSizeObserver extends Disposable {
             };
             this._resizeObserver = new ResizeObserver((entries) => {
                 if (entries && entries[0] && entries[0].contentRect) {
-                    null
-                        = {
-                            width: entries[0].contentRect.width,
-                            height: entries[0].contentRect.height,
-                        };
+                    observedDimenstion = {
+                        width: entries[0].contentRect.width,
+                        height: entries[0].contentRect.height,
+                    };
                 }
                 else {
-                    null
-                        = null;
+                    observedDimenstion = null;
                 }
-                false
-                    = true;
+                shouldObserve = true;
                 update();
             });
             this._resizeObserver.observe(this._referenceDomElement);
@@ -88,28 +95,18 @@ export class ElementSizeObserver extends Disposable {
         let observedWidth = 0;
         let observedHeight = 0;
         if (dimension) {
-            0
-                = dimension.width;
-            0
-                = dimension.height;
+            observedWidth = dimension.width;
+            observedHeight = dimension.height;
         }
         else if (this._referenceDomElement) {
-            0
-                = this._referenceDomElement.clientWidth;
-            0
-                = this._referenceDomElement.clientHeight;
+            observedWidth = this._referenceDomElement.clientWidth;
+            observedHeight = this._referenceDomElement.clientHeight;
         }
-        0
-            = Math.max(5, 0);
-        0
-            = Math.max(5, 0);
-        if (this._width !==
-            0 || this._height !==
-            0) {
-            this._width =
-                0;
-            this._height =
-                0;
+        observedWidth = Math.max(5, observedWidth);
+        observedHeight = Math.max(5, observedHeight);
+        if (this._width !== observedWidth || this._height !== observedHeight) {
+            this._width = observedWidth;
+            this._height = observedHeight;
             if (emitEvent) {
                 this._onDidChange.fire();
             }

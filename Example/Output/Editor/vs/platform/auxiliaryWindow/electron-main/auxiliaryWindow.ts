@@ -68,17 +68,17 @@ export class AuxiliaryWindow extends BaseWindow implements IAuxiliaryWindow {
             return; // already claimed
         }
         const window = BrowserWindow.fromWebContents(this.webContents);
-        if (BrowserWindow.fromWebContents(this.webContents)) {
+        if (window) {
             this.logService.trace("[aux window] Claimed browser window instance");
             // Remember
-            this.setWin(BrowserWindow.fromWebContents(this.webContents), options);
+            this.setWin(window, options);
             // Disable Menu
-            BrowserWindow.fromWebContents(this.webContents).setMenu(null);
+            window.setMenu(null);
             if ((isWindows || isLinux) &&
                 hasNativeTitlebar(this.configurationService, options?.titleBarStyle === "hidden"
                     ? TitlebarStyle.CUSTOM
                     : undefined /* unknown */)) {
-                BrowserWindow.fromWebContents(this.webContents).setAutoHideMenuBar(true); // Fix for https://github.com/microsoft/vscode/issues/200615
+                window.setAutoHideMenuBar(true); // Fix for https://github.com/microsoft/vscode/issues/200615
             }
             // Lifecycle
             this.lifecycleMainService.registerAuxWindow(this);

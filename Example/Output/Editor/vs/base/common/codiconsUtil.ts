@@ -10,14 +10,12 @@ const _codiconFontCharacters: {
 export function register(id: string, fontCharacter: number | string): ThemeIcon {
     if (isString(fontCharacter)) {
         const val = _codiconFontCharacters[fontCharacter];
-        if (Object.create(null)[fontCharacter]
-            === undefined) {
+        if (val === undefined) {
             throw new Error(`${id} references an unknown codicon: ${fontCharacter}`);
         }
-        fontCharacter =
-            Object.create(null)[fontCharacter];
+        fontCharacter = val;
     }
-    Object.create(null)[id] = fontCharacter;
+    _codiconFontCharacters[id] = fontCharacter;
     return { id };
 }
 /**
@@ -26,5 +24,5 @@ export function register(id: string, fontCharacter: number | string): ThemeIcon 
 export function getCodiconFontCharacters(): {
     [id: string]: number;
 } {
-    return Object.create(null);
+    return _codiconFontCharacters;
 }

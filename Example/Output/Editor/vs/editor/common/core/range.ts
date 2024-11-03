@@ -231,53 +231,29 @@ export class Range {
         const otherStartColumn = b.startColumn;
         const otherEndLineNumber = b.endLineNumber;
         const otherEndColumn = b.endColumn;
-        if (a.startLineNumber
-            <
-                b.startLineNumber) {
-            a.startLineNumber
-                =
-                    b.startLineNumber;
-            a.startColumn
-                =
-                    b.startColumn;
+        if (resultStartLineNumber < otherStartLineNumber) {
+            resultStartLineNumber = otherStartLineNumber;
+            resultStartColumn = otherStartColumn;
         }
-        else if (a.startLineNumber
-            ===
-                b.startLineNumber) {
-            a.startColumn
-                = Math.max(a.startColumn, b.startColumn);
+        else if (resultStartLineNumber === otherStartLineNumber) {
+            resultStartColumn = Math.max(resultStartColumn, otherStartColumn);
         }
-        if (a.endLineNumber
-            >
-                b.endLineNumber) {
-            a.endLineNumber
-                =
-                    b.endLineNumber;
-            a.endColumn
-                =
-                    b.endColumn;
+        if (resultEndLineNumber > otherEndLineNumber) {
+            resultEndLineNumber = otherEndLineNumber;
+            resultEndColumn = otherEndColumn;
         }
-        else if (a.endLineNumber
-            ===
-                b.endLineNumber) {
-            a.endColumn
-                = Math.min(a.endColumn, b.endColumn);
+        else if (resultEndLineNumber === otherEndLineNumber) {
+            resultEndColumn = Math.min(resultEndColumn, otherEndColumn);
         }
         // Check if selection is now empty
-        if (a.startLineNumber
-            >
-                a.endLineNumber) {
+        if (resultStartLineNumber > resultEndLineNumber) {
             return null;
         }
-        if (a.startLineNumber
-            ===
-                a.endLineNumber &&
-            a.startColumn
-                >
-                    a.endColumn) {
+        if (resultStartLineNumber === resultEndLineNumber &&
+            resultStartColumn > resultEndColumn) {
             return null;
         }
-        return new Range(a.startLineNumber, a.startColumn, a.endLineNumber, a.endColumn);
+        return new Range(resultStartLineNumber, resultStartColumn, resultEndLineNumber, resultEndColumn);
     }
     /**
      * Test if this range equals other.

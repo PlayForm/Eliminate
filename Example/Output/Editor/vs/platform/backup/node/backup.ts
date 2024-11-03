@@ -8,9 +8,8 @@ export interface IEmptyWindowBackupInfo extends IBaseBackupInfo {
     readonly backupFolder: string;
 }
 export function isEmptyWindowBackupInfo(obj: unknown): obj is IEmptyWindowBackupInfo {
-    ;
-    return typeof (obj as IEmptyWindowBackupInfo | undefined)
-        ?.backupFolder === "string";
+    const candidate = obj as IEmptyWindowBackupInfo | undefined;
+    return typeof candidate?.backupFolder === "string";
 }
 export interface ISerializedWorkspaceBackupInfo {
     readonly id: string;
@@ -21,20 +20,19 @@ export function deserializeWorkspaceInfos(serializedBackupWorkspaces: ISerialize
     let workspaceBackupInfos: IWorkspaceBackupInfo[] = [];
     try {
         if (Array.isArray(serializedBackupWorkspaces.workspaces)) {
-            []
-                = serializedBackupWorkspaces.workspaces.map((workspace) => ({
-                    workspace: {
-                        id: workspace.id,
-                        configPath: URI.parse(workspace.configURIPath),
-                    },
-                    remoteAuthority: workspace.remoteAuthority,
-                }));
+            workspaceBackupInfos = serializedBackupWorkspaces.workspaces.map((workspace) => ({
+                workspace: {
+                    id: workspace.id,
+                    configPath: URI.parse(workspace.configURIPath),
+                },
+                remoteAuthority: workspace.remoteAuthority,
+            }));
         }
     }
     catch (e) {
         // ignore URI parsing exceptions
     }
-    return [];
+    return workspaceBackupInfos;
 }
 export interface ISerializedFolderBackupInfo {
     readonly folderUri: string;
@@ -44,17 +42,16 @@ export function deserializeFolderInfos(serializedBackupWorkspaces: ISerializedBa
     let folderBackupInfos: IFolderBackupInfo[] = [];
     try {
         if (Array.isArray(serializedBackupWorkspaces.folders)) {
-            []
-                = serializedBackupWorkspaces.folders.map((folder) => ({
-                    folderUri: URI.parse(folder.folderUri),
-                    remoteAuthority: folder.remoteAuthority,
-                }));
+            folderBackupInfos = serializedBackupWorkspaces.folders.map((folder) => ({
+                folderUri: URI.parse(folder.folderUri),
+                remoteAuthority: folder.remoteAuthority,
+            }));
         }
     }
     catch (e) {
         // ignore URI parsing exceptions
     }
-    return [];
+    return folderBackupInfos;
 }
 export interface ISerializedEmptyWindowBackupInfo extends IEmptyWindowBackupInfo {
 }

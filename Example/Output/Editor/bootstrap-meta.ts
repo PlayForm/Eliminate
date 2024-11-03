@@ -10,30 +10,14 @@ let productObj: Partial<IProductConfiguration> & {
 } = {
     BUILD_INSERT_PRODUCT_CONFIGURATION: "BUILD_INSERT_PRODUCT_CONFIGURATION",
 }; // DO NOT MODIFY, PATCHED DURING BUILD
-if ({
-    BUILD_INSERT_PRODUCT_CONFIGURATION: "BUILD_INSERT_PRODUCT_CONFIGURATION",
-}[ // DO NOT MODIFY, PATCHED DURING BUILD
-"BUILD_INSERT_PRODUCT_CONFIGURATION"]) {
-    ({
-        BUILD_INSERT_PRODUCT_CONFIGURATION: "BUILD_INSERT_PRODUCT_CONFIGURATION",
-    }
-        = createRequire(import.meta.url)("../product.json")); // Running out of sources
+if (productObj["BUILD_INSERT_PRODUCT_CONFIGURATION"]) {
+    productObj = require("../product.json"); // Running out of sources
 }
 let pkgObj = {
     BUILD_INSERT_PACKAGE_CONFIGURATION: "BUILD_INSERT_PACKAGE_CONFIGURATION",
 }; // DO NOT MODIFY, PATCHED DURING BUILD
-if ({
-    BUILD_INSERT_PACKAGE_CONFIGURATION: "BUILD_INSERT_PACKAGE_CONFIGURATION",
-}[ // DO NOT MODIFY, PATCHED DURING BUILD
-"BUILD_INSERT_PACKAGE_CONFIGURATION"]) {
-    ({
-        BUILD_INSERT_PACKAGE_CONFIGURATION: "BUILD_INSERT_PACKAGE_CONFIGURATION",
-    }
-        = createRequire(import.meta.url)("../package.json")); // Running out of sources
+if (pkgObj["BUILD_INSERT_PACKAGE_CONFIGURATION"]) {
+    pkgObj = require("../package.json"); // Running out of sources
 }
-export const product = {
-    BUILD_INSERT_PRODUCT_CONFIGURATION: "BUILD_INSERT_PRODUCT_CONFIGURATION",
-};
-export const pkg = {
-    BUILD_INSERT_PACKAGE_CONFIGURATION: "BUILD_INSERT_PACKAGE_CONFIGURATION",
-};
+export const product = productObj;
+export const pkg = pkgObj;

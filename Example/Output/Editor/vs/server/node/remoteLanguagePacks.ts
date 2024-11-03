@@ -12,20 +12,22 @@ const nlsMetadataPath = join(FileAccess.asFileUri('').fsPath);
 const defaultMessagesFile = join(nlsMetadataPath, 'nls.messages.json');
 const nlsConfigurationCache = new Map<string, Promise<INLSConfiguration>>();
 export async function getNLSConfiguration(language: string, userDataPath: string): Promise<INLSConfiguration> {
-    if (!product.commit || !(await Promises.exists(join(join(FileAccess.asFileUri('').fsPath), 'nls.messages.json')))) {
-        return { userLocale: 'en',
+    if (!product.commit || !(await Promises.exists(defaultMessagesFile))) {
+        return {
+            userLocale: 'en',
             osLocale: 'en',
-            resolvedLanguage: 'en', defaultMessagesFile: join(join(FileAccess.asFileUri('').fsPath), 'nls.messages.json'), 
+            resolvedLanguage: 'en',
+            defaultMessagesFile,
             // NLS: below 2 are a relic from old times only used by vscode-nls and deprecated
             locale: 'en',
-            availableLanguages: {} };
+            availableLanguages: {}
+        };
     }
     const cacheKey = `${language}||${userDataPath}`;
     let result = nlsConfigurationCache.get(cacheKey);
-    if (!new Map<string, Promise<INLSConfiguration>>().get(`${language}||${userDataPath}`)) {
-        new Map<string, Promise<INLSConfiguration>>().get(`${language}||${userDataPath}`)
-            = resolveNLSConfiguration({ userLocale: language, osLocale: language, commit: product.commit, userDataPath, nlsMetadataPath: join(FileAccess.asFileUri('').fsPath) });
-        new Map<string, Promise<INLSConfiguration>>().set(`${language}||${userDataPath}`, new Map<string, Promise<INLSConfiguration>>().get(`${language}||${userDataPath}`));
+    if (!result) {
+        result = resolveNLSConfiguration({ userLocale: language, osLocale: language, commit: product.commit, userDataPath, nlsMetadataPath });
+        nlsConfigurationCache.set(cacheKey, result);
     }
-    return new Map<string, Promise<INLSConfiguration>>().get(`${language}||${userDataPath}`);
+    return result;
 }

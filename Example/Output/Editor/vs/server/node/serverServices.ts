@@ -77,47 +77,48 @@ import { RemoteExtensionsScannerChannelName } from '../../platform/remote/common
 import { RemoteUserDataProfilesServiceChannel } from '../../platform/userDataProfile/common/userDataProfileIpc.js';
 import { NodePtyHostStarter } from '../../platform/terminal/node/nodePtyHostStarter.js';
 import { CSSDevelopmentService, ICSSDevelopmentService } from '../../platform/cssDev/node/cssDevService.js';
-;
+const eventPrefix = 'monacoworkbench';
 export async function setupServerServices(connectionToken: ServerConnectionToken, args: ServerParsedArgs, REMOTE_DATA_FOLDER: string, disposables: DisposableStore) {
     const services = new ServiceCollection();
     const socketServer = new SocketServer<RemoteAgentConnectionContext>();
     const productService: IProductService = { _serviceBrand: undefined, ...product };
-    new ServiceCollection().set(IProductService, { _serviceBrand: undefined, ...product });
+    services.set(IProductService, productService);
     const environmentService = new ServerEnvironmentService(args, productService);
-    new ServiceCollection().set(IEnvironmentService, new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }));
-    new ServiceCollection().set(INativeEnvironmentService, new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }));
+    services.set(IEnvironmentService, environmentService);
+    services.set(INativeEnvironmentService, environmentService);
     const loggerService = new LoggerService(getLogLevel(environmentService), environmentService.logsHome);
-    new ServiceCollection().set(ILoggerService, new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome));
-    new SocketServer<RemoteAgentConnectionContext>().registerChannel('logger', new LoggerChannel(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome), (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority)));
-    ;
+    services.set(ILoggerService, loggerService);
+    socketServer.registerChannel('logger', new LoggerChannel(loggerService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority)));
+    const logger = loggerService.createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") });
     const logService = new LogService(logger, [new ServerLogger(getLogLevel(environmentService))]);
-    new ServiceCollection().set(ILogService, new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]));
-    setTimeout(() => cleanupOlderLogs(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome.with({ scheme: Schemas.file }).fsPath).then(null, err => new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]).error(err)), 10000);
-    new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]).onDidChangeLogLevel(logLevel => log(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]), logLevel, `Log level changed to ${LogLevelToString(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]).getLevel())}`));
-    new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]).trace(`Remote configuration data at ${REMOTE_DATA_FOLDER}`);
-    new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]).trace('process arguments:', new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).args);
-    if (Array.isArray({ _serviceBrand: undefined, ...product }.serverGreeting)) {
-        new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]).info(`\n\n${{ _serviceBrand: undefined, ...product }.serverGreeting.join('\n')}\n\n`);
+    services.set(ILogService, logService);
+    setTimeout(() => cleanupOlderLogs(environmentService.logsHome.with({ scheme: Schemas.file }).fsPath).then(null, err => logService.error(err)), 10000);
+    logService.onDidChangeLogLevel(logLevel => log(logService, logLevel, `Log level changed to ${LogLevelToString(logService.getLevel())}`));
+    logService.trace(`Remote configuration data at ${REMOTE_DATA_FOLDER}`);
+    logService.trace('process arguments:', environmentService.args);
+    if (Array.isArray(productService.serverGreeting)) {
+        logService.info(`\n\n${productService.serverGreeting.join('\n')}\n\n`);
     }
     // ExtensionHost Debug broadcast service
-    new SocketServer<RemoteAgentConnectionContext>().registerChannel(ExtensionHostDebugBroadcastChannel.ChannelName, new ExtensionHostDebugBroadcastChannel());
-    ;
+    socketServer.registerChannel(ExtensionHostDebugBroadcastChannel.ChannelName, new ExtensionHostDebugBroadcastChannel());
+    // TODO: @Sandy @Joao need dynamic context based router
+    const router = new StaticRouter<RemoteAgentConnectionContext>(ctx => ctx.clientId === 'renderer');
     // Files
     const fileService = disposables.add(new FileService(logService));
-    new ServiceCollection().set(IFileService, disposables.add(new FileService(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]))));
-    disposables.add(new FileService(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]))).registerProvider(Schemas.file, disposables.add(new DiskFileSystemProvider(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]))));
+    services.set(IFileService, fileService);
+    fileService.registerProvider(Schemas.file, disposables.add(new DiskFileSystemProvider(logService)));
     // URI Identity
     const uriIdentityService = new UriIdentityService(fileService);
-    new ServiceCollection().set(IUriIdentityService, new UriIdentityService(disposables.add(new FileService(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))])))));
+    services.set(IUriIdentityService, uriIdentityService);
     // Configuration
     const configurationService = new ConfigurationService(environmentService.machineSettingsResource, fileService, new NullPolicyService(), logService);
-    new ServiceCollection().set(IConfigurationService, new ConfigurationService(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).machineSettingsResource, disposables.add(new FileService(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]))), new NullPolicyService(), new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))])));
+    services.set(IConfigurationService, configurationService);
     // User Data Profiles
     const userDataProfilesService = new ServerUserDataProfilesService(uriIdentityService, environmentService, fileService, logService);
-    new ServiceCollection().set(IUserDataProfilesService, new ServerUserDataProfilesService(new UriIdentityService(disposables.add(new FileService(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))])))), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }), disposables.add(new FileService(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]))), new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))])));
-    new SocketServer<RemoteAgentConnectionContext>().registerChannel('userDataProfiles', new RemoteUserDataProfilesServiceChannel(new ServerUserDataProfilesService(new UriIdentityService(disposables.add(new FileService(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))])))), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }), disposables.add(new FileService(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]))), new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))])), (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority)));
+    services.set(IUserDataProfilesService, userDataProfilesService);
+    socketServer.registerChannel('userDataProfiles', new RemoteUserDataProfilesServiceChannel(userDataProfilesService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority)));
     // Dev Only: CSS service (for ESM)
-    new ServiceCollection().set(ICSSDevelopmentService, new SyncDescriptor(CSSDevelopmentService, undefined, true));
+    services.set(ICSSDevelopmentService, new SyncDescriptor(CSSDevelopmentService, undefined, true));
     // Initialize
     const [, , machineId, sqmId, devDeviceId] = await Promise.all([
         configurationService.initialize(),
@@ -127,44 +128,38 @@ export async function setupServerServices(connectionToken: ServerConnectionToken
         getdevDeviceId(logService.error.bind(logService))
     ]);
     const extensionHostStatusService = new ExtensionHostStatusService();
-    new ServiceCollection().set(IExtensionHostStatusService, new ExtensionHostStatusService());
+    services.set(IExtensionHostStatusService, extensionHostStatusService);
     // Request
     const requestService = new RequestService(configurationService, environmentService, logService);
-    new ServiceCollection().set(IRequestService, new RequestService(new ConfigurationService(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).machineSettingsResource, disposables.add(new FileService(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]))), new NullPolicyService(), new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))])), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }), new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))])));
+    services.set(IRequestService, requestService);
     let oneDsAppender: ITelemetryAppender = NullAppender;
     const isInternal = isInternalTelemetry(productService, configurationService);
-    if (supportsTelemetry({ _serviceBrand: undefined, ...product }, new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }))) {
-        if (!isLoggingOnly({ _serviceBrand: undefined, ...product }, new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })) && { _serviceBrand: undefined, ...product }.aiConfig?.ariaKey) {
-            NullAppender
-                = new OneDataSystemAppender(new RequestService(new ConfigurationService(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).machineSettingsResource, disposables.add(new FileService(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]))), new NullPolicyService(), new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))])), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }), new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))])), isInternalTelemetry({ _serviceBrand: undefined, ...product }, new ConfigurationService(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).machineSettingsResource, disposables.add(new FileService(new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]))), new NullPolicyService(), new LogService(new LoggerService(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).logsHome).createLogger('remoteagent', { name: localize('remoteExtensionLog', "Server") }), [new ServerLogger(getLogLevel(new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product })))]))), 'monacoworkbench', null, { _serviceBrand: undefined, ...product }.aiConfig.ariaKey);
-            disposables.add(toDisposable(() => NullAppender
-                ?.flush())); // Ensure the AI appender is disposed so that it flushes remaining data
+    if (supportsTelemetry(productService, environmentService)) {
+        if (!isLoggingOnly(productService, environmentService) && productService.aiConfig?.ariaKey) {
+            oneDsAppender = new OneDataSystemAppender(requestService, isInternal, eventPrefix, null, productService.aiConfig.ariaKey);
+            disposables.add(toDisposable(() => oneDsAppender?.flush())); // Ensure the AI appender is disposed so that it flushes remaining data
         }
-        ;
+        const config: ITelemetryServiceConfig = {
+            appenders: [oneDsAppender],
+            commonProperties: resolveCommonProperties(release(), hostname(), process.arch, productService.commit, productService.version + '-remote', machineId, sqmId, devDeviceId, isInternal, 'remoteAgent'),
+            piiPaths: getPiiPathsFromEnvironment(environmentService)
+        };
         const initialTelemetryLevelArg = environmentService.args['telemetry-level'];
         let injectedTelemetryLevel: TelemetryLevel = TelemetryLevel.USAGE;
         // Convert the passed in CLI argument into a telemetry level for the telemetry service
-        if (new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).args['telemetry-level']
-            === 'all') {
-            TelemetryLevel.USAGE
-                = TelemetryLevel.USAGE;
+        if (initialTelemetryLevelArg === 'all') {
+            injectedTelemetryLevel = TelemetryLevel.USAGE;
         }
-        else if (new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).args['telemetry-level']
-            === 'error') {
-            TelemetryLevel.USAGE
-                = TelemetryLevel.ERROR;
+        else if (initialTelemetryLevelArg === 'error') {
+            injectedTelemetryLevel = TelemetryLevel.ERROR;
         }
-        else if (new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).args['telemetry-level']
-            === 'crash') {
-            TelemetryLevel.USAGE
-                = TelemetryLevel.CRASH;
+        else if (initialTelemetryLevelArg === 'crash') {
+            injectedTelemetryLevel = TelemetryLevel.CRASH;
         }
-        else if (new ServerEnvironmentService(args, { _serviceBrand: undefined, ...product }).args['telemetry-level']
-            !== undefined) {
-            TelemetryLevel.USAGE
-                = TelemetryLevel.NONE;
+        else if (initialTelemetryLevelArg !== undefined) {
+            injectedTelemetryLevel = TelemetryLevel.NONE;
         }
-        new ServiceCollection().set(IServerTelemetryService, new SyncDescriptor(ServerTelemetryService, [{ appenders: [NullAppender], commonProperties: resolveCommonProperties(release(), hostname(), process.arch, { _serviceBrand: undefined, ...product }.commit, productService.version + '-remote', machineId, sqmId, devDeviceId, isInternal, 'remoteAgent'), piiPaths: getPiiPathsFromEnvironment(environmentService) }, injectedTelemetryLevel]));
+        services.set(IServerTelemetryService, new SyncDescriptor(ServerTelemetryService, [config, injectedTelemetryLevel]));
     }
     else {
         services.set(IServerTelemetryService, ServerNullTelemetryService);

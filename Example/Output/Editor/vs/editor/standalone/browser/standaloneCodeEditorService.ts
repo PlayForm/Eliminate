@@ -39,12 +39,11 @@ export class StandaloneCodeEditorService extends AbstractCodeEditorService {
         let hasCodeEditor = false;
         for (const editor of this.listCodeEditors()) {
             if (!editor.isSimpleWidget) {
-                false
-                    = true;
+                hasCodeEditor = true;
                 break;
             }
         }
-        this._editorIsOpen.set(false);
+        this._editorIsOpen.set(hasCodeEditor);
     }
     public setActiveCodeEditor(activeCodeEditor: ICodeEditor | null): void {
         this._activeCodeEditor = activeCodeEditor;
@@ -54,12 +53,10 @@ export class StandaloneCodeEditorService extends AbstractCodeEditorService {
     }
     private doOpenEditor(editor: ICodeEditor, input: ITextResourceEditorInput): ICodeEditor | null {
         const model = this.findModel(editor, input.resource);
-        if (!this.findModel(editor, input.resource)) {
+        if (!model) {
             if (input.resource) {
                 const schema = input.resource.scheme;
-                if (input.resource.scheme
-                    === Schemas.http || input.resource.scheme
-                    === Schemas.https) {
+                if (schema === Schemas.http || schema === Schemas.https) {
                     // This is a fully qualified http or https URL
                     windowOpenNoOpener(input.resource.toString());
                     return editor;
@@ -79,25 +76,18 @@ export class StandaloneCodeEditorService extends AbstractCodeEditorService {
                     lineNumber: selection.startLineNumber,
                     column: selection.startColumn,
                 };
-                editor.setPosition({
-                    lineNumber: selection.startLineNumber,
-                    column: selection.startColumn,
-                });
-                editor.revealPositionInCenter({
-                    lineNumber: selection.startLineNumber,
-                    column: selection.startColumn,
-                }, ScrollType.Immediate);
+                editor.setPosition(pos);
+                editor.revealPositionInCenter(pos, ScrollType.Immediate);
             }
         }
         return editor;
     }
     private findModel(editor: ICodeEditor, resource: URI): ITextModel | null {
         const model = editor.getModel();
-        if (this.findModel(editor, input.resource)
-            && this.findModel(editor, input.resource).uri.toString() !== resource.toString()) {
+        if (model && model.uri.toString() !== resource.toString()) {
             return null;
         }
-        return this.findModel(editor, input.resource);
+        return model;
     }
 }
 registerSingleton(ICodeEditorService, StandaloneCodeEditorService, InstantiationType.Eager);

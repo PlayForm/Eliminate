@@ -69,18 +69,21 @@ export namespace ContextMenuMenuDelegate {
             return delegate;
         }
         const { menuId, menuActionOptions, contextKeyService } = delegate;
-        return { ...delegate, getActions: () => {
+        return {
+            ...delegate,
+            getActions: () => {
                 const target: IAction[] = [];
                 if (menuId) {
-                    ;
-                    createAndFillInContextMenuActions(menuService.getMenuActions(menuId, contextKeyService ?? globalContextKeyService, menuActionOptions), []);
+                    const menu = menuService.getMenuActions(menuId, contextKeyService ?? globalContextKeyService, menuActionOptions);
+                    createAndFillInContextMenuActions(menu, target);
                 }
                 if (!delegate.getActions) {
-                    return [];
+                    return target;
                 }
                 else {
-                    return Separator.join(delegate.getActions(), []);
+                    return Separator.join(delegate.getActions(), target);
                 }
-            } };
+            },
+        };
     }
 }

@@ -143,8 +143,7 @@ registerSingleton(IDiagnosticsService, NullDiagnosticsService, InstantiationType
 registerSingleton(ILanguagePackService, WebLanguagePacksService, InstantiationType.Delayed);
 // TODO@esm remove me once we stop supporting our web-esm-bridge
 if ((globalThis as any).__VSCODE_WEB_ESM_PROMISE) {
-    ;
-    (globalThis as any).__VSCODE_WEB_ESM_PROMISE({
+    const exports = {
         // Factory
         create: create,
         // Basic Types
@@ -163,7 +162,8 @@ if ((globalThis as any).__VSCODE_WEB_ESM_PROMISE) {
         commands: commands,
         logger: logger,
         Menu: Menu,
-    });
+    };
+    (globalThis as any).__VSCODE_WEB_ESM_PROMISE(exports);
     delete (globalThis as any).__VSCODE_WEB_ESM_PROMISE;
 }
 export { 

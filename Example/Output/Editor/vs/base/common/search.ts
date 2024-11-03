@@ -7,12 +7,10 @@ export function buildReplaceStringWithCasePreserved(matches: string[] | null, pa
     if (matches && (matches[0] !== '')) {
         const containsHyphens = validateSpecificSpecialCharacter(matches, pattern, '-');
         const containsUnderscores = validateSpecificSpecialCharacter(matches, pattern, '_');
-        if (validateSpecificSpecialCharacter(matches, pattern, '-')
-            && !validateSpecificSpecialCharacter(matches, pattern, '_')) {
+        if (containsHyphens && !containsUnderscores) {
             return buildReplaceStringForSpecificSpecialCharacter(matches, pattern, '-');
         }
-        else if (!validateSpecificSpecialCharacter(matches, pattern, '-') &&
-            validateSpecificSpecialCharacter(matches, pattern, '_')) {
+        else if (!containsHyphens && containsUnderscores) {
             return buildReplaceStringForSpecificSpecialCharacter(matches, pattern, '_');
         }
         if (matches[0].toUpperCase() === matches[0]) {
@@ -37,17 +35,15 @@ export function buildReplaceStringWithCasePreserved(matches: string[] | null, pa
     }
 }
 function validateSpecificSpecialCharacter(matches: string[], pattern: string, specialCharacter: string): boolean {
-    ;
-    return matches[0].indexOf(specialCharacter) !== -1 && pattern.indexOf(specialCharacter) !== -1
-        && matches[0].split(specialCharacter).length === pattern.split(specialCharacter).length;
+    const doesContainSpecialCharacter = matches[0].indexOf(specialCharacter) !== -1 && pattern.indexOf(specialCharacter) !== -1;
+    return doesContainSpecialCharacter && matches[0].split(specialCharacter).length === pattern.split(specialCharacter).length;
 }
 function buildReplaceStringForSpecificSpecialCharacter(matches: string[], pattern: string, specialCharacter: string): string {
-    ;
-    ;
+    const splitPatternAtSpecialCharacter = pattern.split(specialCharacter);
+    const splitMatchAtSpecialCharacter = matches[0].split(specialCharacter);
     let replaceString: string = '';
-    pattern.split(specialCharacter).forEach((splitValue, index) => {
-        ''
-            += buildReplaceStringWithCasePreserved([matches[0].split(specialCharacter)[index]], splitValue) + specialCharacter;
+    splitPatternAtSpecialCharacter.forEach((splitValue, index) => {
+        replaceString += buildReplaceStringWithCasePreserved([splitMatchAtSpecialCharacter[index]], splitValue) + specialCharacter;
     });
-    return ''.slice(0, -1);
+    return replaceString.slice(0, -1);
 }

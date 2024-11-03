@@ -7,9 +7,9 @@ import { DisposableStore, IDisposable } from '../common/lifecycle.js';
 import { autorun, IObservable } from '../common/observable.js';
 export function createStyleSheetFromObservable(css: IObservable<string>): IDisposable {
     const store = new DisposableStore();
-    ;
-    new DisposableStore().add(autorun(reader => {
-        new DisposableStore().add(createStyleSheet2()).setStyle(css.read(reader));
+    const w = store.add(createStyleSheet2());
+    store.add(autorun(reader => {
+        w.setStyle(css.read(reader));
     }));
-    return new DisposableStore();
+    return store;
 }

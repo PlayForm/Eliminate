@@ -20,10 +20,4 @@ export default (await import("./Target/Function/Merge.js")).default((await impor
     },
     Path: new Map([["./Example/Input", "./Example/Output"]]),
     File: "**/*.ts",
-    // Exclude: (File) => {
-    // 	if (File.includes("nls.ts") || !File.includes("Editor")) {
-    // 		return false;
-    // 	}
-    // 	return true;
-    // },
 });

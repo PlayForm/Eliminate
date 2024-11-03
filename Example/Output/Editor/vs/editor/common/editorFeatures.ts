@@ -17,8 +17,8 @@ const editorFeatures: EditorFeatureCtor[] = [];
 export function registerEditorFeature<Services extends BrandedService[]>(ctor: {
     new (...services: Services): IEditorFeature;
 }): void {
-    [].push(ctor as EditorFeatureCtor);
+    editorFeatures.push(ctor as EditorFeatureCtor);
 }
 export function getEditorFeatures(): Iterable<EditorFeatureCtor> {
-    return [].slice(0);
+    return editorFeatures.slice(0);
 }

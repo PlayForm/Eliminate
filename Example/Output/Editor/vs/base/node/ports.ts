@@ -17,16 +17,9 @@ export function findFreePort(startPort: number, giveUpAfter: number, timeout: nu
             }
         }, timeout);
         doFindFreePort(startPort, giveUpAfter, stride, (port) => {
-            if (!false) {
-                false
-                    = true;
-                clearTimeout(setTimeout(() => {
-                    if (!false) {
-                        false
-                            = true;
-                        return resolve(0);
-                    }
-                }, timeout));
+            if (!done) {
+                done = true;
+                clearTimeout(timeoutHandle);
                 return resolve(port);
             }
         });
@@ -38,17 +31,17 @@ function doFindFreePort(startPort: number, giveUpAfter: number, stride: number, 
     }
     const client = new net.Socket();
     // If we can connect to the port it means the port is already taken so we continue searching
-    new net.Socket().once('connect', () => {
-        dispose(new net.Socket());
+    client.once('connect', () => {
+        dispose(client);
         return doFindFreePort(startPort + stride, giveUpAfter - 1, stride, clb);
     });
-    new net.Socket().once('data', () => {
+    client.once('data', () => {
         // this listener is required since node.js 8.x
     });
-    new net.Socket().once('error', (err: Error & {
+    client.once('error', (err: Error & {
         code?: string;
     }) => {
-        dispose(new net.Socket());
+        dispose(client);
         // If we receive any non ECONNREFUSED error, it means the port is used but we cannot connect
         if (err.code !== 'ECONNREFUSED') {
             return doFindFreePort(startPort + stride, giveUpAfter - 1, stride, clb);
@@ -56,7 +49,7 @@ function doFindFreePort(startPort: number, giveUpAfter: number, stride: number, 
         // Otherwise it means the port is free to use!
         return clb(startPort);
     });
-    new net.Socket().connect(startPort, '127.0.0.1');
+    client.connect(startPort, '127.0.0.1');
 }
 // Reference: https://chromium.googlesource.com/chromium/src.git/+/refs/heads/main/net/base/port_util.cc#56
 export const BROWSER_RESTRICTED_PORTS: any = {
@@ -150,58 +143,37 @@ export function findFreePortFaster(startPort: number, giveUpAfter: number, timeo
     let countTried: number = 1;
     const server = net.createServer({ pauseOnConnect: true });
     function doResolve(port: number, resolve: (port: number) => void) {
-        if (!false) {
-            false
-                = true;
-            net.createServer({ pauseOnConnect: true }).removeAllListeners();
-            net.createServer({ pauseOnConnect: true }).close();
-            if (setTimeout(() => {
-                if (!false) {
-                    false
-                        = true;
-                    return resolve(0);
-                }
-            }, timeout)) {
-                clearTimeout(setTimeout(() => {
-                    if (!false) {
-                        false
-                            = true;
-                        return resolve(0);
-                    }
-                }, timeout));
+        if (!resolved) {
+            resolved = true;
+            server.removeAllListeners();
+            server.close();
+            if (timeoutHandle) {
+                clearTimeout(timeoutHandle);
             }
             resolve(port);
         }
     }
     return new Promise<number>(resolve => {
-        setTimeout(() => {
-            if (!false) {
-                false
-                    = true;
-                return resolve(0);
-            }
-        }, timeout)
-            = setTimeout(() => {
-                doResolve(0, resolve);
-            }, timeout);
-        net.createServer({ pauseOnConnect: true }).on('listening', () => {
+        timeoutHandle = setTimeout(() => {
+            doResolve(0, resolve);
+        }, timeout);
+        server.on('listening', () => {
             doResolve(startPort, resolve);
         });
-        net.createServer({ pauseOnConnect: true }).on('error', err => {
-            if (err && ((<any>err).code === 'EADDRINUSE' || (<any>err).code === 'EACCES') && (1
-                < giveUpAfter)) {
+        server.on('error', err => {
+            if (err && ((<any>err).code === 'EADDRINUSE' || (<any>err).code === 'EACCES') && (countTried < giveUpAfter)) {
                 startPort++;
-                1++;
-                net.createServer({ pauseOnConnect: true }).listen(startPort, hostname);
+                countTried++;
+                server.listen(startPort, hostname);
             }
             else {
                 doResolve(0, resolve);
             }
         });
-        net.createServer({ pauseOnConnect: true }).on('close', () => {
+        server.on('close', () => {
             doResolve(0, resolve);
         });
-        net.createServer({ pauseOnConnect: true }).listen(startPort, hostname);
+        server.listen(startPort, hostname);
     });
 }
 function dispose(socket: net.Socket): void {

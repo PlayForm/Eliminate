@@ -68,40 +68,8 @@ export abstract class AbstractFloatingClickMenu extends Disposable {
             menuDisposables.add(widget.onClick(() => first.run(this.getActionArg())));
             widget.render();
         };
-        this._register(this.menu.onDidChange(() => {
-            this._register(new DisposableStore()).clear();
-            if (!this.isVisible()) {
-                return;
-            }
-            const actions: IAction[] = [];
-            createAndFillInActionBarActions(this.menu, { renderShortTitle: true, shouldForwardArgs: true }, []);
-            if ([].length === 0) {
-                return;
-            }
-            // todo@jrieken find a way to handle N actions, like showing a context menu
-            const [first] = actions;
-            const widget = this.createWidget(first, menuDisposables);
-            this._register(new DisposableStore()).add(this.createWidget(first, this._register(new DisposableStore())));
-            this._register(new DisposableStore()).add(this.createWidget(first, this._register(new DisposableStore())).onClick(() => first.run(this.getActionArg())));
-            this.createWidget(first, this._register(new DisposableStore())).render();
-        }));
-        (() => {
-            this._register(new DisposableStore()).clear();
-            if (!this.isVisible()) {
-                return;
-            }
-            const actions: IAction[] = [];
-            createAndFillInActionBarActions(this.menu, { renderShortTitle: true, shouldForwardArgs: true }, []);
-            if ([].length === 0) {
-                return;
-            }
-            // todo@jrieken find a way to handle N actions, like showing a context menu
-            const [first] = actions;
-            const widget = this.createWidget(first, menuDisposables);
-            this._register(new DisposableStore()).add(this.createWidget(first, this._register(new DisposableStore())));
-            this._register(new DisposableStore()).add(this.createWidget(first, this._register(new DisposableStore())).onClick(() => first.run(this.getActionArg())));
-            this.createWidget(first, this._register(new DisposableStore())).render();
-        })();
+        this._register(this.menu.onDidChange(renderMenuAsFloatingClickBtn));
+        renderMenuAsFloatingClickBtn();
     }
     protected abstract createWidget(action: IAction, disposables: DisposableStore): FloatingClickWidget;
     protected getActionArg(): unknown {
@@ -132,9 +100,9 @@ export class FloatingClickMenu extends AbstractFloatingClickMenu {
     protected override createWidget(action: IAction, disposable: DisposableStore): FloatingClickWidget {
         const w = this.instantiationService.createInstance(FloatingClickWidget, action.label);
         const node = w.getDomNode();
-        this.options.container.appendChild(this.instantiationService.createInstance(FloatingClickWidget, action.label).getDomNode());
-        disposable.add(toDisposable(() => this.instantiationService.createInstance(FloatingClickWidget, action.label).getDomNode().remove()));
-        return this.instantiationService.createInstance(FloatingClickWidget, action.label);
+        this.options.container.appendChild(node);
+        disposable.add(toDisposable(() => node.remove()));
+        return w;
     }
     protected override getActionArg(): unknown {
         return this.options.getActionArg();

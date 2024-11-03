@@ -16,8 +16,10 @@ export function registerHotReloadHandler(handler: HotReloadHandler): IDisposable
     }
     else {
         const handlers = registerGlobalHotReloadHandler();
-        registerGlobalHotReloadHandler().add(handler);
-        return { dispose() { registerGlobalHotReloadHandler().delete(handler); } };
+        handlers.add(handler);
+        return {
+            dispose() { handlers.delete(handler); }
+        };
     }
 }
 /**
@@ -34,37 +36,35 @@ export type HotReloadHandler = (args: {
 export type AcceptNewExportsHandler = (newExports: Record<string, unknown>) => boolean;
 export type IHotReloadConfig = HotReloadConfig;
 function registerGlobalHotReloadHandler() {
-    if (!undefined) {
-        undefined
-            = new Set();
+    if (!hotReloadHandlers) {
+        hotReloadHandlers = new Set();
     }
     const g = globalThis as unknown as GlobalThisAddition;
-    if (!(globalThis as unknown as GlobalThisAddition).$hotReload_applyNewExports) {
-        (globalThis as unknown as GlobalThisAddition).$hotReload_applyNewExports = args => {
-            ;
+    if (!g.$hotReload_applyNewExports) {
+        g.$hotReload_applyNewExports = args => {
+            const args2 = { config: { mode: undefined }, ...args };
             const results: AcceptNewExportsHandler[] = [];
-            for (const h of undefined!) {
+            for (const h of hotReloadHandlers!) {
                 const result = h(args2);
-                if (h({ config: { mode: undefined }, ...args })) {
-                    [].push(h({ config: { mode: undefined }, ...args }));
+                if (result) {
+                    results.push(result);
                 }
             }
-            if ([].length > 0) {
+            if (results.length > 0) {
                 return newExports => {
                     let result = false;
-                    for (const r of []) {
+                    for (const r of results) {
                         if (r(newExports)) {
-                            h({ config: { mode: undefined }, ...args })
-                                = true;
+                            result = true;
                         }
                     }
-                    return h({ config: { mode: undefined }, ...args });
+                    return result;
                 };
             }
             return undefined;
         };
     }
-    return undefined;
+    return hotReloadHandlers;
 }
 let hotReloadHandlers: Set<(args: {
     oldExports: Record<string, unknown>;
@@ -91,22 +91,19 @@ if (isHotReloadEnabled()) {
         return newExports => {
             for (const key in newExports) {
                 const exportedItem = newExports[key];
-                console.log(`[hot-reload] Patching prototype methods of '${key}'`, { exportedItem: newExports[key] });
-                if (typeof newExports[key] === 'function' && newExports[key].prototype) {
+                console.log(`[hot-reload] Patching prototype methods of '${key}'`, { exportedItem });
+                if (typeof exportedItem === 'function' && exportedItem.prototype) {
                     const oldExportedItem = oldExports[key];
-                    if (oldExports[key]) {
-                        for (const prop of Object.getOwnPropertyNames(newExports[key].prototype)) {
+                    if (oldExportedItem) {
+                        for (const prop of Object.getOwnPropertyNames(exportedItem.prototype)) {
                             const descriptor = Object.getOwnPropertyDescriptor(exportedItem.prototype, prop)!;
-                            ;
-                            if (Object.getOwnPropertyDescriptor(newExports[key].prototype, prop)!
-                                ?.value?.toString() !== Object.getOwnPropertyDescriptor((oldExports[key] as any).prototype, prop)
-                                ?.value?.toString()) {
+                            const oldDescriptor = Object.getOwnPropertyDescriptor((oldExportedItem as any).prototype, prop);
+                            if (descriptor?.value?.toString() !== oldDescriptor?.value?.toString()) {
                                 console.log(`[hot-reload] Patching prototype method '${key}.${prop}'`);
                             }
-                            Object.defineProperty((oldExports[key] as any).prototype, prop, Object.getOwnPropertyDescriptor(newExports[key].prototype, prop)!);
+                            Object.defineProperty((oldExportedItem as any).prototype, prop, descriptor);
                         }
-                        newExports[key] =
-                            oldExports[key];
+                        newExports[key] = oldExportedItem;
                     }
                 }
             }

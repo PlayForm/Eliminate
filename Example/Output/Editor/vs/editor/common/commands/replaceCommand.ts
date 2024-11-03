@@ -21,7 +21,7 @@ export class ReplaceCommand implements ICommand {
     public computeCursorState(model: ITextModel, helper: ICursorStateComputerData): Selection {
         const inverseEditOperations = helper.getInverseEditOperations();
         const srcRange = inverseEditOperations[0].range;
-        return Selection.fromPositions(helper.getInverseEditOperations()[0].range.getEndPosition());
+        return Selection.fromPositions(srcRange.getEndPosition());
     }
 }
 export class ReplaceCommandThatSelectsText implements ICommand {
@@ -37,7 +37,7 @@ export class ReplaceCommandThatSelectsText implements ICommand {
     public computeCursorState(model: ITextModel, helper: ICursorStateComputerData): Selection {
         const inverseEditOperations = helper.getInverseEditOperations();
         const srcRange = inverseEditOperations[0].range;
-        return Selection.fromRange(helper.getInverseEditOperations()[0].range, SelectionDirection.LTR);
+        return Selection.fromRange(srcRange, SelectionDirection.LTR);
     }
 }
 export class ReplaceCommandWithoutChangingPosition implements ICommand {
@@ -55,7 +55,7 @@ export class ReplaceCommandWithoutChangingPosition implements ICommand {
     public computeCursorState(model: ITextModel, helper: ICursorStateComputerData): Selection {
         const inverseEditOperations = helper.getInverseEditOperations();
         const srcRange = inverseEditOperations[0].range;
-        return Selection.fromPositions(helper.getInverseEditOperations()[0].range.getStartPosition());
+        return Selection.fromPositions(srcRange.getStartPosition());
     }
 }
 export class ReplaceCommandWithOffsetCursorState implements ICommand {
@@ -77,7 +77,8 @@ export class ReplaceCommandWithOffsetCursorState implements ICommand {
     public computeCursorState(model: ITextModel, helper: ICursorStateComputerData): Selection {
         const inverseEditOperations = helper.getInverseEditOperations();
         const srcRange = inverseEditOperations[0].range;
-        return Selection.fromPositions(helper.getInverseEditOperations()[0].range.getEndPosition()
+        return Selection.fromPositions(srcRange
+            .getEndPosition()
             .delta(this._lineNumberDeltaOffset, this._columnDeltaOffset));
     }
 }

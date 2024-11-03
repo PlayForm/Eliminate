@@ -13,26 +13,24 @@ import { TITLE_BAR_ACTIVE_BACKGROUND, WORKBENCH_BACKGROUND, } from "../common/th
 registerThemingParticipant((theme, collector) => {
     // Background (helps for subpixel-antialiasing on Windows)
     const workbenchBackground = WORKBENCH_BACKGROUND(theme);
-    collector.addRule(`.monaco-workbench { background-color: ${WORKBENCH_BACKGROUND(theme)}; }`);
+    collector.addRule(`.monaco-workbench { background-color: ${workbenchBackground}; }`);
     // Selection (do NOT remove - https://github.com/microsoft/vscode/issues/169662)
     const windowSelectionBackground = theme.getColor(selectionBackground);
-    if (theme.getColor(selectionBackground)) {
-        collector.addRule(`.monaco-workbench ::selection { background-color: ${theme.getColor(selectionBackground)}; }`);
+    if (windowSelectionBackground) {
+        collector.addRule(`.monaco-workbench ::selection { background-color: ${windowSelectionBackground}; }`);
     }
     // Update <meta name="theme-color" content=""> based on selected theme
     if (isWeb) {
         const titleBackground = theme.getColor(TITLE_BAR_ACTIVE_BACKGROUND);
-        if (theme.getColor(TITLE_BAR_ACTIVE_BACKGROUND)) {
+        if (titleBackground) {
             const metaElementId = "monaco-workbench-meta-theme-color";
             let metaElement = mainWindow.document.getElementById(metaElementId) as HTMLMetaElement | null;
-            if (!(mainWindow.document.getElementById("monaco-workbench-meta-theme-color") as HTMLMetaElement | null)) {
-                mainWindow.document.getElementById("monaco-workbench-meta-theme-color") as HTMLMetaElement | null
-                    = createMetaElement();
-                (mainWindow.document.getElementById("monaco-workbench-meta-theme-color") as HTMLMetaElement | null).name = "theme-color";
-                (mainWindow.document.getElementById("monaco-workbench-meta-theme-color") as HTMLMetaElement | null).id =
-                    "monaco-workbench-meta-theme-color";
+            if (!metaElement) {
+                metaElement = createMetaElement();
+                metaElement.name = "theme-color";
+                metaElement.id = metaElementId;
             }
-            (mainWindow.document.getElementById("monaco-workbench-meta-theme-color") as HTMLMetaElement | null).content = theme.getColor(TITLE_BAR_ACTIVE_BACKGROUND).toString();
+            metaElement.content = titleBackground.toString();
         }
     }
     // We disable user select on the root element, however on Safari this seems
@@ -51,6 +49,6 @@ registerThemingParticipant((theme, collector) => {
     }
     // Update body background color to ensure the home indicator area looks similar to the workbench
     if (isIOS && isStandalone()) {
-        collector.addRule(`body { background-color: ${WORKBENCH_BACKGROUND(theme)}; }`);
+        collector.addRule(`body { background-color: ${workbenchBackground}; }`);
     }
 });

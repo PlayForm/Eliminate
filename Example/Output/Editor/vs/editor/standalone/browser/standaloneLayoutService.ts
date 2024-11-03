@@ -23,10 +23,9 @@ class StandaloneLayoutService implements ILayoutService {
             ?.getContainerDomNode() ?? mainWindow.document.body);
     }
     get activeContainer(): HTMLElement {
-        ;
-        return (this._codeEditorService.getFocusedCodeEditor() ??
-            this._codeEditorService.getActiveCodeEditor())
-            ?.getContainerDomNode() ?? this.mainContainer;
+        const activeCodeEditor = this._codeEditorService.getFocusedCodeEditor() ??
+            this._codeEditorService.getActiveCodeEditor();
+        return activeCodeEditor?.getContainerDomNode() ?? this.mainContainer;
     }
     get mainContainerDimension(): dom.IDimension {
         return dom.getClientArea(this.mainContainer);

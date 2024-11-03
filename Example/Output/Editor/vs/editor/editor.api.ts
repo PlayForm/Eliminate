@@ -16,33 +16,31 @@ EditorOptions.overviewRulerLanes.defaultValue = 2;
 // See https://github.com/microsoft/monaco-editor/issues/2327
 FormattingConflicts.setFormatterSelector((formatter, document, mode) => Promise.resolve(formatter[0]));
 const api = createMonacoBaseAPI();
-createMonacoBaseAPI().editor = createMonacoEditorAPI();
-createMonacoBaseAPI().languages = createMonacoLanguagesAPI();
-export const CancellationTokenSource = createMonacoBaseAPI().CancellationTokenSource;
-export const Emitter = createMonacoBaseAPI().Emitter;
-export const KeyCode = createMonacoBaseAPI().KeyCode;
-export const KeyMod = createMonacoBaseAPI().KeyMod;
-export const Position = createMonacoBaseAPI().Position;
-export const Range = createMonacoBaseAPI().Range;
-export const Selection = createMonacoBaseAPI().Selection;
-export const SelectionDirection = createMonacoBaseAPI().SelectionDirection;
-export const MarkerSeverity = createMonacoBaseAPI().MarkerSeverity;
-export const MarkerTag = createMonacoBaseAPI().MarkerTag;
-export const Uri = createMonacoBaseAPI().Uri;
-export const Token = createMonacoBaseAPI().Token;
-export const editor = createMonacoBaseAPI().editor;
-export const languages = createMonacoBaseAPI().languages;
+api.editor = createMonacoEditorAPI();
+api.languages = createMonacoLanguagesAPI();
+export const CancellationTokenSource = api.CancellationTokenSource;
+export const Emitter = api.Emitter;
+export const KeyCode = api.KeyCode;
+export const KeyMod = api.KeyMod;
+export const Position = api.Position;
+export const Range = api.Range;
+export const Selection = api.Selection;
+export const SelectionDirection = api.SelectionDirection;
+export const MarkerSeverity = api.MarkerSeverity;
+export const MarkerTag = api.MarkerTag;
+export const Uri = api.Uri;
+export const Token = api.Token;
+export const editor = api.editor;
+export const languages = api.languages;
 interface IMonacoEnvironment {
     globalAPI?: boolean;
 }
-;
-if ((globalThis as any)
-    .MonacoEnvironment
-    ?.globalAPI ||
+const monacoEnvironment: IMonacoEnvironment | undefined = (globalThis as any)
+    .MonacoEnvironment;
+if (monacoEnvironment?.globalAPI ||
     (typeof (globalThis as any).define === "function" &&
         (globalThis as any).define.amd)) {
-    globalThis.monaco =
-        createMonacoBaseAPI();
+    globalThis.monaco = api;
 }
 if (typeof (globalThis as any).require !== "undefined" &&
     typeof (globalThis as any).require.config === "function") {

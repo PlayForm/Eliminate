@@ -60,23 +60,23 @@ class CliMain extends Disposable {
     }
     async run(): Promise<void> {
         const instantiationService = await this.initServices();
-        await (await this.initServices()).invokeFunction(async (accessor) => {
+        await instantiationService.invokeFunction(async (accessor) => {
             const configurationService = accessor.get(IConfigurationService);
             const logService = accessor.get(ILogService);
             // On Windows, configure the UNC allow list based on settings
             if (isWindows) {
-                if (accessor.get(IConfigurationService).getValue('security.restrictUNCAccess') === false) {
+                if (configurationService.getValue('security.restrictUNCAccess') === false) {
                     disableUNCAccessRestrictions();
                 }
                 else {
-                    addUNCHostToAllowlist(accessor.get(IConfigurationService).getValue('security.allowedUNCHosts'));
+                    addUNCHostToAllowlist(configurationService.getValue('security.allowedUNCHosts'));
                 }
             }
             try {
-                await this.doRun((await this.initServices()).createInstance(ExtensionManagementCLI, new ConsoleLogger(accessor.get(ILogService).getLevel(), false)));
+                await this.doRun(instantiationService.createInstance(ExtensionManagementCLI, new ConsoleLogger(logService.getLevel(), false)));
             }
             catch (error) {
-                accessor.get(ILogService).error(error);
+                logService.error(error);
                 console.error(getErrorMessage(error));
                 throw error;
             }
@@ -85,40 +85,42 @@ class CliMain extends Disposable {
     private async initServices(): Promise<IInstantiationService> {
         const services = new ServiceCollection();
         const productService = { _serviceBrand: undefined, ...product };
-        new ServiceCollection().set(IProductService, { _serviceBrand: undefined, ...product });
+        services.set(IProductService, productService);
         const environmentService = new ServerEnvironmentService(this.args, productService);
-        new ServiceCollection().set(IServerEnvironmentService, new ServerEnvironmentService(this.args, { _serviceBrand: undefined, ...product }));
+        services.set(IServerEnvironmentService, environmentService);
         const loggerService = new LoggerService(getLogLevel(environmentService), environmentService.logsHome);
-        new ServiceCollection().set(ILoggerService, new LoggerService(getLogLevel(new ServerEnvironmentService(this.args, { _serviceBrand: undefined, ...product })), new ServerEnvironmentService(this.args, { _serviceBrand: undefined, ...product }).logsHome));
+        services.set(ILoggerService, loggerService);
         const logService = new LogService(this._register(loggerService.createLogger('remoteCLI', { name: localize('remotecli', "Remote CLI") })));
-        new ServiceCollection().set(ILogService, accessor.get(ILogService));
-        accessor.get(ILogService).trace(`Remote configuration data at ${this.remoteDataFolder}`);
-        accessor.get(ILogService).trace('process arguments:', this.args);
+        services.set(ILogService, logService);
+        logService.trace(`Remote configuration data at ${this.remoteDataFolder}`);
+        logService.trace('process arguments:', this.args);
         // Files
         const fileService = this._register(new FileService(logService));
-        new ServiceCollection().set(IFileService, this._register(new FileService(accessor.get(ILogService))));
-        this._register(new FileService(accessor.get(ILogService))).registerProvider(Schemas.file, this._register(new DiskFileSystemProvider(accessor.get(ILogService))));
+        services.set(IFileService, fileService);
+        fileService.registerProvider(Schemas.file, this._register(new DiskFileSystemProvider(logService)));
         const uriIdentityService = new UriIdentityService(fileService);
-        new ServiceCollection().set(IUriIdentityService, new UriIdentityService(this._register(new FileService(accessor.get(ILogService)))));
+        services.set(IUriIdentityService, uriIdentityService);
         // User Data Profiles
         const userDataProfilesService = this._register(new ServerUserDataProfilesService(uriIdentityService, environmentService, fileService, logService));
-        new ServiceCollection().set(IUserDataProfilesService, this._register(new ServerUserDataProfilesService(new UriIdentityService(this._register(new FileService(accessor.get(ILogService)))), new ServerEnvironmentService(this.args, { _serviceBrand: undefined, ...product }), this._register(new FileService(accessor.get(ILogService))), accessor.get(ILogService))));
+        services.set(IUserDataProfilesService, userDataProfilesService);
         // Configuration
         const configurationService = this._register(new ConfigurationService(userDataProfilesService.defaultProfile.settingsResource, fileService, new NullPolicyService(), logService));
-        new ServiceCollection().set(IConfigurationService, accessor.get(IConfigurationService));
+        services.set(IConfigurationService, configurationService);
         // Initialize
-        await Promise.all([accessor.get(IConfigurationService).initialize(),
-            this._register(new ServerUserDataProfilesService(new UriIdentityService(this._register(new FileService(accessor.get(ILogService)))), new ServerEnvironmentService(this.args, { _serviceBrand: undefined, ...product }), this._register(new FileService(accessor.get(ILogService))), accessor.get(ILogService))).init()]);
-        new ServiceCollection().set(IRequestService, new SyncDescriptor(RequestService));
-        new ServiceCollection().set(IDownloadService, new SyncDescriptor(DownloadService));
-        new ServiceCollection().set(ITelemetryService, NullTelemetryService);
-        new ServiceCollection().set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryServiceWithNoStorageService));
-        new ServiceCollection().set(IExtensionsProfileScannerService, new SyncDescriptor(ExtensionsProfileScannerService));
-        new ServiceCollection().set(IExtensionsScannerService, new SyncDescriptor(ExtensionsScannerService));
-        new ServiceCollection().set(IExtensionSignatureVerificationService, new SyncDescriptor(ExtensionSignatureVerificationService));
-        new ServiceCollection().set(INativeServerExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
-        new ServiceCollection().set(ILanguagePackService, new SyncDescriptor(NativeLanguagePackService));
-        return new InstantiationService(new ServiceCollection());
+        await Promise.all([
+            configurationService.initialize(),
+            userDataProfilesService.init()
+        ]);
+        services.set(IRequestService, new SyncDescriptor(RequestService));
+        services.set(IDownloadService, new SyncDescriptor(DownloadService));
+        services.set(ITelemetryService, NullTelemetryService);
+        services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryServiceWithNoStorageService));
+        services.set(IExtensionsProfileScannerService, new SyncDescriptor(ExtensionsProfileScannerService));
+        services.set(IExtensionsScannerService, new SyncDescriptor(ExtensionsScannerService));
+        services.set(IExtensionSignatureVerificationService, new SyncDescriptor(ExtensionSignatureVerificationService));
+        services.set(INativeServerExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
+        services.set(ILanguagePackService, new SyncDescriptor(NativeLanguagePackService));
+        return new InstantiationService(services);
     }
     private async doRun(extensionManagementCLI: ExtensionManagementCLI): Promise<void> {
         // List Extensions
@@ -127,8 +129,8 @@ class CliMain extends Disposable {
         }
         // Install Extension
         else if (this.args['install-extension'] || this.args['install-builtin-extension']) {
-            ;
-            return extensionManagementCLI.installExtensions(this.asExtensionIdOrVSIX(this.args['install-extension'] || []), this.asExtensionIdOrVSIX(this.args['install-builtin-extension'] || []), { isMachineScoped: !!this.args['do-not-sync'], installPreReleaseVersion: !!this.args['pre-release'] }, !!this.args['force']);
+            const installOptions: InstallOptions = { isMachineScoped: !!this.args['do-not-sync'], installPreReleaseVersion: !!this.args['pre-release'] };
+            return extensionManagementCLI.installExtensions(this.asExtensionIdOrVSIX(this.args['install-extension'] || []), this.asExtensionIdOrVSIX(this.args['install-builtin-extension'] || []), installOptions, !!this.args['force']);
         }
         // Uninstall Extension
         else if (this.args['uninstall-extension']) {
@@ -152,8 +154,8 @@ function eventuallyExit(code: number): void {
 }
 export async function run(args: ServerParsedArgs, REMOTE_DATA_FOLDER: string, optionDescriptions: OptionDescriptions<ServerParsedArgs>): Promise<void> {
     if (args.help) {
-        ;
-        console.log(buildHelpMessage(product.nameLong, product.serverApplicationName + (isWindows ? '.cmd' : ''), product.version, optionDescriptions, { noInputFiles: true, noPipe: true }));
+        const executable = product.serverApplicationName + (isWindows ? '.cmd' : '');
+        console.log(buildHelpMessage(product.nameLong, executable, product.version, optionDescriptions, { noInputFiles: true, noPipe: true }));
         return;
     }
     // Version Info
@@ -163,7 +165,7 @@ export async function run(args: ServerParsedArgs, REMOTE_DATA_FOLDER: string, op
     }
     const cliMain = new CliMain(args, REMOTE_DATA_FOLDER);
     try {
-        await new CliMain(args, REMOTE_DATA_FOLDER).run();
+        await cliMain.run();
         eventuallyExit(0);
     }
     catch (err) {

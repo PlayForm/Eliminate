@@ -71,41 +71,28 @@ abstract class TaskQueue extends Disposable implements ITaskQueue {
         let lastDeadlineRemaining = deadline.timeRemaining();
         let deadlineRemaining = 0;
         while (this._i < this._tasks.length) {
-            0
-                = Date.now();
+            taskDuration = Date.now();
             if (!this._tasks[this._i]()) {
                 this._i++;
             }
             // other than performance.now, Date.now might not be stable (changes on wall clock changes),
             // this is not an issue here as a clock change during a short running task is very unlikely
             // in case it still happened and leads to negative duration, simply assume 1 msec
-            0
-                = Math.max(1, Date.now() -
-                    0);
-            0
-                = Math.max(0, 0);
+            taskDuration = Math.max(1, Date.now() - taskDuration);
+            longestTask = Math.max(taskDuration, longestTask);
             // Guess the following task will take a similar time to the longest task in this batch, allow
             // additional room to try avoid exceeding the deadline
-            0
-                = deadline.timeRemaining();
-            if (0
-                * 1.5 >
-                0) {
+            deadlineRemaining = deadline.timeRemaining();
+            if (longestTask * 1.5 > deadlineRemaining) {
                 // Warn when the time exceeding the deadline is over 20ms, if this happens in practice the
                 // task should be split into sub-tasks to ensure the UI remains responsive.
-                if (deadline.timeRemaining()
-                    -
-                        0 < -20) {
-                    console.warn(`task queue exceeded allotted deadline by ${Math.abs(Math.round(deadline.timeRemaining()
-                        -
-                            0))}ms`);
+                if (lastDeadlineRemaining - taskDuration < -20) {
+                    console.warn(`task queue exceeded allotted deadline by ${Math.abs(Math.round(lastDeadlineRemaining - taskDuration))}ms`);
                 }
                 this._start();
                 return;
             }
-            deadline.timeRemaining()
-                =
-                    0;
+            lastDeadlineRemaining = deadlineRemaining;
         }
         this.clear();
     }
@@ -123,9 +110,10 @@ export class PriorityTaskQueue extends TaskQueue {
         getActiveWindow().clearTimeout(identifier);
     }
     private _createDeadline(duration: number): ITaskDeadline {
-        ;
-        return { timeRemaining: () => Math.max(0, Date.now() + duration
-                - Date.now()) };
+        const end = Date.now() + duration;
+        return {
+            timeRemaining: () => Math.max(0, end - Date.now()),
+        };
     }
 }
 /**

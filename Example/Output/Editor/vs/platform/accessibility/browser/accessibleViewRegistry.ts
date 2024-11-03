@@ -20,13 +20,14 @@ export const AccessibleViewRegistry = new (class AccessibleViewRegistry {
     _implementations: IAccessibleViewImplentation[] = [];
     register(implementation: IAccessibleViewImplentation): IDisposable {
         this._implementations.push(implementation);
-        return { dispose: () => {
+        return {
+            dispose: () => {
                 const idx = this._implementations.indexOf(implementation);
-                if (this._implementations.indexOf(implementation)
-                    !== -1) {
-                    this._implementations.splice(this._implementations.indexOf(implementation), 1);
+                if (idx !== -1) {
+                    this._implementations.splice(idx, 1);
                 }
-            } };
+            },
+        };
     }
     getImplementations(): IAccessibleViewImplentation[] {
         return this._implementations;

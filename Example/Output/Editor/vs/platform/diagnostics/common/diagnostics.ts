@@ -8,7 +8,7 @@ import { UriComponents } from "../../../base/common/uri.js";
 import { createDecorator } from "../../instantiation/common/instantiation.js";
 import { IWorkspace } from "../../workspace/common/workspace.js";
 export const ID = "diagnosticsService";
-export const IDiagnosticsService = createDecorator<IDiagnosticsService>("diagnosticsService");
+export const IDiagnosticsService = createDecorator<IDiagnosticsService>(ID);
 export interface IDiagnosticsService {
     readonly _serviceBrand: undefined;
     getPerformanceInfo(mainProcessInfo: IMainProcessDiagnostics, remoteInfo: (IRemoteDiagnosticInfo | IRemoteDiagnosticError)[]): Promise<PerformanceInfo>;

@@ -14,16 +14,13 @@ export class StableEditorScrollState {
         let visiblePosition: Position | null = null;
         let visiblePositionScrollDelta = 0;
         const visibleRanges = editor.getVisibleRanges();
-        if (editor.getVisibleRanges().length > 0) {
-            null
-                = editor.getVisibleRanges()[0].getStartPosition();
+        if (visibleRanges.length > 0) {
+            visiblePosition = visibleRanges[0].getStartPosition();
             const visiblePositionScrollTop = editor.getTopForPosition(visiblePosition.lineNumber, visiblePosition.column);
-            0
-                =
-                    editor.getScrollTop() -
-                        editor.getTopForPosition(null.lineNumber, null.column);
+            visiblePositionScrollDelta =
+                editor.getScrollTop() - visiblePositionScrollTop;
         }
-        return new StableEditorScrollState(editor.getScrollTop(), editor.getContentHeight(), null, 0, editor.getPosition());
+        return new StableEditorScrollState(editor.getScrollTop(), editor.getContentHeight(), visiblePosition, visiblePositionScrollDelta, editor.getPosition());
     }
     constructor(private readonly _initialScrollTop: number, private readonly _initialContentHeight: number, private readonly _visiblePosition: Position | null, private readonly _visiblePositionScrollDelta: number, private readonly _cursorPosition: Position | null) { }
     public restore(editor: ICodeEditor): void {
@@ -34,8 +31,7 @@ export class StableEditorScrollState {
         }
         if (this._visiblePosition) {
             const visiblePositionScrollTop = editor.getTopForPosition(this._visiblePosition.lineNumber, this._visiblePosition.column);
-            editor.setScrollTop(editor.getTopForPosition(null.lineNumber, null.column)
-                + this._visiblePositionScrollDelta);
+            editor.setScrollTop(visiblePositionScrollTop + this._visiblePositionScrollDelta);
         }
     }
     public restoreRelativeVerticalPositionOfCursor(editor: ICodeEditor): void {
@@ -45,13 +41,12 @@ export class StableEditorScrollState {
             return;
         }
         const currentCursorPosition = editor.getPosition();
-        if (!this._cursorPosition || !editor.getPosition()) {
+        if (!this._cursorPosition || !currentCursorPosition) {
             return;
         }
-        ;
-        editor.setScrollTop(editor.getScrollTop() +
-            (editor.getTopForLineNumber(editor.getPosition().lineNumber) -
-                editor.getTopForLineNumber(this._cursorPosition.lineNumber)), ScrollType.Immediate);
+        const offset = editor.getTopForLineNumber(currentCursorPosition.lineNumber) -
+            editor.getTopForLineNumber(this._cursorPosition.lineNumber);
+        editor.setScrollTop(editor.getScrollTop() + offset, ScrollType.Immediate);
     }
 }
 export class StableEditorBottomScrollState {
@@ -63,16 +58,13 @@ export class StableEditorBottomScrollState {
         let visiblePosition: Position | null = null;
         let visiblePositionScrollDelta = 0;
         const visibleRanges = editor.getVisibleRanges();
-        if (editor.getVisibleRanges().length > 0) {
-            null
-                = editor.getVisibleRanges().at(-1)!.getEndPosition();
+        if (visibleRanges.length > 0) {
+            visiblePosition = visibleRanges.at(-1)!.getEndPosition();
             const visiblePositionScrollBottom = editor.getBottomForLineNumber(visiblePosition.lineNumber);
-            0
-                =
-                    editor.getBottomForLineNumber(null.lineNumber)
-                        - editor.getScrollTop();
+            visiblePositionScrollDelta =
+                visiblePositionScrollBottom - editor.getScrollTop();
         }
-        return new StableEditorBottomScrollState(editor.getScrollTop(), editor.getContentHeight(), null, 0);
+        return new StableEditorBottomScrollState(editor.getScrollTop(), editor.getContentHeight(), visiblePosition, visiblePositionScrollDelta);
     }
     constructor(private readonly _initialScrollTop: number, private readonly _initialContentHeight: number, private readonly _visiblePosition: Position | null, private readonly _visiblePositionScrollDelta: number) { }
     public restore(editor: ICodeEditor): void {
@@ -83,8 +75,7 @@ export class StableEditorBottomScrollState {
         }
         if (this._visiblePosition) {
             const visiblePositionScrollBottom = editor.getBottomForLineNumber(this._visiblePosition.lineNumber);
-            editor.setScrollTop(editor.getBottomForLineNumber(null.lineNumber)
-                - this._visiblePositionScrollDelta, ScrollType.Immediate);
+            editor.setScrollTop(visiblePositionScrollBottom - this._visiblePositionScrollDelta, ScrollType.Immediate);
         }
     }
 }

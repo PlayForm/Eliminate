@@ -74,7 +74,11 @@ export class RectangleRenderer extends ViewEventHandler {
             return;
         }
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
-        this._ctx.configure({ device: this._device, format: navigator.gpu.getPreferredCanvasFormat(), alphaMode: "premultiplied" });
+        this._ctx.configure({
+            device: this._device,
+            format: presentationFormat,
+            alphaMode: "premultiplied",
+        });
         this._renderPassColorAttachment = {
             view: null!, // Will be filled at render time
             loadOp: "load",
@@ -118,43 +122,18 @@ export class RectangleRenderer extends ViewEventHandler {
                 label: "Monaco rectangle renderer uniform buffer",
                 size: Info.BytesPerEntry,
                 usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-            }, () => ((canvasDevicePixelWidth: number = this._canvas.width, canvasDevicePixelHeight: number = this._canvas.height) => {
-                new Float32Array(Info.FloatsPerEntry)[Info.Offset_CanvasWidth____] =
-                    canvasDevicePixelWidth;
-                new Float32Array(Info.FloatsPerEntry)[Info.Offset_CanvasHeight___] =
-                    canvasDevicePixelHeight;
-                new Float32Array(Info.FloatsPerEntry)[Info.Offset_ViewportOffsetX] = Math.ceil(this._context.configuration.options.get(EditorOption.layoutInfo).contentLeft * getActiveWindow().devicePixelRatio);
-                new Float32Array(Info.FloatsPerEntry)[Info.Offset_ViewportOffsetY] = 0;
-                new Float32Array(Info.FloatsPerEntry)[Info.Offset_ViewportWidth__] =
-                    new Float32Array(Info.FloatsPerEntry)[Info.Offset_CanvasWidth____] -
-                        new Float32Array(Info.FloatsPerEntry)[Info.Offset_ViewportOffsetX];
-                new Float32Array(Info.FloatsPerEntry)[Info.Offset_ViewportHeight_] =
-                    new Float32Array(Info.FloatsPerEntry)[Info.Offset_CanvasHeight___] -
-                        new Float32Array(Info.FloatsPerEntry)[Info.Offset_ViewportOffsetY];
-                return new Float32Array(Info.FloatsPerEntry);
-            })())).object;
+            }, () => updateBufferValues())).object;
             this._register(observeDevicePixelDimensions(this._canvas, getActiveWindow(), (w, h) => {
-                this._device.queue.writeBuffer(layoutInfoUniformBuffer, 0, ((canvasDevicePixelWidth: number = this._canvas.width, canvasDevicePixelHeight: number = this._canvas.height) => {
-                    new Float32Array(Info.FloatsPerEntry)[Info.Offset_CanvasWidth____] =
-                        canvasDevicePixelWidth;
-                    new Float32Array(Info.FloatsPerEntry)[Info.Offset_CanvasHeight___] =
-                        canvasDevicePixelHeight;
-                    new Float32Array(Info.FloatsPerEntry)[Info.Offset_ViewportOffsetX] = Math.ceil(this._context.configuration.options.get(EditorOption.layoutInfo).contentLeft * getActiveWindow().devicePixelRatio);
-                    new Float32Array(Info.FloatsPerEntry)[Info.Offset_ViewportOffsetY] = 0;
-                    new Float32Array(Info.FloatsPerEntry)[Info.Offset_ViewportWidth__] =
-                        new Float32Array(Info.FloatsPerEntry)[Info.Offset_CanvasWidth____] -
-                            new Float32Array(Info.FloatsPerEntry)[Info.Offset_ViewportOffsetX];
-                    new Float32Array(Info.FloatsPerEntry)[Info.Offset_ViewportHeight_] =
-                        new Float32Array(Info.FloatsPerEntry)[Info.Offset_CanvasHeight___] -
-                            new Float32Array(Info.FloatsPerEntry)[Info.Offset_ViewportOffsetY];
-                    return new Float32Array(Info.FloatsPerEntry);
-                })(w, h));
+                this._device.queue.writeBuffer(layoutInfoUniformBuffer, 0, updateBufferValues(w, h));
             }));
         }
         const scrollOffsetBufferSize = 2;
-        this._scrollOffsetBindBuffer = this._register(GPULifecycle.createBuffer(this._device, { label: "Monaco rectangle renderer scroll offset buffer", size: 2
-                * Float32Array.BYTES_PER_ELEMENT, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST })).object;
-        this._scrollOffsetValueBuffer = new Float32Array(2);
+        this._scrollOffsetBindBuffer = this._register(GPULifecycle.createBuffer(this._device, {
+            label: "Monaco rectangle renderer scroll offset buffer",
+            size: scrollOffsetBufferSize * Float32Array.BYTES_PER_ELEMENT,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        })).object;
+        this._scrollOffsetValueBuffer = new Float32Array(scrollOffsetBufferSize);
         // #endregion Uniforms
         // #region Storage buffers
         const createShapeBindBuffer = () => {
@@ -164,21 +143,9 @@ export class RectangleRenderer extends ViewEventHandler {
                 usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
             });
         };
-        this._shapeBindBuffer.value = (() => {
-            return GPULifecycle.createBuffer(this._device, {
-                label: "Monaco rectangle renderer shape buffer",
-                size: this._shapeCollection.buffer.byteLength,
-                usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-            });
-        })();
+        this._shapeBindBuffer.value = createShapeBindBuffer();
         this._register(Event.runAndSubscribe(this._shapeCollection.onDidChangeBuffer, () => {
-            this._shapeBindBuffer.value = (() => {
-                return GPULifecycle.createBuffer(this._device, {
-                    label: "Monaco rectangle renderer shape buffer",
-                    size: this._shapeCollection.buffer.byteLength,
-                    usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-                });
-            })();
+            this._shapeBindBuffer.value = createShapeBindBuffer();
             if (this._pipeline) {
                 this._updateBindGroup(this._pipeline, layoutInfoUniformBuffer);
             }
@@ -198,11 +165,12 @@ export class RectangleRenderer extends ViewEventHandler {
         });
         // #endregion Shader module
         // #region Pipeline
-        this._pipeline = this._device.createRenderPipeline({ label: "Monaco rectangle renderer render pipeline",
-            layout: "auto", vertex: { module: this._device.createShaderModule({
-                    label: "Monaco rectangle renderer shader module",
-                    code: rectangleRendererWgsl,
-                }), buffers: [
+        this._pipeline = this._device.createRenderPipeline({
+            label: "Monaco rectangle renderer render pipeline",
+            layout: "auto",
+            vertex: {
+                module,
+                buffers: [
                     {
                         arrayStride: 2 * Float32Array.BYTES_PER_ELEMENT, // 2 floats, 4 bytes each
                         attributes: [
@@ -213,10 +181,14 @@ export class RectangleRenderer extends ViewEventHandler {
                             }, // position
                         ],
                     },
-                ] }, fragment: { module: this._device.createShaderModule({
-                    label: "Monaco rectangle renderer shader module",
-                    code: rectangleRendererWgsl,
-                }), targets: [{ format: navigator.gpu.getPreferredCanvasFormat(), blend: {
+                ],
+            },
+            fragment: {
+                module,
+                targets: [
+                    {
+                        format: presentationFormat,
+                        blend: {
                             color: {
                                 srcFactor: "src-alpha",
                                 dstFactor: "one-minus-src-alpha",
@@ -225,7 +197,11 @@ export class RectangleRenderer extends ViewEventHandler {
                                 srcFactor: "src-alpha",
                                 dstFactor: "one-minus-src-alpha",
                             },
-                        } }] } });
+                        },
+                    },
+                ],
+            },
+        });
         // #endregion Pipeline
         // #region Bind group
         this._updateBindGroup(this._pipeline, layoutInfoUniformBuffer);
@@ -272,7 +248,7 @@ export class RectangleRenderer extends ViewEventHandler {
     // --- end event handlers
     private _update() {
         const shapes = this._shapeCollection;
-        if (this._shapeCollection.dirtyTracker.isDirty) {
+        if (shapes.dirtyTracker.isDirty) {
             this._device.queue.writeBuffer(this._shapeBindBuffer.value!.object, 0, shapes.buffer, shapes.dirtyTracker.dataOffset, shapes.dirtyTracker.dirtySize! * shapes.view.BYTES_PER_ELEMENT);
             shapes.dirtyTracker.clear();
         }

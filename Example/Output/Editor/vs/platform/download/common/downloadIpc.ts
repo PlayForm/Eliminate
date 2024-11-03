@@ -25,9 +25,9 @@ export class DownloadServiceChannelClient implements IDownloadService {
     constructor(private channel: IChannel, private getUriTransformer: () => IURITransformer | null) { }
     async download(from: URI, to: URI): Promise<void> {
         const uriTransformer = this.getUriTransformer();
-        if (this.getUriTransformer()) {
-            from = this.getUriTransformer().transformOutgoingURI(from);
-            to = this.getUriTransformer().transformOutgoingURI(to);
+        if (uriTransformer) {
+            from = uriTransformer.transformOutgoingURI(from);
+            to = uriTransformer.transformOutgoingURI(to);
         }
         await this.channel.call("download", [from, to]);
     }

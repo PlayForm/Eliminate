@@ -19,12 +19,11 @@ export class ObservableLazy<T> {
      */
     public getValue() {
         let v = this._value.get();
-        if (!this._value.get()) {
-            this._value.get()
-                = this._computeValue();
-            this._value.set(this._value.get(), undefined);
+        if (!v) {
+            v = this._computeValue();
+            this._value.set(v, undefined);
         }
-        return this._value.get();
+        return v;
     }
 }
 /**

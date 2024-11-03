@@ -94,10 +94,8 @@ export class WorkbenchContextKeysHandler extends Disposable {
         // Development
         const isDevelopment = !this.environmentService.isBuilt ||
             this.environmentService.isExtensionDevelopment;
-        IsDevelopmentContext.bindTo(this.contextKeyService).set(!this.environmentService.isBuilt ||
-            this.environmentService.isExtensionDevelopment);
-        setConstantContextKey(IsDevelopmentContext.key, !this.environmentService.isBuilt ||
-            this.environmentService.isExtensionDevelopment);
+        IsDevelopmentContext.bindTo(this.contextKeyService).set(isDevelopment);
+        setConstantContextKey(IsDevelopmentContext.key, isDevelopment);
         // Product Service
         ProductQualityContext.bindTo(this.contextKeyService).set(this.productService.quality || "");
         EmbedderIdentifierContext.bindTo(this.contextKeyService).set(productService.embedderIdentifier);

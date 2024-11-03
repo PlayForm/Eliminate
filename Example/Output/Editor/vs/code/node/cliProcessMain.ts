@@ -81,13 +81,13 @@ class CliMain extends Disposable {
             const environmentService = accessor.get(INativeEnvironmentService);
             const userDataProfilesService = accessor.get(IUserDataProfilesService);
             // Log info
-            accessor.get(ILogService).info('CLI main', this.argv);
+            logService.info('CLI main', this.argv);
             // Error handler
-            this.registerErrorHandler(accessor.get(ILogService));
+            this.registerErrorHandler(logService);
             // Run based on argv
-            await this.doRun(accessor.get(INativeEnvironmentService), accessor.get(IFileService), accessor.get(IUserDataProfilesService), instantiationService);
+            await this.doRun(environmentService, fileService, userDataProfilesService, instantiationService);
             // Flush the remaining data in AI adapter (with 1s timeout)
-            await Promise.all([].map(a => {
+            await Promise.all(appenders.map(a => {
                 raceTimeout(a.flush(), 1000);
             }));
             return;
@@ -100,100 +100,97 @@ class CliMain extends Disposable {
         const services = new ServiceCollection();
         // Product
         const productService = { _serviceBrand: undefined, ...product };
-        new ServiceCollection().set(IProductService, { _serviceBrand: undefined, ...product });
+        services.set(IProductService, productService);
         // Environment
         const environmentService = new NativeEnvironmentService(this.argv, productService);
-        new ServiceCollection().set(INativeEnvironmentService, accessor.get(INativeEnvironmentService));
+        services.set(INativeEnvironmentService, environmentService);
         // Init folders
-        await Promise.all([this.allowWindowsUNCPath(accessor.get(INativeEnvironmentService).appSettingsHome.with({ scheme: Schemas.file }).fsPath),
-            this.allowWindowsUNCPath(accessor.get(INativeEnvironmentService).extensionsPath)].map(path => path ? fs.promises.mkdir(path, { recursive: true }) : undefined));
+        await Promise.all([
+            this.allowWindowsUNCPath(environmentService.appSettingsHome.with({ scheme: Schemas.file }).fsPath),
+            this.allowWindowsUNCPath(environmentService.extensionsPath)
+        ].map(path => path ? fs.promises.mkdir(path, { recursive: true }) : undefined));
         // Logger
         const loggerService = new LoggerService(getLogLevel(environmentService), environmentService.logsHome);
-        new ServiceCollection().set(ILoggerService, new LoggerService(getLogLevel(accessor.get(INativeEnvironmentService)), accessor.get(INativeEnvironmentService).logsHome));
-        ;
+        services.set(ILoggerService, loggerService);
+        // Log
+        const logger = this._register(loggerService.createLogger('cli', { name: localize('cli', "CLI") }));
         const otherLoggers: ILogger[] = [];
-        if (new LoggerService(getLogLevel(accessor.get(INativeEnvironmentService)), accessor.get(INativeEnvironmentService).logsHome).getLogLevel() === LogLevel.Trace) {
-            [].push(new ConsoleLogger(new LoggerService(getLogLevel(accessor.get(INativeEnvironmentService)), accessor.get(INativeEnvironmentService).logsHome).getLogLevel()));
+        if (loggerService.getLogLevel() === LogLevel.Trace) {
+            otherLoggers.push(new ConsoleLogger(loggerService.getLogLevel()));
         }
         const logService = this._register(new LogService(logger, otherLoggers));
-        new ServiceCollection().set(ILogService, accessor.get(ILogService));
+        services.set(ILogService, logService);
         // Files
         const fileService = this._register(new FileService(logService));
-        new ServiceCollection().set(IFileService, accessor.get(IFileService));
+        services.set(IFileService, fileService);
         const diskFileSystemProvider = this._register(new DiskFileSystemProvider(logService));
-        accessor.get(IFileService).registerProvider(Schemas.file, this._register(new DiskFileSystemProvider(accessor.get(ILogService))));
+        fileService.registerProvider(Schemas.file, diskFileSystemProvider);
         // Uri Identity
         const uriIdentityService = new UriIdentityService(fileService);
-        new ServiceCollection().set(IUriIdentityService, new UriIdentityService(accessor.get(IFileService)));
+        services.set(IUriIdentityService, uriIdentityService);
         // User Data Profiles
         const stateService = new StateReadonlyService(SaveStrategy.DELAYED, environmentService, logService, fileService);
         const userDataProfilesService = new UserDataProfilesReadonlyService(stateService, uriIdentityService, environmentService, fileService, logService);
-        new ServiceCollection().set(IUserDataProfilesService, accessor.get(IUserDataProfilesService));
+        services.set(IUserDataProfilesService, userDataProfilesService);
         // Use FileUserDataProvider for user data to
         // enable atomic read / write operations.
-        accessor.get(IFileService).registerProvider(Schemas.vscodeUserData, new FileUserDataProvider(Schemas.file, this._register(new DiskFileSystemProvider(accessor.get(ILogService))), Schemas.vscodeUserData, accessor.get(IUserDataProfilesService), new UriIdentityService(accessor.get(IFileService)), accessor.get(ILogService)));
+        fileService.registerProvider(Schemas.vscodeUserData, new FileUserDataProvider(Schemas.file, diskFileSystemProvider, Schemas.vscodeUserData, userDataProfilesService, uriIdentityService, logService));
         // Policy
         const policyService = isWindows && productService.win32RegValueName ? this._register(new NativePolicyService(logService, productService.win32RegValueName))
             : environmentService.policyFile ? this._register(new FilePolicyService(environmentService.policyFile, fileService, logService))
                 : new NullPolicyService();
-        new ServiceCollection().set(IPolicyService, isWindows && { _serviceBrand: undefined, ...product }.win32RegValueName ? this._register(new NativePolicyService(accessor.get(ILogService), { _serviceBrand: undefined, ...product }.win32RegValueName))
-            : accessor.get(INativeEnvironmentService).policyFile ? this._register(new FilePolicyService(accessor.get(INativeEnvironmentService).policyFile, accessor.get(IFileService), accessor.get(ILogService)))
-                : new NullPolicyService());
+        services.set(IPolicyService, policyService);
         // Configuration
         const configurationService = this._register(new ConfigurationService(userDataProfilesService.defaultProfile.settingsResource, fileService, policyService, logService));
-        new ServiceCollection().set(IConfigurationService, this._register(new ConfigurationService(accessor.get(IUserDataProfilesService).defaultProfile.settingsResource, accessor.get(IFileService), isWindows && { _serviceBrand: undefined, ...product }.win32RegValueName ? this._register(new NativePolicyService(accessor.get(ILogService), { _serviceBrand: undefined, ...product }.win32RegValueName))
-            : accessor.get(INativeEnvironmentService).policyFile ? this._register(new FilePolicyService(accessor.get(INativeEnvironmentService).policyFile, accessor.get(IFileService), accessor.get(ILogService)))
-                : new NullPolicyService(), accessor.get(ILogService))));
+        services.set(IConfigurationService, configurationService);
         // Initialize
-        await Promise.all([new StateReadonlyService(SaveStrategy.DELAYED, accessor.get(INativeEnvironmentService), accessor.get(ILogService), accessor.get(IFileService)).init(),
-            this._register(new ConfigurationService(accessor.get(IUserDataProfilesService).defaultProfile.settingsResource, accessor.get(IFileService), isWindows && { _serviceBrand: undefined, ...product }.win32RegValueName ? this._register(new NativePolicyService(accessor.get(ILogService), { _serviceBrand: undefined, ...product }.win32RegValueName))
-                : accessor.get(INativeEnvironmentService).policyFile ? this._register(new FilePolicyService(accessor.get(INativeEnvironmentService).policyFile, accessor.get(IFileService), accessor.get(ILogService)))
-                    : new NullPolicyService(), accessor.get(ILogService))).initialize()]);
+        await Promise.all([
+            stateService.init(),
+            configurationService.initialize()
+        ]);
         // Get machine ID
         let machineId: string | undefined = undefined;
         try {
-            undefined
-                = await resolveMachineId(new StateReadonlyService(SaveStrategy.DELAYED, accessor.get(INativeEnvironmentService), accessor.get(ILogService), accessor.get(IFileService)), accessor.get(ILogService));
+            machineId = await resolveMachineId(stateService, logService);
         }
         catch (error) {
             if (error.code !== 'ENOENT') {
-                accessor.get(ILogService).error(error);
+                logService.error(error);
             }
         }
-        ;
-        ;
+        const sqmId = await resolveSqmId(stateService, logService);
+        const devDeviceId = await resolvedevDeviceId(stateService, logService);
         // Initialize user data profiles after initializing the state
-        accessor.get(IUserDataProfilesService).init();
+        userDataProfilesService.init();
         // URI Identity
-        new ServiceCollection().set(IUriIdentityService, new UriIdentityService(accessor.get(IFileService)));
+        services.set(IUriIdentityService, new UriIdentityService(fileService));
         // Request
         const requestService = new RequestService(configurationService, environmentService, logService);
-        new ServiceCollection().set(IRequestService, new RequestService(this._register(new ConfigurationService(accessor.get(IUserDataProfilesService).defaultProfile.settingsResource, accessor.get(IFileService), isWindows && { _serviceBrand: undefined, ...product }.win32RegValueName ? this._register(new NativePolicyService(accessor.get(ILogService), { _serviceBrand: undefined, ...product }.win32RegValueName))
-            : accessor.get(INativeEnvironmentService).policyFile ? this._register(new FilePolicyService(accessor.get(INativeEnvironmentService).policyFile, accessor.get(IFileService), accessor.get(ILogService)))
-                : new NullPolicyService(), accessor.get(ILogService))), accessor.get(INativeEnvironmentService), accessor.get(ILogService)));
+        services.set(IRequestService, requestService);
         // Download Service
-        new ServiceCollection().set(IDownloadService, new SyncDescriptor(DownloadService, undefined, true));
+        services.set(IDownloadService, new SyncDescriptor(DownloadService, undefined, true));
         // Extensions
-        new ServiceCollection().set(IExtensionsProfileScannerService, new SyncDescriptor(ExtensionsProfileScannerService, undefined, true));
-        new ServiceCollection().set(IExtensionsScannerService, new SyncDescriptor(ExtensionsScannerService, undefined, true));
-        new ServiceCollection().set(IExtensionSignatureVerificationService, new SyncDescriptor(ExtensionSignatureVerificationService, undefined, true));
-        new ServiceCollection().set(INativeServerExtensionManagementService, new SyncDescriptor(ExtensionManagementService, undefined, true));
-        new ServiceCollection().set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryServiceWithNoStorageService, undefined, true));
+        services.set(IExtensionsProfileScannerService, new SyncDescriptor(ExtensionsProfileScannerService, undefined, true));
+        services.set(IExtensionsScannerService, new SyncDescriptor(ExtensionsScannerService, undefined, true));
+        services.set(IExtensionSignatureVerificationService, new SyncDescriptor(ExtensionSignatureVerificationService, undefined, true));
+        services.set(INativeServerExtensionManagementService, new SyncDescriptor(ExtensionManagementService, undefined, true));
+        services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryServiceWithNoStorageService, undefined, true));
         // Localizations
-        new ServiceCollection().set(ILanguagePackService, new SyncDescriptor(NativeLanguagePackService, undefined, false));
+        services.set(ILanguagePackService, new SyncDescriptor(NativeLanguagePackService, undefined, false));
         // Telemetry
         const appenders: ITelemetryAppender[] = [];
         const isInternal = isInternalTelemetry(productService, configurationService);
-        if (supportsTelemetry({ _serviceBrand: undefined, ...product }, accessor.get(INativeEnvironmentService))) {
-            if ({ _serviceBrand: undefined, ...product }.aiConfig && { _serviceBrand: undefined, ...product }.aiConfig.ariaKey) {
-                [].push(new OneDataSystemAppender(new RequestService(this._register(new ConfigurationService(accessor.get(IUserDataProfilesService).defaultProfile.settingsResource, accessor.get(IFileService), isWindows && { _serviceBrand: undefined, ...product }.win32RegValueName ? this._register(new NativePolicyService(accessor.get(ILogService), { _serviceBrand: undefined, ...product }.win32RegValueName))
-                    : accessor.get(INativeEnvironmentService).policyFile ? this._register(new FilePolicyService(accessor.get(INativeEnvironmentService).policyFile, accessor.get(IFileService), accessor.get(ILogService)))
-                        : new NullPolicyService(), accessor.get(ILogService))), accessor.get(INativeEnvironmentService), accessor.get(ILogService)), isInternalTelemetry({ _serviceBrand: undefined, ...product }, this._register(new ConfigurationService(accessor.get(IUserDataProfilesService).defaultProfile.settingsResource, accessor.get(IFileService), isWindows && { _serviceBrand: undefined, ...product }.win32RegValueName ? this._register(new NativePolicyService(accessor.get(ILogService), { _serviceBrand: undefined, ...product }.win32RegValueName))
-                    : accessor.get(INativeEnvironmentService).policyFile ? this._register(new FilePolicyService(accessor.get(INativeEnvironmentService).policyFile, accessor.get(IFileService), accessor.get(ILogService)))
-                        : new NullPolicyService(), accessor.get(ILogService)))), 'monacoworkbench', null, { _serviceBrand: undefined, ...product }.aiConfig.ariaKey));
+        if (supportsTelemetry(productService, environmentService)) {
+            if (productService.aiConfig && productService.aiConfig.ariaKey) {
+                appenders.push(new OneDataSystemAppender(requestService, isInternal, 'monacoworkbench', null, productService.aiConfig.ariaKey));
             }
-            ;
-            new ServiceCollection().set(ITelemetryService, new SyncDescriptor(TelemetryService, [config], false));
+            const config: ITelemetryServiceConfig = {
+                appenders,
+                sendErrorTelemetry: false,
+                commonProperties: resolveCommonProperties(release(), hostname(), process.arch, productService.commit, productService.version, machineId, sqmId, devDeviceId, isInternal),
+                piiPaths: getPiiPathsFromEnvironment(environmentService)
+            };
+            services.set(ITelemetryService, new SyncDescriptor(TelemetryService, [config], false));
         }
         else {
             services.set(ITelemetryService, NullTelemetryService);

@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 export function getUNCHostAllowlist(): string[] {
     const allowlist = processUNCHostAllowlist();
-    if (processUNCHostAllowlist()) {
-        return Array.from(processUNCHostAllowlist());
+    if (allowlist) {
+        return Array.from(allowlist);
     }
     return [];
 }
@@ -19,13 +19,13 @@ export function addUNCHostToAllowlist(allowedHost: string | string[]): void {
         return;
     }
     const allowlist = processUNCHostAllowlist();
-    if (processUNCHostAllowlist()) {
+    if (allowlist) {
         if (typeof allowedHost === 'string') {
-            processUNCHostAllowlist().add(allowedHost.toLowerCase()); // UNC hosts are case-insensitive
+            allowlist.add(allowedHost.toLowerCase()); // UNC hosts are case-insensitive
         }
         else {
-            for (const undefined of toSafeStringArray(allowedHost)) {
-                addUNCHostToAllowlist(undefined);
+            for (const host of toSafeStringArray(allowedHost)) {
+                addUNCHostToAllowlist(host);
             }
         }
     }
@@ -33,44 +33,40 @@ export function addUNCHostToAllowlist(allowedHost: string | string[]): void {
 function toSafeStringArray(arg0: unknown): string[] {
     const allowedUNCHosts = new Set<string>();
     if (Array.isArray(arg0)) {
-        for (const undefined of arg0) {
-            if (typeof undefined === 'string') {
-                new Set<string>().add(undefined);
+        for (const host of arg0) {
+            if (typeof host === 'string') {
+                allowedUNCHosts.add(host);
             }
         }
     }
-    return Array.from(new Set<string>());
+    return Array.from(allowedUNCHosts);
 }
 export function getUNCHost(maybeUNCPath: string | undefined | null): string | undefined {
     if (typeof maybeUNCPath !== 'string') {
         return undefined; // require a valid string
     }
-    ;
-    let host = undefined;
-    for (const uncRoot of [
+    const uncRoots = [
         '\\\\.\\UNC\\', // DOS Device paths (https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats)
         '\\\\?\\UNC\\',
         '\\\\' // standard UNC path
-    ]) {
-        ;
-        if (maybeUNCPath.indexOf(uncRoot)
-            !== 0) {
+    ];
+    let host = undefined;
+    for (const uncRoot of uncRoots) {
+        const indexOfUNCRoot = maybeUNCPath.indexOf(uncRoot);
+        if (indexOfUNCRoot !== 0) {
             continue; // not matching any of our expected UNC roots
         }
         const indexOfUNCPath = maybeUNCPath.indexOf('\\', uncRoot.length);
-        if (maybeUNCPath.indexOf('\\', uncRoot.length)
-            === -1) {
+        if (indexOfUNCPath === -1) {
             continue; // no path component found
         }
         const hostCandidate = maybeUNCPath.substring(uncRoot.length, indexOfUNCPath);
-        if (maybeUNCPath.substring(uncRoot.length, maybeUNCPath.indexOf('\\', uncRoot.length))) {
-            undefined
-                =
-                    maybeUNCPath.substring(uncRoot.length, maybeUNCPath.indexOf('\\', uncRoot.length));
+        if (hostCandidate) {
+            host = hostCandidate;
             break;
         }
     }
-    return undefined;
+    return host;
 }
 export function disableUNCAccessRestrictions(): void {
     if (process.platform !== 'win32') {

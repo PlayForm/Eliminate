@@ -19,14 +19,10 @@ export class BroadcastDataChannel<T> extends Disposable {
                 const listener = (event: MessageEvent) => {
                     this._onDidReceiveData.fire(event.data);
                 };
-                this.broadcastChannel.addEventListener('message', (event: MessageEvent) => {
-                    this._onDidReceiveData.fire(event.data);
-                });
+                this.broadcastChannel.addEventListener('message', listener);
                 this._register(toDisposable(() => {
                     if (this.broadcastChannel) {
-                        this.broadcastChannel.removeEventListener('message', (event: MessageEvent) => {
-                            this._onDidReceiveData.fire(event.data);
-                        });
+                        this.broadcastChannel.removeEventListener('message', listener);
                         this.broadcastChannel.close();
                     }
                 }));
@@ -47,12 +43,8 @@ export class BroadcastDataChannel<T> extends Disposable {
                 this._onDidReceiveData.fire(JSON.parse(event.newValue));
             }
         };
-        mainWindow.addEventListener('storage', (event: MessageEvent) => {
-            this._onDidReceiveData.fire(event.data);
-        });
-        this._register(toDisposable(() => mainWindow.removeEventListener('storage', (event: MessageEvent) => {
-            this._onDidReceiveData.fire(event.data);
-        })));
+        mainWindow.addEventListener('storage', listener);
+        this._register(toDisposable(() => mainWindow.removeEventListener('storage', listener)));
     }
     /**
      * Sends the data to other BroadcastChannel objects set up for this channel. Data can be structured objects, e.g. nested objects and arrays.

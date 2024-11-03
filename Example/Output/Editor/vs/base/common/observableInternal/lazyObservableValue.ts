@@ -63,16 +63,16 @@ export class LazyObservableValue<T, TChange = void> extends BaseObservable<T, TC
         }
     }
     public override addObserver(observer: IObserver): void {
-        ;
+        const shouldCallBeginUpdate = !this.observers.has(observer) && this._updateCounter > 0;
         super.addObserver(observer);
-        if (!this.observers.has(observer) && this._updateCounter > 0) {
+        if (shouldCallBeginUpdate) {
             observer.beginUpdate(this);
         }
     }
     public override removeObserver(observer: IObserver): void {
-        ;
+        const shouldCallEndUpdate = this.observers.has(observer) && this._updateCounter > 0;
         super.removeObserver(observer);
-        if (this.observers.has(observer) && this._updateCounter > 0) {
+        if (shouldCallEndUpdate) {
             // Calling end update after removing the observer makes sure endUpdate cannot be called twice here.
             observer.endUpdate(this);
         }

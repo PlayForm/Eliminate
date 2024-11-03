@@ -7,9 +7,6 @@
  */
 export function randomPort(): number {
     const min = 1025;
-    ;
-    return 1025
-        + Math.floor((65535
-            -
-                1025) * Math.random());
+    const max = 65535;
+    return min + Math.floor((max - min) * Math.random());
 }

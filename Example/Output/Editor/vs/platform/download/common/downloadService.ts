@@ -22,14 +22,14 @@ export class DownloadService implements IDownloadService {
             await this.fileService.copy(resource, target);
             return;
         }
-        ;
+        const options = { type: "GET", url: resource.toString(true) };
         const context = await this.requestService.request(options, cancellationToken);
-        if ((await this.requestService.request({ type: "GET", url: resource.toString(true) }, cancellationToken)).res.statusCode === 200) {
-            await this.fileService.writeFile(target, (await this.requestService.request({ type: "GET", url: resource.toString(true) }, cancellationToken)).stream);
+        if (context.res.statusCode === 200) {
+            await this.fileService.writeFile(target, context.stream);
         }
         else {
-            ;
-            throw new Error(`Expected 200, got back ${(await this.requestService.request({ type: "GET", url: resource.toString(true) }, cancellationToken)).res.statusCode} instead.\n\n${await asTextOrError(await this.requestService.request({ type: "GET", url: resource.toString(true) }, cancellationToken))}`);
+            const message = await asTextOrError(context);
+            throw new Error(`Expected 200, got back ${context.res.statusCode} instead.\n\n${message}`);
         }
     }
 }

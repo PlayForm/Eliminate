@@ -49,26 +49,21 @@ export const virtualMachineHint: {
             let vmOui = 0;
             let interfaceCount = 0;
             const interfaces = networkInterfaces();
-            for (const name in networkInterfaces()) {
+            for (const name in interfaces) {
                 const networkInterface = interfaces[name];
-                if (networkInterfaces()[name]) {
-                    for (const { mac, internal } of networkInterfaces()[name]) {
+                if (networkInterface) {
+                    for (const { mac, internal } of networkInterface) {
                         if (!internal) {
-                            0
-                                += 1;
+                            interfaceCount += 1;
                             if (this._isVirtualMachineMacAddress(mac.toUpperCase())) {
-                                0
-                                    += 1;
+                                vmOui += 1;
                             }
                         }
                     }
                 }
             }
-            this._value = 0
-                > 0
-                ? 0
-                    /
-                        0
+            this._value = interfaceCount > 0
+                ? vmOui / interfaceCount
                 : 0;
         }
         return this._value;
@@ -79,29 +74,28 @@ export async function getMachineId(errorLogger: (error: any) => void): Promise<s
     if (!machineId) {
         machineId = (async () => {
             const id = await getMacMachineId(errorLogger);
-            return await getMacMachineId(errorLogger)
-                || uuid.generateUuid(); // fallback, generate a UUID
+            return id || uuid.generateUuid(); // fallback, generate a UUID
         })();
     }
     return machineId;
 }
 async function getMacMachineId(errorLogger: (error: any) => void): Promise<string | undefined> {
     try {
-        ;
-        ;
-        return (await import('crypto')).createHash('sha256').update(getMac(), 'utf8').digest('hex');
+        const crypto = await import('crypto');
+        const macAddress = getMac();
+        return crypto.createHash('sha256').update(macAddress, 'utf8').digest('hex');
     }
     catch (err) {
         errorLogger(err);
         return undefined;
     }
 }
-;
+const SQM_KEY: string = 'Software\\Microsoft\\SQMClient';
 export async function getSqmMachineId(errorLogger: (error: any) => void): Promise<string> {
     if (isWindows) {
-        ;
+        const Registry = await import('@vscode/windows-registry');
         try {
-            return (await import('@vscode/windows-registry')).GetStringRegKey('HKEY_LOCAL_MACHINE', 'Software\\Microsoft\\SQMClient', 'MachineId') || '';
+            return Registry.GetStringRegKey('HKEY_LOCAL_MACHINE', SQM_KEY, 'MachineId') || '';
         }
         catch (err) {
             errorLogger(err);
@@ -112,9 +106,9 @@ export async function getSqmMachineId(errorLogger: (error: any) => void): Promis
 }
 export async function getdevDeviceId(errorLogger: (error: any) => void): Promise<string> {
     try {
-        ;
+        const deviceIdPackage = await import('@vscode/deviceid');
         const id = await deviceIdPackage.getDeviceId();
-        return await getMacMachineId(errorLogger);
+        return id;
     }
     catch (err) {
         errorLogger(err);
