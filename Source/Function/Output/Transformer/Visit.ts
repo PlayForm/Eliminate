@@ -3,255 +3,186 @@ import type { Node } from "typescript";
 
 /**
  * @module Output
- *
  */
 export const Fn = ((Usage, Initializer) =>
-	(...[Context]) =>
-	(...[Node]) => {
-		const _Visit = (
-			Node: Node,
-			Depth = 0,
-		): { Node: Node; Use: boolean } => {
-			const MAX_RECURSIVE_DEPTH = 100;
-			const MAX_NODE_VISITS = 100;
+    (...[Context]) =>
+    (...[Node]) => {
+        const MAX_RECURSIVE_DEPTH = 100;
+        const MAX_NODE_VISITS = 100;
+        const MAX_ITERATIONS = 100;
 
-			let Visit = 0;
+        const _Visit = (
+            Node: Node,
+            Depth = 0
+        ): { Node: Node; Use: boolean } => {
+            if (++Visit >= MAX_NODE_VISITS || Depth >= MAX_RECURSIVE_DEPTH) {
+                return { Node, Use: false };
+            }
 
-			Visit++;
+            if (ts.isArrayLiteralExpression(Node)) {
+                const parent = Node.parent;
+                if (ts.isIdentifier(parent) || ts.isPropertyAccessExpression(parent)) {
+                    return {
+                        Node: factory.createIdentifier("array_expression"),
+                        Use: true
+                    };
+                }
+            }
 
-			if (Visit >= MAX_NODE_VISITS || Depth >= MAX_RECURSIVE_DEPTH) {
-				return { Node, Use: false };
-			}
+            if (ts.isEmptyStatement(Node)) {
+                return {
+                    Node: factory.createNotEmittedStatement(Node),
+                    Use: true
+                };
+            }
 
-			let Use = false;
+            if (ts.isVariableStatement(Node)) {
+                const declarations = Node.declarationList.declarations.filter(declaration => {
+                    if (isIdentifier(declaration.name)) {
+                        const count = Usage.get(declaration.name.text);
+                        return !count || count > 1 || !declaration.initializer;
+                    }
+                    return true;
+                });
 
-			let NodeCurrent = Node;
+                if (declarations.length === 0) {
+                    return {
+                        Node: factory.createEmptyStatement(),
+                        Use: true
+                    };
+                }
 
-			// Handle array literals that need to be converted to identifiers
-			if (ts.isArrayLiteralExpression(NodeCurrent)) {
-				const parent = NodeCurrent.parent;
-				// If array literal is being used where an identifier is expected
-				if (
-					ts.isIdentifier(parent) ||
-					ts.isPropertyAccessExpression(parent)
-				) {
-					return {
-						Node: factory.createIdentifier("array_expression"),
-						Use: true,
-					};
-				}
-			}
+                if (declarations.length !== Node.declarationList.declarations.length) {
+                    return {
+                        Node: factory.updateVariableStatement(
+                            Node,
+                            Node.modifiers,
+                            factory.createVariableDeclarationList(
+                                declarations,
+                                Node.declarationList.flags
+                            )
+                        ),
+                        Use: true
+                    };
+                }
+            }
 
-			if (ts.isEmptyStatement(NodeCurrent)) {
-				return {
-					Node: factory.createNotEmittedStatement(NodeCurrent),
-					Use: true,
-				};
-			}
+            if (isIdentifier(Node)) {
+                try {
+                    const nodeName = Node.text;
+                    const nodeUsage = Usage.get(nodeName);
+                    const nodeInitializer = Get(nodeName, Initializer);
 
-			if (ts.isVariableStatement(NodeCurrent)) {
-				const Declaration = NodeCurrent.declarationList.declarations;
+                    if (nodeInitializer && nodeUsage === 1) {
+                        const parent = Node.parent;
 
-				const DeclarationNew = Declaration.filter((Declaration) => {
-					if (isIdentifier(Declaration.name)) {
-						const Count = Usage.get(Declaration.name.text);
+                        if (ts.isPropertyAccessExpression(parent) && parent.name.text === Node.text) {
+                            return { Node, Use: false };
+                        }
 
-						return !Count || Count > 1 || !Declaration.initializer;
-					}
+                        if (ts.isPropertyAssignment(parent) && 
+                            ts.isIdentifier(parent.name) && 
+                            parent.name.text === Node.text) {
+                            return { Node, Use: false };
+                        }
 
-					return true;
-				});
+                        if (isIdentifier(nodeInitializer)) {
+                            if ((ts.isPropertyAccessExpression(parent) || ts.isPropertyAssignment(parent)) && 
+                                parent.name === Node) {
+                                return { Node, Use: false };
+                            }
+                            return { 
+                                Node: factory.createIdentifier(nodeInitializer.text),
+                                Use: true 
+                            };
+                        }
 
-				if (DeclarationNew.length === 0) {
-					return {
-						Node: factory.createEmptyStatement(),
-						Use: true,
-					};
-				}
+                        const transformed = ts.transform(nodeInitializer, [
+                            (_Context) => (node) => node
+                        ]).transformed[0];
 
-				if (DeclarationNew.length !== Declaration.length) {
-					NodeCurrent = factory.updateVariableStatement(
-						NodeCurrent,
-						NodeCurrent.modifiers,
-						factory.createVariableDeclarationList(
-							DeclarationNew,
-							NodeCurrent.declarationList.flags,
-						),
-					);
+                        if (transformed) {
+                            const newParent = transformed.parent;
+                            if (ts.isPropertyAccessExpression(newParent) &&
+                                ts.isIdentifier(newParent.name) &&
+                                newParent.name.text === Node.text) {
+                                return { Node, Use: false };
+                            }
+                            return { Node: transformed as Node, Use: true };
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error during identifier replacement:", error);
+                }
+            }
 
-					Use = true;
-				}
-			}
+            if (ts.isPropertyAccessExpression(Node)) {
+                const parent = Node.parent;
+                if (ts.isPropertyAssignment(parent)) {
+                    return {
+                        Node: factory.createIdentifier(Node.name.text),
+                        Use: true
+                    };
+                }
+            }
 
-			if (isIdentifier(NodeCurrent)) {
-				try {
-					const NodeName = NodeCurrent.text;
+            let childrenUse = false;
+            let shouldReturn = false;
 
-					const NodeUsage = Usage.get(NodeName);
+            const newNode = ts.visitEachChild(
+                Node,
+                (child) => {
+                    if (shouldReturn) return child;
 
-					const NodeInitializer = Get(NodeName, Initializer);
+                    const output = _Visit(child, Depth + 1);
+                    if (output.Use === false && Depth > MAX_RECURSIVE_DEPTH) {
+                        shouldReturn = true;
+                        return child;
+                    }
 
-					if (NodeInitializer && NodeUsage === 1) {
-						const NodeParent = NodeCurrent.parent;
+                    childrenUse = childrenUse || output.Use;
+                    return output.Node;
+                },
+                Context
+            );
 
-						// Fix the property access expression check
-						if (ts.isPropertyAccessExpression(NodeParent)) {
-							// Check if this identifier is the name part of the property access
-							if (NodeParent.name.text === NodeCurrent.text) {
-								return { Node: NodeCurrent, Use: false };
-							}
-						}
+            return {
+                Node: newNode,
+                Use: childrenUse
+            };
+        };
 
-						// Handle property assignments
-						if (ts.isPropertyAssignment(NodeParent)) {
-							if (
-								ts.isIdentifier(NodeParent.name) &&
-								NodeParent.name.text === NodeCurrent.text
-							) {
-								return { Node: NodeCurrent, Use: false };
-							}
-						}
+        let currentNode = Node;
+        let use = true;
+        let iteration = 0;
+        let visit = 0;
 
-						if (isIdentifier(NodeInitializer)) {
-							const newNode = factory.createIdentifier(
-								NodeInitializer.text,
-							);
+        while (use && iteration < MAX_ITERATIONS) {
+            if (iteration >= MAX_ITERATIONS) {
+                console.warn(
+                    `Warning: Maximum iteration count (${MAX_ITERATIONS}) reached. Possible infinite loop detected.`,
+                    {
+                        TypeNode: ts.SyntaxKind[currentNode.kind],
+                        Position: currentNode.pos,
+                        Depth: "root"
+                    }
+                );
+                break;
+            }
 
-							// Ensure we're not creating an invalid property access
-							if (
-								ts.isPropertyAccessExpression(NodeParent) ||
-								ts.isPropertyAssignment(NodeParent)
-							) {
-								if (NodeParent.name === NodeCurrent) {
-									return { Node: NodeCurrent, Use: false };
-								}
-							}
+            const output = _Visit(currentNode);
+            use = output.Use;
+            currentNode = output.Node;
+            iteration++;
+        }
 
-							return { Node: newNode, Use: true };
-						}
-
-						// Handle transformation more safely
-
-						const transformed = ts.transform(NodeInitializer, [
-							(_Context) => (node) => node,
-						]).transformed[0];
-
-						if (transformed) {
-							const NodeParentNew = transformed.parent;
-
-							// Ensure we don't return invalid member names
-							if (ts.isPropertyAccessExpression(NodeParentNew)) {
-								if (
-									ts.isIdentifier(NodeParentNew.name) &&
-									NodeParentNew.name.text === NodeCurrent.text
-								) {
-									return { Node: NodeCurrent, Use: false };
-								}
-							}
-							return { Node: transformed as Node, Use: true };
-						}
-					}
-				} catch (_Error) {
-					console.error(
-						"Error during identifier replacement:",
-						_Error,
-					);
-				}
-			}
-
-			// Handle PropertyAccessExpression nodes
-			if (ts.isPropertyAccessExpression(NodeCurrent)) {
-				const parent = NodeCurrent.parent;
-				if (ts.isPropertyAssignment(parent)) {
-					// Convert to a safe identifier when used as property name
-					return {
-						Node: factory.createIdentifier(NodeCurrent.name.text),
-						Use: true,
-					};
-				}
-			}
-
-			const { Node: NodeOutput, Use: UseChildren } = ((
-				NodeParent: Node,
-			): { Node: Node; Use: boolean } => {
-				let Use = false;
-
-				let Return = false;
-
-				const NodeNew = ts.visitEachChild(
-					NodeParent,
-					(NodeChild) => {
-						if (Return) {
-							return NodeChild;
-						}
-
-						const Output = _Visit(NodeChild, Depth + 1);
-
-						if (
-							Output.Use === false &&
-							Depth > MAX_RECURSIVE_DEPTH
-						) {
-							Return = true;
-
-							return NodeChild;
-						}
-
-						Use = Use || Output.Use;
-
-						return Output.Node;
-					},
-					Context,
-				);
-
-				return { Node: NodeNew, Use: Use };
-			})(NodeCurrent);
-
-			return {
-				Node: NodeOutput,
-				Use: Use || UseChildren,
-			};
-		};
-
-		let NodeCurrent = Node;
-
-		let Use = true;
-
-		const MAX_ITERATIONS = 100;
-
-		let Iteration = 0;
-
-		while (Use && Iteration < MAX_ITERATIONS) {
-			if (Iteration >= MAX_ITERATIONS) {
-				console.warn(
-					`Warning: Maximum iteration count (${MAX_ITERATIONS}) reached. Possible infinite loop detected.`,
-					{
-						TypeNode: ts.SyntaxKind[NodeCurrent.kind],
-						Position: NodeCurrent.pos,
-						Depth: "root",
-					},
-				);
-
-				break;
-			}
-
-			const Output = _Visit(NodeCurrent);
-
-			if (!Output.Use) {
-				Use = false;
-			}
-
-			NodeCurrent = Output.Node;
-
-			Iteration++;
-		}
-
-		return NodeCurrent;
-	}) satisfies Interface as Interface;
+        return currentNode;
+    }) satisfies Interface as Interface;
 
 export const {
-	default: ts,
-	isIdentifier,
-	factory,
+    default: ts,
+    isIdentifier,
+    factory
 } = await import("typescript");
 
 export const { default: Get } = await import("@Function/Output/Visit/Get.js");
