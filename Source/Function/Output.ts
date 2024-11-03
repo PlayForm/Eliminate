@@ -43,7 +43,14 @@ export default (async (...[Source]) => {
 		}
 	}
 
-	return ts.createPrinter().printFile(NodeTransform);
+	return ts
+		.createPrinter({
+			newLine: ts.NewLineKind.LineFeed,
+			removeComments: false,
+			omitTrailingSemicolon: false,
+			noEmitHelpers: false,
+		})
+		.printFile(NodeTransform);
 }) satisfies Interface as Interface;
 
 export const ts = await import("typescript");

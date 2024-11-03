@@ -62,7 +62,28 @@ export const Fn = ((Usage, Initializer) =>
 					if (isIdentifier(Declaration.name)) {
 						const Count = Usage.get(Declaration.name.text);
 
-						return !Count || Count > 1 || !Declaration.initializer;
+						// Don't inline if used within an object literal, regardless of context
+						const isUsedInObjectLiteral = (() => {
+							let result = false;
+							let current: Node | undefined = Declaration;
+							while (current) {
+								if (
+									ts.isObjectLiteralExpression(current.parent)
+								) {
+									result = true;
+									break;
+								}
+								current = current.parent;
+							}
+							return result;
+						})();
+
+						return (
+							!Count ||
+							Count > 1 ||
+							!Declaration.initializer ||
+							isUsedInObjectLiteral
+						);
 					}
 
 					return true;
