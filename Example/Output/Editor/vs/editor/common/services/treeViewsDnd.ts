@@ -12,9 +12,8 @@ export class TreeViewsDnDService<T> implements ITreeViewsDnDService<T> {
     private _dragOperations: Map<string, Promise<T | undefined>> = new Map();
     removeDragOperationTransfer(uuid: string | undefined): Promise<T | undefined> | undefined {
         if (uuid && this._dragOperations.has(uuid)) {
-            const operation = this._dragOperations.get(uuid);
             this._dragOperations.delete(uuid);
-            return operation;
+            return this._dragOperations.get(uuid);
         }
         return undefined;
     }

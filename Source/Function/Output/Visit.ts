@@ -1,4 +1,5 @@
 import type Interface from "@Interface/Output/Visit.js";
+import type { Node } from "typescript";
 
 /**
  * @module Output
@@ -6,16 +7,88 @@ import type Interface from "@Interface/Output/Visit.js";
  */
 export const Fn = ((...[Usage, Initializer]) =>
 	(...[Node]) => {
+		const MAX_USAGE_COUNT = 54;
+
+		const MAX_INITIALIZER_SIZE = 1000;
+
+		const Output = new Set<string>();
+
+		const ID = `${ts.SyntaxKind[Node.kind]}-${Node.pos}-${Node.end}`;
+
+		if (Output.has(ID)) {
+			console.warn("Warning: Circular reference detected", {
+				TypeNode: ts.SyntaxKind[Node.kind],
+				Position: Node.pos,
+				Text: Node.getText?.(),
+			});
+
+			return;
+		}
+
+		Output.add(ID);
+
 		ts.forEachChild(Node, Fn(Usage, Initializer));
+
+		if (
+			Usage.size >= MAX_USAGE_COUNT ||
+			Initializer.size >= MAX_INITIALIZER_SIZE
+		) {
+			console.warn("Warning: Maximum map size reached", {
+				UsageLength: Usage.size,
+				InitializerLength: Initializer.size,
+			});
+
+			return;
+		}
 
 		if (ts.isVariableDeclaration(Node) && Node.initializer) {
 			const NameNode = Node.name.getText();
 
+			// Check for self-referential declarations
+			const SelfReferential = (() => {
+				let True = false;
+
+				const Visit = (node: Node) => {
+					if (
+						ts.isIdentifier(node) &&
+						node.text === NameNode &&
+						!ts.isTemplateExpression(node.parent) &&
+						!ts.isTemplateSpan(node.parent) &&
+						!ts.isPropertyAccessExpression(node.parent)
+					) {
+						True = true;
+					}
+
+					ts.forEachChild(node, Visit);
+				};
+
+				Visit(Node.initializer);
+
+				return True;
+			})();
+
+			if (SelfReferential) {
+				console.info(
+					`Info: Skipping self-referential initializer for: ${NameNode}`,
+					{
+						TypeNode: ts.SyntaxKind[Node.kind],
+						Position: Node.pos,
+						Text: Node.getText?.(),
+					},
+				);
+
+				return;
+			}
+
 			// Initialize usage count
-			Usage.set(NameNode, 0);
+			if (!Usage.has(NameNode) && Usage.size < MAX_USAGE_COUNT) {
+				Usage.set(NameNode, 0);
+			}
 
 			// Store the initializer with the variable name
-			Initializer.set(Node.initializer, NameNode);
+			if (Initializer.size < MAX_INITIALIZER_SIZE) {
+				Initializer.set(Node.initializer, NameNode);
+			}
 		} else if (ts.isIdentifier(Node)) {
 			const NameNode = Node.getText();
 
@@ -23,7 +96,18 @@ export const Fn = ((...[Usage, Initializer]) =>
 			if (!ts.isVariableDeclaration(Node.parent)) {
 				const Count = Usage.get(NameNode) ?? 0;
 
-				Usage.set(NameNode, Count + 1);
+				if (Count < MAX_USAGE_COUNT) {
+					Usage.set(NameNode, Count + 1);
+				} else {
+					console.warn(
+						`Warning: Maximum usage count reached for identifier: ${NameNode}`,
+						{
+							TypeNode: ts.SyntaxKind[Node.kind],
+							Position: Node.pos,
+							Text: Node.getText?.(),
+						},
+					);
+				}
 			}
 		}
 	}) satisfies Interface as Interface;

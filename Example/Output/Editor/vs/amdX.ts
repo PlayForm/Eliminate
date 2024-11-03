@@ -119,8 +119,14 @@ class AMDModuleImporter {
             scriptElement.setAttribute('async', 'async');
             scriptElement.setAttribute('type', 'text/javascript');
             const unbind = () => {
-                scriptElement.removeEventListener('load', loadEventListener);
-                scriptElement.removeEventListener('error', errorEventListener);
+                scriptElement.removeEventListener('load', (e: any) => {
+                    unbind();
+                    resolve(this._defineCalls.pop());
+                });
+                scriptElement.removeEventListener('error', (e: any) => {
+                    unbind();
+                    reject(e);
+                });
             };
             const loadEventListener = (e: any) => {
                 unbind();

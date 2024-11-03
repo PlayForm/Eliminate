@@ -18,7 +18,7 @@ export class TextModelText extends AbstractText {
     }
     get length(): TextLength {
         const lastLineNumber = this._textModel.getLineCount();
-        const lastLineLen = this._textModel.getLineLength(lastLineNumber);
-        return new TextLength(lastLineNumber - 1, lastLineLen);
+        return new TextLength(this._textModel.getLineCount()
+            - 1, this._textModel.getLineLength(this._textModel.getLineCount()));
     }
 }

@@ -166,6 +166,8 @@ export const Fn = ((usageMap, initializerMap) => {
 
 		private readonly circularDetector: CircularReferenceDetector;
 
+		private readonly preservedVariables = new Set<string>();
+
 		constructor(context: TransformationContext) {
 			this.state = {
 				visitCount: 0,
@@ -232,6 +234,11 @@ export const Fn = ((usageMap, initializerMap) => {
 		): VisitResult<Identifier | Expression> {
 			const name = node.text;
 
+			// Don't replace references to preserved variables
+			if (this.preservedVariables.has(name)) {
+				return this.createVisitResult(node, false);
+			}
+
 			const usage = usageMap.get(name);
 
 			if (!usage) {
@@ -266,13 +273,10 @@ export const Fn = ((usageMap, initializerMap) => {
 			}
 
 			try {
-				// Transform the initializer
 				const transformedNode = this.transformNodeSafely(initializer);
 
-				// Visit it to handle any nested identifiers
 				const result = this.visitNode(transformedNode);
 
-				// Ensure we have an expression
 				if (!ts.isExpression(result.node)) {
 					return this.createVisitResult(node, false);
 				}
@@ -381,9 +385,71 @@ export const Fn = ((usageMap, initializerMap) => {
 			return result;
 		}
 
+		private shouldInlineVariable(
+			name: string,
+			initializer: Node | undefined,
+			node: VariableStatement,
+		): boolean {
+			const usage = usageMap.get(name);
+
+			// Don't inline if:
+			// 1. No usage count available
+			// 2. No initializer
+			// 3. Multiple usages
+			// 4. Is exported
+			if (
+				!usage ||
+				!initializer ||
+				usage > 1 ||
+				node.modifiers?.some(
+					(mod) => mod.kind === ts.SyntaxKind.ExportKeyword,
+				)
+			) {
+				this.preservedVariables.add(name);
+
+				return false;
+			}
+
+			// Don't inline if the initializer contains function calls or other complex expressions
+			// that should only be evaluated once
+			const hasComplexInitializer =
+				this.containsComplexExpression(initializer);
+
+			if (hasComplexInitializer) {
+				this.preservedVariables.add(name);
+
+				return false;
+			}
+
+			return true;
+		}
+
+		private containsComplexExpression(node: Node): boolean {
+			let hasComplex = false;
+
+			const visitor = (node: Node): void => {
+				if (
+					ts.isCallExpression(node) ||
+					ts.isPropertyAccessExpression(node) ||
+					ts.isElementAccessExpression(node) ||
+					ts.isNewExpression(node)
+				) {
+					hasComplex = true;
+
+					return;
+				}
+
+				ts.forEachChild(node, visitor);
+			};
+
+			visitor(node);
+
+			return hasComplex;
+		}
+
 		private handleVariableStatement(
 			node: VariableStatement,
-		): VisitResult<VariableStatement> {
+		): VisitResult<VariableStatement | Expression | Node> {
 			const newDeclarations = [];
 
 			let modified = false;
@@ -397,71 +463,57 @@ export const Fn = ((usageMap, initializerMap) => {
 
 				const name = declaration.name.text;
 
-				const usage = usageMap.get(name);
-
-				// Keep exported variables
+				// Evaluate if we should inline this variable
 				if (
-					node.modifiers?.some(
-						(mod) => mod.kind === ts.SyntaxKind.ExportKeyword,
+					this.shouldInlineVariable(
+						name,
+						declaration.initializer,
+						node,
 					)
 				) {
-					// If it has an initializer that can be simplified, do so
-					if (declaration.initializer) {
-						const result = this.visitNode(declaration.initializer);
-
-						if (result.modified && ts.isExpression(result.node)) {
-							modified = true;
-
-							newDeclarations.push(
-								factory.updateVariableDeclaration(
-									declaration,
-									declaration.name,
-									declaration.exclamationToken,
-									declaration.type,
-									result.node,
-								),
-							);
-						} else {
-							newDeclarations.push(declaration);
-						}
-					} else {
-						newDeclarations.push(declaration);
-					}
-
-					continue;
-				}
-
-				// For non-exported variables with single usage, don't add to newDeclarations
-				// This effectively removes them since they've been inlined
-				if (usage === 1 && declaration.initializer) {
-					// Store the initializer itself as the key for uniqueness
-					if (!initializerMap.has(declaration.initializer)) {
+					if (
+						declaration.initializer &&
+						!initializerMap.has(declaration.initializer)
+					) {
 						initializerMap.set(declaration.initializer, name);
 					}
-
 					modified = true;
 
 					continue;
 				}
 
-				// Keep declarations that aren't eligible for inlining
-				newDeclarations.push(declaration);
+				// If the variable shouldn't be inlined, try to simplify its initializer if possible
+				if (declaration.initializer) {
+					const result = this.visitNode(declaration.initializer);
+
+					if (result.modified && ts.isExpression(result.node)) {
+						modified = true;
+
+						newDeclarations.push(
+							factory.updateVariableDeclaration(
+								declaration,
+								declaration.name,
+								declaration.exclamationToken,
+								declaration.type,
+								result.node,
+							),
+						);
+					} else {
+						newDeclarations.push(declaration);
+					}
+				} else {
+					newDeclarations.push(declaration);
+				}
 			}
 
-			// If we have no declarations left, return an empty statement
 			if (newDeclarations.length === 0) {
-				return this.createVisitResult(
-					factory.createEmptyStatement() as any,
-					true,
-				);
+				return this.createVisitResult(node.parent, true);
 			}
 
-			// If nothing changed, return original node
 			if (!modified) {
 				return this.createVisitResult(node, false);
 			}
 
-			// Create updated variable statement with remaining declarations
 			return this.createVisitResult(
 				factory.updateVariableStatement(
 					node,
@@ -608,29 +660,29 @@ export const Fn = ((usageMap, initializerMap) => {
 
 		let currentNode = rootNode;
 
-		// let iterationCount = 0;
+		let iterationCount = 0;
 
-		// while (iterationCount < CONFIG.MAX_ITERATIONS) {
-		// 	const result = transformer.visitNode(currentNode);
+		while (iterationCount < CONFIG.MAX_ITERATIONS) {
+			const result = transformer.visitNode(currentNode);
 
-		// 	if (!result.modified) {
-		// 		return result.node;
-		// 	}
+			if (!result.modified) {
+				return result.node;
+			}
 
-		// 	currentNode = result.node;
+			currentNode = result.node;
 
-		// 	iterationCount++;
+			iterationCount++;
 
-		// 	const state = transformer.getState();
+			const state = transformer.getState();
 
-		// 	if (state.errors.length > 0) {
-		// 		console.error("Transformation errors:", state.errors);
-		// 	}
+			if (state.errors.length > 0) {
+				console.error("Transformation errors:", state.errors);
+			}
 
-		// 	if (state.warnings.length > 0) {
-		// 		console.warn("Transformation warnings:", state.warnings);
-		// 	}
-		// }
+			if (state.warnings.length > 0) {
+				console.warn("Transformation warnings:", state.warnings);
+			}
+		}
 
 		return currentNode;
 	};

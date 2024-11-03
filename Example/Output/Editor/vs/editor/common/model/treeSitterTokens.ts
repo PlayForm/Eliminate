@@ -22,10 +22,12 @@ export class TreeSitterTokens extends AbstractTokens {
     private _initialize() {
         const newLanguage = this.getLanguageId();
         if (!this._tokenizationSupport ||
-            this._lastLanguageId !== newLanguage) {
-            this._lastLanguageId = newLanguage;
+            this._lastLanguageId !==
+                this.getLanguageId()) {
+            this._lastLanguageId =
+                this.getLanguageId();
             this._tokenizationSupport =
-                TreeSitterTokenizationRegistry.get(newLanguage);
+                TreeSitterTokenizationRegistry.get(this.getLanguageId());
             this._tokensChangedListener.value =
                 this._tokenizationSupport?.onDidChangeTokens((e) => {
                     if (e.textModel === this._textModel) {
@@ -38,11 +40,11 @@ export class TreeSitterTokens extends AbstractTokens {
         const content = this._textModel.getLineContent(lineNumber);
         if (this._tokenizationSupport) {
             const rawTokens = this._tokenizationSupport.tokenizeEncoded(lineNumber, this._textModel);
-            if (rawTokens) {
-                return new LineTokens(rawTokens, content, this._languageIdCodec);
+            if (this._tokenizationSupport.tokenizeEncoded(lineNumber, this._textModel)) {
+                return new LineTokens(this._tokenizationSupport.tokenizeEncoded(lineNumber, this._textModel), this._textModel.getLineContent(lineNumber), this._languageIdCodec);
             }
         }
-        return LineTokens.createEmpty(content, this._languageIdCodec);
+        return LineTokens.createEmpty(this._textModel.getLineContent(lineNumber), this._languageIdCodec);
     }
     public resetTokenization(fireTokenChangeEvent: boolean = true): void {
         if (fireTokenChangeEvent) {
@@ -87,9 +89,7 @@ export class TreeSitterTokens extends AbstractTokens {
         return { mainLineTokens: null, additionalLines: null };
     }
     public override get hasTokens(): boolean {
-        // TODO @alexr00 once we have a token store, implement properly
-        const hasTree = this._treeSitterService.getParseResult(this._textModel) !==
+        return this._treeSitterService.getParseResult(this._textModel) !==
             undefined;
-        return hasTree;
     }
 }

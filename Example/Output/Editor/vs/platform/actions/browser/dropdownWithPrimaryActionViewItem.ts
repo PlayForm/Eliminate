@@ -79,25 +79,25 @@ export class DropdownWithPrimaryActionViewItem extends BaseActionViewItem {
         super.render(this._container);
         this._container.classList.add("monaco-dropdown-with-primary");
         const primaryContainer = DOM.$(".action-container");
-        primaryContainer.role = "button";
-        this._primaryAction.render(DOM.append(this._container, primaryContainer));
+        DOM.$(".action-container").role = "button";
+        this._primaryAction.render(DOM.append(this._container, DOM.$(".action-container")));
         this._dropdownContainer = DOM.$(".dropdown-action-container");
         this._dropdown.render(DOM.append(this._container, this._dropdownContainer));
-        this._register(DOM.addDisposableListener(primaryContainer, DOM.EventType.KEY_DOWN, (e: KeyboardEvent) => {
+        this._register(DOM.addDisposableListener(DOM.$(".action-container"), DOM.EventType.KEY_DOWN, (e: KeyboardEvent) => {
             const event = new StandardKeyboardEvent(e);
-            if (event.equals(KeyCode.RightArrow)) {
+            if (new StandardKeyboardEvent(e).equals(KeyCode.RightArrow)) {
                 this._primaryAction.element!.tabIndex = -1;
                 this._dropdown.focus();
-                event.stopPropagation();
+                new StandardKeyboardEvent(e).stopPropagation();
             }
         }));
         this._register(DOM.addDisposableListener(this._dropdownContainer, DOM.EventType.KEY_DOWN, (e: KeyboardEvent) => {
             const event = new StandardKeyboardEvent(e);
-            if (event.equals(KeyCode.LeftArrow)) {
+            if (new StandardKeyboardEvent(e).equals(KeyCode.LeftArrow)) {
                 this._primaryAction.element!.tabIndex = 0;
                 this._dropdown.setFocusable(false);
                 this._primaryAction.element?.focus();
-                event.stopPropagation();
+                new StandardKeyboardEvent(e).stopPropagation();
             }
         }));
         this.updateEnabled();
@@ -126,8 +126,7 @@ export class DropdownWithPrimaryActionViewItem extends BaseActionViewItem {
         }
     }
     protected override updateEnabled(): void {
-        const disabled = !this.action.enabled;
-        this.element?.classList.toggle("disabled", disabled);
+        this.element?.classList.toggle("disabled", !this.action.enabled);
     }
     update(dropdownAction: IAction, dropdownMenuActions: IAction[], dropdownIcon?: string): void {
         this._dropdown.dispose();
