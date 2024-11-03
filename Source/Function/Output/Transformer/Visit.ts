@@ -380,7 +380,9 @@ export const Fn = ((usageMap, initializerMap) => {
 					continue;
 				}
 
-				const usage = usageMap.get(declaration.name.text);
+				const name = declaration.name.text;
+
+				const usage = usageMap.get(name);
 
 				// Keep exported variables
 				if (
@@ -414,26 +416,27 @@ export const Fn = ((usageMap, initializerMap) => {
 					continue;
 				}
 
-				// For non-exported variables, inline them if used only once
-				if (!usage || usage > 1 || !declaration.initializer) {
-					newDeclarations.push(declaration);
+				// For non-exported variables with single usage, don't add to newDeclarations
+				// This effectively removes them since they've been inlined
+				if (usage === 1 && declaration.initializer) {
+					// Store the initializer for inlining if we haven't already
+					if (!initializerMap.has(declaration.initializer)) {
+						initializerMap.set(
+							declaration.initializer,
+							declaration.name.text,
+						);
+					}
+
+					modified = true;
 
 					continue;
 				}
 
-				// Store the initializer for inlining
-				initializerMap.set(
-					declaration.initializer,
-					declaration.name.text,
-				);
-
-				modified = true;
+				// Keep declarations that aren't eligible for inlining
+				newDeclarations.push(declaration);
 			}
 
-			if (!modified) {
-				return this.createVisitResult(node, false);
-			}
-
+			// If we have no declarations left, return an empty statement
 			if (newDeclarations.length === 0) {
 				return this.createVisitResult(
 					factory.createEmptyStatement() as any,
@@ -441,6 +444,16 @@ export const Fn = ((usageMap, initializerMap) => {
 				);
 			}
 
+			// If nothing changed, return original node
+			if (
+				!modified &&
+				newDeclarations.length ===
+					node.declarationList.declarations.length
+			) {
+				return this.createVisitResult(node, false);
+			}
+
+			// Create updated variable statement with remaining declarations
 			return this.createVisitResult(
 				factory.updateVariableStatement(
 					node,
@@ -579,15 +592,6 @@ export const Fn = ((usageMap, initializerMap) => {
 
 		public getState(): Readonly<TransformerState> {
 			return this.state;
-		}
-
-		private isValidExpression(node: Node): boolean {
-			return (
-				ts.isExpression(node) &&
-				!ts.isIdentifier(node) &&
-				!ts.isArrayLiteralExpression(node) &&
-				!ts.isObjectLiteralExpression(node)
-			);
 		}
 	}
 
