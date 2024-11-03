@@ -1,3 +1,29 @@
+## 0.0.4
+
+### Changed
+
+-   Improved code formatting and structure in Configuration.js
+-   Changed const enums to regular enums for better compatibility
+-   Renamed visitedNodes to Output for consistency
+-   Simplified conditional logic in identifier checks
+-   Updated dependency versions:
+    -   Added commander v12.1.0
+    -   Updated esbuild to v0.24.0
+    -   Removed @types/chai and chai dependencies
+
+### Code Quality
+
+-   Enhanced code readability with better formatting and indentation
+-   Improved error handling structure in try-catch blocks
+-   Streamlined import statements and function calls
+-   Simplified conditional checks in node traversal logic
+
+### Dependencies
+
+-   Added command-line interface support with commander
+-   Upgraded build system with latest esbuild version
+-   Streamlined test dependencies
+
 ## 0.0.3
 
 ### Changed
