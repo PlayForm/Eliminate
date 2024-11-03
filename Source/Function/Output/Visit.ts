@@ -11,11 +11,11 @@ export const Fn = ((...[Usage, Initializer]) =>
 
 		const MAX_INITIALIZER_SIZE = 1000;
 
-		const visitedNodes = new Set<string>();
+		const Output = new Set<string>();
 
 		const ID = `${ts.SyntaxKind[Node.kind]}-${Node.pos}-${Node.end}`;
 
-		if (visitedNodes.has(ID)) {
+		if (Output.has(ID)) {
 			console.warn("Warning: Circular reference detected", {
 				TypeNode: ts.SyntaxKind[Node.kind],
 				Position: Node.pos,
@@ -25,7 +25,7 @@ export const Fn = ((...[Usage, Initializer]) =>
 			return;
 		}
 
-		visitedNodes.add(ID);
+		Output.add(ID);
 
 		ts.forEachChild(Node, Fn(Usage, Initializer));
 
