@@ -63,7 +63,7 @@ interface ValidationResult {
 	readonly warning?: TransformWarning;
 }
 
-const enum ErrorCode {
+enum ErrorCode {
 	MAX_DEPTH_EXCEEDED = "MAX_DEPTH_EXCEEDED",
 	MAX_VISITS_EXCEEDED = "MAX_VISITS_EXCEEDED",
 	MAX_ITERATIONS_EXCEEDED = "MAX_ITERATIONS_EXCEEDED",
@@ -75,7 +75,7 @@ const enum ErrorCode {
 	SELF_REFERENCE = "SELF_REFERENCE",
 }
 
-const enum WarningCode {
+enum WarningCode {
 	POTENTIAL_SIDE_EFFECT = "POTENTIAL_SIDE_EFFECT",
 	UNUSED_DECLARATION = "UNUSED_DECLARATION",
 	COMPLEX_INITIALIZATION = "COMPLEX_INITIALIZATION",

@@ -49,15 +49,14 @@ export const Fn = ((...[Usage, Initializer]) =>
 				let True = false;
 
 				const Visit = (node: Node) => {
-					if (ts.isIdentifier(node)) {
-						if (
-							node.text === NameNode &&
-							!ts.isTemplateExpression(node.parent) &&
-							!ts.isTemplateSpan(node.parent) &&
-							!ts.isPropertyAccessExpression(node.parent)
-						) {
-							True = true;
-						}
+					if (
+						ts.isIdentifier(node) &&
+						node.text === NameNode &&
+						!ts.isTemplateExpression(node.parent) &&
+						!ts.isTemplateSpan(node.parent) &&
+						!ts.isPropertyAccessExpression(node.parent)
+					) {
+						True = true;
 					}
 
 					ts.forEachChild(node, Visit);
