@@ -3,7 +3,7 @@ import type { Node } from "typescript";
 
 /**
  * @module Output
- *
+ * Gathers variable usage information and initializers
  */
 export const Fn = ((...[Usage, Initializer]) =>
 	(...[Node]) => {
@@ -44,6 +44,7 @@ export const Fn = ((...[Usage, Initializer]) =>
 		if (ts.isVariableDeclaration(Node) && Node.initializer) {
 			const NameNode = Node.name.getText();
 
+			// Check for self-referential declarations
 			const SelfReferential = (() => {
 				let True = false;
 
@@ -80,18 +81,19 @@ export const Fn = ((...[Usage, Initializer]) =>
 				return;
 			}
 
-			if (Usage.has(NameNode)) {
-				Usage.set(NameNode, 0);
-			} else if (Usage.size < MAX_USAGE_COUNT) {
+			// Initialize usage count
+			if (!Usage.has(NameNode) && Usage.size < MAX_USAGE_COUNT) {
 				Usage.set(NameNode, 0);
 			}
 
+			// Store the initializer with the variable name
 			if (Initializer.size < MAX_INITIALIZER_SIZE) {
 				Initializer.set(Node.initializer, NameNode);
 			}
 		} else if (ts.isIdentifier(Node)) {
 			const NameNode = Node.getText();
 
+			// Only count usage if not part of a declaration
 			if (!ts.isVariableDeclaration(Node.parent)) {
 				const Count = Usage.get(NameNode) ?? 0;
 
