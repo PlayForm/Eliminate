@@ -1,188 +1,240 @@
 import type Interface from "@Interface/Output/Transformer/Visit.js";
-import type { Node } from "typescript";
+import type { Node, TransformationContext, Identifier, VariableStatement, PropertyAccessExpression } from "typescript";
 
 /**
  * @module Output
+ * Transformer that inlines single-use variables and performs syntax transformations
  */
-export const Fn = ((Usage: Map<string, number>, Initializer: Map<string, Node>) =>
-    (Context: ts.TransformationContext) =>
-    (Node: Node): Node => {
-        const MAX_RECURSIVE_DEPTH = 100;
-        const MAX_NODE_VISITS = 100;
-        const MAX_ITERATIONS = 100;
 
-        let visit = 0;
+type VisitResult = {
+    Node: Node;
+    Use: boolean;
+};
 
-        const handlePropertyAccess = (node: Node, parent: Node): { Node: Node; Use: boolean } => {
-            if (ts.isPropertyAssignment(parent)) {
-                return {
-                    Node: factory.createIdentifier(
-                        ts.isPropertyAccessExpression(node) ? node.name.text : ''
-                    ),
-                    Use: true
-                };
-            }
-            return { Node: node, Use: false };
-        };
+type TransformerState = {
+    visit: number;
+    iteration: number;
+    context: TransformationContext;
+};
 
-        const handleIdentifier = (node: ts.Identifier): { Node: Node; Use: boolean } => {
-            try {
-                const nodeName = node.text;
-                const usage = Usage.get(nodeName);
-                const initializer = Get(nodeName, Initializer);
+export const Fn = ((Usage: Map<string, number>, Initializer: Map<string, Node>) => {
+    const MAX_RECURSIVE_DEPTH = 100;
+    const MAX_NODE_VISITS = 100;
+    const MAX_ITERATIONS = 100;
 
-                if (!initializer || usage !== 1) {
-                    return { Node: node, Use: false };
-                }
+    const createVisitResult = (node: Node, use: boolean): VisitResult => ({
+        Node: node,
+        Use: use
+    });
 
-                const parent = node.parent;
-                if (ts.isPropertyAccessExpression(parent)) {
-                    if (parent.name.text === node.text) {
-                        return { Node: node, Use: false };
-                    }
-                }
+    const isMaxDepthExceeded = (state: TransformerState, depth: number): boolean => 
+        ++state.visit >= MAX_NODE_VISITS || depth >= MAX_RECURSIVE_DEPTH;
 
-                if (ts.isPropertyAssignment(parent) && 
-                    ts.isIdentifier(parent.name) && 
-                    parent.name.text === node.text) {
-                    return { Node: node, Use: false };
-                }
-
-                if (isIdentifier(initializer)) {
-                    if ((ts.isPropertyAccessExpression(parent) || 
-                         ts.isPropertyAssignment(parent)) && 
-                        parent.name === node) {
-                        return { Node: node, Use: false };
-                    }
-                    return { 
-                        Node: factory.createIdentifier(initializer.text),
-                        Use: true 
-                    };
-                }
-
-                const transformed = ts.transform(initializer, [
-                    (context) => (node) => node,
-                ]).transformed[0];
-
-                if (!transformed) {
-                    return { Node: node, Use: false };
-                }
-
-                const newParent = transformed.parent;
-                if (ts.isPropertyAccessExpression(newParent) &&
-                    ts.isIdentifier(newParent.name) &&
-                    newParent.name.text === node.text) {
-                    return { Node: node, Use: false };
-                }
-
-                return { Node: transformed as Node, Use: true };
-            } catch (error) {
-                console.error("Error during identifier replacement:", error);
-                return { Node: node, Use: false };
-            }
-        };
-
-        const handleVariableStatement = (node: ts.VariableStatement): { Node: Node; Use: boolean } => {
-            const declarations = node.declarationList.declarations.filter(declaration => {
-                if (!isIdentifier(declaration.name)) return true;
-                const count = Usage.get(declaration.name.text);
-                return !count || count > 1 || !declaration.initializer;
-            });
-
-            if (declarations.length === 0) {
-                return {
-                    Node: factory.createEmptyStatement(),
-                    Use: true
-                };
-            }
-
-            if (declarations.length === node.declarationList.declarations.length) {
-                return { Node: node, Use: false };
-            }
-
-            return {
-                Node: factory.updateVariableStatement(
-                    node,
-                    node.modifiers,
-                    factory.createVariableDeclarationList(
-                        declarations,
-                        node.declarationList.flags
-                    )
-                ),
-                Use: true
-            };
-        };
-
-        const _Visit = (
-            node: Node,
-            depth = 0
-        ): { Node: Node; Use: boolean } => {
-            if (++visit >= MAX_NODE_VISITS || depth >= MAX_RECURSIVE_DEPTH) {
-                return { Node: node, Use: false };
-            }
-
-            // Handle array literals
-            if (ts.isArrayLiteralExpression(node)) {
-                const parent = node.parent;
-                if (ts.isIdentifier(parent) || ts.isPropertyAccessExpression(parent)) {
-                    return {
-                        Node: factory.createIdentifier("array_expression"),
-                        Use: true
-                    };
-                }
-            }
-
-            // Handle empty statements
-            if (ts.isEmptyStatement(node)) {
-                return {
-                    Node: factory.createNotEmittedStatement(node),
-                    Use: true
-                };
-            }
-
-            // Handle different node types
-            if (ts.isVariableStatement(node)) {
-                return handleVariableStatement(node);
-            }
-
-            if (isIdentifier(node)) {
-                return handleIdentifier(node);
-            }
-
-            if (ts.isPropertyAccessExpression(node)) {
-                return handlePropertyAccess(node, node.parent);
-            }
-
-            // Handle child nodes
-            let use = false;
-            const newNode = ts.visitEachChild(
-                node,
-                (child) => {
-                    const output = _Visit(child, depth + 1);
-                    use = use || output.Use;
-                    return output.Node;
-                },
-                Context
+    const handleArrayLiteral = (node: ts.ArrayLiteralExpression): VisitResult => {
+        const parent = node.parent;
+        if (ts.isIdentifier(parent) || ts.isPropertyAccessExpression(parent)) {
+            return createVisitResult(
+                factory.createIdentifier("array_expression"),
+                true
             );
+        }
+        return createVisitResult(node, false);
+    };
 
-            return { Node: newNode, Use: use };
+    const handleEmptyStatement = (node: ts.EmptyStatement): VisitResult => 
+        createVisitResult(factory.createNotEmittedStatement(node), true);
+
+    const handlePropertyAccess = (
+        node: PropertyAccessExpression, 
+        parent: Node
+    ): VisitResult => {
+        if (ts.isPropertyAssignment(parent)) {
+            return createVisitResult(
+                factory.createIdentifier(node.name.text),
+                true
+            );
+        }
+        return createVisitResult(node, false);
+    };
+
+    const shouldPreserveIdentifier = (
+        node: Identifier, 
+        parent: Node, 
+        initializer: Node | undefined
+    ): boolean => {
+        if (ts.isPropertyAccessExpression(parent)) {
+            if (parent.name.text === node.text) return true;
+        }
+
+        if (ts.isPropertyAssignment(parent)) {
+            if (ts.isIdentifier(parent.name) && parent.name.text === node.text) {
+                return true;
+            }
+        }
+
+        if (isIdentifier(initializer)) {
+            if ((ts.isPropertyAccessExpression(parent) || ts.isPropertyAssignment(parent)) && 
+                parent.name === node) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    const transformIdentifier = (
+        node: Identifier, 
+        initializer: Node
+    ): VisitResult => {
+        if (isIdentifier(initializer)) {
+            return createVisitResult(
+                factory.createIdentifier(initializer.text),
+                true
+            );
+        }
+
+        try {
+            const transformed = ts.transform(
+                initializer,
+                [(context) => (node) => node],
+                { noEmitHelpers: true }
+            ).transformed[0];
+
+            if (!transformed) {
+                return createVisitResult(node, false);
+            }
+
+            const newParent = transformed.parent;
+            if (ts.isPropertyAccessExpression(newParent) &&
+                ts.isIdentifier(newParent.name) &&
+                newParent.name.text === node.text) {
+                return createVisitResult(node, false);
+            }
+
+            return createVisitResult(transformed as Node, true);
+        } catch (error) {
+            console.error(
+                "Error during identifier transformation:", 
+                {
+                    identifier: node.text,
+                    error: error instanceof Error ? error.message : String(error)
+                }
+            );
+            return createVisitResult(node, false);
+        }
+    };
+
+    const handleIdentifier = (node: Identifier): VisitResult => {
+        const nodeName = node.text;
+        const usage = Usage.get(nodeName);
+        const initializer = Get(nodeName, Initializer);
+
+        if (!initializer || usage !== 1) {
+            return createVisitResult(node, false);
+        }
+
+        if (shouldPreserveIdentifier(node, node.parent, initializer)) {
+            return createVisitResult(node, false);
+        }
+
+        return transformIdentifier(node, initializer);
+    };
+
+    const handleVariableStatement = (node: VariableStatement): VisitResult => {
+        const declarations = node.declarationList.declarations.filter(declaration => {
+            if (!isIdentifier(declaration.name)) return true;
+            
+            const count = Usage.get(declaration.name.text);
+            return !count || count > 1 || !declaration.initializer;
+        });
+
+        if (declarations.length === 0) {
+            return createVisitResult(factory.createEmptyStatement(), true);
+        }
+
+        if (declarations.length === node.declarationList.declarations.length) {
+            return createVisitResult(node, false);
+        }
+
+        return createVisitResult(
+            factory.updateVariableStatement(
+                node,
+                node.modifiers,
+                factory.createVariableDeclarationList(
+                    declarations,
+                    node.declarationList.flags
+                )
+            ),
+            true
+        );
+    };
+
+    const visitNode = (
+        node: Node,
+        state: TransformerState,
+        depth = 0
+    ): VisitResult => {
+        if (isMaxDepthExceeded(state, depth)) {
+            return createVisitResult(node, false);
+        }
+
+        // Handle specific node types
+        if (ts.isArrayLiteralExpression(node)) {
+            return handleArrayLiteral(node);
+        }
+
+        if (ts.isEmptyStatement(node)) {
+            return handleEmptyStatement(node);
+        }
+
+        if (ts.isVariableStatement(node)) {
+            return handleVariableStatement(node);
+        }
+
+        if (isIdentifier(node)) {
+            return handleIdentifier(node);
+        }
+
+        if (ts.isPropertyAccessExpression(node)) {
+            return handlePropertyAccess(node, node.parent);
+        }
+
+        // Handle child nodes
+        let use = false;
+        const newNode = ts.visitEachChild(
+            node,
+            (child) => {
+                const output = visitNode(child, state, depth + 1);
+                use = use || output.Use;
+                return output.Node;
+            },
+            state.context
+        );
+
+        return createVisitResult(newNode, use);
+    };
+
+    return (context: TransformationContext) => (rootNode: Node): Node => {
+        const state: TransformerState = {
+            visit: 0,
+            iteration: 0,
+            context
         };
 
-        // Main transformation loop
-        let currentNode = Node;
-        let iteration = 0;
+        let currentNode = rootNode;
 
-        while (iteration < MAX_ITERATIONS) {
-            const output = _Visit(currentNode);
+        while (state.iteration < MAX_ITERATIONS) {
+            const output = visitNode(currentNode, state);
             
-            if (!output.Use || iteration >= MAX_ITERATIONS - 1) {
-                if (iteration >= MAX_ITERATIONS - 1) {
+            if (!output.Use || state.iteration >= MAX_ITERATIONS - 1) {
+                if (state.iteration >= MAX_ITERATIONS - 1) {
                     console.warn(
-                        `Warning: Maximum iteration count (${MAX_ITERATIONS}) reached. Possible infinite loop detected.`,
+                        "Maximum iteration count reached. Possible infinite loop detected.",
                         {
-                            TypeNode: ts.SyntaxKind[currentNode.kind],
-                            Position: currentNode.pos,
-                            Depth: "root"
+                            nodeType: ts.SyntaxKind[currentNode.kind],
+                            position: currentNode.pos,
+                            iteration: state.iteration,
+                            visits: state.visit
                         }
                     );
                 }
@@ -190,11 +242,12 @@ export const Fn = ((Usage: Map<string, number>, Initializer: Map<string, Node>) 
             }
 
             currentNode = output.Node;
-            iteration++;
+            state.iteration++;
         }
 
         return currentNode;
-    }) satisfies Interface as Interface;
+    };
+}) satisfies Interface as Interface;
 
 export const {
     default: ts,
