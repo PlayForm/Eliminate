@@ -3,9 +3,11 @@ import type {
 	Expression,
 	Identifier,
 	Node,
+	Program,
 	SourceFile,
 	Statement,
 	TransformationContext,
+	TypeChecker,
 	VariableStatement,
 } from "typescript";
 
@@ -78,6 +80,7 @@ interface TransformWarning {
 }
 
 enum ErrorCode {
+	TYPE_CHECK_ERROR = "TYPE_CHECK_ERROR",
 	CIRCULAR_REFERENCE = "CIRCULAR_REFERENCE",
 	UNINITIALIZED_VARIABLE = "UNINITIALIZED_VARIABLE",
 	INVALID_REPLACEMENT = "INVALID_REPLACEMENT",
@@ -120,6 +123,8 @@ class VariableTracker {
 		}>
 	>();
 
+	private typeCheckErrors = new Set<string>();
+
 	private sideEffects = new Set<string>();
 
 	trackDeclaration(name: string, node: Node, scope: ScopeInfo): void {
@@ -132,7 +137,6 @@ class VariableTracker {
 		if (!this.uses.has(name)) {
 			this.uses.set(name, new Set());
 		}
-
 		this.uses.get(name)!.add({ node, scope });
 	}
 
@@ -174,8 +178,15 @@ class VariableTracker {
 
 			scope = scope.parent;
 		}
-
 		return false;
+	}
+
+	recordTypeError(name: string): void {
+		this.typeCheckErrors.add(name);
+	}
+
+	hasTypeError(name: string): boolean {
+		return this.typeCheckErrors.has(name);
 	}
 
 	clear(): void {
@@ -183,11 +194,13 @@ class VariableTracker {
 
 		this.uses.clear();
 
+		this.typeCheckErrors.clear();
+
 		this.sideEffects.clear();
 	}
 }
 
-export const Fn = ((Usage, Initializer) => {
+export const Fn = ((program: Program, typeChecker: TypeChecker) => {
 	class Transformer {
 		private readonly state: TransformerState;
 
@@ -209,11 +222,40 @@ export const Fn = ((Usage, Initializer) => {
 			this.tracker = new VariableTracker();
 		}
 
-		private createScope(parent: ScopeInfo): ScopeInfo {
+		private createScope(parent?: ScopeInfo): ScopeInfo {
 			return {
 				variables: new Set(),
 				parent,
 			};
+		}
+
+		private async typeCheck(node: Node): Promise<boolean> {
+			try {
+				const promise = new Promise<boolean>((resolve) => {
+					const diagnostics = typeChecker.getDiagnostics(node);
+
+					resolve(diagnostics.length === 0);
+				});
+
+				const result = await Promise.race([
+					promise,
+					new Promise<boolean>((_, reject) =>
+						setTimeout(
+							() => reject(new Error("Type check timeout")),
+							CONFIG.TYPE_CHECK_TIMEOUT,
+						),
+					),
+				]);
+
+				return result;
+			} catch (error) {
+				const errorMessage =
+					error instanceof Error ? error.message : String(error);
+
+				console.error(`Type check error: ${errorMessage}`);
+
+				return false;
+			}
 		}
 
 		private detectSideEffects(node: Node): boolean {
@@ -230,7 +272,6 @@ export const Fn = ((Usage, Initializer) => {
 
 					return;
 				}
-
 				ts.forEachChild(node, visitor);
 			};
 
@@ -246,6 +287,10 @@ export const Fn = ((Usage, Initializer) => {
 			const name = node.text;
 
 			if (!this.tracker.isInScope(name, scope)) {
+				return { node, modified: false, scope };
+			}
+
+			if (this.tracker.hasTypeError(name)) {
 				return { node, modified: false, scope };
 			}
 
@@ -291,10 +336,7 @@ export const Fn = ((Usage, Initializer) => {
 					code: ErrorCode.TRANSFORMATION_ERROR,
 					message: `Error replacing variable ${name}: ${errorMessage}`,
 					node,
-					stack:
-						error instanceof Error
-							? (error.stack ?? errorMessage)
-							: "undefined",
+					stack: error instanceof Error ? error.stack : undefined,
 				});
 
 				return { node, modified: false, scope };
@@ -326,7 +368,6 @@ export const Fn = ((Usage, Initializer) => {
 							return false;
 						}
 					}
-
 					return true;
 				},
 			);
@@ -405,7 +446,7 @@ export const Fn = ((Usage, Initializer) => {
 			return { node: visitedNode, modified, scope };
 		}
 
-		public transform(sourceFile: Node) {
+		public transform(sourceFile: SourceFile): SourceFile {
 			this.tracker.clear();
 
 			let result = sourceFile;
@@ -417,7 +458,7 @@ export const Fn = ((Usage, Initializer) => {
 
 				if (!visitResult.modified) break;
 
-				result = visitResult.node;
+				result = visitResult.node as SourceFile;
 
 				iteration++;
 
@@ -434,7 +475,7 @@ export const Fn = ((Usage, Initializer) => {
 		}
 	}
 
-	return (context: TransformationContext) => (rootNode) => {
+	return (context: TransformationContext) => (rootNode: SourceFile) => {
 		const transformer = new Transformer(context);
 
 		return transformer.transform(rootNode);
