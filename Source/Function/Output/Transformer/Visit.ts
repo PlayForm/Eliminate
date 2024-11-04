@@ -1,8 +1,14 @@
 import type Interface from "@Interface/Output/Transformer/Visit.js";
 import type {
+	ArrowFunction,
+	Block,
+	CallExpression,
 	Expression,
+	FunctionDeclaration,
+	FunctionExpression,
 	Identifier,
 	Node,
+	ParameterDeclaration,
 	SourceFile,
 	Statement,
 	TransformationContext,
@@ -29,6 +35,17 @@ interface ScopeInfo {
 	readonly variables: Set<string>;
 
 	readonly parent?: ScopeInfo;
+}
+
+interface FunctionInfo {
+	node: FunctionDeclaration | ArrowFunction | FunctionExpression;
+	scope: ScopeInfo;
+	complexity: number;
+	parameters: ParameterDeclaration[];
+	usageCount: number;
+	isAsync: boolean;
+	isGenerator: boolean;
+	capturedVariables: Set<string>;
 }
 
 interface TransformerState {
@@ -99,7 +116,7 @@ const CONFIG = {
 	PERFORMANCE_WARNING_THRESHOLD: 1000,
 } as const;
 
-class VariableTracker {
+class DeclarationTracker {
 	private declarations = new Map<
 		string,
 		{
@@ -111,6 +128,8 @@ class VariableTracker {
 		}
 	>();
 
+	private functions = new Map<string, FunctionInfo>();
+
 	private uses = new Map<
 		string,
 		Set<{
@@ -121,6 +140,100 @@ class VariableTracker {
 	>();
 
 	private sideEffects = new Set<string>();
+
+	trackFunctionDeclaration(
+		name: string,
+		node: FunctionDeclaration | ArrowFunction | FunctionExpression,
+		scope: ScopeInfo,
+	): void {
+		const complexity = this.calculateComplexity(node);
+
+		const capturedVariables = this.analyzeCapturedVariables(node);
+
+		this.functions.set(name, {
+			node,
+			scope,
+			complexity,
+			parameters: Array.from(node.parameters),
+			usageCount: 0,
+			isAsync:
+				node.modifiers?.some(
+					(m) => m.kind === ts.SyntaxKind.AsyncKeyword,
+				) ?? false,
+			isGenerator: node.asteriskToken !== undefined,
+			capturedVariables,
+		});
+	}
+
+	private analyzeCapturedVariables(node: Node): Set<string> {
+		const captured = new Set<string>();
+
+		const localDeclarations = new Set<string>();
+
+		// First pass: collect local declarations
+		ts.forEachChild(node, (child) => {
+			if (
+				ts.isVariableDeclaration(child) &&
+				ts.isIdentifier(child.name)
+			) {
+				localDeclarations.add(child.name.text);
+			}
+
+			if (ts.isParameter(child) && ts.isIdentifier(child.name)) {
+				localDeclarations.add(child.name.text);
+			}
+		});
+
+		// Second pass: find captured variables
+		const visitor = (node: Node): void => {
+			if (ts.isIdentifier(node)) {
+				const name = node.text;
+
+				if (!localDeclarations.has(name)) {
+					captured.add(name);
+				}
+			}
+
+			ts.forEachChild(node, visitor);
+		};
+
+		visitor(node);
+
+		return captured;
+	}
+
+	trackFunctionCall(
+		name: string,
+		node: CallExpression,
+		scope: ScopeInfo,
+	): void {
+		const functionInfo = this.functions.get(name);
+
+		if (functionInfo) {
+			functionInfo.usageCount++;
+		}
+
+		this.trackUse(name, node, scope);
+	}
+
+	canInlineFunction(name: string): boolean {
+		const info = this.functions.get(name);
+
+		if (!info) return false;
+
+		return (
+			info.usageCount === 1 && // Used exactly once
+			!info.isAsync && // Not async
+			!info.isGenerator && // Not a generator
+			info.capturedVariables.size === 0 && // No captured variables
+			!this.hasSideEffects(name) && // No side effects
+			info.complexity < CONFIG.PERFORMANCE_WARNING_THRESHOLD // Not too complex
+		);
+	}
+
+	getFunctionInfo(name: string): FunctionInfo | undefined {
+		return this.functions.get(name);
+	}
 
 	trackDeclaration(name: string, node: Node, scope: ScopeInfo): void {
 		const complexity = this.calculateComplexity(node);
@@ -187,11 +300,11 @@ class VariableTracker {
 	}
 }
 
-export const Fn = ((Usage, Initializer) => {
+export const Fn = ((_Usage, _Initializer) => {
 	class Transformer {
 		private readonly state: TransformerState;
 
-		private readonly tracker: VariableTracker;
+		private readonly tracker: DeclarationTracker;
 
 		constructor(context: TransformationContext) {
 			this.state = {
@@ -206,7 +319,154 @@ export const Fn = ((Usage, Initializer) => {
 				currentScope: { variables: new Set() },
 			};
 
-			this.tracker = new VariableTracker();
+			this.tracker = new DeclarationTracker();
+		}
+
+		private createFunctionReplacement(
+			call: CallExpression,
+			funcInfo: FunctionInfo,
+			_scope: ScopeInfo,
+		): Expression {
+			const args = call.arguments;
+
+			const params = funcInfo.parameters;
+
+			// Create a map of parameter names to their argument expressions
+			const paramMap = new Map<string, Expression>();
+
+			params.forEach((param, index) => {
+				if (ts.isIdentifier(param.name)) {
+					const arg =
+						args[index] ??
+						(param.initializer
+							? (ts.visitNode(
+									param.initializer,
+									(node) => node,
+								) as Expression)
+							: ts.factory.createIdentifier("undefined"));
+
+					paramMap.set(param.name.text, arg);
+				}
+			});
+
+			// Clone the function body and replace parameter references
+			const visitor = (node: Node): Node => {
+				if (ts.isIdentifier(node)) {
+					const replacement = paramMap.get(node.text);
+
+					if (replacement) {
+						return ts.factory.createParenthesizedExpression(
+							ts.visitNode(replacement, visitor) as Expression,
+						);
+					}
+				}
+
+				return ts.visitEachChild(node, visitor, this.state.context);
+			};
+
+			// Get the function body
+			let body: Expression;
+
+			if (
+				ts.isFunctionDeclaration(funcInfo.node) ||
+				ts.isFunctionExpression(funcInfo.node)
+			) {
+				const statements = (funcInfo.node.body as Block).statements;
+
+				if (
+					statements.length === 1 &&
+					typeof statements[0] !== "undefined" &&
+					ts.isReturnStatement(statements[0])
+				) {
+					body = statements[0].expression as Expression;
+				} else {
+					body = ts.factory.createArrowFunction(
+						undefined,
+						undefined,
+						[],
+						undefined,
+						undefined,
+						ts.factory.createBlock(statements, true),
+					);
+				}
+			} else {
+				// ArrowFunction
+				body = funcInfo.node.body as Expression;
+			}
+
+			// Visit the body with our parameter replacement visitor
+			const replacedBody = ts.visitNode(body, visitor) as Expression;
+
+			// Wrap in parentheses to maintain operator precedence
+			return ts.factory.createParenthesizedExpression(replacedBody);
+		}
+
+		private handleFunctionCall(
+			node: CallExpression,
+			scope: ScopeInfo,
+		): VisitResult<Expression> {
+			if (!ts.isIdentifier(node.expression)) {
+				return { node, modified: false, scope };
+			}
+
+			const name = node.expression.text;
+
+			if (!this.tracker.canInlineFunction(name)) {
+				return { node, modified: false, scope };
+			}
+
+			const funcInfo = this.tracker.getFunctionInfo(name);
+
+			if (!funcInfo) {
+				return { node, modified: false, scope };
+			}
+
+			try {
+				const replacement = this.createFunctionReplacement(
+					node,
+					funcInfo,
+					scope,
+				);
+
+				return {
+					node: replacement,
+					modified: true,
+					dependencies: new Set([name]),
+					scope,
+				};
+			} catch (error) {
+				const errorMessage =
+					error instanceof Error ? error.message : String(error);
+
+				this.state.errors.push({
+					code: ErrorCode.TRANSFORMATION_ERROR,
+					message: `Error inlining function ${name}: ${errorMessage}`,
+					node,
+					stack:
+						error instanceof Error
+							? (error.stack ?? "undefined")
+							: "undefined",
+				});
+
+				return { node, modified: false, scope };
+			}
+		}
+
+		private processFunctionDeclaration(
+			node: FunctionDeclaration,
+			scope: ScopeInfo,
+		): VisitResult<Statement> {
+			if (node.name) {
+				const name = node.name.text;
+
+				this.tracker.trackFunctionDeclaration(name, node, scope);
+
+				// Don't remove the function yet - we'll do it in a subsequent pass
+				// after we know if it's used exactly once
+				return { node, modified: false, scope };
+			}
+
+			return { node, modified: false, scope };
 		}
 
 		private createScope(parent: ScopeInfo): ScopeInfo {
@@ -363,6 +623,14 @@ export const Fn = ((Usage, Initializer) => {
 			node: Node,
 			scope: ScopeInfo = this.state.currentScope!,
 		): VisitResult {
+			if (ts.isCallExpression(node)) {
+				return this.handleFunctionCall(node, scope);
+			}
+
+			if (ts.isFunctionDeclaration(node)) {
+				return this.processFunctionDeclaration(node, scope);
+			}
+
 			if (ts.isBlock(node) || ts.isModuleBlock(node)) {
 				const blockScope = this.createScope(scope);
 
@@ -408,26 +676,24 @@ export const Fn = ((Usage, Initializer) => {
 		public transform(sourceFile: Node) {
 			this.tracker.clear();
 
-			let result = sourceFile;
+			// First pass: collect all function declarations and their usage
+			let result = ts.visitNode(
+				sourceFile,
+				(node) => this.visitNode(node).node,
+			);
 
+			// Second pass: perform the actual inlining
+			let modified = true;
 			let iteration = 0;
 
-			while (iteration < CONFIG.MAX_ITERATIONS) {
+			while (modified && iteration < CONFIG.MAX_ITERATIONS) {
 				const visitResult = this.visitNode(result);
 
-				if (!visitResult.modified) break;
+				modified = visitResult.modified;
 
-				result = visitResult.node;
+				result = visitResult.node as SourceFile;
 
 				iteration++;
-
-				if (iteration === CONFIG.MAX_ITERATIONS - 1) {
-					this.state.warnings.push({
-						code: WarningCode.PERFORMANCE_IMPACT,
-						message: `Transformation reached maximum iteration limit`,
-						node: sourceFile,
-					});
-				}
 			}
 
 			return result;

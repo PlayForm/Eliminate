@@ -1,5 +1,4 @@
 import type Interface from "@Interface/Output/Visit.js";
-import type { Node } from "typescript";
 
 /**
  * @module Output
