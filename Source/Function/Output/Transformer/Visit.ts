@@ -1,10 +1,6 @@
 import type Interface from "@Interface/Output/Transformer/Visit.js";
 import type {
-	ArrowFunction,
-	CallExpression,
 	Expression,
-	FunctionDeclaration,
-	FunctionExpression,
 	Identifier,
 	Node,
 	Statement,
@@ -14,514 +10,221 @@ import type {
 
 /**
  * @module Output
- * Enhanced transformer with comprehensive validation, error handling,
  *
- *
- * and bottom-up evaluation of variables with cycle detection and scope analysis
  */
 
-type VisitResult<T extends Node = Node> = {
-	readonly node: T;
-
-	readonly modified: boolean;
-
-	readonly dependencies?: Set<string>;
-
-	readonly scope?: ScopeInfo;
-};
-
-interface ScopeInfo {
-	readonly variables: Set<string>;
-
-	readonly parent?: ScopeInfo;
-}
-
-interface FunctionInfo {
-	node: FunctionDeclaration | ArrowFunction | FunctionExpression;
-
-	uses: number;
-}
-
-interface TransformerState {
-	readonly context: TransformationContext;
-
-	readonly errors: Array<TransformError>;
-
-	readonly currentScope?: ScopeInfo;
-}
-
-interface TransformError {
-	readonly code: ErrorCode;
-
-	readonly message: string;
-
-	readonly node: Node;
-
-	readonly stack?: string;
-}
-
-enum ErrorCode {
-	INVALID_REPLACEMENT = "INVALID_REPLACEMENT",
-
-	TRANSFORMATION_ERROR = "TRANSFORMATION_ERROR",
-}
-
 class DeclarationTracker {
-	declarations = new Map<
+	private variableMap = new Map<
 		string,
 		{
-			node: Node;
+			initializer: Expression;
 
-			scope: ScopeInfo;
+			uses: Set<{
+				node: Node;
+
+				isReference: boolean;
+			}>;
+
+			isInlined: boolean;
 		}
 	>();
 
-	uses = new Map<
-		string,
-		Set<{
-			node: Node;
-
-			scope: ScopeInfo;
-
-			isReference: boolean;
-		}>
-	>();
-
-	functions = new Map<string, FunctionInfo>();
-
-	trackFunction(
-		name: string,
-
-		node: FunctionDeclaration | ArrowFunction | FunctionExpression,
-	): void {
-		this.functions.set(name, { node, uses: 0 });
+	trackVariable(name: string, initializer: Expression): void {
+		if (!this.variableMap.has(name)) {
+			this.variableMap.set(name, {
+				initializer,
+				uses: new Set(),
+				isInlined: false,
+			});
+		}
 	}
 
-	trackDeclaration(name: string, node: Node, scope: ScopeInfo): void {
-		this.declarations.set(name, {
-			node,
+	trackUse(name: string, node: Node, isReference: boolean = true): void {
+		const entry = this.variableMap.get(name);
 
-			scope,
+		if (entry) {
+			entry.uses.add({ node, isReference });
+		}
+	}
+
+	shouldInline(name: string): boolean {
+		const entry = this.variableMap.get(name);
+
+		if (!entry || entry.isInlined) return false;
+
+		const referenceUses = Array.from(entry.uses).filter(
+			(use) => use.isReference,
+		);
+
+		// Check for reassignment
+		const isReassigned = Array.from(entry.uses).some((use) => {
+			const parent = use.node.parent;
+
+			return (
+				ts.isBinaryExpression(parent) &&
+				parent.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+				ts.isIdentifier(parent.left) &&
+				parent.left.text === name
+			);
 		});
 
-		if (!this.uses.has(name)) {
-			this.uses.set(name, new Set());
-		}
-	}
-
-	trackUse(
-		name: string,
-
-		node: Node,
-
-		scope: ScopeInfo,
-
-		isReference: boolean = true,
-	): void {
-		if (!this.uses.has(name)) {
-			this.uses.set(name, new Set());
-		}
-
-		this.uses.get(name)!.add({ node, scope, isReference });
-	}
-
-	incrementFunctionUses(name: string): void {
-		const func = this.functions.get(name);
-
-		if (func) {
-			func.uses++;
-		}
-	}
-
-	getDeclaration(name: string): { node: Node; scope: ScopeInfo } | undefined {
-		return this.declarations.get(name);
-	}
-
-	getFunctionUses(name: string): number {
-		return this.functions.get(name)?.uses ?? 0;
-	}
-
-	isSimpleExpression(node: Expression): boolean {
+		// Only inline if:
+		// 1. Has initializer
+		// 2. Not reassigned
+		// 3. Used between 1-2 times as reference
 		return (
-			ts.isIdentifier(node) ||
-			ts.isLiteralExpression(node) ||
-			ts.isObjectLiteralExpression(node) ||
-			ts.isArrayLiteralExpression(node) ||
-			ts.isTemplateExpression(node) ||
-			ts.isNoSubstitutionTemplateLiteral(node) ||
-			(ts.isParenthesizedExpression(node) &&
-				this.isSimpleExpression(node.expression))
+			!isReassigned &&
+			referenceUses.length > 0 &&
+			referenceUses.length <= 2
 		);
 	}
 
-	shouldInlineVariable(name: string): boolean {
-		const decl = this.declarations.get(name);
+	getInitializer(name: string): Expression | undefined {
+		return this.variableMap.get(name)?.initializer;
+	}
 
-		const uses = this.uses.get(name);
+	markInlined(name: string): void {
+		const entry = this.variableMap.get(name);
 
-		console.log(`C: Checking inlining for ${name}:`);
-
-		console.log(`- Has declaration: ${!!decl}`);
-
-		console.log(`- Has uses: ${!!uses}`);
-
-		if (!decl || !uses) return false;
-
-		////////////////////////////////////////////
-		// Check if the variable is ever reassigned
-		// good thing
-
-		// const isReassigned = Array.from(uses).some((use) => {
-
-		// 	const parent = use.node.parent;
-
-		// 	return (
-		// 		ts.isBinaryExpression(parent) &&
-		// 		parent.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
-		// 		ts.isIdentifier(parent.left) &&
-		// 		parent.left.text === name
-		// 	);
-
-		// });
-
-		// if (isReassigned) return false;
-
-		////////////////////////////////////////////
-
-		// Count only reference uses
-		const referenceUses = Array.from(uses).filter((use) => use.isReference);
-
-		console.log(`- Reference uses count: ${referenceUses.length}`);
-
-		return referenceUses.length === 2;
+		if (entry) {
+			entry.isInlined = true;
+		}
 	}
 
 	clear(): void {
-		this.declarations.clear();
-
-		this.uses.clear();
-
-		this.functions.clear();
+		this.variableMap.clear();
 	}
 }
 
 class Transformer {
-	readonly state: TransformerState;
+	private readonly context: TransformationContext;
 
-	readonly tracker: DeclarationTracker;
+	private readonly tracker: DeclarationTracker;
 
 	constructor(context: TransformationContext) {
-		this.state = {
-			context,
-
-			errors: [],
-
-			currentScope: { variables: new Set() },
-		};
+		this.context = context;
 
 		this.tracker = new DeclarationTracker();
 	}
 
-	handleIdentifier(
-		node: Identifier,
-		scope: ScopeInfo,
-	): VisitResult<Expression | Node> {
+	private visitIdentifier(node: Identifier): Expression {
 		const name = node.text;
 
-		const decl = this.tracker.getDeclaration(name);
-
-		console.log(`-----------------------${"-".repeat(name.length)}`);
-
-		console.log(`H: Handling identifier ${name}`);
-
-		if (!decl || !this.tracker.shouldInlineVariable(name)) {
-			console.log(`N: Not inlining ${name}`);
-
-			return { node, modified: false };
-		}
-
-		// Don't inline if the identifier is being used as a property name
+		// Don't process identifiers that are property names or declaration names
 		if (
-			ts.isPropertyAccessExpression(node.parent) &&
-			node.parent.name === node
+			(ts.isPropertyAccessExpression(node.parent) &&
+				node.parent.name === node) ||
+			ts.isVariableDeclaration(node.parent) ||
+			ts.isBindingElement(node.parent)
 		) {
-			console.log(`S: Skipping property name ${name}`);
-			return { node, modified: false };
+			return node;
 		}
 
-		// Skip inlining if this identifier is being used as a binding name
-		if (
-			ts.isBindingElement(node.parent) ||
-			ts.isVariableDeclaration(node.parent)
-		) {
-			console.log(`S: Skipping binding name ${name}`);
-			return { node, modified: false };
-		}
+		if (this.tracker.shouldInline(name)) {
+			const initializer = this.tracker.getInitializer(name);
 
-		console.log(`I: Inlining ${name}`);
+			if (initializer) {
+				// Mark as inlined to prevent duplicate processing
+				this.tracker.markInlined(name);
 
-		try {
-			return {
-				node: ts.visitNode(
-					decl.node,
-					(node) => this.visitNode(node, scope).node,
-				),
-				modified: true,
-			};
-		} catch (error) {
-			console.error(`Failed to inline ${name}:`, error);
-
-			this.state.errors.push({
-				code: ErrorCode.INVALID_REPLACEMENT,
-
-				message: `Failed to create replacement for ${name}`,
-
-				node,
-
-				stack:
-					error instanceof Error
-						? (error.stack ?? "undefined")
-						: "undefined",
-			});
-
-			return { node, modified: false };
-		}
-	}
-
-	handleFunctionCall(node: CallExpression): VisitResult<Expression> {
-		if (ts.isIdentifier(node.expression)) {
-			const name = node.expression.text;
-
-			this.tracker.incrementFunctionUses(name);
-		}
-
-		return { node, modified: false };
-	}
-
-	processFunctionDeclaration(
-		node: FunctionDeclaration,
-	): VisitResult<Statement> {
-		if (node.name) {
-			const name = node.name.text;
-
-			this.tracker.trackFunction(name, node);
-
-			// Only consider removing the function if it's used exactly once
-			if (this.tracker.getFunctionUses(name) === 1) {
-				return {
-					node: ts.factory.createEmptyStatement(),
-
-					modified: true,
-				};
+				// Create a copy of the initializer
+				return ts.visitNode(initializer, (node) =>
+					ts.isExpression(node)
+						? node
+						: ts.factory.createIdentifier(name),
+				) as Expression;
 			}
 		}
 
-		return { node, modified: false };
+		return node;
 	}
 
-	processVariableStatement(node: VariableStatement): VisitResult<Statement> {
-		// Just handle the declarations without tracking
-		const declarations = node.declarationList.declarations.map((decl) => {
-			if (ts.isIdentifier(decl.name)) {
+	private visitVariableStatement(node: VariableStatement): Statement {
+		const declarations = node.declarationList.declarations;
+
+		// Track all variable declarations and their initializers
+		declarations.forEach((decl) => {
+			if (ts.isIdentifier(decl.name) && decl.initializer) {
 				const name = decl.name.text;
 
-				console.log(
-					`------------------------------${"-".repeat(name.length)}`,
-				);
-
-				console.log(`P: Processing declaration for ${name}`);
+				this.tracker.trackVariable(name, decl.initializer);
 			}
-
-			return decl;
 		});
 
-		// Filter out declarations that should be removed
+		// Filter out declarations that have been inlined
 		const remainingDeclarations = declarations.filter((decl) => {
-			if (!ts.isIdentifier(decl.name)) {
-				return true;
-			}
+			if (!ts.isIdentifier(decl.name)) return true;
 
-			const name = decl.name.text;
-
-			const shouldInline = this.tracker.shouldInlineVariable(name);
-
-			console.log(`S: Should inline ${name}? ${shouldInline}`);
-
-			// Only keep declarations that shouldn't be inlined
-			return !shouldInline;
+			return !this.tracker.shouldInline(decl.name.text);
 		});
 
 		if (remainingDeclarations.length === 0) {
-			return {
-				node: ts.factory.createEmptyStatement(),
-
-				modified: true,
-			};
+			return ts.factory.createEmptyStatement();
 		}
 
 		if (remainingDeclarations.length !== declarations.length) {
-			return {
-				node: ts.factory.updateVariableStatement(
-					node,
-
-					node.modifiers,
-
-					ts.factory.createVariableDeclarationList(
-						remainingDeclarations,
-
-						node.declarationList.flags,
-					),
+			return ts.factory.updateVariableStatement(
+				node,
+				node.modifiers,
+				ts.factory.createVariableDeclarationList(
+					remainingDeclarations,
+					node.declarationList.flags,
 				),
-
-				modified: true,
-			};
+			);
 		}
 
-		return { node, modified: false };
+		return node;
 	}
 
-	visitNode(
-		node: Node,
-
-		scope: ScopeInfo = this.state.currentScope!,
-	): VisitResult {
-		// Handle identifiers first before visiting children
+	private visitNode(node: Node): Node {
+		// First collect all variable uses
 		if (ts.isIdentifier(node) && !ts.isVariableDeclaration(node.parent)) {
-			const identifierResult = this.handleIdentifier(node, scope);
-
-			if (identifierResult.modified) {
-				return identifierResult;
-			}
+			this.tracker.trackUse(node.text, node);
 		}
 
-		// Visit children
-		let modified = false;
-
-		let resultNode = ts.visitEachChild(
-			node,
-
-			(child) => {
-				const result = this.visitNode(child, scope);
-
-				modified = modified || result.modified;
-
-				return result.node;
-			},
-
-			this.state.context,
-		);
-
-		// Create new scope for blocks
-		if (ts.isBlock(node)) {
-			const newScope: ScopeInfo = {
-				variables: new Set(),
-
-				parent: scope,
-			};
-
-			return {
-				node: resultNode,
-
-				modified,
-
-				scope: newScope,
-			};
-		}
-
-		// Handle declarations after children have been visited
+		// Handle specific node types
 		if (ts.isVariableStatement(node)) {
-			const nodeResult = this.processVariableStatement(node);
-
-			return {
-				node: nodeResult.node,
-				modified: modified || nodeResult.modified,
-				scope: nodeResult.scope ?? scope,
-			};
+			return this.visitVariableStatement(node);
 		}
 
-		let nodeResult: VisitResult;
-
-		// Handle different node types
-		if (ts.isFunctionDeclaration(node)) {
-			nodeResult = this.processFunctionDeclaration(node);
-		} else if (ts.isCallExpression(node)) {
-			nodeResult = this.handleFunctionCall(node);
-		} else {
-			return { node: resultNode, modified };
+		if (ts.isIdentifier(node)) {
+			return this.visitIdentifier(node);
 		}
 
-		// Visit children
-		return {
-			node: nodeResult.node,
-
-			modified: modified || nodeResult.modified,
-
-			scope: nodeResult.scope ?? scope,
-		};
+		// Recursively visit all children
+		return ts.visitEachChild(
+			node,
+			(child) => this.visitNode(child),
+			this.context,
+		);
 	}
 
-	collectUsages(
-		node: Node,
-		scope: ScopeInfo = this.state.currentScope!,
-	): void {
-		// Track declarations
-		if (ts.isVariableStatement(node)) {
-			node.declarationList.declarations.forEach((decl) => {
-				if (ts.isIdentifier(decl.name)) {
-					const name = decl.name.text;
-
-					this.tracker.trackUse(name, decl.name, scope, false);
-
-					if (decl.initializer) {
-						this.tracker.trackDeclaration(
-							name,
+	transform(sourceFile: Node): Node {
+		// First pass: collect all declarations and uses
+		ts.visitNode(sourceFile, (node) => {
+			if (ts.isVariableStatement(node)) {
+				node.declarationList.declarations.forEach((decl) => {
+					if (ts.isIdentifier(decl.name) && decl.initializer) {
+						this.tracker.trackVariable(
+							decl.name.text,
 							decl.initializer,
-							scope,
 						);
 					}
-				}
-			});
-		}
+				});
+			}
 
-		// Track uses
-		if (
-			ts.isIdentifier(node) &&
-			!ts.isPropertyAccessExpression(node.parent)
-		) {
-			this.tracker.trackUse(node.text, node, scope, true);
-		}
+			if (
+				ts.isIdentifier(node) &&
+				!ts.isVariableDeclaration(node.parent)
+			) {
+				this.tracker.trackUse(node.text, node);
+			}
 
-		// Visit children
-		ts.forEachChild(node, (child) => this.collectUsages(child, scope));
-	}
+			return node;
+		});
 
-	transform(sourceFile: Node, passCount: number = 0): Node {
-		const MAX_PASSES = 10; // Adjust this number as needed
-
-		if (passCount >= MAX_PASSES) {
-			return sourceFile;
-		}
-
-		this.tracker.clear();
-
-		// First pass: collect both declarations and uses bottom-up
-		this.collectUsages(sourceFile);
-
-		// Second pass: perform inlining now that we have accurate usage information
-		let result = ts.visitNode(
-			sourceFile,
-			(node) => this.visitNode(node).node,
-		);
-
-		// Check if any modifications were made by comparing the result with the input
-		const modified = result !== sourceFile;
-
-		if (modified) {
-			// Recursively transform until no more changes
-			return this.transform(result, passCount + 1);
-		}
-
-		return result;
+		// Second pass: perform the actual transformation
+		return ts.visitNode(sourceFile, (node) => this.visitNode(node));
 	}
 }
 
