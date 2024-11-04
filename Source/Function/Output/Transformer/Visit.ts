@@ -91,98 +91,12 @@ class DeclarationTracker {
 
 	functions = new Map<string, FunctionInfo>();
 
-	sideEffects = new Set<string>();
-
 	trackFunction(
 		name: string,
 
 		node: FunctionDeclaration | ArrowFunction | FunctionExpression,
 	): void {
 		this.functions.set(name, { node, uses: 0 });
-	}
-
-	incrementFunctionUses(name: string): void {
-		const func = this.functions.get(name);
-
-		if (func) {
-			func.uses++;
-		}
-	}
-
-	getFunctionInfo(name: string): FunctionInfo | undefined {
-		return this.functions.get(name);
-	}
-
-	getDeclaration(name: string): { node: Node; scope: ScopeInfo } | undefined {
-		return this.declarations.get(name);
-	}
-
-	getFunctionUses(name: string): number {
-		return this.functions.get(name)?.uses ?? 0;
-	}
-
-	isOnlyUsedOnce(name: string): boolean {
-		const uses = this.uses.get(name);
-
-		if (!uses) return false;
-
-		// Count only reference uses
-		const referenceUses = Array.from(uses).filter((use) => use.isReference);
-
-		return referenceUses.length === 1;
-	}
-
-	shouldInlineVariable(name: string): boolean {
-		const decl = this.declarations.get(name);
-
-		const uses = this.uses.get(name);
-
-		console.log(`C: Checking inlining for ${name}:`);
-
-		console.log(`- Has declaration: ${!!decl}`);
-
-		console.log(`- Has uses: ${!!uses}`);
-
-		if (!decl || !uses) return false;
-
-		// Count only reference uses
-		const referenceUses = Array.from(uses).filter((use) => use.isReference);
-
-		console.log(`- Reference uses count: ${referenceUses.length}`);
-
-		// We want to inline if:
-		// 1. The variable is referenced exactly once
-		// 2. The declaration is a simple expression
-		// 3. The complexity is reasonable
-		if (referenceUses.length !== 2) return false;
-
-		const node = decl.node;
-
-		console.log(`- Node kind: ${ts.SyntaxKind[node.kind]}`);
-
-		// Check if the initializer is safe to inline
-		const isSafeToInline =
-			ts.isIdentifier(node) ||
-			ts.isLiteralExpression(node) ||
-			ts.isObjectLiteralExpression(node) ||
-			ts.isArrayLiteralExpression(node) ||
-			(ts.isParenthesizedExpression(node) &&
-				this.isSimpleExpression(node.expression));
-
-		console.log(`- Is safe to inline: ${isSafeToInline}`);
-
-		console.log(`- Complexity: ${decl.complexity}`);
-
-		return isSafeToInline && decl.complexity <= 3;
-	}
-
-	isSimpleExpression(node: Expression): boolean {
-		return (
-			ts.isIdentifier(node) ||
-			ts.isLiteralExpression(node) ||
-			ts.isObjectLiteralExpression(node) ||
-			ts.isArrayLiteralExpression(node)
-		);
 	}
 
 	trackDeclaration(name: string, node: Node, scope: ScopeInfo): void {
@@ -215,6 +129,100 @@ class DeclarationTracker {
 		this.uses.get(name)!.add({ node, scope, isReference });
 	}
 
+	incrementFunctionUses(name: string): void {
+		const func = this.functions.get(name);
+
+		if (func) {
+			func.uses++;
+		}
+	}
+
+	getDeclaration(name: string): { node: Node; scope: ScopeInfo } | undefined {
+		return this.declarations.get(name);
+	}
+
+	getFunctionUses(name: string): number {
+		return this.functions.get(name)?.uses ?? 0;
+	}
+
+	isSimpleExpression(node: Expression): boolean {
+		return (
+			ts.isIdentifier(node) ||
+			ts.isLiteralExpression(node) ||
+			ts.isObjectLiteralExpression(node) ||
+			ts.isArrayLiteralExpression(node) ||
+			ts.isTemplateExpression(node) ||
+			ts.isNoSubstitutionTemplateLiteral(node) ||
+			(ts.isParenthesizedExpression(node) &&
+				this.isSimpleExpression(node.expression))
+		);
+	}
+
+	shouldInlineVariable(name: string): boolean {
+		const decl = this.declarations.get(name);
+
+		const uses = this.uses.get(name);
+
+		console.log(`C: Checking inlining for ${name}:`);
+
+		console.log(`- Has declaration: ${!!decl}`);
+
+		console.log(`- Has uses: ${!!uses}`);
+
+		if (!decl || !uses) return false;
+
+		////////////////////////////////////////////
+		// Check if the variable is ever reassigned
+		// good thing
+
+		// const isReassigned = Array.from(uses).some((use) => {
+
+		// 	const parent = use.node.parent;
+
+		// 	return (
+		// 		ts.isBinaryExpression(parent) &&
+		// 		parent.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+		// 		ts.isIdentifier(parent.left) &&
+		// 		parent.left.text === name
+		// 	);
+
+		// });
+
+		// if (isReassigned) return false;
+
+		////////////////////////////////////////////
+
+		// Count only reference uses
+		const referenceUses = Array.from(uses).filter((use) => use.isReference);
+
+		console.log(`- Reference uses count: ${referenceUses.length}`);
+
+		// We want to inline if:
+		// 1. The variable is referenced exactly once
+		// 2. The declaration is a simple expression
+		// 3. The complexity is reasonable
+		if (referenceUses.length !== 2) return false;
+
+		const node = decl.node;
+
+		console.log(`- Node kind: ${ts.SyntaxKind[node.kind]}`);
+
+		// Check if the initializer is safe to inline
+		const isSafeToInline =
+			ts.isIdentifier(node) ||
+			ts.isLiteralExpression(node) ||
+			ts.isObjectLiteralExpression(node) ||
+			ts.isArrayLiteralExpression(node) ||
+			(ts.isParenthesizedExpression(node) &&
+				this.isSimpleExpression(node.expression));
+
+		console.log(`- Is safe to inline: ${isSafeToInline}`);
+
+		console.log(`- Complexity: ${decl.complexity}`);
+
+		return isSafeToInline && decl.complexity <= 3;
+	}
+
 	calculateComplexity(node: Node): number {
 		let complexity = 1;
 
@@ -229,8 +237,6 @@ class DeclarationTracker {
 		this.declarations.clear();
 
 		this.uses.clear();
-
-		this.sideEffects.clear();
 
 		this.functions.clear();
 	}
@@ -262,10 +268,9 @@ class Transformer {
 
 		const decl = this.tracker.getDeclaration(name);
 
-		console.log(`H: Handling identifier ${name}`);
+		console.log(`-----------------------${"-".repeat(name.length)}`);
 
-		// Track the use of this identifier
-		this.tracker.trackUse(name, node, scope, true);
+		console.log(`H: Handling identifier ${name}`);
 
 		if (!decl || !this.tracker.shouldInlineVariable(name)) {
 			console.log(`N: Not inlining ${name}`);
@@ -276,33 +281,56 @@ class Transformer {
 		console.log(`I: Inlining ${name}`);
 
 		try {
-			/////////////////
-			//  // Create deep copy of the initializer expression
-			//  const clone = ts.factory.createIdentifier(name);
+			// Create a deep copy by using the factory to recreate the expression
+			const originalExpression = decl.node as Expression;
 
-			//  const replacement = ts.getMutableClone(decl.node as Expression);
+			let replacement: Expression;
 
-			//  // Important: Apply any needed transformations to the replacement
-			//  const transformed = ts.visitNode(
-			// 	 replacement,
-			// 	 (node) => this.visitNode(node, scope).node
-			//  ) as Expression;
+			// Handle different types of expressions
+			if (ts.isIdentifier(originalExpression)) {
+				replacement = ts.factory.createIdentifier(
+					originalExpression.text,
+				);
+			} else if (ts.isStringLiteral(originalExpression)) {
+				replacement = ts.factory.createStringLiteral(
+					originalExpression.text,
+				);
+			} else if (ts.isNumericLiteral(originalExpression)) {
+				replacement = ts.factory.createNumericLiteral(
+					originalExpression.text,
+				);
+			} else if (
+				originalExpression.kind === ts.SyntaxKind.TrueKeyword ||
+				originalExpression.kind === ts.SyntaxKind.FalseKeyword
+			) {
+				replacement =
+					originalExpression.kind === ts.SyntaxKind.TrueKeyword
+						? ts.factory.createTrue()
+						: ts.factory.createFalse();
+			} else if (ts.isTemplateExpression(originalExpression)) {
+				replacement = ts.factory.createTemplateExpression(
+					originalExpression.head,
+					originalExpression.templateSpans.map((span) =>
+						ts.factory.createTemplateSpan(
+							ts.visitNode(
+								span.expression,
+								(node) => this.visitNode(node, scope).node,
+							) as Expression,
+							span.literal,
+						),
+					),
+				);
+			} else {
+				// For more complex expressions, visit the node to create a fresh copy
+				replacement = ts.visitNode(
+					originalExpression,
+					(node) => this.visitNode(node, scope).node,
+				) as Expression;
+			}
 
-			//  return {
-			// 	 node: ts.factory.createParenthesizedExpression(transformed),
-			// 	 modified: true,
-			//  };
-
-			/////////////////
-
+			// Wrap in parentheses to maintain operator precedence
 			return {
-				node: ts.factory.createParenthesizedExpression(
-					ts.visitNode(
-						decl.node,
-
-						(node) => node,
-					) as Expression,
-				),
+				node: ts.factory.createParenthesizedExpression(replacement),
 
 				modified: true,
 			};
@@ -366,31 +394,18 @@ class Transformer {
 	processVariableStatement(
 		node: VariableStatement,
 
-		scope: ScopeInfo,
+		_scope: ScopeInfo,
 	): VisitResult<Statement> {
-		// First, visit the declarations to track them
+		// Just handle the declarations without tracking
 		const declarations = node.declarationList.declarations.map((decl) => {
 			if (ts.isIdentifier(decl.name)) {
 				const name = decl.name.text;
 
+				console.log(
+					`------------------------------${"-".repeat(name.length)}`,
+				);
+
 				console.log(`P: Processing declaration for ${name}`);
-
-				// Track the declaration itself as a non-reference use
-				this.tracker.trackUse(name, decl.name, scope, false);
-
-				if (decl.initializer) {
-					// Store the initializer in declarations map
-					this.tracker.trackDeclaration(
-						name,
-
-						// Store the initializer expression
-						decl.initializer,
-
-						scope,
-					);
-
-					console.log(`T: Tracked initializer for ${name}`);
-				}
 			}
 
 			return decl;
@@ -446,23 +461,6 @@ class Transformer {
 
 		scope: ScopeInfo = this.state.currentScope!,
 	): VisitResult {
-		// First track any identifier uses before visiting children
-		if (
-			ts.isIdentifier(node) &&
-			!ts.isPropertyAccessExpression(node.parent)
-		) {
-			const name = node.text;
-
-			console.log(
-				`--------------------------------------------${"-".repeat(name.length)}`,
-			);
-
-			console.log(`T: Tracking use of identifier ${name} in first pass`);
-
-			this.tracker.trackUse(name, node, scope, true);
-		}
-
-		// Then visit children bottom-up
 		let modified = false;
 
 		let resultNode = ts.visitEachChild(
@@ -532,122 +530,70 @@ class Transformer {
 		};
 	}
 
-	replaceIdentifiers(node: Node): VisitResult {
-		// Handle identifiers first before visiting children
-		if (ts.isIdentifier(node)) {
-			return this.handleIdentifier(node, this.state.currentScope!);
+	collectUsages(
+		node: Node,
+		scope: ScopeInfo = this.state.currentScope!,
+	): void {
+		// Track declarations
+		if (ts.isVariableStatement(node)) {
+			node.declarationList.declarations.forEach((decl) => {
+				if (ts.isIdentifier(decl.name)) {
+					const name = decl.name.text;
+
+					this.tracker.trackUse(name, decl.name, scope, false);
+
+					if (decl.initializer) {
+						this.tracker.trackDeclaration(
+							name,
+							decl.initializer,
+							scope,
+						);
+					}
+				}
+			});
 		}
 
-		// Then visit children
-		return {
-			node: ts.visitEachChild(
-				node,
-
-				(child) => this.replaceIdentifiers(child).node,
-
-				this.state.context,
-			),
-
-			modified: false,
-		};
-	}
-
-	cleanupDeclarations(node: Node): VisitResult {
-		// Handle variable declarations
-		if (ts.isVariableStatement(node)) {
-			return this.processVariableStatement(
-				node,
-
-				this.state.currentScope!,
-			);
+		// Track uses
+		if (
+			ts.isIdentifier(node) &&
+			!ts.isPropertyAccessExpression(node.parent)
+		) {
+			this.tracker.trackUse(node.text, node, scope, true);
 		}
 
 		// Visit children
-		return {
-			node: ts.visitEachChild(
-				node,
-
-				(child) => this.cleanupDeclarations(child).node,
-
-				this.state.context,
-			),
-
-			modified: false,
-		};
+		ts.forEachChild(node, (child) => this.collectUsages(child, scope));
 	}
 
-	transform(sourceFile: Node) {
+	transform(sourceFile: Node, passCount: number = 0): Node {
+		const MAX_PASSES = 10; // Adjust this number as needed
+
+		if (passCount >= MAX_PASSES) {
+			return sourceFile;
+		}
+
 		this.tracker.clear();
 
-		console.log("S: Starting transformation");
-
 		// First pass: collect both declarations and uses bottom-up
+		this.collectUsages(sourceFile);
+
+		// Second pass: perform inlining now that we have accurate usage information
 		let result = ts.visitNode(
 			sourceFile,
 			(node) => this.visitNode(node).node,
 		);
 
-		console.log("A: After first pass - Usage counts:");
+		// Check if any modifications were made by comparing the result with the input
+		const modified = result !== sourceFile;
 
-		this.tracker.uses.forEach((uses, name) =>
-			console.log(
-				`${name}: ${
-					Array.from(uses).filter((u) => u.isReference).length
-				} reference uses`,
-			),
-		);
-
-		// Second pass: perform inlining now that we have accurate usage information
-		result = ts.visitNode(result, (node) => {
-			if (ts.isIdentifier(node)) {
-				// Now we have complete usage information for better inlining decisions
-				return this.handleIdentifier(
-					node,
-
-					this.state.currentScope!,
-				).node;
-			}
-
-			return ts.visitEachChild(
-				node,
-
-				(child) => ts.visitNode(child, (node) => node),
-
-				this.state.context,
-			);
-		});
-
-		// Third pass: clean up unused declarations
-		result = ts.visitNode(result, (node) => {
-			if (ts.isVariableStatement(node)) {
-				return this.processVariableStatement(
-					node,
-
-					this.state.currentScope!,
-				).node;
-			}
-
-			return ts.visitEachChild(
-				node,
-
-				(child) => ts.visitNode(child, (node) => node),
-
-				this.state.context,
-			);
-		});
-
-		console.log("C: Completed transformation");
+		if (modified) {
+			// Recursively transform until no more changes
+			return this.transform(result, passCount + 1);
+		}
 
 		return result;
 	}
 }
-
-export const Fn = ((_Usage, _Initializer) =>
-	(context: TransformationContext) =>
-	(rootNode) =>
-		new Transformer(context).transform(
-			rootNode,
-		)) satisfies Interface as Interface;
 
 export const {
 	default: ts,
@@ -657,4 +603,7 @@ export const {
 	factory,
 } = await import("typescript");
 
-export default Fn;
+export default ((context: TransformationContext) => (rootNode) =>
+	new Transformer(context).transform(
+		rootNode,
+	)) satisfies Interface as Interface;

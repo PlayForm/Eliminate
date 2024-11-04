@@ -1,1 +1,0 @@
-const n=(...[i,r])=>(...[t])=>{if(a.forEachChild(t,n(i,r)),a.isVariableDeclaration(t)&&t.initializer){const e=t.name.getText();i.has(e)||i.set(e,0),r.set(t.initializer,e)}else if(a.isIdentifier(t)){const e=t.getText();if(!a.isVariableDeclaration(t.parent)){const s=i.get(e)??0;i.set(e,s+1)}}},{default:a}=await import("typescript");var f=n;export{n as Fn,f as default,a as ts};

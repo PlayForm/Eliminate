@@ -1,1 +1,1 @@
-var s=(t,e)=>(...[a])=>r=>i.visitNode(r,o(t,e)(a));const{default:i}=await import("typescript"),{default:o}=await import("../Output/Transformer/Visit.js");export{o as Visit,s as default,i as ts};
+var i=(...[t])=>e=>a.visitNode(e,r(t));const{default:a}=await import("typescript"),{default:r}=await import("../Output/Transformer/Visit.js");export{r as Visit,i as default,a as ts};

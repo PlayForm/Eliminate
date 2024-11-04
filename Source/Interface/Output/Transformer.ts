@@ -1,5 +1,3 @@
-import type Initializer from "@Type/Output/Visit/Initializer.js";
-import type Usage from "@Type/Output/Visit/Usage.js";
 import type { Node, TransformationContext } from "typescript";
 
 /**
@@ -7,10 +5,7 @@ import type { Node, TransformationContext } from "typescript";
  *
  */
 export default interface Interface {
-	(
-		Usage: Usage,
-		Initializer: Initializer,
-	): <T extends Node>(
+	<T extends Node>(
 		Context: TransformationContext,
-	) => (Node: T) => Node | (T & undefined);
+	): (Node: T) => Node | (T & undefined);
 }
