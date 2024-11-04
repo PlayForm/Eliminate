@@ -73,8 +73,6 @@ class DeclarationTracker {
 			node: Node;
 
 			scope: ScopeInfo;
-
-			complexity: number;
 		}
 	>();
 
@@ -104,8 +102,6 @@ class DeclarationTracker {
 			node,
 
 			scope,
-
-			complexity: this.calculateComplexity(node),
 		});
 
 		if (!this.uses.has(name)) {
@@ -197,40 +193,7 @@ class DeclarationTracker {
 
 		console.log(`- Reference uses count: ${referenceUses.length}`);
 
-		// We want to inline if:
-		// 1. The variable is referenced exactly once
-		// 2. The declaration is a simple expression
-		// 3. The complexity is reasonable
-		if (referenceUses.length !== 2) return false;
-
-		const node = decl.node;
-
-		console.log(`- Node kind: ${ts.SyntaxKind[node.kind]}`);
-
-		// Check if the initializer is safe to inline
-		const isSafeToInline =
-			ts.isIdentifier(node) ||
-			ts.isLiteralExpression(node) ||
-			ts.isObjectLiteralExpression(node) ||
-			ts.isArrayLiteralExpression(node) ||
-			(ts.isParenthesizedExpression(node) &&
-				this.isSimpleExpression(node.expression));
-
-		console.log(`- Is safe to inline: ${isSafeToInline}`);
-
-		console.log(`- Complexity: ${decl.complexity}`);
-
-		return isSafeToInline && decl.complexity <= 3;
-	}
-
-	calculateComplexity(node: Node): number {
-		let complexity = 1;
-
-		ts.forEachChild(node, (child) => {
-			complexity += this.calculateComplexity(child);
-		});
-
-		return complexity;
+		return referenceUses.length === 2;
 	}
 
 	clear(): void {
@@ -261,9 +224,8 @@ class Transformer {
 
 	handleIdentifier(
 		node: Identifier,
-
 		scope: ScopeInfo,
-	): VisitResult<Expression> {
+	): VisitResult<Expression | Node> {
 		const name = node.text;
 
 		const decl = this.tracker.getDeclaration(name);
@@ -278,60 +240,32 @@ class Transformer {
 			return { node, modified: false };
 		}
 
+		// Don't inline if the identifier is being used as a property name
+		if (
+			ts.isPropertyAccessExpression(node.parent) &&
+			node.parent.name === node
+		) {
+			console.log(`S: Skipping property name ${name}`);
+			return { node, modified: false };
+		}
+
+		// Skip inlining if this identifier is being used as a binding name
+		if (
+			ts.isBindingElement(node.parent) ||
+			ts.isVariableDeclaration(node.parent)
+		) {
+			console.log(`S: Skipping binding name ${name}`);
+			return { node, modified: false };
+		}
+
 		console.log(`I: Inlining ${name}`);
 
 		try {
-			// Create a deep copy by using the factory to recreate the expression
-			const originalExpression = decl.node as Expression;
-
-			let replacement: Expression;
-
-			// Handle different types of expressions
-			if (ts.isIdentifier(originalExpression)) {
-				replacement = ts.factory.createIdentifier(
-					originalExpression.text,
-				);
-			} else if (ts.isStringLiteral(originalExpression)) {
-				replacement = ts.factory.createStringLiteral(
-					originalExpression.text,
-				);
-			} else if (ts.isNumericLiteral(originalExpression)) {
-				replacement = ts.factory.createNumericLiteral(
-					originalExpression.text,
-				);
-			} else if (
-				originalExpression.kind === ts.SyntaxKind.TrueKeyword ||
-				originalExpression.kind === ts.SyntaxKind.FalseKeyword
-			) {
-				replacement =
-					originalExpression.kind === ts.SyntaxKind.TrueKeyword
-						? ts.factory.createTrue()
-						: ts.factory.createFalse();
-			} else if (ts.isTemplateExpression(originalExpression)) {
-				replacement = ts.factory.createTemplateExpression(
-					originalExpression.head,
-					originalExpression.templateSpans.map((span) =>
-						ts.factory.createTemplateSpan(
-							ts.visitNode(
-								span.expression,
-								(node) => this.visitNode(node, scope).node,
-							) as Expression,
-							span.literal,
-						),
-					),
-				);
-			} else {
-				// For more complex expressions, visit the node to create a fresh copy
-				replacement = ts.visitNode(
-					originalExpression,
-					(node) => this.visitNode(node, scope).node,
-				) as Expression;
-			}
-
-			// Wrap in parentheses to maintain operator precedence
 			return {
-				node: ts.factory.createParenthesizedExpression(replacement),
-
+				node: ts.visitNode(
+					decl.node,
+					(node) => this.visitNode(node, scope).node,
+				),
 				modified: true,
 			};
 		} catch (error) {
@@ -354,11 +288,7 @@ class Transformer {
 		}
 	}
 
-	handleFunctionCall(
-		node: CallExpression,
-
-		_scope: ScopeInfo,
-	): VisitResult<Expression> {
+	handleFunctionCall(node: CallExpression): VisitResult<Expression> {
 		if (ts.isIdentifier(node.expression)) {
 			const name = node.expression.text;
 
@@ -370,8 +300,6 @@ class Transformer {
 
 	processFunctionDeclaration(
 		node: FunctionDeclaration,
-
-		_scope: ScopeInfo,
 	): VisitResult<Statement> {
 		if (node.name) {
 			const name = node.name.text;
@@ -391,11 +319,7 @@ class Transformer {
 		return { node, modified: false };
 	}
 
-	processVariableStatement(
-		node: VariableStatement,
-
-		_scope: ScopeInfo,
-	): VisitResult<Statement> {
+	processVariableStatement(node: VariableStatement): VisitResult<Statement> {
 		// Just handle the declarations without tracking
 		const declarations = node.declarationList.declarations.map((decl) => {
 			if (ts.isIdentifier(decl.name)) {
@@ -461,6 +385,16 @@ class Transformer {
 
 		scope: ScopeInfo = this.state.currentScope!,
 	): VisitResult {
+		// Handle identifiers first before visiting children
+		if (ts.isIdentifier(node) && !ts.isVariableDeclaration(node.parent)) {
+			const identifierResult = this.handleIdentifier(node, scope);
+
+			if (identifierResult.modified) {
+				return identifierResult;
+			}
+		}
+
+		// Visit children
 		let modified = false;
 
 		let resultNode = ts.visitEachChild(
@@ -496,7 +430,7 @@ class Transformer {
 
 		// Handle declarations after children have been visited
 		if (ts.isVariableStatement(node)) {
-			const nodeResult = this.processVariableStatement(node, scope);
+			const nodeResult = this.processVariableStatement(node);
 
 			return {
 				node: nodeResult.node,
@@ -508,14 +442,10 @@ class Transformer {
 		let nodeResult: VisitResult;
 
 		// Handle different node types
-		if (ts.isIdentifier(node)) {
-			nodeResult = this.handleIdentifier(node, scope);
-		} else if (ts.isVariableStatement(node)) {
-			nodeResult = this.processVariableStatement(node, scope);
-		} else if (ts.isFunctionDeclaration(node)) {
-			nodeResult = this.processFunctionDeclaration(node, scope);
+		if (ts.isFunctionDeclaration(node)) {
+			nodeResult = this.processFunctionDeclaration(node);
 		} else if (ts.isCallExpression(node)) {
-			nodeResult = this.handleFunctionCall(node, scope);
+			nodeResult = this.handleFunctionCall(node);
 		} else {
 			return { node: resultNode, modified };
 		}
