@@ -6,19 +6,28 @@ import type {
     TransformationContext,
     VariableStatement,
     SourceFile,
+    Program,
+    TypeChecker,
+    Statement
 } from "typescript";
 
 /**
  * @module Output
  * Enhanced transformer with comprehensive validation, error handling,
- * and bottom-up evaluation of variables
+ * and bottom-up evaluation of variables with cycle detection and scope analysis
  */
 
 type VisitResult<T extends Node = Node> = {
     readonly node: T;
     readonly modified: boolean;
     readonly dependencies?: Set<string>;
+    readonly scope?: ScopeInfo;
 };
+
+interface ScopeInfo {
+    readonly variables: Set<string>;
+    readonly parent?: ScopeInfo;
+}
 
 interface TransformerState {
     readonly visitCount: number;
@@ -29,6 +38,7 @@ interface TransformerState {
     readonly processedNodes: Set<string>;
     readonly dependencyGraph: Map<string, Set<string>>;
     readonly sourceFiles: Map<string, SourceFile>;
+    readonly currentScope?: ScopeInfo;
 }
 
 interface TransformError {
@@ -37,6 +47,7 @@ interface TransformError {
     readonly node: Node;
     readonly fileName?: string;
     readonly stack?: string;
+    readonly details?: Record<string, unknown>;
 }
 
 interface TransformWarning {
@@ -44,43 +55,91 @@ interface TransformWarning {
     readonly message: string;
     readonly node: Node;
     readonly fileName?: string;
+    readonly details?: Record<string, unknown>;
 }
 
 enum ErrorCode {
     TYPE_CHECK_ERROR = "TYPE_CHECK_ERROR",
     CIRCULAR_REFERENCE = "CIRCULAR_REFERENCE",
     UNINITIALIZED_VARIABLE = "UNINITIALIZED_VARIABLE",
-    INVALID_REPLACEMENT = "INVALID_REPLACEMENT"
+    INVALID_REPLACEMENT = "INVALID_REPLACEMENT",
+    SCOPE_ERROR = "SCOPE_ERROR",
+    TRANSFORMATION_ERROR = "TRANSFORMATION_ERROR"
 }
 
 enum WarningCode {
     MULTIPLE_DECLARATIONS = "MULTIPLE_DECLARATIONS",
-    UNSAFE_REPLACEMENT = "UNSAFE_REPLACEMENT"
+    UNSAFE_REPLACEMENT = "UNSAFE_REPLACEMENT",
+    PERFORMANCE_IMPACT = "PERFORMANCE_IMPACT",
+    POSSIBLE_SIDE_EFFECT = "POSSIBLE_SIDE_EFFECT"
 }
 
 const CONFIG = {
     MAX_ITERATIONS: 100,
     TYPE_CHECK_TIMEOUT: 5000,
+    MAX_SCOPE_DEPTH: 10,
+    PERFORMANCE_WARNING_THRESHOLD: 1000,
 } as const;
 
 class VariableTracker {
-    private declarations = new Map<string, Node>();
-    private uses = new Map<string, Set<Node>>();
+    private declarations = new Map<string, {
+        node: Node;
+        scope: ScopeInfo;
+        complexity: number;
+    }>();
+    private uses = new Map<string, Set<{
+        node: Node;
+        scope: ScopeInfo;
+    }>>();
     private typeCheckErrors = new Set<string>();
+    private sideEffects = new Set<string>();
 
-    trackDeclaration(name: string, node: Node): void {
-        this.declarations.set(name, node);
+    trackDeclaration(name: string, node: Node, scope: ScopeInfo): void {
+        const complexity = this.calculateComplexity(node);
+        this.declarations.set(name, { node, scope, complexity });
     }
 
-    trackUse(name: string, node: Node): void {
+    trackUse(name: string, node: Node, scope: ScopeInfo): void {
         if (!this.uses.has(name)) {
             this.uses.set(name, new Set());
         }
-        this.uses.get(name)!.add(node);
+        this.uses.get(name)!.add({ node, scope });
+    }
+
+    private calculateComplexity(node: Node): number {
+        let complexity = 1;
+        ts.forEachChild(node, child => {
+            complexity += this.calculateComplexity(child);
+        });
+        return complexity;
     }
 
     isUnused(name: string): boolean {
         return !this.uses.has(name) || this.uses.get(name)!.size === 0;
+    }
+
+    hasSideEffects(name: string): boolean {
+        return this.sideEffects.has(name);
+    }
+
+    markSideEffects(name: string): void {
+        this.sideEffects.add(name);
+    }
+
+    getDeclarationComplexity(name: string): number {
+        return this.declarations.get(name)?.complexity ?? 0;
+    }
+
+    isInScope(name: string, currentScope: ScopeInfo): boolean {
+        const declaration = this.declarations.get(name);
+        if (!declaration) return false;
+
+        let scope: ScopeInfo | undefined = currentScope;
+        while (scope) {
+            if (scope === declaration.scope) return true;
+            scope = scope.parent;
+        }
+        return false;
     }
 
     recordTypeError(name: string): void {
@@ -95,10 +154,11 @@ class VariableTracker {
         this.declarations.clear();
         this.uses.clear();
         this.typeCheckErrors.clear();
+        this.sideEffects.clear();
     }
 }
 
-export const Fn = ((program, typeChecker) => {
+export const Fn = ((program: Program, typeChecker: TypeChecker) => {
     class Transformer {
         private readonly state: TransformerState;
         private readonly tracker: VariableTracker;
@@ -112,9 +172,17 @@ export const Fn = ((program, typeChecker) => {
                 warnings: [],
                 processedNodes: new Set(),
                 dependencyGraph: new Map(),
-                sourceFiles: new Map()
+                sourceFiles: new Map(),
+                currentScope: { variables: new Set() }
             };
             this.tracker = new VariableTracker();
+        }
+
+        private createScope(parent?: ScopeInfo): ScopeInfo {
+            return {
+                variables: new Set(),
+                parent
+            };
         }
 
         private async typeCheck(node: Node): Promise<boolean> {
@@ -133,63 +201,107 @@ export const Fn = ((program, typeChecker) => {
 
                 return result;
             } catch (error) {
-                console.log(`Type check error: ${error instanceof Error ? error.message : String(error)}`);
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                console.error(`Type check error: ${errorMessage}`);
                 return false;
             }
         }
 
-        private handleVariableReplacement(node: Identifier): VisitResult<Expression> {
-            const name = node.text;
-            const declaration = this.tracker.declarations.get(name);
+        private detectSideEffects(node: Node): boolean {
+            let hasSideEffects = false;
+            
+            const visitor = (node: Node): void => {
+                if (ts.isCallExpression(node) || 
+                    ts.isNewExpression(node) ||
+                    ts.isPropertyAccessExpression(node) ||
+                    ts.isElementAccessExpression(node)) {
+                    hasSideEffects = true;
+                    return;
+                }
+                ts.forEachChild(node, visitor);
+            };
 
-            if (!declaration || this.tracker.hasTypeError(name)) {
-                return { node, modified: false };
+            visitor(node);
+            return hasSideEffects;
+        }
+
+        private handleVariableReplacement(node: Identifier, scope: ScopeInfo): VisitResult<Expression> {
+            const name = node.text;
+
+            if (!this.tracker.isInScope(name, scope)) {
+                return { node, modified: false, scope };
+            }
+
+            if (this.tracker.hasTypeError(name)) {
+                return { node, modified: false, scope };
             }
 
             try {
-                // Perform type checking before replacement
-                if (!this.typeCheck(declaration)) {
-                    this.tracker.recordTypeError(name);
-                    this.state.errors.push({
-                        code: ErrorCode.TYPE_CHECK_ERROR,
-                        message: `Type check failed for variable ${name}`,
-                        node: declaration
+                const complexity = this.tracker.getDeclarationComplexity(name);
+                if (complexity > CONFIG.PERFORMANCE_WARNING_THRESHOLD) {
+                    this.state.warnings.push({
+                        code: WarningCode.PERFORMANCE_IMPACT,
+                        message: `Inlining variable ${name} may impact performance due to high complexity`,
+                        node,
+                        details: { complexity }
                     });
-                    return { node, modified: false };
                 }
 
-                // Create replacement
+                // Check for side effects
+                if (this.detectSideEffects(node)) {
+                    this.tracker.markSideEffects(name);
+                    this.state.warnings.push({
+                        code: WarningCode.POSSIBLE_SIDE_EFFECT,
+                        message: `Variable ${name} may have side effects`,
+                        node
+                    });
+                }
+
+                // Create replacement with proper parentheses
                 const replacement = ts.factory.createParenthesizedExpression(
-                    declaration as Expression
+                    ts.factory.createIdentifier(name) as Expression
                 );
 
                 return {
                     node: replacement,
                     modified: true,
-                    dependencies: new Set([name])
+                    dependencies: new Set([name]),
+                    scope
                 };
             } catch (error) {
-                console.log(`Replacement error for ${name}: ${error instanceof Error ? error.message : String(error)}`);
-                return { node, modified: false };
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                this.state.errors.push({
+                    code: ErrorCode.TRANSFORMATION_ERROR,
+                    message: `Error replacing variable ${name}: ${errorMessage}`,
+                    node,
+                    stack: error instanceof Error ? error.stack : undefined
+                });
+                return { node, modified: false, scope };
             }
         }
 
-        private processVariableStatement(node: VariableStatement): VisitResult<VariableStatement> {
+        private processVariableStatement(node: VariableStatement, scope: ScopeInfo): VisitResult<Statement> {
+            const newScope = this.createScope(scope);
+            
             const declarations = node.declarationList.declarations.filter(decl => {
                 if (!ts.isIdentifier(decl.name)) return true;
                 
                 const name = decl.name.text;
                 if (this.tracker.isUnused(name) && decl.initializer) {
-                    this.tracker.trackDeclaration(name, decl.initializer);
-                    return false;
+                    if (!this.tracker.hasSideEffects(name)) {
+                        this.tracker.trackDeclaration(name, decl.initializer, newScope);
+                        newScope.variables.add(name);
+                        return false;
+                    }
                 }
                 return true;
             });
 
             if (declarations.length === 0) {
                 return {
-                    node: ts.factory.createEmptyStatement() as any,
-                    modified: true
+                    node: ts.factory.createEmptyStatement(),
+                    modified: true,
+                    scope: newScope
                 };
             }
 
@@ -203,23 +315,31 @@ export const Fn = ((program, typeChecker) => {
                             node.declarationList.flags
                         )
                     ),
-                    modified: true
+                    modified: true,
+                    scope: newScope
                 };
             }
 
-            return { node, modified: false };
+            return { node, modified: false, scope: newScope };
         }
 
-        public visitNode(node: Node): VisitResult {
-            // Track variable uses
-            if (ts.isIdentifier(node)) {
-                this.tracker.trackUse(node.text, node);
-                return this.handleVariableReplacement(node);
+        public visitNode(node: Node, scope: ScopeInfo = this.state.currentScope!): VisitResult {
+            if (ts.isBlock(node) || ts.isModuleBlock(node)) {
+                const blockScope = this.createScope(scope);
+                const result = ts.visitEachChild(
+                    node,
+                    child => this.visitNode(child, blockScope).node,
+                    this.state.context
+                );
+                return { node: result, modified: result !== node, scope: blockScope };
             }
 
-            // Process variable declarations bottom-up
+            if (ts.isIdentifier(node)) {
+                return this.handleVariableReplacement(node, scope);
+            }
+
             if (ts.isVariableStatement(node)) {
-                return this.processVariableStatement(node);
+                return this.processVariableStatement(node, scope);
             }
 
             // Recursively visit child nodes
@@ -227,14 +347,14 @@ export const Fn = ((program, typeChecker) => {
             const visitedNode = ts.visitEachChild(
                 node,
                 child => {
-                    const result = this.visitNode(child);
+                    const result = this.visitNode(child, scope);
                     modified = modified || result.modified;
                     return result.node;
                 },
                 this.state.context
             );
 
-            return { node: visitedNode, modified };
+            return { node: visitedNode, modified, scope };
         }
 
         public transform(sourceFile: SourceFile): SourceFile {
@@ -247,6 +367,14 @@ export const Fn = ((program, typeChecker) => {
                 if (!visitResult.modified) break;
                 result = visitResult.node as SourceFile;
                 iteration++;
+
+                if (iteration === CONFIG.MAX_ITERATIONS - 1) {
+                    this.state.warnings.push({
+                        code: WarningCode.PERFORMANCE_IMPACT,
+                        message: `Transformation reached maximum iteration limit`,
+                        node: sourceFile
+                    });
+                }
             }
 
             return result;
