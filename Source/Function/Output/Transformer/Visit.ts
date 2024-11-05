@@ -75,9 +75,6 @@ class DeclarationTracker {
 			);
 		});
 
-		console.log(entry.initializer.getText());
-		console.log(referenceUses.length);
-
 		// Only inline if:
 		// 1. Has initializer
 		// 2. Not reassigned
