@@ -1,5 +1,141 @@
-class o{variableMap=new Map;trackVariable(e,t,i){this.variableMap.has(e)||this.variableMap.set(e,{initializer:t,uses:new Set,isInlined:!1,declarationNode:i})}trackUse(e,t,i=!0){const a=this.variableMap.get(e);a&&a.uses.add({node:t,isReference:i})}shouldInline(e){const t=this.variableMap.get(e);return!t||t.isInlined?!1:Array.from(t.uses).filter(i=>i.isReference).length==1}getInitializer(e){return this.variableMap.get(e)?.initializer}markInlined(e){const t=this.variableMap.get(e);t&&(t.isInlined=!0)}getDeclarationStatus(e){return e.declarationList.declarations.map(t=>{if(!r.isIdentifier(t.name))return{name:"",shouldInline:!1};const i=t.name.text,a=this.shouldInline(i);return{name:i,shouldInline:a}})}clear(){this.variableMap.clear()}hasInlinedVariables(){return Array.from(this.variableMap.values()).some(t=>t.isInlined)}dumpState(){console.log(`
-=== Declaration Tracker State ===`);for(const[e,t]of this.variableMap.entries())console.log(`
-Variable: ${e}`),console.log("Inlined:",t.isInlined),console.log("Uses:",t.uses.size),console.log("Uses detail:",Array.from(t.uses).map(i=>({kind:i.node.kind,isReference:i.isReference})));console.log(`
-=================================
-`)}}class l{context;tracker;constructor(e){this.context=e,this.tracker=new o}visitIdentifier(e){const t=e.text;if(r.isVariableDeclaration(e.parent)||this.tracker.trackUse(e.text,e,!(r.isPropertyAccessExpression(e.parent)&&e.parent.name===e)),r.isPropertyAccessExpression(e.parent)&&e.parent.name===e||r.isVariableDeclaration(e.parent)||r.isBindingElement(e.parent))return e;if(this.tracker.shouldInline(t)){const i=this.tracker.getInitializer(t);if(i)return this.tracker.markInlined(t),r.visitNode(i,n=>r.isExpression(n)?n:r.factory.createIdentifier(t))}return e}visitVariableStatement(e){e.declarationList.declarations.forEach(i=>{r.isIdentifier(i.name)&&i.initializer&&this.tracker.trackVariable(i.name.text,i.initializer,e)});const t=this.tracker.getDeclarationStatus(e);return t.every(i=>i.shouldInline)?(t.forEach(i=>{i.name&&this.tracker.markInlined(i.name)}),r.factory.createEmptyStatement()):r.visitEachChild(e,i=>this.visitNode(i),this.context)}visitNode(e){return r.isVariableStatement(e)?this.visitVariableStatement(e):r.isIdentifier(e)?this.visitIdentifier(e):r.visitEachChild(e,t=>this.visitNode(t),this.context)}transform(e,t=0){if(t>=10)return e;this.tracker.clear(),this.tracker.dumpState();let a=r.visitNode(e,n=>this.visitNode(n));return this.tracker.hasInlinedVariables()&&a!==e?this.transform(a,t+1):a}}const{default:r,isIdentifier:c,factory:f}=await import("typescript");var m=s=>e=>new l(s).transform(e);export{m as default,f as factory,c as isIdentifier,r as ts};
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+class Track {
+  static {
+    __name(this, "Track");
+  }
+  Count = /* @__PURE__ */ new Map();
+  Status = /* @__PURE__ */ new Set();
+  Scope(Node) {
+    ts.forEachChild(Node, (Node2) => this.Scope(Node2));
+    if (ts.isIdentifier(Node)) {
+      if (!ts.isVariableDeclaration(Node.parent)) {
+        this.Variable(Node.text, Node);
+      }
+    } else if (ts.isVariableStatement(Node)) {
+      Node.declarationList.declarations.forEach((decl) => {
+        if (ts.isIdentifier(decl.name) && decl.initializer) {
+          this.Initializer(decl.name.text, decl.initializer);
+        }
+      });
+    }
+  }
+  Initializer(Variable, Initializer) {
+    console.log(`--------------------------${"-".repeat(Variable.length)}`);
+    console.log(`Tracking initializer for: ${Variable}`);
+    console.log(`Initializer: ${Initializer.getText()}`);
+    if (!this.Count.has(Initializer)) {
+      this.Count.set(Initializer, {
+        Name: Variable,
+        Usage: /* @__PURE__ */ new Set()
+      });
+    }
+  }
+  Variable(Name, Node) {
+    console.log(`----------------${"-".repeat(Name.length)}`);
+    console.log(`Tracking use of ${Name}`);
+    const Result = Get(Name, "Name", this.Count);
+    if (Result) {
+      this.Count.get(Result)?.Usage.add({
+        Node,
+        Position: Node.pos
+      });
+    }
+  }
+  Inline(Name) {
+    const Result = Get(Name, "Name", this.Count);
+    if (!Result) {
+      return false;
+    }
+    const Initializer = this.Count.get(Result);
+    if (!Initializer) {
+      return false;
+    }
+    const useCount = Initializer.Usage.size;
+    if (useCount === 1) {
+      return true;
+    }
+    return false;
+  }
+}
+class Transformer {
+  static {
+    __name(this, "Transformer");
+  }
+  Context;
+  Tracker;
+  constructor(Context) {
+    this.Context = Context;
+    this.Tracker = new Track();
+  }
+  Variable(Node) {
+    const Result = ts.visitEachChild(
+      Node,
+      (Node2) => this.Look(Node2),
+      this.Context
+    );
+    return Result;
+  }
+  Identifier(Node) {
+    const Result = ts.visitEachChild(
+      Node,
+      (Node2) => this.Look(Node2),
+      this.Context
+    );
+    const name = Result.text;
+    if (ts.isPropertyAccessExpression(Result.parent) && Result.parent.name === Result || ts.isVariableDeclaration(Result.parent) || ts.isBindingElement(Result.parent)) {
+      return Result;
+    }
+    if (this.Tracker.Inline(name)) {
+      const Result2 = Get(name, "Name", this.Tracker.Count);
+      if (Result2) {
+        return ts.visitNode(
+          Result2,
+          (node) => ts.isExpression(node) ? node : ts.factory.createIdentifier(name)
+        );
+      }
+    }
+    return Result;
+  }
+  Look(Node) {
+    switch (true) {
+      case ts.isVariableStatement(Node):
+        return this.Variable(Node);
+      case ts.isIdentifier(Node):
+        return this.Identifier(Node);
+      default:
+        return ts.visitEachChild(
+          Node,
+          (Node2) => this.Look(Node2),
+          this.Context
+        );
+    }
+  }
+  Visit(_Node, Collection = 0) {
+    const Failed = 10;
+    if (Collection >= Failed) {
+      return _Node;
+    }
+    this.Tracker.Scope(_Node);
+    let Node = ts.visitNode(_Node, (Node2) => this.Look(Node2));
+    if (Node !== _Node) {
+      return this.Visit(Node, Collection + 1);
+    }
+    return Node;
+  }
+}
+const {
+  default: ts,
+  isIdentifier,
+  factory
+} = await import("typescript");
+var Visit_default = /* @__PURE__ */ __name((context) => (rootNode) => new Transformer(context).Visit(rootNode), "default");
+const { default: Get } = await import("../../Output/Transformer/Visit/Get.js");
+export {
+  Get,
+  Visit_default as default,
+  factory,
+  isIdentifier,
+  ts
+};
+//# sourceMappingURL=Visit.js.map

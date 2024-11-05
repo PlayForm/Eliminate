@@ -1,4 +1,6 @@
 import type Interface from "@Interface/Output/Transformer/Visit.js";
+import type CountInitializer from "@Type/Output/Visit/Initializer.js";
+import type Initializer from "@Type/Output/Visit/Initializer/Initializer.js";
 import type {
 	Expression,
 	Identifier,
@@ -12,240 +14,184 @@ import type {
  * @module Output
  *
  */
+class Track {
+	Count: CountInitializer = new Map();
 
-class DeclarationTracker {
-	private variableMap = new Map<
-		string,
-		{
-			initializer: Expression;
+	Status: Set<Node> = new Set();
 
-			uses: Set<{
-				node: Node;
+	Scope(Node: Node): void {
+		ts.forEachChild(Node, (Node) => this.Scope(Node));
 
-				isReference: boolean;
-			}>;
-
-			isInlined: boolean;
-
-			declarationNode: VariableStatement;
-		}
-	>();
-
-	trackVariable(
-		name: string,
-		initializer: Expression,
-		declarationNode: VariableStatement,
-	): void {
-		if (!this.variableMap.has(name)) {
-			this.variableMap.set(name, {
-				initializer,
-				uses: new Set(),
-				isInlined: false,
-				declarationNode,
+		// This is a usage of a variable, not its declaration
+		if (ts.isIdentifier(Node)) {
+			if (!ts.isVariableDeclaration(Node.parent)) {
+				this.Variable(Node.text, Node);
+			}
+		} else if (ts.isVariableStatement(Node)) {
+			Node.declarationList.declarations.forEach((decl) => {
+				if (ts.isIdentifier(decl.name) && decl.initializer) {
+					this.Initializer(decl.name.text, decl.initializer);
+				}
 			});
 		}
 	}
 
-	trackUse(name: string, node: Node, isReference: boolean = true): void {
-		const entry = this.variableMap.get(name);
+	Initializer(Variable: string, Initializer: Initializer): void {
+		console.log(`--------------------------${"-".repeat(Variable.length)}`);
+		console.log(`Tracking initializer for: ${Variable}`);
+		console.log(`Initializer: ${Initializer.getText()}`);
 
-		if (entry) {
-			entry.uses.add({ node, isReference });
+		if (!this.Count.has(Initializer)) {
+			this.Count.set(Initializer, {
+				Name: Variable,
+				Usage: new Set(),
+			});
 		}
 	}
 
-	shouldInline(name: string): boolean {
-		const entry = this.variableMap.get(name);
+	Variable(Name: string, Node: Node): void {
+		console.log(`----------------${"-".repeat(Name.length)}`);
+		console.log(`Tracking use of ${Name}`);
 
-		if (!entry || entry.isInlined) {
+		const Result = Get(Name, "Name", this.Count);
+
+		if (Result) {
+			this.Count.get(Result)?.Usage.add({
+				Node: Node,
+				Position: Node.pos,
+			});
+		}
+	}
+
+	Inline(Name: string): boolean {
+		const Result = Get(Name, "Name", this.Count);
+
+		if (!Result) {
 			return false;
 		}
 
-		return (
-			Array.from(entry.uses).filter((use) => use.isReference).length == 1
-		);
-	}
+		const Initializer = this.Count.get(Result);
 
-	getInitializer(name: string): Expression | undefined {
-		return this.variableMap.get(name)?.initializer;
-	}
-
-	markInlined(name: string): void {
-		const entry = this.variableMap.get(name);
-
-		if (entry) {
-			entry.isInlined = true;
-		}
-	}
-
-	getDeclarationStatus(
-		statement: VariableStatement,
-	): { name: string; shouldInline: boolean }[] {
-		return statement.declarationList.declarations.map((decl) => {
-			if (!ts.isIdentifier(decl.name)) {
-				return { name: "", shouldInline: false };
-			}
-
-			const name = decl.name.text;
-
-			const shouldInline = this.shouldInline(name);
-
-			return {
-				name,
-				shouldInline,
-			};
-		});
-	}
-
-	clear(): void {
-		this.variableMap.clear();
-	}
-
-	hasInlinedVariables(): boolean {
-		const result = Array.from(this.variableMap.values()).some(
-			(entry) => entry.isInlined,
-		);
-
-		return result;
-	}
-
-	dumpState(): void {
-		console.log("\n=== Declaration Tracker State ===");
-
-		for (const [name, entry] of this.variableMap.entries()) {
-			console.log(`\nVariable: ${name}`);
-			console.log("Inlined:", entry.isInlined);
-			console.log("Uses:", entry.uses.size);
-			console.log(
-				"Uses detail:",
-				Array.from(entry.uses).map((use) => ({
-					kind: use.node.kind,
-					isReference: use.isReference,
-				})),
-			);
+		if (!Initializer) {
+			return false;
 		}
 
-		console.log("\n=================================\n");
+		// Count all uses of this variable
+		const useCount = Initializer.Usage.size;
+
+		// We only want to inline variables that are used exactly once
+		if (useCount === 1) {
+			return true;
+		}
+
+		// Don't inline other expression types (function calls, operations, etc)
+		// as they may have side effects or be computationally expensive
+		return false;
 	}
 }
 
 class Transformer {
-	private readonly context: TransformationContext;
+	readonly Context: TransformationContext;
 
-	private readonly tracker: DeclarationTracker;
+	readonly Tracker: Track;
 
-	constructor(context: TransformationContext) {
-		this.context = context;
+	constructor(Context: TransformationContext) {
+		this.Context = Context;
 
-		this.tracker = new DeclarationTracker();
+		this.Tracker = new Track();
 	}
 
-	private visitIdentifier(node: Identifier): Expression {
-		const name = node.text;
+	Variable(Node: VariableStatement): Statement {
+		// Visit children first to process any nested references
+		const Result = ts.visitEachChild(
+			Node,
+			(Node) => this.Look(Node),
+			this.Context,
+		);
 
-		if (!ts.isVariableDeclaration(node.parent)) {
-			this.tracker.trackUse(
-				node.text,
-				node,
-				!(
-					ts.isPropertyAccessExpression(node.parent) &&
-					node.parent.name === node
-				),
-			);
-		}
+		// const status = this.Tracker.getDeclarationStatus(processed);
+
+		// if (status.every((status) => status.shouldInline)) {
+		// 	status.forEach((status) => {
+		// 		if (status.name) {
+		// 			this.Tracker.markInlined(status.name);
+		// 		}
+		// 	});
+
+		// 	return ts.factory.createEmptyStatement();
+		// }
+
+		return Result;
+	}
+
+	Identifier(Node: Identifier) {
+		// Visit any child nodes first (though identifiers typically don't have children)
+		const Result = ts.visitEachChild(
+			Node,
+			(Node) => this.Look(Node),
+			this.Context,
+		);
+
+		const name = Result.text;
 
 		if (
-			(ts.isPropertyAccessExpression(node.parent) &&
-				node.parent.name === node) ||
-			ts.isVariableDeclaration(node.parent) ||
-			ts.isBindingElement(node.parent)
+			(ts.isPropertyAccessExpression(Result.parent) &&
+				Result.parent.name === Result) ||
+			ts.isVariableDeclaration(Result.parent) ||
+			ts.isBindingElement(Result.parent)
 		) {
-			return node;
+			return Result;
 		}
 
-		if (this.tracker.shouldInline(name)) {
-			const initializer = this.tracker.getInitializer(name);
+		if (this.Tracker.Inline(name)) {
+			const Result = Get(name, "Name", this.Tracker.Count);
 
-			if (initializer) {
-				this.tracker.markInlined(name);
-
-				const inlined = ts.visitNode(initializer, (node) =>
+			if (Result) {
+				return ts.visitNode(Result, (node) =>
 					ts.isExpression(node)
 						? node
 						: ts.factory.createIdentifier(name),
 				) as Expression;
-
-				return inlined;
 			}
 		}
 
-		return node;
+		return Result;
 	}
 
-	private visitVariableStatement(node: VariableStatement): Statement {
-		node.declarationList.declarations.forEach((decl) => {
-			if (ts.isIdentifier(decl.name) && decl.initializer) {
-				this.tracker.trackVariable(
-					decl.name.text,
-					decl.initializer,
-					node,
+	Look(Node: Node): Node {
+		switch (true) {
+			case ts.isVariableStatement(Node):
+				return this.Variable(Node);
+
+			case ts.isIdentifier(Node):
+				return this.Identifier(Node);
+
+			default:
+				return ts.visitEachChild(
+					Node,
+					(Node) => this.Look(Node),
+					this.Context,
 				);
-			}
-		});
-
-		const declarationStatuses = this.tracker.getDeclarationStatus(node);
-
-		if (declarationStatuses.every((status) => status.shouldInline)) {
-			declarationStatuses.forEach((status) => {
-				if (status.name) {
-					this.tracker.markInlined(status.name);
-				}
-			});
-
-			return ts.factory.createEmptyStatement();
 		}
-
-		return ts.visitEachChild(
-			node,
-			(child) => this.visitNode(child),
-			this.context,
-		) as VariableStatement;
 	}
 
-	private visitNode(node: Node): Node {
-		if (ts.isVariableStatement(node)) {
-			return this.visitVariableStatement(node);
+	Visit(_Node: Node, Collection: number = 0): Node {
+		const Failed = 10;
+
+		if (Collection >= Failed) {
+			return _Node;
 		}
 
-		if (ts.isIdentifier(node)) {
-			return this.visitIdentifier(node);
+
+		this.Tracker.Scope(_Node);
+
+		let Node = ts.visitNode(_Node, (Node) => this.Look(Node));
+
+		if (Node !== _Node) {
+			return this.Visit(Node, Collection + 1);
 		}
 
-		return ts.visitEachChild(
-			node,
-			(child) => this.visitNode(child),
-			this.context,
-		);
-	}
-
-	transform(sourceFile: Node, passCount: number = 0): Node {
-		const MAX_PASSES = 10;
-
-		if (passCount >= MAX_PASSES) {
-			return sourceFile;
-		}
-
-		this.tracker.clear();
-
-		this.tracker.dumpState();
-
-		let result = ts.visitNode(sourceFile, (node) => this.visitNode(node));
-
-		if (this.tracker.hasInlinedVariables() && result !== sourceFile) {
-			return this.transform(result, passCount + 1);
-		}
-
-		return result;
+		return Node;
 	}
 }
 
@@ -258,6 +204,8 @@ export const {
 } = await import("typescript");
 
 export default ((context: TransformationContext) => (rootNode) =>
-	new Transformer(context).transform(
-		rootNode,
-	)) satisfies Interface as Interface;
+	new Transformer(context).Visit(rootNode)) satisfies Interface as Interface;
+
+export const { default: Get } = await import(
+	"@Function/Output/Transformer/Visit/Get.js"
+);

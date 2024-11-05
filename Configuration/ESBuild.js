@@ -6,14 +6,19 @@ export const On = process.env["NODE_ENV"] === "development";
 export default {
     color: true,
     format: "esm",
-    logLevel: "debug",
+    logLevel: "error",
     metafile: true,
-    minify: true,
+    minify: !On,
     outdir: "Target",
     platform: "node",
     target: "esnext",
     tsconfig: "tsconfig.json",
     write: true,
+    bundle: false,
+    sourcemap: On,
+    drop: On ? [] : ["console", "debugger"],
+    ignoreAnnotations: !On,
+    keepNames: On,
     plugins: [
         ...[
             !On
