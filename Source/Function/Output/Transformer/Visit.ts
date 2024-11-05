@@ -26,15 +26,22 @@ class DeclarationTracker {
 			}>;
 
 			isInlined: boolean;
+
+			declarationNode: VariableStatement;
 		}
 	>();
 
-	trackVariable(name: string, initializer: Expression): void {
+	trackVariable(
+		name: string,
+		initializer: Expression,
+		declarationNode: VariableStatement,
+	): void {
 		if (!this.variableMap.has(name)) {
 			this.variableMap.set(name, {
 				initializer,
 				uses: new Set(),
 				isInlined: false,
+				declarationNode,
 			});
 		}
 	}
@@ -68,6 +75,9 @@ class DeclarationTracker {
 			);
 		});
 
+		console.log(entry.initializer.getText());
+		console.log(referenceUses.length);
+
 		// Only inline if:
 		// 1. Has initializer
 		// 2. Not reassigned
@@ -91,8 +101,23 @@ class DeclarationTracker {
 		}
 	}
 
+	shouldRemoveDeclaration(statement: VariableStatement): boolean {
+		// Check if all variables in this statement have been inlined
+		return statement.declarationList.declarations.every((decl) => {
+			if (!ts.isIdentifier(decl.name)) return false;
+
+			return this.variableMap.get(decl.name.text)?.isInlined === true;
+		});
+	}
+
 	clear(): void {
 		this.variableMap.clear();
+	}
+
+	hasInlinedVariables(): boolean {
+		return Array.from(this.variableMap.values()).some(
+			(entry) => entry.isInlined,
+		);
 	}
 }
 
@@ -140,37 +165,20 @@ class Transformer {
 	}
 
 	private visitVariableStatement(node: VariableStatement): Statement {
-		const declarations = node.declarationList.declarations;
-
-		// Track all variable declarations and their initializers
-		declarations.forEach((decl) => {
+		// First track all declarations in this statement
+		node.declarationList.declarations.forEach((decl) => {
 			if (ts.isIdentifier(decl.name) && decl.initializer) {
-				const name = decl.name.text;
-
-				this.tracker.trackVariable(name, decl.initializer);
+				this.tracker.trackVariable(
+					decl.name.text,
+					decl.initializer,
+					node,
+				);
 			}
 		});
 
-		// Filter out declarations that have been inlined
-		const remainingDeclarations = declarations.filter((decl) => {
-			if (!ts.isIdentifier(decl.name)) return true;
-
-			return !this.tracker.shouldInline(decl.name.text);
-		});
-
-		if (remainingDeclarations.length === 0) {
+		// If all declarations in this statement have been inlined, remove it
+		if (this.tracker.shouldRemoveDeclaration(node)) {
 			return ts.factory.createEmptyStatement();
-		}
-
-		if (remainingDeclarations.length !== declarations.length) {
-			return ts.factory.updateVariableStatement(
-				node,
-				node.modifiers,
-				ts.factory.createVariableDeclarationList(
-					remainingDeclarations,
-					node.declarationList.flags,
-				),
-			);
 		}
 
 		return node;
@@ -199,7 +207,16 @@ class Transformer {
 		);
 	}
 
-	transform(sourceFile: Node): Node {
+	transform(sourceFile: Node, passCount: number = 0): Node {
+		const MAX_PASSES = 10;
+
+		if (passCount >= MAX_PASSES) {
+			return sourceFile;
+		}
+
+		// Clear the tracker for this pass
+		this.tracker.clear();
+
 		// First pass: collect all declarations and uses
 		ts.visitNode(sourceFile, (node) => {
 			if (ts.isVariableStatement(node)) {
@@ -208,6 +225,7 @@ class Transformer {
 						this.tracker.trackVariable(
 							decl.name.text,
 							decl.initializer,
+							node,
 						);
 					}
 				});
@@ -223,8 +241,15 @@ class Transformer {
 			return node;
 		});
 
-		// Second pass: perform the actual transformation
-		return ts.visitNode(sourceFile, (node) => this.visitNode(node));
+		// Second pass: perform the transformation
+		const result = ts.visitNode(sourceFile, (node) => this.visitNode(node));
+
+		// If we made any changes in this pass, do another pass
+		if (this.tracker.hasInlinedVariables() && result !== sourceFile) {
+			return this.transform(result, passCount + 1);
+		}
+
+		return result;
 	}
 }
 
