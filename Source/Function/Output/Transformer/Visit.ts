@@ -36,6 +36,8 @@ class DeclarationTracker {
 		initializer: Expression,
 		declarationNode: VariableStatement,
 	): void {
+		console.log(`Tracking variable: ${name}`);
+
 		if (!this.variableMap.has(name)) {
 			this.variableMap.set(name, {
 				initializer,
@@ -50,6 +52,8 @@ class DeclarationTracker {
 		const entry = this.variableMap.get(name);
 
 		if (entry) {
+			console.log(`Tracking use of ${name}, isReference: ${isReference}`);
+
 			entry.uses.add({ node, isReference });
 		}
 	}
@@ -57,33 +61,31 @@ class DeclarationTracker {
 	shouldInline(name: string): boolean {
 		const entry = this.variableMap.get(name);
 
-		if (!entry || entry.isInlined) return false;
+		console.log(`Checking inline for ${name}:`);
+
+		if (!entry || entry.isInlined) {
+			console.log(`${name}: Cannot inline - no entry or already inlined`);
+
+			return false;
+		}
 
 		const referenceUses = Array.from(entry.uses).filter(
 			(use) => use.isReference,
 		);
 
-		// Check for reassignment
-		const isReassigned = Array.from(entry.uses).some((use) => {
-			const parent = use.node.parent;
-
-			return (
-				ts.isBinaryExpression(parent) &&
-				parent.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
-				ts.isIdentifier(parent.left) &&
-				parent.left.text === name
-			);
-		});
+		console.log(`${name}: Reference uses:`, referenceUses.length);
 
 		// Only inline if:
 		// 1. Has initializer
-		// 2. Not reassigned
-		// 3. Used between 1-2 times as reference
-		return (
-			!isReassigned &&
-			referenceUses.length > 0 &&
-			referenceUses.length <= 2
-		);
+		// 2. Used between 1-2 times as reference
+		const shouldInline =
+			referenceUses.length > 0 && referenceUses.length <= 1;
+
+		console.log(`${name}: Final inline decision:`, shouldInline, {
+			referenceCount: referenceUses.length,
+		});
+
+		return shouldInline;
 	}
 
 	getInitializer(name: string): Expression | undefined {
@@ -91,6 +93,8 @@ class DeclarationTracker {
 	}
 
 	markInlined(name: string): void {
+		console.log(`Marking ${name} as inlined`);
+
 		const entry = this.variableMap.get(name);
 
 		if (entry) {
@@ -98,23 +102,63 @@ class DeclarationTracker {
 		}
 	}
 
-	shouldRemoveDeclaration(statement: VariableStatement): boolean {
-		// Check if all variables in this statement have been inlined
-		return statement.declarationList.declarations.every((decl) => {
-			if (!ts.isIdentifier(decl.name)) return false;
+	getDeclarationStatus(
+		statement: VariableStatement,
+	): { name: string; shouldInline: boolean }[] {
+		return statement.declarationList.declarations.map((decl) => {
+			if (!ts.isIdentifier(decl.name)) {
+				return { name: "", shouldInline: false };
+			}
 
-			return this.variableMap.get(decl.name.text)?.isInlined === true;
+			const name = decl.name.text;
+
+			const shouldInline = this.shouldInline(name);
+
+			console.log(`Declaration status for ${name}:`, shouldInline);
+
+			return {
+				name,
+				shouldInline,
+			};
 		});
 	}
 
 	clear(): void {
+		console.log("Clearing tracker");
+
 		this.variableMap.clear();
 	}
 
 	hasInlinedVariables(): boolean {
-		return Array.from(this.variableMap.values()).some(
+		const result = Array.from(this.variableMap.values()).some(
 			(entry) => entry.isInlined,
 		);
+
+		console.log("Has inlined variables:", result);
+
+		return result;
+	}
+
+	dumpState(): void {
+		console.log("\n=== Declaration Tracker State ===");
+
+		for (const [name, entry] of this.variableMap.entries()) {
+			console.log(`\nVariable: ${name}`);
+
+			console.log("Inlined:", entry.isInlined);
+
+			console.log("Uses:", entry.uses.size);
+
+			console.log(
+				"Uses detail:",
+				Array.from(entry.uses).map((use) => ({
+					kind: use.node.kind,
+					isReference: use.isReference,
+				})),
+			);
+		}
+
+		console.log("\n==============================\n");
 	}
 }
 
@@ -139,22 +183,32 @@ class Transformer {
 			ts.isVariableDeclaration(node.parent) ||
 			ts.isBindingElement(node.parent)
 		) {
+			console.log(`Skipping identifier ${name} - special case`);
+
 			return node;
 		}
 
 		if (this.tracker.shouldInline(name)) {
 			const initializer = this.tracker.getInitializer(name);
 
+			console.log(`Attempting to inline ${name}`, {
+				hasInitializer: !!initializer,
+			});
+
 			if (initializer) {
 				// Mark as inlined to prevent duplicate processing
 				this.tracker.markInlined(name);
 
 				// Create a copy of the initializer
-				return ts.visitNode(initializer, (node) =>
+				const inlined = ts.visitNode(initializer, (node) =>
 					ts.isExpression(node)
 						? node
 						: ts.factory.createIdentifier(name),
 				) as Expression;
+
+				console.log(`Successfully inlined ${name}`);
+
+				return inlined;
 			}
 		}
 
@@ -173,8 +227,25 @@ class Transformer {
 			}
 		});
 
-		// If all declarations in this statement have been inlined, remove it
-		if (this.tracker.shouldRemoveDeclaration(node)) {
+		// Check inlining status for all declarations in this statement
+		const declarationStatuses = this.tracker.getDeclarationStatus(node);
+
+		console.log(
+			"Variable statement declaration statuses:",
+			declarationStatuses,
+		);
+
+		// If all declarations can be inlined, mark for removal
+		if (declarationStatuses.every((status) => status.shouldInline)) {
+			console.log("All declarations can be inlined, removing statement");
+
+			// Mark all as inlined
+			declarationStatuses.forEach((status) => {
+				if (status.name) {
+					this.tracker.markInlined(status.name);
+				}
+			});
+
 			return ts.factory.createEmptyStatement();
 		}
 
@@ -184,7 +255,12 @@ class Transformer {
 	private visitNode(node: Node): Node {
 		// First collect all variable uses
 		if (ts.isIdentifier(node) && !ts.isVariableDeclaration(node.parent)) {
-			this.tracker.trackUse(node.text, node);
+			this.tracker.trackUse(
+				node.text,
+				node,
+				!ts.isPropertyAccessExpression(node.parent) ||
+					node.parent.expression === node,
+			);
 		}
 
 		// Handle specific node types
@@ -207,7 +283,11 @@ class Transformer {
 	transform(sourceFile: Node, passCount: number = 0): Node {
 		const MAX_PASSES = 10;
 
+		console.log(`\n=== Starting transform pass ${passCount} ===`);
+
 		if (passCount >= MAX_PASSES) {
+			console.log("Reached max passes");
+
 			return sourceFile;
 		}
 
@@ -232,19 +312,32 @@ class Transformer {
 				ts.isIdentifier(node) &&
 				!ts.isVariableDeclaration(node.parent)
 			) {
-				this.tracker.trackUse(node.text, node);
+				this.tracker.trackUse(
+					node.text,
+					node,
+					!ts.isPropertyAccessExpression(node.parent) ||
+						node.parent.expression === node,
+				);
 			}
 
 			return node;
 		});
+
+		console.log("\nTracker state after collecting declarations and uses:");
+
+		this.tracker.dumpState();
 
 		// Second pass: perform the transformation
 		const result = ts.visitNode(sourceFile, (node) => this.visitNode(node));
 
 		// If we made any changes in this pass, do another pass
 		if (this.tracker.hasInlinedVariables() && result !== sourceFile) {
+			console.log("Changes detected, starting another pass");
+
 			return this.transform(result, passCount + 1);
 		}
+
+		console.log("No more changes needed");
 
 		return result;
 	}
