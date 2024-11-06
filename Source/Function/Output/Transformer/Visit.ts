@@ -43,10 +43,6 @@ class Track {
 	}
 
 	Initializer(Variable: string, Initializer: Initializer): void {
-		// console.log(`--------------------------${"-".repeat(Variable.length)}`);
-
-		// console.log(`T: Tracking initializer for: ${Variable}`);
-
 		if (!this.Count.has(Initializer)) {
 			this.Count.set(Initializer, {
 				Name: Variable,
@@ -56,10 +52,6 @@ class Track {
 	}
 
 	Variable(Name: string, Node: Node): void {
-		// console.log(`----------------${"-".repeat(Name.length)}`);
-
-		// console.log(`T: Tracking use of ${Name}`);
-
 		const Result = Get(Name, "Name", this.Count);
 
 		if (Result) {
@@ -208,12 +200,6 @@ class Transformer {
 	}
 
 	Visit(_Node: Node, Collection: number = 0): Node {
-		// console.log(
-		// 	`-----------------------${"-".repeat(Collection.toString().length)}`,
-		// );
-
-		// console.log(`V: Visiting for the ${Collection} time.`);
-
 		const Failed = 10;
 
 		if (Collection >= Failed) {
