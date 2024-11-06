@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../Source/Function/Output.ts"],
-  "sourcesContent": ["import type Interface from \"@Interface/Output.js\";\nimport type { SourceFile } from \"typescript\";\n\n/**\n * @module Output\n *\n */\nexport default (async (...[Source]) =>\n\tts\n\t\t.createPrinter({\n\t\t\tnewLine: ts.NewLineKind.LineFeed,\n\t\t\tremoveComments: false,\n\t\t\tomitTrailingSemicolon: false,\n\t\t\tnoEmitHelpers: false,\n\t\t})\n\t\t.printFile(\n\t\t\tts.transform(\n\t\t\t\tts.createSourceFile(\n\t\t\t\t\t\"temp.ts\",\n\t\t\t\t\tSource,\n\t\t\t\t\tts.ScriptTarget.Latest,\n\t\t\t\t\ttrue,\n\t\t\t\t),\n\t\t\t\t[(await import(\"@Function/Output/Transformer.js\")).default],\n\t\t\t).transformed[0] as SourceFile,\n\t\t)) satisfies Interface as Interface;\n\nexport const ts = await import(\"typescript\");\n"],
-  "mappings": ";;AAOA,IAAO,iBAAS,iCAAU,CAAC,MAAM,MAChC,GACE,cAAc;AAAA,EACd,SAAS,GAAG,YAAY;AAAA,EACxB,gBAAgB;AAAA,EAChB,uBAAuB;AAAA,EACvB,eAAe;AAChB,CAAC,EACA;AAAA,EACA,GAAG;AAAA,IACF,GAAG;AAAA,MACF;AAAA,MACA;AAAA,MACA,GAAG,aAAa;AAAA,MAChB;AAAA,IACD;AAAA,IACA,EAAE,MAAM,OAAO,iCAAiC,GAAG,OAAO;AAAA,EAC3D,EAAE,YAAY,CAAC;AAChB,GAlBc;AAoBT,MAAM,KAAK,MAAM,OAAO,YAAY;",
-  "names": []
-}

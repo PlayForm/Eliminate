@@ -21,7 +21,6 @@ class Track {
 	Scope(Node: Node): void {
 		ts.forEachChild(Node, (Node) => this.Scope(Node));
 
-		// This is a usage of a variable, not its declaration
 		if (ts.isIdentifier(Node)) {
 			if (!ts.isVariableDeclaration(Node.parent)) {
 				this.Variable(Node.text, Node);
@@ -29,16 +28,24 @@ class Track {
 		} else if (ts.isVariableStatement(Node)) {
 			Node.declarationList.declarations.forEach((decl) => {
 				if (ts.isIdentifier(decl.name) && decl.initializer) {
-					this.Initializer(decl.name.text, decl.initializer);
+					if (
+						!(
+							Node.modifiers?.some(
+								(m) => m.kind === ts.SyntaxKind.ExportKeyword,
+							) ?? false
+						)
+					) {
+						this.Initializer(decl.name.text, decl.initializer);
+					}
 				}
 			});
 		}
 	}
 
 	Initializer(Variable: string, Initializer: Initializer): void {
-		console.log(`--------------------------${"-".repeat(Variable.length)}`);
+		// console.log(`--------------------------${"-".repeat(Variable.length)}`);
 
-		console.log(`T: Tracking initializer for: ${Variable}`);
+		// console.log(`T: Tracking initializer for: ${Variable}`);
 
 		if (!this.Count.has(Initializer)) {
 			this.Count.set(Initializer, {
@@ -49,9 +56,9 @@ class Track {
 	}
 
 	Variable(Name: string, Node: Node): void {
-		console.log(`----------------${"-".repeat(Name.length)}`);
+		// console.log(`----------------${"-".repeat(Name.length)}`);
 
-		console.log(`T: Tracking use of ${Name}`);
+		// console.log(`T: Tracking use of ${Name}`);
 
 		const Result = Get(Name, "Name", this.Count);
 
@@ -76,17 +83,13 @@ class Track {
 			return false;
 		}
 
-		// If this initializer is a simple identifier or literal, we can be more aggressive with inlining
-		const Simpleton =
-			ts.isIdentifier(Result) || ts.isLiteralExpression(Result);
+		const Count = Initializer.Usage.size;
 
-		// Count all uses of this variable
-		const useCount = Initializer.Usage.size;
-
-		// Inline if:
-		// 1. Used exactly once, or
-		// 2. It's a simple identifier reference and used only a few times
-		return useCount === 1 || (Simpleton && useCount <= 3);
+		return (
+			Count === 1 ||
+			ts.isIdentifier(Result) ||
+			(ts.isLiteralExpression(Result) && Count <= 3)
+		);
 	}
 
 	getInitializer(Name: string): Expression | undefined {
@@ -205,11 +208,11 @@ class Transformer {
 	}
 
 	Visit(_Node: Node, Collection: number = 0): Node {
-		console.log(
-			`-----------------------${"-".repeat(Collection.toString().length)}`,
-		);
+		// console.log(
+		// 	`-----------------------${"-".repeat(Collection.toString().length)}`,
+		// );
 
-		console.log(`V: Visiting for the ${Collection} time.`);
+		// console.log(`V: Visiting for the ${Collection} time.`);
 
 		const Failed = 10;
 
