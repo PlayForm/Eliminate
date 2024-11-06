@@ -23,7 +23,6 @@ class Track {
   Initializer(Variable, Initializer) {
     console.log(`--------------------------${"-".repeat(Variable.length)}`);
     console.log(`Tracking initializer for: ${Variable}`);
-    console.log(`Initializer: ${Initializer.getText()}`);
     if (!this.Count.has(Initializer)) {
       this.Count.set(Initializer, {
         Name: Variable,

@@ -39,7 +39,6 @@ class Track {
 	Initializer(Variable: string, Initializer: Initializer): void {
 		console.log(`--------------------------${"-".repeat(Variable.length)}`);
 		console.log(`Tracking initializer for: ${Variable}`);
-		console.log(`Initializer: ${Initializer.getText()}`);
 
 		if (!this.Count.has(Initializer)) {
 			this.Count.set(Initializer, {
@@ -181,7 +180,6 @@ class Transformer {
 		if (Collection >= Failed) {
 			return _Node;
 		}
-
 
 		this.Tracker.Scope(_Node);
 
