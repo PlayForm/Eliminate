@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../Source/Variable/Eliminate.ts"],
+  "sourcesContent": ["import type Interface from \"../Interface/Option.js\";\n\n/**\n * @module Option\n *\n */\nexport default (await import(\"../Function/Merge.js\")).default(\n\t(await import(\"@playform/pipe/Target/Variable/Option.js\")).default,\n\t{} satisfies Interface,\n);\n"],
+  "mappings": "AAMA,IAAO,qBAAS,MAAM,OAAO,sBAAsB,GAAG;AAAA,GACpD,MAAM,OAAO,0CAA0C,GAAG;AAAA,EAC3D,CAAC;AACF;",
+  "names": []
+}
