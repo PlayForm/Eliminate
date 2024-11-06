@@ -14,6 +14,144 @@ import type {
  * @module Output
  *
  */
+class Transformer {
+	readonly Context: TransformationContext;
+
+	readonly Tracker: Track;
+
+	constructor(Context: TransformationContext) {
+		this.Context = Context;
+
+		this.Tracker = new Track();
+	}
+
+	Variable(Node: VariableStatement): Statement {
+		// Reset tracking for each new pass to catch newly inlinable variables
+		this.Tracker.Status.clear();
+
+		// Visit children first to process any nested references
+		const Result = ts.visitEachChild(
+			Node,
+			(Node) => this.Look(Node),
+			this.Context,
+		);
+
+		// Filter out declarations that have been inlined
+		const Remaining = Result.declarationList.declarations.filter((decl) => {
+			if (ts.isIdentifier(decl.name)) {
+				const shouldInline = this.Tracker.Inline(decl.name.text);
+				if (shouldInline) {
+					// Mark this declaration as handled to avoid duplicate processing
+					this.Tracker.Status.add(decl);
+				}
+
+				return !shouldInline;
+			}
+
+			return true;
+		});
+
+		// If all declarations have been inlined, return an empty statement
+		if (Remaining.length === 0) {
+			return ts.factory.createEmptyStatement();
+		}
+
+		// If some declarations remain, create a new variable statement
+		if (Remaining.length !== Result.declarationList.declarations.length) {
+			// Create new statement with remaining declarations
+			const New = ts.factory.createVariableStatement(
+				Result.modifiers,
+				ts.factory.createVariableDeclarationList(
+					Remaining,
+					Result.declarationList.flags,
+				),
+			);
+
+			// Re-run analysis on the new statement to catch newly inlinable variables
+			this.Tracker.Scope(New);
+
+			return New;
+		}
+
+		return Result;
+	}
+
+	Identifier(Node: Identifier) {
+		// Visit any child nodes first (though identifiers typically don't have children)
+		const Result = ts.visitEachChild(
+			Node,
+			(Node) => this.Look(Node),
+			this.Context,
+		);
+
+		const name = Result.text;
+
+		if (
+			(ts.isPropertyAccessExpression(Result.parent) &&
+				Result.parent.name === Result) ||
+			ts.isVariableDeclaration(Result.parent) ||
+			ts.isBindingElement(Result.parent)
+		) {
+			return Result;
+		}
+
+		if (this.Tracker.Inline(name)) {
+			const Inlined = Get(name, "Name", this.Tracker.Count);
+
+			if (Inlined) {
+				return ts.visitNode(Inlined, (node) =>
+					ts.isExpression(node)
+						? node
+						: ts.factory.createIdentifier(name),
+				) as Expression;
+			}
+		}
+
+		return Result;
+	}
+
+	Look(Node: Node): Node {
+		switch (true) {
+			case ts.isVariableStatement(Node):
+				return this.Variable(Node);
+
+			case ts.isIdentifier(Node):
+				return this.Identifier(Node);
+
+			default:
+				return ts.visitEachChild(
+					Node,
+					(Node) => this.Look(Node),
+					this.Context,
+				);
+		}
+	}
+
+	Visit(_Node: Node, Collection: number = 0): Node {
+		const Failed = 10;
+
+		if (Collection >= Failed) {
+			return _Node;
+		}
+
+		// Clear status before each full pass
+		this.Tracker.Status.clear();
+
+		this.Tracker.Scope(_Node);
+
+		// Transform the node
+		let Node = ts.visitNode(_Node, (Node) => this.Look(Node));
+
+		// If changes were made, process again to catch newly inlinable variables
+		if (Node !== _Node) {
+			// Re-analyze the entire tree since inlining may have created new opportunities
+			return this.Visit(Node, Collection + 1);
+		}
+
+		return Node;
+	}
+}
+
 class Track {
 	Count: CountInitializer = new Map();
 
@@ -75,121 +213,22 @@ class Track {
 			return false;
 		}
 
+		// If this initializer is a simple identifier, we can be more aggressive with inlining
+		const isSimpleIdentifier = ts.isIdentifier(Result);
+
 		// Count all uses of this variable
 		const useCount = Initializer.Usage.size;
 
-		// We only want to inline variables that are used exactly once
-		if (useCount === 1) {
+		// Inline if:
+		// 1. Used exactly once, or
+		// 2. It's a simple identifier reference and used only a few times
+		if (useCount === 1 || (isSimpleIdentifier && useCount <= 3)) {
 			return true;
 		}
 
 		// Don't inline other expression types (function calls, operations, etc)
 		// as they may have side effects or be computationally expensive
 		return false;
-	}
-}
-
-class Transformer {
-	readonly Context: TransformationContext;
-
-	readonly Tracker: Track;
-
-	constructor(Context: TransformationContext) {
-		this.Context = Context;
-
-		this.Tracker = new Track();
-	}
-
-	Variable(Node: VariableStatement): Statement {
-		// Visit children first to process any nested references
-		const Result = ts.visitEachChild(
-			Node,
-			(Node) => this.Look(Node),
-			this.Context,
-		);
-
-		// const status = this.Tracker.getDeclarationStatus(processed);
-
-		// if (status.every((status) => status.shouldInline)) {
-		// 	status.forEach((status) => {
-		// 		if (status.name) {
-		// 			this.Tracker.markInlined(status.name);
-		// 		}
-		// 	});
-
-		// 	return ts.factory.createEmptyStatement();
-		// }
-
-		return Result;
-	}
-
-	Identifier(Node: Identifier) {
-		// Visit any child nodes first (though identifiers typically don't have children)
-		const Result = ts.visitEachChild(
-			Node,
-			(Node) => this.Look(Node),
-			this.Context,
-		);
-
-		const name = Result.text;
-
-		if (
-			(ts.isPropertyAccessExpression(Result.parent) &&
-				Result.parent.name === Result) ||
-			ts.isVariableDeclaration(Result.parent) ||
-			ts.isBindingElement(Result.parent)
-		) {
-			return Result;
-		}
-
-		if (this.Tracker.Inline(name)) {
-			const Result = Get(name, "Name", this.Tracker.Count);
-
-			if (Result) {
-				return ts.visitNode(Result, (node) =>
-					ts.isExpression(node)
-						? node
-						: ts.factory.createIdentifier(name),
-				) as Expression;
-			}
-		}
-
-		return Result;
-	}
-
-	Look(Node: Node): Node {
-		switch (true) {
-			case ts.isVariableStatement(Node):
-				return this.Variable(Node);
-
-			case ts.isIdentifier(Node):
-				return this.Identifier(Node);
-
-			default:
-				return ts.visitEachChild(
-					Node,
-					(Node) => this.Look(Node),
-					this.Context,
-				);
-		}
-	}
-
-	Visit(_Node: Node, Collection: number = 0): Node {
-		const Failed = 10;
-
-		if (Collection >= Failed) {
-			return _Node;
-		}
-
-		this.Tracker.Scope(_Node);
-
-		let Node = ts.visitNode(_Node, (Node) => this.Look(Node));
-
-		if (Node !== _Node) {
-			return this.Visit(Node, Collection + 1);
-		}
-
-		return Node;
 	}
 }
 
