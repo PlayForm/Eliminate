@@ -21,7 +21,7 @@ class Track {
   }
   Initializer(Variable, Initializer) {
     console.log(`--------------------------${"-".repeat(Variable.length)}`);
-    console.log(`Tracking initializer for: ${Variable}`);
+    console.log(`T: Tracking initializer for: ${Variable}`);
     if (!this.Count.has(Initializer)) {
       this.Count.set(Initializer, {
         Name: Variable,
@@ -31,7 +31,7 @@ class Track {
   }
   Variable(Name, Node) {
     console.log(`----------------${"-".repeat(Name.length)}`);
-    console.log(`Tracking use of ${Name}`);
+    console.log(`T: Tracking use of ${Name}`);
     const Result = Get(Name, "Name", this.Count);
     if (Result) {
       this.Count.get(Result)?.Usage.add({
@@ -49,12 +49,13 @@ class Track {
     if (!Initializer) {
       return false;
     }
-    const isSimpleIdentifier = ts.isIdentifier(Result);
+    const Simpleton = ts.isIdentifier(Result) || ts.isLiteralExpression(Result);
     const useCount = Initializer.Usage.size;
-    if (useCount === 3 || isSimpleIdentifier && useCount <= 3) {
-      return true;
-    }
-    return false;
+    return useCount === 1 || Simpleton && useCount <= 3;
+  }
+  getInitializer(Name) {
+    const Result = Get(Name, "Name", this.Count);
+    return Result;
   }
 }
 class Transformer {
@@ -68,20 +69,20 @@ class Transformer {
     this.Tracker = new Track();
   }
   Variable(Node) {
-    const Processed = Node.declarationList.declarations.map((decl) => {
-      if (decl.initializer && ts.isIdentifier(decl.initializer)) {
-        const Resolved = this.Resolve(decl.initializer.text);
+    const Processed = Node.declarationList.declarations.map((Node2) => {
+      if (Node2.initializer && ts.isIdentifier(Node2.initializer)) {
+        const Resolved = this.Resolve(Node2.initializer.text);
         if (Resolved) {
           return ts.factory.updateVariableDeclaration(
-            decl,
-            decl.name,
-            decl.exclamationToken,
-            decl.type,
+            Node2,
+            Node2.name,
+            Node2.exclamationToken,
+            Node2.type,
             Resolved
           );
         }
       }
-      return decl;
+      return Node2;
     });
     const Remaining = Processed.filter((decl) => {
       if (ts.isIdentifier(decl.name)) {
@@ -90,39 +91,35 @@ class Transformer {
       return true;
     });
     if (Remaining.length === 0) {
-      return ts.factory.createEmptyStatement();
+      return void 0;
     }
-    if (Remaining.length !== Node.declarationList.declarations.length) {
-      return ts.factory.createVariableStatement(
-        Node.modifiers,
-        ts.factory.createVariableDeclarationList(
-          Remaining,
-          Node.declarationList.flags
-        )
-      );
-    }
-    return Node;
+    return ts.factory.createVariableStatement(
+      Node.modifiers,
+      ts.factory.createVariableDeclarationList(
+        Remaining,
+        Node.declarationList.flags
+      )
+    );
   }
   Identifier(Node) {
     const Name = Node.text;
     if (ts.isPropertyAccessExpression(Node.parent) && Node.parent.name === Node || ts.isVariableDeclaration(Node.parent) || ts.isBindingElement(Node.parent)) {
       return Node;
     }
-    const resolvedInitializer = this.Resolve(Name);
-    if (resolvedInitializer) {
-      return resolvedInitializer;
-    }
-    return Node;
+    return this.Resolve(Name) || Node;
   }
   Resolve(Name) {
-    if (this.Tracker.Inline(Name)) {
-      const Result = Get(Name, "Name", this.Tracker.Count);
-      if (Result && ts.isIdentifier(Result)) {
-        return this.Resolve(Result.text) ?? Result;
-      }
-      return Result;
+    if (!this.Tracker.Inline(Name)) {
+      return void 0;
     }
-    return void 0;
+    const Result = Get(Name, "Name", this.Tracker.Count);
+    if (!Result) {
+      return void 0;
+    }
+    if (ts.isIdentifier(Result)) {
+      return this.Resolve(Result.text) || Result;
+    }
+    return Result;
   }
   Look(Node) {
     let Result;
@@ -146,17 +143,17 @@ class Transformer {
     console.log(
       `-----------------------${"-".repeat(Collection.toString().length)}`
     );
-    console.log(`Visiting for the ${Collection} time.`);
+    console.log(`V: Visiting for the ${Collection} time.`);
     const Failed = 10;
     if (Collection >= Failed) {
       return _Node;
     }
     this.Tracker.Scope(_Node);
     let Node = this.Look(_Node);
-    if (Node !== _Node) {
+    if (Node && Node !== _Node) {
       return this.Visit(Node, Collection + 1);
     }
-    return Node;
+    return _Node;
   }
 }
 const {

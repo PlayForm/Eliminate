@@ -38,7 +38,7 @@ class Track {
 	Initializer(Variable: string, Initializer: Initializer): void {
 		console.log(`--------------------------${"-".repeat(Variable.length)}`);
 
-		console.log(`Tracking initializer for: ${Variable}`);
+		console.log(`T: Tracking initializer for: ${Variable}`);
 
 		if (!this.Count.has(Initializer)) {
 			this.Count.set(Initializer, {
@@ -51,7 +51,7 @@ class Track {
 	Variable(Name: string, Node: Node): void {
 		console.log(`----------------${"-".repeat(Name.length)}`);
 
-		console.log(`Tracking use of ${Name}`);
+		console.log(`T: Tracking use of ${Name}`);
 
 		const Result = Get(Name, "Name", this.Count);
 
@@ -76,8 +76,9 @@ class Track {
 			return false;
 		}
 
-		// If this initializer is a simple identifier, we can be more aggressive with inlining
-		const isSimpleIdentifier = ts.isIdentifier(Result);
+		// If this initializer is a simple identifier or literal, we can be more aggressive with inlining
+		const Simpleton =
+			ts.isIdentifier(Result) || ts.isLiteralExpression(Result);
 
 		// Count all uses of this variable
 		const useCount = Initializer.Usage.size;
@@ -85,13 +86,12 @@ class Track {
 		// Inline if:
 		// 1. Used exactly once, or
 		// 2. It's a simple identifier reference and used only a few times
-		if (useCount === 3 || (isSimpleIdentifier && useCount <= 3)) {
-			return true;
-		}
+		return useCount === 1 || (Simpleton && useCount <= 3);
+	}
 
-		// Don't inline other expression types (function calls, operations, etc)
-		// as they may have side effects or be computationally expensive
-		return false;
+	getInitializer(Name: string): Expression | undefined {
+		const Result = Get(Name, "Name", this.Count);
+		return Result as Expression | undefined;
 	}
 }
 
@@ -106,27 +106,25 @@ class Transformer {
 		this.Tracker = new Track();
 	}
 
-	Variable(Node: VariableStatement): Statement {
-		// First, process all initializers to resolve any references
-		const Processed = Node.declarationList.declarations.map((decl) => {
-			if (decl.initializer && ts.isIdentifier(decl.initializer)) {
-				const Resolved = this.Resolve(decl.initializer.text);
+	Variable(Node: VariableStatement): Statement | undefined {
+		const Processed = Node.declarationList.declarations.map((Node) => {
+			if (Node.initializer && ts.isIdentifier(Node.initializer)) {
+				const Resolved = this.Resolve(Node.initializer.text);
 
 				if (Resolved) {
 					return ts.factory.updateVariableDeclaration(
-						decl,
-						decl.name,
-						decl.exclamationToken,
-						decl.type,
+						Node,
+						Node.name,
+						Node.exclamationToken,
+						Node.type,
 						Resolved,
 					);
 				}
 			}
 
-			return decl;
+			return Node;
 		});
 
-		// Filter out declarations that have been inlined
 		const Remaining = Processed.filter((decl) => {
 			if (ts.isIdentifier(decl.name)) {
 				return !this.Tracker.Inline(decl.name.text);
@@ -135,29 +133,22 @@ class Transformer {
 			return true;
 		});
 
-		// If all declarations have been inlined, return an empty statement
 		if (Remaining.length === 0) {
-			return ts.factory.createEmptyStatement();
+			return undefined;
 		}
 
-		// If some declarations remain, create a new variable statement
-		if (Remaining.length !== Node.declarationList.declarations.length) {
-			return ts.factory.createVariableStatement(
-				Node.modifiers,
-				ts.factory.createVariableDeclarationList(
-					Remaining,
-					Node.declarationList.flags,
-				),
-			);
-		}
-
-		return Node;
+		return ts.factory.createVariableStatement(
+			Node.modifiers,
+			ts.factory.createVariableDeclarationList(
+				Remaining,
+				Node.declarationList.flags,
+			),
+		);
 	}
 
 	Identifier(Node: Identifier) {
 		const Name = Node.text;
 
-		// Skip if this is a declaration or property access
 		if (
 			(ts.isPropertyAccessExpression(Node.parent) &&
 				Node.parent.name === Node) ||
@@ -167,42 +158,29 @@ class Transformer {
 			return Node;
 		}
 
-		// if (this.Tracker.Inline(Name)) {
-		// 	const Inlined = Get(Name, "Name", this.Tracker.Count);
-
-		// 	if (Inlined) {
-		// 		return ts.visitNode(Inlined, (Node) => this.Look(Node));
-		// 	}
-		// }
-
-		// Fully resolve through the chain
-		const resolvedInitializer = this.Resolve(Name);
-
-		if (resolvedInitializer) {
-			return resolvedInitializer;
-		}
-
-		return Node;
+		return this.Resolve(Name) || Node;
 	}
 
 	Resolve(Name: string): Expression | undefined {
-		if (this.Tracker.Inline(Name)) {
-			const Result = Get(Name, "Name", this.Tracker.Count);
-
-			if (Result && ts.isIdentifier(Result)) {
-				// Recursively resolve if the initializer is another identifier
-				return this.Resolve(Result.text) ?? Result;
-			}
-
-			return Result;
+		if (!this.Tracker.Inline(Name)) {
+			return undefined;
 		}
 
-		return undefined;
+		const Result = Get(Name, "Name", this.Tracker.Count);
+
+		if (!Result) {
+			return undefined;
+		}
+
+		if (ts.isIdentifier(Result)) {
+			return this.Resolve(Result.text) || Result;
+		}
+
+		return Result;
 	}
 
-	Look(Node: Node): Node {
-		// Process current node first
-		let Result: Node;
+	Look(Node: Node): Node | undefined {
+		let Result: Node | undefined;
 
 		switch (true) {
 			case ts.isVariableStatement(Node):
@@ -231,7 +209,7 @@ class Transformer {
 			`-----------------------${"-".repeat(Collection.toString().length)}`,
 		);
 
-		console.log(`Visiting for the ${Collection} time.`);
+		console.log(`V: Visiting for the ${Collection} time.`);
 
 		const Failed = 10;
 
@@ -243,11 +221,11 @@ class Transformer {
 
 		let Node = this.Look(_Node);
 
-		if (Node !== _Node) {
+		if (Node && Node !== _Node) {
 			return this.Visit(Node, Collection + 1);
 		}
 
-		return Node;
+		return _Node;
 	}
 }
 
