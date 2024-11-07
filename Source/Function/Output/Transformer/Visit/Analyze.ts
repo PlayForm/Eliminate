@@ -58,6 +58,26 @@ type DeclarationType =
 	| "FunctionDeclaration"
 	| "ClassDeclaration";
 
+// 4
+interface Node {
+	type: NodeType;
+
+	loc?: SourceLocation;
+
+	range?: [number, number];
+
+	parent?: Node;
+
+	leadingComments?: Comment[];
+
+	trailingComments?: Comment[];
+}
+
+// 4
+interface Expression extends Node {
+	type: ExpressionType;
+}
+
 /// 4
 
 // new
@@ -201,23 +221,8 @@ interface Comment extends Node {
 	value: string;
 }
 
-interface Declaration extends Node {
-	type: DeclarationType;
-}
-
-interface Pattern extends Node {
-	type: PatternType;
-}
-
-interface Statement extends Node {
-	type: StatementType;
-}
 
 // Expression types
-
-interface Expression extends Node {
-	type: ExpressionType;
-}
 
 // type Expression =
 // | Identifier
@@ -333,20 +338,6 @@ interface Reference {
 	isWrite: boolean;
 
 	resolved: ScopeVariable;
-}
-
-interface Node {
-	type: NodeType;
-
-	loc?: SourceLocation;
-
-	range?: [number, number];
-
-	parent?: Node;
-
-	leadingComments?: Comment[];
-
-	trailingComments?: Comment[];
 }
 
 interface SpreadElement extends Node {
