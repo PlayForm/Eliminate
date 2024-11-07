@@ -21,8 +21,26 @@ class Track {
 	Scope(Node: Node): void {
 		ts.forEachChild(Node, (Node) => this.Scope(Node));
 
+		if (!Node) {
+			return;
+		}
+
 		if (ts.isIdentifier(Node)) {
-			if (!ts.isVariableDeclaration(Node.parent)) {
+			// Check for reassignment in assignment expressions
+			if (
+				Node.parent &&
+				ts.isBinaryExpression(Node.parent) &&
+				Node.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
+				Node.parent.left === Node
+			) {
+				// this.Reassignment(Node.text, Node);
+				const Result = Get(Node.text, "Name", this.Count);
+				if (Result) {
+					this.Count.delete(Result);
+				}
+			}
+
+			if (!Node.parent || !ts.isVariableDeclaration(Node.parent)) {
 				this.Variable(Node.text, Node);
 			}
 		} else if (ts.isVariableStatement(Node)) {
@@ -75,11 +93,26 @@ class Track {
 			return false;
 		}
 
+		// Don't inline if it's a method/function definition
+		if (
+			ts.isMethodDeclaration(Result) ||
+			ts.isFunctionDeclaration(Result)
+		) {
+			return false;
+		}
+
+		// Don't inline if it's a function call or new expression
+		if (ts.isCallExpression(Result) || ts.isNewExpression(Result)) {
+			return false;
+		}
+
 		const Count = Initializer.Usage.size;
 
 		return (
 			Count === 1 ||
 			ts.isIdentifier(Result) ||
+			// Include conditional expressions as valid nodes for inlining
+			ts.isConditionalExpression(Result) ||
 			(ts.isLiteralExpression(Result) && Count <= 3)
 		);
 	}
@@ -144,6 +177,11 @@ class Transformer {
 	Identifier(Node: Identifier) {
 		const Name = Node.text;
 
+		// Add null checks for Node.parent
+		if (!Node.parent) {
+			return Node;
+		}
+
 		if (
 			(ts.isPropertyAccessExpression(Node.parent) &&
 				Node.parent.name === Node) ||
@@ -167,6 +205,12 @@ class Transformer {
 			return undefined;
 		}
 
+		// If we're in an object literal property assignment, create a property assignment node
+		if (ts.isShorthandPropertyAssignment(Result.parent)) {
+			// For shorthand properties, we want the expression from Result directly
+			return Result as Expression;
+		}
+
 		if (ts.isIdentifier(Result)) {
 			return this.Resolve(Result.text) || Result;
 		}
@@ -185,6 +229,27 @@ class Transformer {
 
 			case ts.isIdentifier(Node):
 				Result = this.Identifier(Node);
+
+				break;
+
+			case ts.isShorthandPropertyAssignment(Node):
+				// Handle shorthand property assignments with conditional expressions
+				const Name = Node.name.text;
+				const Resolved = this.Resolve(Name);
+
+				if (Resolved) {
+					// Wrap conditional expressions in parentheses
+					const Value = ts.isConditionalExpression(Resolved)
+						? ts.factory.createParenthesizedExpression(Resolved)
+						: Resolved;
+
+					Result = ts.factory.createPropertyAssignment(
+						ts.factory.createIdentifier(Name),
+						Value,
+					);
+				} else {
+					Result = Node;
+				}
 
 				break;
 
