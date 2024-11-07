@@ -18,6 +18,27 @@ import type {
 class Track {
 	Count: CountInitializer = new Map();
 
+	Variable(Name: string, Node: Node): void {
+		const Result = Get(Name, "Name", this.Count);
+
+		if (Result) {
+			this.Count.get(Result)?.Usage.add({
+				Node: Node,
+
+				Position: Node.pos,
+			});
+		}
+	}
+
+	Initializer(Variable: string, Initializer: Initializer): void {
+		if (!this.Count.has(Initializer)) {
+			this.Count.set(Initializer, {
+				Name: Variable,
+				Usage: new Set(),
+			});
+		}
+	}
+
 	Scope(Node: Node): void {
 		ts.forEachChild(Node, (Node) => this.Scope(Node));
 
@@ -60,26 +81,6 @@ class Track {
 		}
 	}
 
-	Initializer(Variable: string, Initializer: Initializer): void {
-		if (!this.Count.has(Initializer)) {
-			this.Count.set(Initializer, {
-				Name: Variable,
-				Usage: new Set(),
-			});
-		}
-	}
-
-	Variable(Name: string, Node: Node): void {
-		const Result = Get(Name, "Name", this.Count);
-
-		if (Result) {
-			this.Count.get(Result)?.Usage.add({
-				Node: Node,
-				Position: Node.pos,
-			});
-		}
-	}
-
 	Inline(Name: string): boolean {
 		const Result = Get(Name, "Name", this.Count);
 
@@ -93,16 +94,15 @@ class Track {
 			return false;
 		}
 
-		// Don't inline if it's a method/function definition
 		if (
+			ts.isArrayLiteralExpression(Result) ||
+			ts.isAwaitExpression(Result) ||
 			ts.isMethodDeclaration(Result) ||
-			ts.isFunctionDeclaration(Result)
+			ts.isFunctionDeclaration(Result) ||
+			ts.isBinaryExpression(Result) ||
+			ts.isCallExpression(Result) ||
+			ts.isNewExpression(Result)
 		) {
-			return false;
-		}
-
-		// Don't inline if it's a function call or new expression
-		if (ts.isCallExpression(Result) || ts.isNewExpression(Result)) {
 			return false;
 		}
 
