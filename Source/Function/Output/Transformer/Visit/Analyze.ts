@@ -88,17 +88,18 @@ interface MemberExpression extends Node {
 	optional?: boolean;
 }
 
-interface MemberExpression extends Expression {
-	type: "MemberExpression";
+// 3
+// interface MemberExpression extends Expression {
+// 	type: "MemberExpression";
 
-	object: Expression;
+// 	object: Expression;
 
-	property: Expression;
+// 	property: Expression;
 
-	computed: boolean;
+// 	computed: boolean;
 
-	optional?: boolean;
-}
+// 	optional?: boolean;
+// }
 
 interface VariableDeclarator extends Node {
 	type: "VariableDeclarator";
