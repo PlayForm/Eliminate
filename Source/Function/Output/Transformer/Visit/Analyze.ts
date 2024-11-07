@@ -1,5 +1,310 @@
 import { memoize } from "lodash";
 
+// 4
+type NodeType = ExpressionType | StatementType | PatternType | DeclarationType;
+
+// 4
+type ExpressionType =
+	| "ArrayExpression"
+	| "ArrowFunctionExpression"
+	| "AwaitExpression"
+	| "BinaryExpression"
+	| "CallExpression"
+	| "ChainExpression"
+	| "ConditionalExpression"
+	| "FunctionExpression"
+	| "Identifier"
+	| "Literal"
+	| "LogicalExpression"
+	| "MemberExpression"
+	| "NewExpression"
+	| "ObjectExpression"
+	| "SequenceExpression"
+	| "SpreadElement"
+	| "TaggedTemplateExpression"
+	| "TemplateLiteral"
+	| "ThisExpression"
+	| "UnaryExpression"
+	| "YieldExpression";
+
+// 4
+type StatementType =
+	| "BlockStatement"
+	| "ExpressionStatement"
+	| "IfStatement"
+	| "SwitchStatement"
+	| "ForStatement"
+	| "ForInStatement"
+	| "ForOfStatement"
+	| "WhileStatement"
+	| "DoWhileStatement"
+	| "TryStatement"
+	| "ThrowStatement"
+	| "ReturnStatement"
+	| "BreakStatement"
+	| "ContinueStatement"
+	| "LabeledStatement";
+
+// 4
+type PatternType =
+	| "ObjectPattern"
+	| "ArrayPattern"
+	| "RestElement"
+	| "AssignmentPattern";
+
+// 4
+type DeclarationType =
+	| "VariableDeclaration"
+	| "FunctionDeclaration"
+	| "ClassDeclaration";
+
+/// 4
+
+// new
+type AnalysisResult = {
+	effects: Set<Effect>;
+
+	mutations: Set<string>;
+
+	dependencies: Set<string>;
+
+	errors: Set<string>;
+
+	complexity: number;
+
+	purity: number;
+};
+
+// 3
+interface MemberExpression extends Node {
+	type: "MemberExpression";
+
+	object: Expression;
+
+	property: Expression | Identifier;
+
+	computed: boolean;
+
+	optional?: boolean;
+}
+
+interface MemberExpression extends Expression {
+	type: "MemberExpression";
+
+	object: Expression;
+
+	property: Expression;
+
+	computed: boolean;
+
+	optional?: boolean;
+}
+
+interface VariableDeclarator extends Node {
+	type: "VariableDeclarator";
+
+	id: Identifier;
+
+	init: Expression | null;
+}
+
+interface Variable {
+	name: string;
+
+	mutable: boolean;
+
+	references: Reference[];
+}
+
+interface Literal extends Node {
+	type: "Literal";
+
+	value: string | number | boolean | null;
+
+	raw?: string;
+}
+
+interface Literal extends Expression {
+	type: "Literal";
+
+	value: string | number | boolean | null | RegExp;
+
+	raw: string;
+
+	regex?: { pattern: string; flags: string };
+}
+
+interface Identifier extends Node {
+	type: "Identifier";
+
+	name: string;
+}
+
+interface Identifier extends Expression {
+	type: "Identifier";
+
+	name: string;
+}
+
+interface SourceLocation {
+	start: Position;
+
+	end: Position;
+
+	source?: string;
+}
+
+// Types for AST nodes
+// Core interfaces
+
+// type Node = {
+//
+//
+//
+//
+
+// 	name?: string;
+//
+//
+// 	init?: Node;
+//
+//
+// 	callee?: Node;
+//
+//
+// 	object?: Node;
+//
+//
+// 	property?: Node;
+//
+//
+// 	operator?: string;
+//
+//
+// 	left?: Node;
+//
+//
+// 	right?: Node;
+//
+//
+// 	arguments?: Node[];
+//
+//
+// };
+//
+//
+
+interface Comment extends Node {
+	type: "Line" | "Block";
+
+	value: string;
+}
+
+interface Declaration extends Node {
+	type: DeclarationType;
+}
+
+interface Pattern extends Node {
+	type: PatternType;
+}
+
+interface Statement extends Node {
+	type: StatementType;
+}
+
+// Expression types
+
+interface Expression extends Node {
+	type: ExpressionType;
+}
+
+// type Expression =
+// | Identifier
+// | Literal
+// | MemberExpression
+// | CallExpression
+// | BinaryExpression
+// | ObjectExpression
+// | ArrayExpression;
+//
+//
+//
+
+// Configuration interfaces
+interface AnalyzerOptions {
+	maxSize?: number;
+
+	maxDepth?: number;
+
+	complexityThreshold?: number;
+
+	purityThreshold?: number;
+
+	allowAsyncAwait?: boolean;
+
+	strictMode?: boolean;
+
+	optimizationLevel?: 0 | 1 | 2;
+}
+
+interface SimplificationPattern {
+	match: string;
+
+	replacement: string;
+
+	conditions: string[];
+}
+
+interface Transformation {
+	type: "constFold" | "deadCodeElim" | "simplify";
+
+	nodes?: Node[];
+
+	patterns?: SimplificationPattern[];
+}
+
+// Types for optimization planning
+interface OptimizationPlan {
+	shouldInline: boolean;
+
+	inlineStyle: "direct" | "wrapped";
+
+	transformations: Transformation[];
+
+	cost: number;
+
+	benefit: number;
+}
+
+// Core types for AST nodes with precise type information
+interface Position {
+	line: number;
+
+	column: number;
+
+	offset: number;
+}
+
+interface SafetyAnalysis extends EffectAnalysis {
+	safe: boolean;
+
+	reasons: Set<string>;
+}
+
+interface AnalysisContext {
+	scope: Scope;
+
+	depth: number;
+
+	seenNodes: WeakSet<Expression>;
+
+	effects: Set<Effect>;
+
+	mutations: Set<string>;
+
+	dependencies: Set<string>;
+}
+
 interface ScopeVariable {
 	name: string;
 
@@ -29,12 +334,6 @@ interface Reference {
 	resolved: ScopeVariable;
 }
 
-// Advanced type system for precise AST node types
-type NodeType = ExpressionType | StatementType | PatternType | DeclarationType;
-
-// type Node = Expression | VariableDeclarator | Property | SpreadElement;
-// old
-
 interface Node {
 	type: NodeType;
 
@@ -49,10 +348,163 @@ interface Node {
 	trailingComments?: Comment[];
 }
 
-// into here from there ⬇️⬅️
-// BaseNode became Expression 3-4
-// and type Node became NodeType 2-4
+interface SpreadElement extends Node {
+	type: "SpreadElement";
 
+	argument: Expression;
+}
+
+interface Property extends Node {
+	type: "Property";
+
+	key: Expression;
+
+	value: Expression;
+
+	kind: "init" | "get" | "set";
+
+	method: boolean;
+
+	shorthand: boolean;
+
+	computed: boolean;
+}
+
+interface ArrayExpression extends Node {
+	type: "ArrayExpression";
+
+	elements: Array<Expression | SpreadElement | null>;
+}
+
+interface ObjectExpression extends Node {
+	type: "ObjectExpression";
+
+	properties: Array<Property | SpreadElement>;
+}
+
+interface BinaryExpression extends Node {
+	type: "BinaryExpression";
+
+	operator: string;
+
+	left: Expression;
+
+	right: Expression;
+}
+
+interface CallExpression extends Node {
+	type: "CallExpression";
+
+	callee: Expression;
+
+	arguments: Expression[];
+
+	optional?: boolean;
+}
+
+interface CallExpression extends Expression {
+	type: "CallExpression";
+
+	callee: Expression;
+
+	arguments: Expression[];
+
+	optional?: boolean;
+}
+
+interface EffectSet {
+	readonly effects: ReadonlySet<Effect>;
+
+	readonly mutations: ReadonlySet<string>;
+
+	readonly dependencies: ReadonlySet<string>;
+
+	readonly complexity: number;
+
+	readonly purity: number; // 0-1 score of how pure the expression is
+}
+
+// Advanced type system for tracking effects and mutations
+// Effect system for tracking side effects and mutations
+type Effect =
+	| "pure" // No side effects
+	| "reads" // Reads from variables/properties
+	| "writes" // Writes to variables/properties
+	| "calls" // Function calls
+	| "allocates" // Object/array creation
+	| "throws" // May throw exceptions
+	| "async" // Async operations
+	| "mutates" // Mutates existing objects
+	| "captures" // Captures variables in closure
+	| "generates" // Generates new values (Math.random etc)
+	| "network" // Network operations
+	| "dom" // DOM operations
+	| "timing"; // Timing-dependent operations
+
+interface EffectAnalysis {
+	effects: Set<Effect>;
+
+	mutations: Set<string>;
+
+	dependencies: Set<string>;
+
+	complexity: number;
+}
+
+// Helper classes for building analysis results
+// 4
+class AnalysisResultBuilder {
+	private readonly effects = new Set<Effect>();
+
+	private readonly mutations = new Set<string>();
+
+	private readonly dependencies = new Set<string>();
+
+	private readonly errors = new Set<string>();
+
+	private complexity = 0;
+
+	private purity = 1;
+
+	public addEffect(effect: Effect): void {
+		this.effects.add(effect);
+
+		if (effect !== "pure") {
+			this.purity *= 0.9;
+		}
+	}
+
+	public addMutation(path: string): void {
+		this.mutations.add(path);
+
+		this.purity *= 0.8;
+	}
+
+	public addDependency(name: string): void {
+		this.dependencies.add(name);
+	}
+
+	public addError(error: string): void {
+		this.errors.add(error);
+	}
+
+	public isValid(): boolean {
+		return this.errors.size === 0;
+	}
+
+	public build(): AnalysisResult {
+		return {
+			effects: new Set(this.effects),
+			mutations: new Set(this.mutations),
+			dependencies: new Set(this.dependencies),
+			errors: new Set(this.errors),
+			complexity: this.complexity,
+			purity: this.purity,
+		};
+	}
+}
+
+// 1-2
 class InlineSafetyChecker {
 	private readonly SAFE_BUILTINS = new Set([
 		"Object.freeze",
@@ -534,453 +986,7 @@ class InlineSafetyChecker {
 	}
 }
 
-interface SpreadElement extends Node {
-	type: "SpreadElement";
-
-	argument: Expression;
-}
-
-interface Property extends Node {
-	type: "Property";
-
-	key: Expression;
-
-	value: Expression;
-
-	kind: "init" | "get" | "set";
-
-	method: boolean;
-
-	shorthand: boolean;
-
-	computed: boolean;
-}
-
-interface ArrayExpression extends Node {
-	type: "ArrayExpression";
-
-	elements: Array<Expression | SpreadElement | null>;
-}
-
-interface ObjectExpression extends Node {
-	type: "ObjectExpression";
-
-	properties: Array<Property | SpreadElement>;
-}
-
-interface BinaryExpression extends Node {
-	type: "BinaryExpression";
-
-	operator: string;
-
-	left: Expression;
-
-	right: Expression;
-}
-
-interface CallExpression extends Node {
-	type: "CallExpression";
-
-	callee: Expression;
-
-	arguments: Expression[];
-
-	optional?: boolean;
-}
-
-interface CallExpression extends Expression {
-	type: "CallExpression";
-
-	callee: Expression;
-
-	arguments: Expression[];
-
-	optional?: boolean;
-}
-
-interface EffectSet {
-	readonly effects: ReadonlySet<Effect>;
-
-	readonly mutations: ReadonlySet<string>;
-
-	readonly dependencies: ReadonlySet<string>;
-
-	readonly complexity: number;
-
-	readonly purity: number; // 0-1 score of how pure the expression is
-}
-
-// Advanced type system for tracking effects and mutations
-// Effect system for tracking side effects and mutations
-type Effect =
-	| "pure" // No side effects
-	| "reads" // Reads from variables/properties
-	| "writes" // Writes to variables/properties
-	| "calls" // Function calls
-	| "allocates" // Object/array creation
-	| "throws" // May throw exceptions
-	| "async" // Async operations
-	| "mutates" // Mutates existing objects
-	| "captures" // Captures variables in closure
-	| "generates" // Generates new values (Math.random etc)
-	| "network" // Network operations
-	| "dom" // DOM operations
-	| "timing"; // Timing-dependent operations
-
-interface EffectAnalysis {
-	effects: Set<Effect>;
-
-	mutations: Set<string>;
-
-	dependencies: Set<string>;
-
-	complexity: number;
-}
-
-// Helper classes for building analysis results
-
-class AnalysisResultBuilder {
-	private readonly effects = new Set<Effect>();
-
-	private readonly mutations = new Set<string>();
-
-	private readonly dependencies = new Set<string>();
-
-	private readonly errors = new Set<string>();
-
-	private complexity = 0;
-
-	private purity = 1;
-
-	public addEffect(effect: Effect): void {
-		this.effects.add(effect);
-
-		if (effect !== "pure") {
-			this.purity *= 0.9;
-		}
-	}
-
-	public addMutation(path: string): void {
-		this.mutations.add(path);
-
-		this.purity *= 0.8;
-	}
-
-	public addDependency(name: string): void {
-		this.dependencies.add(name);
-	}
-
-	public addError(error: string): void {
-		this.errors.add(error);
-	}
-
-	public isValid(): boolean {
-		return this.errors.size === 0;
-	}
-
-	public build(): AnalysisResult {
-		return {
-			effects: new Set(this.effects),
-			mutations: new Set(this.mutations),
-			dependencies: new Set(this.dependencies),
-			errors: new Set(this.errors),
-			complexity: this.complexity,
-			purity: this.purity,
-		};
-	}
-}
-
-type AnalysisResult = {
-	effects: Set<Effect>;
-
-	mutations: Set<string>;
-
-	dependencies: Set<string>;
-
-	errors: Set<string>;
-
-	complexity: number;
-
-	purity: number;
-};
-
-interface MemberExpression extends Node {
-	type: "MemberExpression";
-
-	object: Expression;
-
-	property: Expression | Identifier;
-
-	computed: boolean;
-
-	optional?: boolean;
-}
-
-interface MemberExpression extends Expression {
-	type: "MemberExpression";
-
-	object: Expression;
-
-	property: Expression;
-
-	computed: boolean;
-
-	optional?: boolean;
-}
-
-interface VariableDeclarator extends Node {
-	type: "VariableDeclarator";
-
-	id: Identifier;
-
-	init: Expression | null;
-}
-
-interface VariableDeclarator extends Node {
-	type: "VariableDeclarator";
-
-	id: Identifier;
-
-	init: Expression | null;
-}
-
-interface Variable {
-	name: string;
-
-	mutable: boolean;
-
-	references: Reference[];
-}
-
-interface Literal extends Node {
-	type: "Literal";
-
-	value: string | number | boolean | null;
-
-	raw?: string;
-}
-
-interface Literal extends Expression {
-	type: "Literal";
-
-	value: string | number | boolean | null | RegExp;
-
-	raw: string;
-
-	regex?: { pattern: string; flags: string };
-}
-
-interface Identifier extends Node {
-	type: "Identifier";
-
-	name: string;
-}
-
-interface Identifier extends Expression {
-	type: "Identifier";
-
-	name: string;
-}
-
-interface SourceLocation {
-	start: Position;
-
-	end: Position;
-
-	source?: string;
-}
-
-// Types for AST nodes
-// Core interfaces
-
-// type Node = {
-//
-//
-//
-//
-
-// 	name?: string;
-//
-//
-// 	init?: Node;
-//
-//
-// 	callee?: Node;
-//
-//
-// 	object?: Node;
-//
-//
-// 	property?: Node;
-//
-//
-// 	operator?: string;
-//
-//
-// 	left?: Node;
-//
-//
-// 	right?: Node;
-//
-//
-// 	arguments?: Node[];
-//
-//
-// };
-//
-//
-
-interface Comment extends Node {
-	type: "Line" | "Block";
-
-	value: string;
-}
-
-interface Declaration extends Node {
-	type: DeclarationType;
-}
-
-interface Pattern extends Node {
-	type: PatternType;
-}
-
-interface Statement extends Node {
-	type: StatementType;
-}
-
-// Expression types
-interface Expression extends Node {
-	type: ExpressionType;
-}
-
-type DeclarationType =
-	| "VariableDeclaration"
-	| "FunctionDeclaration"
-	| "ClassDeclaration";
-
-type PatternType =
-	| "ObjectPattern"
-	| "ArrayPattern"
-	| "RestElement"
-	| "AssignmentPattern";
-
-type StatementType =
-	| "BlockStatement"
-	| "ExpressionStatement"
-	| "IfStatement"
-	| "SwitchStatement"
-	| "ForStatement"
-	| "ForInStatement"
-	| "ForOfStatement"
-	| "WhileStatement"
-	| "DoWhileStatement"
-	| "TryStatement"
-	| "ThrowStatement"
-	| "ReturnStatement"
-	| "BreakStatement"
-	| "ContinueStatement"
-	| "LabeledStatement";
-
-type ExpressionType =
-	| "Identifier"
-	| "Literal"
-	| "MemberExpression"
-	| "CallExpression"
-	| "BinaryExpression"
-	| "LogicalExpression"
-	| "UnaryExpression"
-	| "ObjectExpression"
-	| "ArrayExpression"
-	| "ConditionalExpression"
-	| "TemplateLiteral"
-	| "ArrowFunctionExpression"
-	| "FunctionExpression"
-	| "AwaitExpression"
-	| "NewExpression"
-	| "ThisExpression"
-	| "SequenceExpression"
-	| "TaggedTemplateExpression"
-	| "YieldExpression"
-	| "SpreadElement"
-	| "ChainExpression";
-
-// type Expression =
-// | Identifier
-// | Literal
-// | MemberExpression
-// | CallExpression
-// | BinaryExpression
-// | ObjectExpression
-// | ArrayExpression;
-//
-//
-//
-
-// Configuration interfaces
-interface AnalyzerOptions {
-	maxSize?: number;
-
-	maxDepth?: number;
-
-	complexityThreshold?: number;
-
-	purityThreshold?: number;
-
-	allowAsyncAwait?: boolean;
-
-	strictMode?: boolean;
-
-	optimizationLevel?: 0 | 1 | 2;
-}
-
-interface SimplificationPattern {
-	match: string;
-
-	replacement: string;
-
-	conditions: string[];
-}
-
-interface Transformation {
-	type: "constFold" | "deadCodeElim" | "simplify";
-
-	nodes?: Node[];
-
-	patterns?: SimplificationPattern[];
-}
-
-// Types for optimization planning
-interface OptimizationPlan {
-	shouldInline: boolean;
-
-	inlineStyle: "direct" | "wrapped";
-
-	transformations: Transformation[];
-
-	cost: number;
-
-	benefit: number;
-}
-
-// Core types for AST nodes with precise type information
-interface Position {
-	line: number;
-
-	column: number;
-
-	offset: number;
-}
-
-// Export main class and types
-export {
-	InlineSafetyAnalyzer,
-	AnalyzerOptions,
-	AnalysisResult,
-	OptimizationPlan,
-	Effect,
-	NodeType,
-};
-
+// 3-4
 class InlineSafetyAnalyzer {
 	private readonly cache = new WeakMap<Node, AnalysisResult>();
 
@@ -1843,26 +1849,6 @@ class InlineSafetyAnalyzer {
 	// ... Additional helper methods for specific expression types ...
 }
 
-interface SafetyAnalysis extends EffectAnalysis {
-	safe: boolean;
-
-	reasons: Set<string>;
-}
-
-interface AnalysisContext {
-	scope: Scope;
-
-	depth: number;
-
-	seenNodes: WeakSet<Expression>;
-
-	effects: Set<Effect>;
-
-	mutations: Set<string>;
-
-	dependencies: Set<string>;
-}
-
 function isSafeToInline(node: Node, declaration: Node, scope: any): boolean {
 	// Check if it's an exported const
 	if (isExported(declaration)) {
@@ -2066,3 +2052,13 @@ if (analysis.safe) {
 // }
 //
 //
+
+// Export main class and types
+export {
+	InlineSafetyAnalyzer,
+	AnalyzerOptions,
+	AnalysisResult,
+	OptimizationPlan,
+	Effect,
+	NodeType,
+};
