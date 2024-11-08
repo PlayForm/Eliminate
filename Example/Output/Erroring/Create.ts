@@ -20,8 +20,6 @@ async function main(): Promise<void> {
     const [, , _version] = process.argv;
     const quality = getEnv("VSCODE_QUALITY");
     const commit = getEnv("BUILD_SOURCEVERSION");
-    const queuedBy = getEnv("BUILD_QUEUEDBY");
-    const sourceBranch = getEnv("BUILD_SOURCEBRANCH");
     const version = _version + (quality === "stable" ? "" : `-${quality}`);
     console.log("Creating build...");
     console.log("Quality:", quality);
@@ -39,8 +37,8 @@ async function main(): Promise<void> {
                 version,
                 isReleased: false,
                 private: process.env["VSCODE_PRIVATE_BUILD"]?.toLowerCase() === "true",
-                sourceBranch,
-                queuedBy,
+                sourceBranch: getEnv("BUILD_SOURCEBRANCH"),
+                queuedBy: getEnv("BUILD_QUEUEDBY"),
                 assets: [],
                 updates: {},
             }, _partitionKey: "" }]));

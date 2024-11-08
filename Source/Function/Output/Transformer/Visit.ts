@@ -54,8 +54,8 @@ class Track {
 				Node.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
 				Node.parent.left === Node
 			) {
-				// this.Reassignment(Node.text, Node);
 				const Result = Get(Node.text, "Name", this.Count);
+
 				if (Result) {
 					this.Count.delete(Result);
 				}
@@ -81,7 +81,7 @@ class Track {
 		}
 	}
 
-	Inline(Name: string): boolean {
+	Inline(Name: string, _Node?: Node): boolean {
 		const Result = Get(Name, "Name", this.Count);
 
 		if (!Result) {
@@ -94,19 +94,57 @@ class Track {
 			return false;
 		}
 
+		const _Usage = Array.from(Initializer.Usage).sort(
+			(Previous, Next) => Previous.Position - Next.Position,
+		);
+
+		if (_Usage.length === 0) {
+			return false;
+		}
+
+		// If we have a current scope, check all usages are in same scope
+		if (_Node) {
+			while (
+				_Node &&
+				!ts.isFunctionDeclaration(_Node) &&
+				!ts.isMethodDeclaration(_Node) &&
+				!ts.isSourceFile(_Node)
+			) {
+				_Node = _Node.parent;
+			}
+
+			// Check if all usages are in the same function/method scope
+			const _UsageNode = _Usage.every(({ Node }) => {
+				while (
+					Node &&
+					!ts.isFunctionDeclaration(Node) &&
+					!ts.isMethodDeclaration(Node) &&
+					!ts.isSourceFile(Node)
+				) {
+					Node = Node.parent;
+				}
+
+				return Node === _Node;
+			});
+
+			if (!_UsageNode) {
+				return false;
+			}
+		}
+
 		if (
 			ts.isArrayLiteralExpression(Result) ||
-			ts.isAwaitExpression(Result) ||
-			ts.isMethodDeclaration(Result) ||
-			ts.isFunctionDeclaration(Result) ||
+			// ts.isAwaitExpression(Result) ||
+			// ts.isMethodDeclaration(Result) ||
+			// ts.isFunctionDeclaration(Result) ||
 			ts.isBinaryExpression(Result) ||
-			ts.isCallExpression(Result) ||
+			// ts.isCallExpression(Result) ||
 			ts.isNewExpression(Result)
 		) {
 			return false;
 		}
 
-		const Count = Initializer.Usage.size;
+		const Count = _Usage.length;
 
 		return (
 			Count === 1 ||
@@ -115,11 +153,6 @@ class Track {
 			ts.isConditionalExpression(Result) ||
 			(ts.isLiteralExpression(Result) && Count <= 3)
 		);
-	}
-
-	getInitializer(Name: string): Expression | undefined {
-		const Result = Get(Name, "Name", this.Count);
-		return Result as Expression | undefined;
 	}
 }
 
@@ -137,7 +170,7 @@ class Transformer {
 	Variable(Node: VariableStatement): Statement | undefined {
 		const Processed = Node.declarationList.declarations.map((Node) => {
 			if (Node.initializer && ts.isIdentifier(Node.initializer)) {
-				const Resolved = this.Resolve(Node.initializer.text);
+				const Resolved = this.Resolve(Node.initializer.text, Node);
 
 				if (Resolved) {
 					return ts.factory.updateVariableDeclaration(
@@ -153,9 +186,9 @@ class Transformer {
 			return Node;
 		});
 
-		const Remaining = Processed.filter((decl) => {
-			if (ts.isIdentifier(decl.name)) {
-				return !this.Tracker.Inline(decl.name.text);
+		const Remaining = Processed.filter((Variable) => {
+			if (ts.isIdentifier(Variable.name)) {
+				return !this.Tracker.Inline(Variable.name.text, Variable);
 			}
 
 			return true;
@@ -183,19 +216,41 @@ class Transformer {
 		}
 
 		if (
+			// Parameter in function/method declaration
+			ts.isParameter(Node.parent) ||
+			// Property access (e.g., obj.prop)
 			(ts.isPropertyAccessExpression(Node.parent) &&
 				Node.parent.name === Node) ||
+			// Variable declaration
 			ts.isVariableDeclaration(Node.parent) ||
-			ts.isBindingElement(Node.parent)
+			// Binding patterns
+			ts.isBindingElement(Node.parent) ||
+			// Class member
+			ts.isMethodDeclaration(Node.parent) ||
+			ts.isPropertyDeclaration(Node.parent) ||
+			ts.isConstructorDeclaration(Node.parent) ||
+			// Import/Export statements
+			ts.isImportSpecifier(Node.parent) ||
+			ts.isExportSpecifier(Node.parent) ||
+			// Object literal property names
+			(ts.isPropertyAssignment(Node.parent) &&
+				Node.parent.name === Node) ||
+			// Method parameters
+			ts.isMethodSignature(Node.parent) ||
+			// Type annotations
+			ts.isTypeReferenceNode(Node.parent) ||
+			// Class/Interface declarations
+			ts.isClassDeclaration(Node.parent) ||
+			ts.isInterfaceDeclaration(Node.parent)
 		) {
 			return Node;
 		}
 
-		return this.Resolve(Name) || Node;
+		return this.Resolve(Name, Node) || Node;
 	}
 
-	Resolve(Name: string): Expression | undefined {
-		if (!this.Tracker.Inline(Name)) {
+	Resolve(Name: string, Node: Node): Expression | undefined {
+		if (!this.Tracker.Inline(Name, Node)) {
 			return undefined;
 		}
 
@@ -205,14 +260,12 @@ class Transformer {
 			return undefined;
 		}
 
-		// If we're in an object literal property assignment, create a property assignment node
 		if (ts.isShorthandPropertyAssignment(Result.parent)) {
-			// For shorthand properties, we want the expression from Result directly
 			return Result as Expression;
 		}
 
 		if (ts.isIdentifier(Result)) {
-			return this.Resolve(Result.text) || Result;
+			return this.Resolve(Result.text, Node) || Result;
 		}
 
 		return Result;
@@ -233,24 +286,59 @@ class Transformer {
 				break;
 
 			case ts.isShorthandPropertyAssignment(Node):
-				// Handle shorthand property assignments with conditional expressions
 				const Name = Node.name.text;
-				const Resolved = this.Resolve(Name);
+				const Resolved = this.Resolve(Name, Node);
 
 				if (Resolved) {
-					// Wrap conditional expressions in parentheses
-					const Value = ts.isConditionalExpression(Resolved)
-						? ts.factory.createParenthesizedExpression(Resolved)
-						: Resolved;
-
 					Result = ts.factory.createPropertyAssignment(
 						ts.factory.createIdentifier(Name),
-						Value,
+						ts.isConditionalExpression(Resolved)
+							? ts.factory.createParenthesizedExpression(Resolved)
+							: Resolved,
 					);
 				} else {
 					Result = Node;
 				}
 
+				break;
+
+			// Class-related nodes
+			case ts.isPropertyDeclaration(Node):
+			case ts.isMethodDeclaration(Node):
+			case ts.isConstructorDeclaration(Node):
+			case ts.isGetAccessor(Node):
+			case ts.isSetAccessor(Node):
+			case ts.isClassExpression(Node):
+
+			// Function-related nodes
+			case ts.isFunctionDeclaration(Node):
+			case ts.isFunctionExpression(Node):
+			case ts.isArrowFunction(Node):
+			case ts.isCallExpression(Node):
+			case ts.isNewExpression(Node):
+
+			// Complex expressions
+			case ts.isAwaitExpression(Node):
+			case ts.isYieldExpression(Node):
+			case ts.isSpreadElement(Node):
+			case ts.isTemplateLiteral(Node):
+			case ts.isTaggedTemplateExpression(Node):
+			case ts.isJsxElement(Node):
+			case ts.isJsxFragment(Node):
+
+			// Object and property nodes
+			case ts.isObjectLiteralExpression(Node):
+			case ts.isPropertyAccessExpression(Node):
+			case ts.isElementAccessExpression(Node):
+
+			// Control flow nodes
+			case ts.isIfStatement(Node):
+			case ts.isSwitchStatement(Node):
+			case ts.isForStatement(Node):
+			case ts.isWhileStatement(Node):
+			case ts.isDoStatement(Node):
+			case ts.isTryStatement(Node):
+				Result = Node; // Preserve these nodes as-is
 				break;
 
 			default:
@@ -273,7 +361,19 @@ class Transformer {
 
 		this.Tracker.Scope(_Node);
 
-		let Node = this.Look(_Node);
+		let Node = _Node;
+
+		try {
+			Node = this.Look(_Node) ?? _Node;
+		} catch (_Error) {
+			console.log("-------------------------");
+			console.log("Could not transform Node:");
+			console.log(_Node.getText());
+
+			console.log("--------------");
+			console.log("Errored with:");
+			console.log(_Error);
+		}
 
 		if (Node && Node !== _Node) {
 			return this.Visit(Node, Collection + 1);
