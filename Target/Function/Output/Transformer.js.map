@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../Source/Function/Output/Transformer.ts"],
-  "sourcesContent": ["import type Interface from \"@Interface/Output/Transformer.js\";\n\n/**\n * @module Output\n *\n */\nexport default ((...[Context]) =>\n\t(Node) =>\n\t\tts.visitNode(Node, Visit(Context))) satisfies Interface as Interface;\n\nexport const { default: ts } = await import(\"typescript\");\n\nexport const { default: Visit } = await import(\n\t\"@Function/Output/Transformer/Visit.js\"\n);\n"],
-  "mappings": ";;AAMA,IAAO,sBAAS,2BAAI,CAAC,OAAO,MAC3B,CAAC,SACA,GAAG,UAAU,MAAM,MAAM,OAAO,CAAC,GAFnB;AAIT,MAAM,EAAE,SAAS,GAAG,IAAI,MAAM,OAAO,YAAY;AAEjD,MAAM,EAAE,SAAS,MAAM,IAAI,MAAM,OACvC,uCACD;",
-  "names": []
-}

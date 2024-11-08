@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../Source/Function/Merge.ts"],
-  "sourcesContent": ["/**\n * @module Merge\n *\n */\nexport default (await import(\"deepmerge-ts\")).deepmergeCustom({\n\tmergeArrays: false,\n});\n"],
-  "mappings": "AAIA,IAAO,iBAAS,MAAM,OAAO,cAAc,GAAG,gBAAgB;AAAA,EAC7D,aAAa;AACd,CAAC;",
-  "names": []
-}
