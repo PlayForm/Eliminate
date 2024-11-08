@@ -40,7 +40,7 @@ export default {
                     },
                 }
                 : null,
-            On
+            !On
                 ? {
                     name: "Example",
                     setup({ onEnd }) {
