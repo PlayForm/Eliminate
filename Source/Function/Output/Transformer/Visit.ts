@@ -82,84 +82,84 @@ class Track {
 	}
 
 	Inline(Name: string, _Node?: Node): boolean {
-		const Result = Get(Name, "Name", this.Count);
+		try {
+			const Result = Get(Name, "Name", this.Count);
 
-		if (!Result) {
-			return false;
-		}
-
-		const Initializer = this.Count.get(Result);
-
-		if (!Initializer) {
-			return false;
-		}
-
-		const _Usage = Array.from(Initializer.Usage).sort(
-			(Previous, Next) => Previous.Position - Next.Position,
-		);
-
-		if (_Usage.length === 0) {
-			return false;
-		}
-
-		// If we have a current scope, check all usages are in same scope
-		if (_Node) {
-			while (
-				_Node &&
-				!ts.isFunctionDeclaration(_Node) &&
-				!ts.isMethodDeclaration(_Node) &&
-				!ts.isSourceFile(_Node)
-			) {
-				_Node = _Node.parent;
-			}
-
-			// Check if all usages are in the same function/method scope
-			const _UsageNode = _Usage.every(({ Node }) => {
-				while (
-					Node &&
-					!ts.isFunctionDeclaration(Node) &&
-					!ts.isMethodDeclaration(Node) &&
-					!ts.isSourceFile(Node)
-				) {
-					Node = Node.parent;
-				}
-
-				return Node === _Node;
-			});
-
-			if (!_UsageNode) {
+			if (!Result) {
 				return false;
 			}
+
+			const Initializer = this.Count.get(Result);
+
+			if (!Initializer) {
+				return false;
+			}
+
+			// If we have a current scope, check all usages are in same scope
+			if (_Node) {
+				while (
+					_Node &&
+					!ts.isFunctionDeclaration(_Node) &&
+					!ts.isMethodDeclaration(_Node) &&
+					!ts.isSourceFile(_Node)
+				) {
+					_Node = _Node.parent;
+				}
+
+				// Check if all usages are in the same function/method scope
+				const _UsageNode = Array.from(Initializer.Usage).every(
+					({ Node }) => {
+						while (
+							Node &&
+							!ts.isFunctionDeclaration(Node) &&
+							!ts.isMethodDeclaration(Node) &&
+							!ts.isSourceFile(Node)
+						) {
+							Node = Node.parent;
+						}
+
+						return Node === _Node;
+					},
+				);
+
+				if (!_UsageNode) {
+					return false;
+				}
+			}
+
+			if (
+				ts.isArrayLiteralExpression(Result) ||
+				// ts.isAwaitExpression(Result) ||
+				// ts.isMethodDeclaration(Result) ||
+				// ts.isFunctionDeclaration(Result) ||
+				ts.isBinaryExpression(Result) ||
+				// ts.isCallExpression(Result) ||
+				ts.isNewExpression(Result)
+			) {
+				return false;
+			}
+
+			const Count = Initializer.Usage.size;
+
+			return (
+				Count === 1 ||
+				ts.isIdentifier(Result) ||
+				// Include conditional expressions as valid nodes for inlining
+				ts.isConditionalExpression(Result) ||
+				(ts.isLiteralExpression(Result) && Count <= 3)
+			);
+		} catch (error) {
+			console.log(error);
 		}
 
-		if (
-			ts.isArrayLiteralExpression(Result) ||
-			// ts.isAwaitExpression(Result) ||
-			// ts.isMethodDeclaration(Result) ||
-			// ts.isFunctionDeclaration(Result) ||
-			ts.isBinaryExpression(Result) ||
-			// ts.isCallExpression(Result) ||
-			ts.isNewExpression(Result)
-		) {
-			return false;
-		}
-
-		const Count = _Usage.length;
-
-		return (
-			Count === 1 ||
-			ts.isIdentifier(Result) ||
-			// Include conditional expressions as valid nodes for inlining
-			ts.isConditionalExpression(Result) ||
-			(ts.isLiteralExpression(Result) && Count <= 3)
-		);
+		return false;
 	}
 }
 
 class Transformer {
 	readonly Context: TransformationContext;
 
-	readonly Tracker: Track;
+	Tracker: Track;
 
 	constructor(Context: TransformationContext) {
 		this.Context = Context;
@@ -359,6 +359,7 @@ class Transformer {
 			return _Node;
 		}
 
+		this.Tracker = new Track();
 		this.Tracker.Scope(_Node);
 
 		let Node = _Node;
