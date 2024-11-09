@@ -9,5 +9,5 @@ export default interface Interface {
 		Search: Value[K],
 		In: K,
 		Map: Map<Initializer, Value>,
-	): Initializer | undefined;
+	): [Initializer, Record<string, any>] | undefined;
 }

@@ -7,4 +7,4 @@ import type Interface from "@Interface/Output/Visit/Get.js";
 export default ((...[Search, In, Map]) =>
 	[...Map.entries()].find(
 		([_Key, Value]) => Value[In] === Search,
-	)?.[0]) satisfies Interface as Interface;
+	)) satisfies Interface as Interface;

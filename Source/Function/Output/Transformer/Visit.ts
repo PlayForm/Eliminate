@@ -19,7 +19,7 @@ class Track {
 	Count: CountInitializer = new Map();
 
 	Variable(Name: string, Node: Node): void {
-		const Result = Get(Name, "Name", this.Count);
+		const Result = Get(Name, "Name", this.Count)?.[0];
 
 		if (Result) {
 			this.Count.get(Result)?.Usage.add({
@@ -54,7 +54,7 @@ class Track {
 				Node.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken &&
 				Node.parent.left === Node
 			) {
-				const Result = Get(Node.text, "Name", this.Count);
+				const Result = Get(Node.text, "Name", this.Count)?.[0];
 
 				if (Result) {
 					this.Count.delete(Result);
@@ -83,7 +83,7 @@ class Track {
 
 	Inline(Name: string, _Node?: Node): boolean {
 		try {
-			const Result = Get(Name, "Name", this.Count);
+			const Result = Get(Name, "Name", this.Count)?.[0];
 
 			if (!Result) {
 				return false;
@@ -95,58 +95,60 @@ class Track {
 				return false;
 			}
 
-			// If we have a current scope, check all usages are in same scope
-			if (_Node) {
-				while (
-					_Node &&
-					!ts.isFunctionDeclaration(_Node) &&
-					!ts.isMethodDeclaration(_Node) &&
-					!ts.isSourceFile(_Node)
-				) {
-					_Node = _Node.parent;
-				}
+			// // If we have a current scope, check all usages are in same scope
+			// if (_Node) {
+			// 	while (
+			// 		_Node &&
+			// 		!ts.isFunctionDeclaration(_Node) &&
+			// 		!ts.isMethodDeclaration(_Node) &&
+			// 		!ts.isSourceFile(_Node)
+			// 	) {
+			// 		_Node = _Node.parent;
+			// 	}
 
-				// Check if all usages are in the same function/method scope
-				const _UsageNode = Array.from(Initializer.Usage).every(
-					({ Node }) => {
-						while (
-							Node &&
-							!ts.isFunctionDeclaration(Node) &&
-							!ts.isMethodDeclaration(Node) &&
-							!ts.isSourceFile(Node)
-						) {
-							Node = Node.parent;
-						}
+			// 	// Check if all usages are in the same function/method scope
+			// 	const _UsageNode = Array.from(Initializer.Usage).every(
+			// 		({ Node }) => {
+			// 			while (
+			// 				Node &&
+			// 				!ts.isFunctionDeclaration(Node) &&
+			// 				!ts.isMethodDeclaration(Node) &&
+			// 				!ts.isSourceFile(Node)
+			// 			) {
+			// 				Node = Node.parent;
+			// 			}
 
-						return Node === _Node;
-					},
-				);
+			// 			return Node === _Node;
+			// 		},
+			// 	);
 
-				if (!_UsageNode) {
-					return false;
-				}
-			}
+			// 	if (!_UsageNode) {
+			// 		return false;
+			// 	}
+			// }
 
-			if (
-				ts.isArrayLiteralExpression(Result) ||
-				// ts.isAwaitExpression(Result) ||
-				// ts.isMethodDeclaration(Result) ||
-				// ts.isFunctionDeclaration(Result) ||
-				ts.isBinaryExpression(Result) ||
-				// ts.isCallExpression(Result) ||
-				ts.isNewExpression(Result)
-			) {
-				return false;
-			}
+			// if (
+			// 	ts.isArrayLiteralExpression(Result) ||
+			// 	// ts.isAwaitExpression(Result) ||
+			// 	// ts.isMethodDeclaration(Result) ||
+			// 	// ts.isFunctionDeclaration(Result) ||
+			// 	ts.isBinaryExpression(Result) ||
+			// 	// ts.isCallExpression(Result) ||
+			// 	ts.isNewExpression(Result)
+			// ) {
+			// 	return false;
+			// }
+
+			console.log(Initializer.Name);
+			console.log(Initializer.Usage);
 
 			const Count = Initializer.Usage.size;
 
 			return (
 				Count === 1 ||
 				ts.isIdentifier(Result) ||
-				// Include conditional expressions as valid nodes for inlining
 				ts.isConditionalExpression(Result) ||
-				(ts.isLiteralExpression(Result) && Count <= 3)
+				ts.isLiteralExpression(Result)
 			);
 		} catch (error) {
 			console.log(error);
@@ -216,32 +218,40 @@ class Transformer {
 		}
 
 		if (
-			// Parameter in function/method declaration
+			// Parameter and function-related checks
 			ts.isParameter(Node.parent) ||
-			// Property access (e.g., obj.prop)
+			ts.isMethodDeclaration(Node.parent) ||
+			ts.isConstructorDeclaration(Node.parent) ||
+			ts.isFunctionDeclaration(Node.parent) ||
+			// Property and class-related checks
+			ts.isPropertyDeclaration(Node.parent) ||
 			(ts.isPropertyAccessExpression(Node.parent) &&
 				Node.parent.name === Node) ||
-			// Variable declaration
-			ts.isVariableDeclaration(Node.parent) ||
-			// Binding patterns
-			ts.isBindingElement(Node.parent) ||
-			// Class member
-			ts.isMethodDeclaration(Node.parent) ||
-			ts.isPropertyDeclaration(Node.parent) ||
-			ts.isConstructorDeclaration(Node.parent) ||
-			// Import/Export statements
-			ts.isImportSpecifier(Node.parent) ||
-			ts.isExportSpecifier(Node.parent) ||
-			// Object literal property names
 			(ts.isPropertyAssignment(Node.parent) &&
 				Node.parent.name === Node) ||
-			// Method parameters
-			ts.isMethodSignature(Node.parent) ||
-			// Type annotations
+			// Variable and binding checks
+			ts.isVariableDeclaration(Node.parent) ||
+			ts.isBindingElement(Node.parent) ||
+			// Import/Export checks
+			ts.isImportSpecifier(Node.parent) ||
+			ts.isExportSpecifier(Node.parent) ||
+			// Type-related checks
 			ts.isTypeReferenceNode(Node.parent) ||
+			ts.isTypeLiteralNode(Node.parent) ||
+			ts.isTypeAliasDeclaration(Node.parent) ||
+			ts.isTypeParameterDeclaration(Node.parent) ||
+			ts.isIndexSignatureDeclaration(Node.parent) ||
+			ts.isPropertySignature(Node.parent) ||
+			ts.isTypePredicateNode(Node.parent) ||
+			ts.isPartOfTypeNode(Node.parent) ||
+			ts.isInterfaceDeclaration(Node.parent) ||
+			ts.isMethodSignature(Node.parent) ||
+			// Check if part of type annotations
+			ts.isMethodDeclaration(Node.parent) ||
+			ts.isParameter(Node.parent) ||
+			ts.isPropertyDeclaration(Node.parent) ||
 			// Class/Interface declarations
-			ts.isClassDeclaration(Node.parent) ||
-			ts.isInterfaceDeclaration(Node.parent)
+			ts.isClassDeclaration(Node.parent)
 		) {
 			return Node;
 		}
@@ -254,7 +264,7 @@ class Transformer {
 			return undefined;
 		}
 
-		const Result = Get(Name, "Name", this.Tracker.Count);
+		const Result = Get(Name, "Name", this.Tracker.Count)?.[0];
 
 		if (!Result) {
 			return undefined;
