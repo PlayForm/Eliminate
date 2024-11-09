@@ -95,33 +95,8 @@ class Track {
 				return false;
 			}
 
+			// If we have a current scope, check all usages are in same scope
 			if (_Node) {
-				let Node = _Node;
-
-				while (Node.parent) {
-					if (ts.isMethodDeclaration(Node.parent)) {
-						const Method = (Node.parent.name as Identifier)
-							.text;
-
-						let Overload = 0;
-
-						ts.forEachChild(Node.getSourceFile(), (node) => {
-							if (
-								ts.isMethodDeclaration(node) &&
-								(node.name as Identifier).text === Method
-							) {
-								Overload++;
-							}
-						});
-
-						if (Overload > 1) {
-							return false;
-						}
-					}
-
-					Node = Node.parent;
-				}
-
 				while (
 					_Node &&
 					!ts.isFunctionDeclaration(_Node) &&
@@ -155,7 +130,7 @@ class Track {
 			if (
 				ts.isArrayLiteralExpression(Result) ||
 				// ts.isAwaitExpression(Result) ||
-				ts.isMethodDeclaration(Result) ||
+				// ts.isMethodDeclaration(Result) ||
 				// ts.isFunctionDeclaration(Result) ||
 				ts.isBinaryExpression(Result) ||
 				// ts.isCallExpression(Result) ||

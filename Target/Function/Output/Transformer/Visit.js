@@ -60,31 +60,15 @@ class Track {
         return false;
       }
       if (_Node) {
-        let Node = _Node;
-        while (Node.parent) {
-          if (ts.isMethodDeclaration(Node.parent)) {
-            const Method = Node.parent.name.text;
-            let Overload = 0;
-            ts.forEachChild(Node.getSourceFile(), (node) => {
-              if (ts.isMethodDeclaration(node) && node.name.text === Method) {
-                Overload++;
-              }
-            });
-            if (Overload > 1) {
-              return false;
-            }
-          }
-          Node = Node.parent;
-        }
         while (_Node && !ts.isFunctionDeclaration(_Node) && !ts.isMethodDeclaration(_Node) && !ts.isSourceFile(_Node)) {
           _Node = _Node.parent;
         }
         const _UsageNode = Array.from(Initializer.Usage).every(
-          ({ Node: Node2 }) => {
-            while (Node2 && !ts.isFunctionDeclaration(Node2) && !ts.isMethodDeclaration(Node2) && !ts.isSourceFile(Node2)) {
-              Node2 = Node2.parent;
+          ({ Node }) => {
+            while (Node && !ts.isFunctionDeclaration(Node) && !ts.isMethodDeclaration(Node) && !ts.isSourceFile(Node)) {
+              Node = Node.parent;
             }
-            return Node2 === _Node;
+            return Node === _Node;
           }
         );
         if (!_UsageNode) {
@@ -92,7 +76,8 @@ class Track {
         }
       }
       if (ts.isArrayLiteralExpression(Result) || // ts.isAwaitExpression(Result) ||
-      ts.isMethodDeclaration(Result) || // ts.isFunctionDeclaration(Result) ||
+      // ts.isMethodDeclaration(Result) ||
+      // ts.isFunctionDeclaration(Result) ||
       ts.isBinaryExpression(Result) || // ts.isCallExpression(Result) ||
       ts.isNewExpression(Result)) {
         return false;
