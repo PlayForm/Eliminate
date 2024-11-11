@@ -3,3 +3,4 @@ export declare const ts: typeof import("typescript"), isIdentifier: typeof impor
 declare const _default: Interface;
 export default _default;
 export declare const Get: import("../../../Interface/Output/Visit/Get").default;
+export declare const Log: (...Log: any) => void;

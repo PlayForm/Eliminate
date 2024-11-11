@@ -139,8 +139,8 @@ class Track {
 			// 	return false;
 			// }
 
-			console.log(Initializer.Name);
-			console.log(Initializer.Usage);
+			Log(Initializer.Name);
+			Log(Initializer.Usage);
 
 			const Count = Initializer.Usage.size;
 
@@ -151,7 +151,7 @@ class Track {
 				ts.isLiteralExpression(Result)
 			);
 		} catch (error) {
-			console.log(error);
+			Log(error);
 		}
 
 		return false;
@@ -377,13 +377,13 @@ class Transformer {
 		try {
 			Node = this.Look(_Node) ?? _Node;
 		} catch (_Error) {
-			console.log("-------------------------");
-			console.log("Could not transform Node:");
-			console.log(_Node.getText());
+			Log("-------------------------");
+			Log("Could not transform Node:");
+			Log(_Node.getText());
 
-			console.log("--------------");
-			console.log("Errored with:");
-			console.log(_Error);
+			Log("--------------");
+			Log("Errored with:");
+			Log(_Error);
 		}
 
 		if (Node && Node !== _Node) {
@@ -407,4 +407,8 @@ export default ((context: TransformationContext) => (rootNode) =>
 
 export const { default: Get } = await import(
 	"@Function/Output/Transformer/Visit/Get.js"
+);
+
+export const { default: Log } = await import(
+	"@Function/Output/Transformer/Visit/Log.js"
 );

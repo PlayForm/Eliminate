@@ -19,7 +19,7 @@ export default {
 	write: true,
 	bundle: false,
 	sourcemap: On,
-	drop: On ? [] : ["console", "debugger"],
+	drop: On ? [] : ["debugger"],
 	ignoreAnnotations: !On,
 	keepNames: On,
 	plugins: [
