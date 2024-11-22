@@ -1,3 +1,5 @@
-const name = "World";
-const greeting = `Hello ${name}`;
-const use = greeting;
+const condition = true;
+
+const result = condition ? "yes" : "no";
+
+const templateStr = `Value is: ${result}`;

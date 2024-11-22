@@ -9,14 +9,19 @@ import * as fs from "fs";
 import * as path from "path";
 
 const root = path.dirname(path.dirname(__dirname));
+
 const npmrcPath = path.join(root, "remote", ".npmrc");
+
 const npmrc = fs.readFileSync(npmrcPath, "utf8");
+
 const version = /^target="(.*)"$/m.exec(npmrc)![1];
 
 const platform = process.platform;
+
 const arch = process.arch;
 
 const node = platform === "win32" ? "node.exe" : "node";
+
 const nodePath = path.join(
 	root,
 	".build",

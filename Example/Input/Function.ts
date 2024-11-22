@@ -1,5 +1,7 @@
-function test() {
+function process() {
 	const local = 42;
-	const use = local;
-	return use;
+
+	const usage = local;
+
+	return usage;
 }

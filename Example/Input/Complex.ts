@@ -1,3 +1,9 @@
 const condition = true;
+
 const value = condition ? 1 : 2;
-const use = value;
+
+	let use = value;
+
+		let use = value;
+
+	const use = value;

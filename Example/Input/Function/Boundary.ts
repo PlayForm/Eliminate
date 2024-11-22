@@ -1,7 +1,9 @@
-const shared = 123;
-function one() {
-	return shared;
+const global = 123;
+
+function first() {
+	return global;
 }
-function two() {
-	return shared;
+
+function second() {
+	return global;
 }

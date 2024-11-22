@@ -297,6 +297,7 @@ class Transformer {
 
 			case ts.isShorthandPropertyAssignment(Node):
 				const Name = Node.name.text;
+
 				const Resolved = this.Resolve(Name, Node);
 
 				if (Resolved) {
