@@ -3,7 +3,6 @@
 // // 4
 // type NodeType = ExpressionType | StatementType | PatternType | DeclarationType;
 
-
 // // 4
 // type ExpressionType =
 // 	| "ArrayExpression"
@@ -222,7 +221,6 @@
 
 // 	value: string;
 // }
-
 
 // // Expression types
 
@@ -1964,53 +1962,25 @@
 // /*
 // const analyzer = new InlineSafetyAnalyzer({
 
-
-
-
-
 //   allowComplex: false,
 //   maxSize: 200,
 //   maxDepth: 3,
 //   strictMode: true
 // });
 
-
-
-
-
 // const analysis = analyzer.analyzeSafety(useNode, declaration, scope);
-
-
-
 
 // if (analysis.safe) {
 
-
-
-
-
 //   // Proceed with inlining
 // } else {
- 
- 
- 
- 
- 
-//   console.log('Cannot inline due to:', Array.from(analysis.reasons));
-  
-  
 
+//   console.log('Cannot inline due to:', Array.from(analysis.reasons));
 
 //   console.log('Effects:', Array.from(analysis.effects));
-  
-  
 
-  
 //   console.log('Mutations:', Array.from(analysis.mutations));
-  
-  
 
-  
 //   console.log
 // */
 

@@ -3,5 +3,5 @@
  *
  */
 export default interface Interface {
-	(Source: string): Promise<string>;
+    (Source: string): Promise<string>;
 }
