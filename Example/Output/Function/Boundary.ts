@@ -1,6 +1,6 @@
 function first() {
-    return 123;
+	return 123;
 }
 function second() {
-    return 123;
+	return 123;
 }

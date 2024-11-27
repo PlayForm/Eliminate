@@ -1,2 +1,1 @@
-const templateStr = `Value is: ${true
-    ? "yes" : "no"}`;
+const templateStr = `Value is: ${true ? "yes" : "no"}`;

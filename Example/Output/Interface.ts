@@ -1,4 +1,4 @@
 interface Test {
-    prop: string;
+	prop: string;
 }
 const obj: Test = { prop: "test" };
