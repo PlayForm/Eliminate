@@ -1,5 +1,5 @@
-const name = "World";
+const Name = "World";
 
-const greeting = `Hello ${name}`;
+const Greeting = `Hello ${Name}`;
 
-const use = greeting;
+const Use = Greeting;

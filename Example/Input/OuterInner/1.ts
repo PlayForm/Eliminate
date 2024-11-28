@@ -1,8 +1,8 @@
-function outer() {
-	const x = 42;
+function Outer() {
+	const Sample = 42;
 
-	function inner() {
-		console.log(x);
-		console.log(x);
+	function Inner() {
+		console.log(Sample);
+		console.log(Sample);
 	}
 }

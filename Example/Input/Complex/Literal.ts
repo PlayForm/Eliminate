@@ -1,5 +1,5 @@
-const condition = true;
+const Condition = true;
 
-const result = condition ? "yes" : "no";
+const Result = Condition ? "yes" : "no";
 
-const templateStr = `Value is: ${result}`;
+const TemplateStr = `Value is: ${Result}`;

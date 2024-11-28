@@ -1,9 +1,9 @@
-const global = 123;
+const Global = 123;
 
-function first() {
-	return global;
+function First() {
+	return Global;
 }
 
-function second() {
-	return global;
+function Second() {
+	return Global;
 }
