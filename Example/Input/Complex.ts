@@ -1,5 +1,5 @@
-const condition = true;
+const IfElse = true;
 
-const value = condition ? 1 : 2;
+const Value = IfElse ? 1 : 2;
 
-const use = value;
+const Usage = Value;

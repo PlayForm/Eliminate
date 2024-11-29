@@ -1,7 +1,7 @@
-function process() {
-	const local = 42;
+function Process() {
+	const Local = 42;
 
-	const usage = local;
+	const Usage = Local;
 
-	return usage;
+	return Usage;
 }

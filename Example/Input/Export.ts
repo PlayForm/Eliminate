@@ -1,3 +1,3 @@
-const internal = 42;
+const Intern = 42;
 
-export const exported = internal;
+export const Export = Intern;

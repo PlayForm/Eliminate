@@ -1,3 +1,3 @@
-const str = "hello";
+const _String = "hello";
 
-const message = str;
+const Message = _String;

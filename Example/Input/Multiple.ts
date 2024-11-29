@@ -1,5 +1,5 @@
-const multi = 123;
+const Multi = 123;
 
-const a = multi;
+const A = Multi;
 
-const b = multi;
+const B = Multi;

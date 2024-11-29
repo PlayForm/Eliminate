@@ -1,3 +1,3 @@
-import { exported } from "./Export";
+import { Export } from "./Export";
 
-const use = exported;
+const Usage = Export;

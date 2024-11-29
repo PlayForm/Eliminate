@@ -1,3 +1,3 @@
-const Arr: Array<string> = ["hello"];
+const _Array: Array<string> = ["Hello"];
 
-const Copy: Array<string> = Arr;
+const Copy: Array<string> = _Array;

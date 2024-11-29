@@ -1,5 +1,6 @@
 type ComplexType<T> = {
 	Value: T;
+
 	Timestamp: Date;
 };
 

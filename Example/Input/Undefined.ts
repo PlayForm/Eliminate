@@ -1,3 +1,3 @@
-const undef = undefined;
+const Undefined = undefined;
 
-const use = undef;
+const Usage = Undefined;

@@ -1,4 +1,6 @@
-let x = 1;
-x = 2;
+let X = 1;
 
-const use = x;
+X = 2;
+
+// @ts-ignore
+const Usage = X;

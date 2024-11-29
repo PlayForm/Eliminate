@@ -1,3 +1,5 @@
-const x: number = 42;
+// @ts-ignore
+const X: number = 42;
 
-const y: number = x;
+// @ts-ignore
+const Y: number = X;

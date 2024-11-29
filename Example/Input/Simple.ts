@@ -1,6 +1,7 @@
-const a = 1;
+const A = 1;
 
-const b = a;
+const B = A;
 
-const c = b;
-console.log(c);
+const C = B;
+
+console.log(C);

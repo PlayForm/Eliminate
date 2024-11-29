@@ -1,9 +1,9 @@
-const outer = 1;
+const Outer = 1;
 
 {
-	const inner = 2;
+	const Inner = 2;
 
-	const useInner = inner;
+	const InnerUsage = Inner;
 }
 
-const useOuter = outer;
+const OuterUsage = Outer;

@@ -1,5 +1,6 @@
 type ComplexType<T> = {
 	value: T;
+
 	timestamp: Date;
 };
 const complex: ComplexType<string> = {

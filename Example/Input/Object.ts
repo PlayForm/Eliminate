@@ -1,5 +1,6 @@
-const obj = { a: 1, b: 2 };
+const _Object = { A: 1, B: 2 };
 
-const { a } = obj;
+const { A: a } = _Object;
 
-const use = a;
+// @ts-ignore
+const Usage = a;

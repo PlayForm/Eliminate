@@ -3,6 +3,7 @@ function Outer() {
 
 	function Inner() {
 		console.log(Sample);
+
 		console.log(Sample);
 	}
 }

@@ -140,6 +140,7 @@ class Track {
 			// }
 
 			Log(Initializer.Name);
+
 			Log(Initializer.Usage);
 
 			const Count = Initializer.Usage.size;
@@ -371,6 +372,7 @@ class Transformer {
 		}
 
 		this.Tracker = new Track();
+
 		this.Tracker.Scope(_Node);
 
 		let Node = _Node;
@@ -379,11 +381,15 @@ class Transformer {
 			Node = this.Look(_Node) ?? _Node;
 		} catch (_Error) {
 			Log("-------------------------");
+
 			Log("Could not transform Node:");
+
 			Log(_Node.getText());
 
 			Log("--------------");
+
 			Log("Errored with:");
+
 			Log(_Error);
 		}
 

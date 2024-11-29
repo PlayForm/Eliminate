@@ -1,3 +1,4 @@
-const nullVal = null;
+const Null = null;
 
-const use = nullVal;
+// @ts-ignore
+const Usage = Null;

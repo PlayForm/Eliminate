@@ -1,3 +1,3 @@
-const x = 42;
+const X = 42;
 
-const y = x;
+const Y = X;
