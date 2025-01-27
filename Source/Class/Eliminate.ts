@@ -7,7 +7,7 @@
 export default new (await import("commander")).Command()
 	.name("Eliminate")
 	.version(process.env["VERSION_PACKAGE"] ?? "0.0.1")
-	.description("↘️ Eliminate —")
+	.description("Eliminate ↘️")
 	.argument(
 		"-E, --Eliminate <Eliminate>",
 		"📜 Eliminate configuration file —",

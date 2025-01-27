@@ -2,7 +2,7 @@
 	"name": "@playform/eliminate",
 	"version": "0.0.5",
 	"private": false,
-	"description": "↘️ Eliminate —",
+	"description": "Eliminate ↘️",
 	"keywords": [
 		"eliminate",
 		"single-use-variables",
