@@ -1,4 +1,4 @@
-# ↘️ [Eliminate] —
+# [Eliminate] ↘️
 
 `Eliminate` is a utility that analyzes your `TypeScript` code to identify
 variables that are defined but only used once and are not exported. It then
@@ -23,7 +23,7 @@ console.log(c);</pre>
 	</tr>
 </table>
 
-## 📦 Features
+## Features 📦
 
 -   `TypeScript` support with type-checking
 -   **Variable Usage Analysis**: Analyzes the code to count how many times each
@@ -34,7 +34,7 @@ console.log(c);</pre>
 -   **Complex Scenarios Handling**: Handles destructuring, default parameters,
     nested scopes, and type annotations.
 
-## 🚀 Installation
+## Installation 🚀
 
 Install the package as a development dependency:
 
@@ -79,7 +79,7 @@ Add `Eliminate` to your `package.json` scripts:
 }
 ```
 
-## 🤝 Contributing
+## Contributing 🤝
 
 Contributions are welcome! Please see [`CONTRIBUTING.md`](CONTRIBUTING.md) for
 guidelines and feel free to submit a Pull Request.
