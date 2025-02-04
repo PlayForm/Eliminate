@@ -42,7 +42,7 @@ export default {
 								}
 							});
 						},
-					}
+					} as Plugin
 				: null,
 			!On
 				? ({
