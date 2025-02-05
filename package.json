@@ -31,8 +31,8 @@
 		"Eliminate": "Target/Class/Eliminate.js"
 	},
 	"scripts": {
-		"Run": "Build 'Source/**/*.ts' --Watch --ESBuild Configuration/ESBuild.ts",
-		"prepublishOnly": "Build 'Source/**/*.ts' --ESBuild Configuration/ESBuild.ts"
+		"Run": "Build 'Source/**/*.ts' --Watch --ESBuild Source/Variable/ESBuild.ts",
+		"prepublishOnly": "Build 'Source/**/*.ts' --ESBuild Source/Variable/ESBuild.ts"
 	},
 	"dependencies": {
 		"@playform/pipe": "0.1.2",
@@ -42,8 +42,26 @@
 		"typescript": "5.7.3"
 	},
 	"devDependencies": {
+		"@ianvs/prettier-plugin-sort-imports": "4.4.1",
 		"@playform/build": "0.2.1",
-		"esbuild": "0.24.2"
+		"@tailwindcss/aspect-ratio": "0.4.2",
+		"@tailwindcss/forms": "0.5.10",
+		"@tailwindcss/typography": "0.5.16",
+		"@types/chai": "5.0.1",
+		"@types/jest": "29.5.14",
+		"@types/mocha": "10.0.10",
+		"chai": "5.1.2",
+		"esbuild": "0.24.2",
+		"fast-glob": "3.3.3",
+		"mocha": "11.1.0",
+		"prettier": "3.4.2",
+		"prettier-plugin-astro": "0.14.1",
+		"prettier-plugin-organize-attributes": "1.0.0",
+		"prettier-plugin-packagejson": "2.5.8",
+		"prettier-plugin-sh": "0.14.0",
+		"prettier-plugin-tailwindcss": "0.6.11",
+		"prettier-plugin-toml": "2.0.1",
+		"tailwindcss": "3.4.17"
 	},
 	"publishConfig": {
 		"access": "public",

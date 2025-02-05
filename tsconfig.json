@@ -1,8 +1,17 @@
 {
 	"compilerOptions": {
 		"baseUrl": "./",
-		"outDir": "Target"
+		"outDir": "Target",
+		"rootDir": "Source",
+		"types": ["@types/mocha", "@types/node"],
+		"lib": ["ESNext", "DOM"]
 	},
 	"extends": "@playform/build/tsconfig",
-	"include": ["Source"]
+	"include": ["Source"],
+	"exclude": [
+		"Source/Test/Input/**/*",
+		"Source/Test/Output/**/*",
+		"Target/Test/Input/**/*",
+		"Target/Test/Output/**/*"
+	]
 }
