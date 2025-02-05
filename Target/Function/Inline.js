@@ -1,2 +1,47 @@
-import*as e from"typescript";var m=async(a,i={})=>{const r=e.createCompilerHost({}),o="Input.ts";r.getSourceFile=(t,c)=>{if(t===o)return e.createSourceFile(t,a,c)},r.writeFile=()=>{};const n=e.createProgram([o],{target:e.ScriptTarget.ES2020,module:e.ModuleKind.CommonJS},r),s=n.getSyntacticDiagnostics();if(s.length>0)throw new Error(e.formatDiagnosticsWithColorAndContext(s,{getCanonicalFileName:t=>t,getCurrentDirectory:process.cwd,getNewLine:()=>`
-`}));return e.createPrinter({newLine:e.NewLineKind.LineFeed,removeComments:!i.Comment}).printFile(e.transform(n.getSourceFile(o),[new(await import("../Class/Eliminate/Output.js")).default(i).Transform(n)]).transformed[0])};export{m as default};
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+import * as ts from "typescript";
+var Inline_default = /* @__PURE__ */ __name(async (Source, Option = {}) => {
+  const Host = ts.createCompilerHost({});
+  const File = "Input.ts";
+  Host.getSourceFile = (Name, Version) => {
+    if (Name === File) {
+      return ts.createSourceFile(Name, Source, Version);
+    }
+    return void 0;
+  };
+  Host.writeFile = () => {
+  };
+  const Program = ts.createProgram(
+    [File],
+    {
+      target: ts.ScriptTarget.ES2020,
+      module: ts.ModuleKind.CommonJS
+    },
+    Host
+  );
+  const Diagnostic = Program.getSyntacticDiagnostics();
+  if (Diagnostic.length > 0) {
+    throw new Error(
+      ts.formatDiagnosticsWithColorAndContext(Diagnostic, {
+        getCanonicalFileName: /* @__PURE__ */ __name((Name) => Name, "getCanonicalFileName"),
+        getCurrentDirectory: process.cwd,
+        getNewLine: /* @__PURE__ */ __name(() => "\n", "getNewLine")
+      })
+    );
+  }
+  return ts.createPrinter({
+    newLine: ts.NewLineKind.LineFeed,
+    removeComments: !Option.Comment
+  }).printFile(
+    ts.transform(Program.getSourceFile(File), [
+      new (await import("../Class/Eliminate/Output.js")).default(
+        Option
+      ).Transform(Program)
+    ]).transformed[0]
+  );
+}, "default");
+export {
+  Inline_default as default
+};
+//# sourceMappingURL=Inline.js.map

@@ -1,1 +1,69 @@
-const t=process.env.NODE_ENV==="development";var a={color:!0,format:"esm",logLevel:"error",metafile:!0,minify:!t,outdir:"Target",platform:"node",target:"esnext",tsconfig:"tsconfig.json",write:!0,bundle:!1,sourcemap:t,drop:t?[]:["debugger"],ignoreAnnotations:!t,keepNames:t,plugins:[...[t?null:{name:"Target",setup({onStart:o,initialOptions:{outdir:i}}){o(async()=>{try{i&&await(await import("fs/promises")).rm(i,{recursive:!0})}catch(e){console.log(e)}})}},{name:"Test",setup({onEnd:o,onLoad:i}){i({filter:/.*/},async({path:e})=>(e=e.split(s).join(n.sep),e.includes("Source/Test/Input")||e.includes("Source/Test/Output")?{loader:"copy",contents:await(await import("fs/promises")).readFile(e)}:null)),o(async()=>await r("mocha --timeout 60000 --colors --file Target/Test/Inline.js"))}}].filter(Boolean)],define:{"process.env.VERSION_PACKAGE":`'${(await(await import("@playform/build/Target/Function/JSON.js")).default("package.json"))?.version}'`}};const{default:r}=await import("@playform/build/Target/Function/Exec.js"),{sep:s,posix:n}=await import("path");export{r as Exec,t as On,a as default,n as posix,s as sep};
+const On = process.env["NODE_ENV"] === "development";
+var ESBuild_default = {
+  color: true,
+  format: "esm",
+  logLevel: "error",
+  metafile: true,
+  minify: !On,
+  outdir: "Target",
+  platform: "node",
+  target: "esnext",
+  tsconfig: "tsconfig.json",
+  write: true,
+  bundle: false,
+  sourcemap: On,
+  drop: On ? [] : ["debugger"],
+  ignoreAnnotations: !On,
+  keepNames: On,
+  plugins: [
+    ...[
+      !On ? {
+        name: "Target",
+        setup({ onStart, initialOptions: { outdir } }) {
+          onStart(async () => {
+            try {
+              outdir ? await (await import("fs/promises")).rm(outdir, {
+                recursive: true
+              }) : {};
+            } catch (_Error) {
+              console.log(_Error);
+            }
+          });
+        }
+      } : null,
+      {
+        name: "Test",
+        setup({ onEnd, onLoad }) {
+          onLoad({ filter: /.*/ }, async ({ path }) => {
+            path = path.split(sep).join(posix.sep);
+            if (path.includes("Source/Test/Input") || path.includes("Source/Test/Output")) {
+              return {
+                loader: "copy",
+                contents: await (await import("fs/promises")).readFile(path)
+              };
+            }
+            return null;
+          });
+          onEnd(
+            async () => await Exec(
+              "mocha --timeout 60000 --colors --file Target/Test/Inline.js"
+            )
+          );
+        }
+      }
+    ].filter(Boolean)
+  ],
+  define: {
+    "process.env.VERSION_PACKAGE": `'${(await (await import("@playform/build/Target/Function/JSON.js")).default("package.json"))?.version}'`
+  }
+};
+const { default: Exec } = await import("@playform/build/Target/Function/Exec.js");
+const { sep, posix } = await import("path");
+export {
+  Exec,
+  On,
+  ESBuild_default as default,
+  posix,
+  sep
+};
+//# sourceMappingURL=ESBuild.js.map

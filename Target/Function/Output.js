@@ -1,1 +1,24 @@
-var r=async(...[t])=>e.createPrinter({newLine:e.NewLineKind.LineFeed,removeComments:!1,omitTrailingSemicolon:!1,noEmitHelpers:!1}).printFile(e.transform(e.createSourceFile("Input.ts",t,e.ScriptTarget.Latest,!0),[(await import("./Output/Transformer.js")).default]).transformed[0]);const e=await import("typescript");export{r as default,e as ts};
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+var Output_default = /* @__PURE__ */ __name(async (...[Source]) => ts.createPrinter({
+  newLine: ts.NewLineKind.LineFeed,
+  removeComments: false,
+  omitTrailingSemicolon: false,
+  noEmitHelpers: false
+}).printFile(
+  ts.transform(
+    ts.createSourceFile(
+      "Input.ts",
+      Source,
+      ts.ScriptTarget.Latest,
+      true
+    ),
+    [(await import("./Output/Transformer.js")).default]
+  ).transformed[0]
+), "default");
+const ts = await import("typescript");
+export {
+  Output_default as default,
+  ts
+};
+//# sourceMappingURL=Output.js.map

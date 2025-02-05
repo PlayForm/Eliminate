@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../../../../../Source/Function/Output/Transformer/Visit/Get.ts"],
+  "sourcesContent": ["import type Interface from \"@Interface/Output/Visit/Get.js\";\n\n/**\n * @module Output\n *\n */\nexport default ((...[Search, In, Map]) =>\n\t[...Map.entries()].find(\n\t\t([_Key, Value]) => Value[In] === Search,\n\t)) satisfies Interface as Interface;\n"],
+  "mappings": ";;AAMA,IAAO,cAAS,2BAAI,CAAC,QAAQ,IAAI,GAAG,MACnC,CAAC,GAAG,IAAI,QAAQ,CAAC,EAAE;AAAA,EAClB,CAAC,CAAC,MAAM,KAAK,MAAM,MAAM,EAAE,MAAM;AAClC,GAHe;",
+  "names": []
+}

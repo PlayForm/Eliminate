@@ -1,1 +1,251 @@
-import*as s from"typescript";class c{Usage=new Map;Type;Option;constructor(e={}){this.Option={Comment:!0,Max:100,Async:!1,Const:!1,Function:!1,Debug:!1,...e}}Transform(e){return this.Type=e.getTypeChecker(),a=>i=>(this.Collect(i),s.visitNode(i,n=>this.Visit(n,1,a)))}Collect(e){const a=i=>{if(s.isVariableDeclaration(i)||s.isFunctionDeclaration(i)){const n=this.Type?.getSymbolAtLocation(i.name);if(n){let t=!0,r=0;s.isVariableDeclaration(i)?(this.Option.Const&&i.parent?.parent?.flags&s.NodeFlags.Const&&(t=!1),i.initializer&&(t=this.Inline(i.initializer),r=this.Size(i.initializer))):s.isFunctionDeclaration(i)&&(this.Option.Function&&(t=!1),r=this.Size(i)),this.Comment(i)&&(t=!1),this.Usage.set(n,{Declaration:i,Reference:[],Inline:t,Size:r})}}else if(s.isIdentifier(i)){const n=this.Type?.getSymbolAtLocation(i);n&&this.Usage.has(n)&&this.Usage.get(n).Reference.push(i)}s.forEachChild(i,a)};a(e)}Size(e){let a=0;const i=n=>{a++,s.forEachChild(n,i)};return i(e),a}Comment(e){return this.Option.Comment?(s.getLeadingCommentRanges(e.getSourceFile().text,e.pos)||[]).length>0:!1}Visit(e,a=0,i){if(this.Option.Debug)for(const[n,t]of this.Usage)console.log(`Variable: ${n.name} at Depth: ${a}`),console.log(`- Reference: ${t.Reference.length}`),console.log(`- Inline: ${t.Inline}`),console.log(`- Size: ${t.Size}`),console.log(`- Text: ${t.Declaration.getText()}`);if(s.isFunctionDeclaration(e)){if(e.typeParameters&&e.typeParameters.length>0)return e;const n=this.Type?.getSymbolAtLocation(e.name);if(n){const t=this.Usage.get(n);if(t&&t.Inline&&t.Reference.length===2)return}}if(s.isVariableStatement(e)){const n=e.declarationList.declarations,t=n.filter(r=>{const o=this.Type?.getSymbolAtLocation(r.name);if(!o)return!0;const l=this.Usage.get(o);return l?!(l.Inline&&l.Reference.length===2):!0});if(t.length===0)return;if(t.length!==n.length)return i.factory.updateVariableStatement(e,e.modifiers,i.factory.createVariableDeclarationList(t,e.declarationList.flags))}if(s.isExpressionStatement(e))return s.visitEachChild(e,n=>this.Visit(n,a+1,i),i);if(s.isIdentifier(e)){const n=this.Type?.getSymbolAtLocation(e);if(n&&this.Usage.has(n)){const t=this.Usage.get(n);if(t.Inline&&t.Reference.length===2&&s.isVariableDeclaration(t.Declaration)&&t.Declaration.initializer)return this.Visit(s.isBinaryExpression(t.Declaration.initializer)||s.isConditionalExpression(t.Declaration.initializer)?i.factory.createParenthesizedExpression(t.Declaration.initializer):t.Declaration.initializer,a+1,i)}}if(s.isCallExpression(e)){const n=e.expression;if(s.isIdentifier(n)){const t=this.Type?.getSymbolAtLocation(n);if(t&&this.Usage.has(t)){const r=this.Usage.get(t);if(s.isFunctionDeclaration(r.Declaration)&&r.Declaration.typeParameters&&r.Declaration.typeParameters.length>0)return e;if(r.Inline&&r.Reference.length===2&&s.isFunctionDeclaration(r.Declaration))return i.factory.updateCallExpression(e,i.factory.createParenthesizedExpression(i.factory.createArrowFunction(r.Declaration.modifiers,r.Declaration.typeParameters,r.Declaration.parameters,r.Declaration.type,void 0,r.Declaration.body)),e.typeArguments,e.arguments)}}}if(s.isBinaryExpression(e)){const n=this.Visit(e.left,a+1,i),t=this.Visit(e.right,a+1,i);if(n!==e.left||t!==e.right)return i.factory.createParenthesizedExpression(i.factory.createBinaryExpression(n,e.operatorToken,t))}return s.visitEachChild(e,n=>this.Visit(n,a+1,i),i)}Inline(e){if(this.Size(e)>(this.Option.Max||1/0)||this.Option.Async&&s.isAwaitExpression(e)||s.isThisTypeNode(e)||s.isYieldExpression(e))return!1;if(s.isPropertyAccessExpression(e)){const i=this.Type?.getTypeAtLocation(e.expression)?.getProperty(e.name.text);if(i?.flags&&i?.flags&s.SymbolFlags.Accessor)return!1}let a=!0;return e.forEachChild(i=>{this.Inline(i)||(a=!1)}),a}}export{c as default};
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+import * as ts from "typescript";
+class Output_default {
+  static {
+    __name(this, "default");
+  }
+  Usage = /* @__PURE__ */ new Map();
+  Type;
+  Option;
+  constructor(Option = {}) {
+    this.Option = {
+      Comment: true,
+      Max: 100,
+      Async: false,
+      Const: false,
+      Function: false,
+      Debug: false,
+      ...Option
+    };
+  }
+  Transform(Program) {
+    this.Type = Program.getTypeChecker();
+    return (Context) => (Source) => {
+      this.Collect(Source);
+      return ts.visitNode(
+        Source,
+        (Source2) => this.Visit(Source2, 1, Context)
+      );
+    };
+  }
+  Collect(Source) {
+    const Collect = /* @__PURE__ */ __name((Node) => {
+      if (ts.isVariableDeclaration(Node) || ts.isFunctionDeclaration(Node)) {
+        const _Symbol = this.Type?.getSymbolAtLocation(Node.name);
+        if (_Symbol) {
+          let Inline = true;
+          let Size = 0;
+          if (ts.isVariableDeclaration(Node)) {
+            if (this.Option.Const && Node.parent?.parent?.flags & ts.NodeFlags.Const) {
+              Inline = false;
+            }
+            if (Node.initializer) {
+              Inline = this.Inline(Node.initializer);
+              Size = this.Size(Node.initializer);
+            }
+          } else if (ts.isFunctionDeclaration(Node)) {
+            if (this.Option.Function) {
+              Inline = false;
+            }
+            Size = this.Size(Node);
+          }
+          if (this.Comment(Node)) {
+            Inline = false;
+          }
+          this.Usage.set(_Symbol, {
+            Declaration: Node,
+            Reference: [],
+            Inline,
+            Size
+          });
+        }
+      } else if (ts.isIdentifier(Node)) {
+        const _Symbol = this.Type?.getSymbolAtLocation(Node);
+        if (_Symbol && this.Usage.has(_Symbol)) {
+          this.Usage.get(_Symbol).Reference.push(Node);
+        }
+      }
+      ts.forEachChild(Node, Collect);
+    }, "Collect");
+    Collect(Source);
+  }
+  Size(Node) {
+    let Size = 0;
+    const Visit = /* @__PURE__ */ __name((Node2) => {
+      Size++;
+      ts.forEachChild(Node2, Visit);
+    }, "Visit");
+    Visit(Node);
+    return Size;
+  }
+  Comment(Node) {
+    if (!this.Option.Comment) {
+      return false;
+    }
+    return (ts.getLeadingCommentRanges(
+      Node.getSourceFile().text,
+      Node.pos
+    ) || []).length > 0;
+  }
+  Visit(Node, Depth = 0, Context) {
+    if (this.Option.Debug) {
+      for (const [_Symbol, Usage] of this.Usage) {
+        console.log(`Variable: ${_Symbol.name} at Depth: ${Depth}`);
+        console.log(`- Reference: ${Usage.Reference.length}`);
+        console.log(`- Inline: ${Usage.Inline}`);
+        console.log(`- Size: ${Usage.Size}`);
+        console.log(`- Text: ${Usage.Declaration.getText()}`);
+      }
+    }
+    if (ts.isFunctionDeclaration(Node)) {
+      if (Node.typeParameters && Node.typeParameters.length > 0) {
+        return Node;
+      }
+      const _Symbol = this.Type?.getSymbolAtLocation(Node.name);
+      if (_Symbol) {
+        const Usage = this.Usage.get(_Symbol);
+        if (Usage && Usage.Inline && Usage.Reference.length === 2) {
+          return void 0;
+        }
+      }
+    }
+    if (ts.isVariableStatement(Node)) {
+      const Declaration = Node.declarationList.declarations;
+      const New = Declaration.filter((decl) => {
+        const _Symbol = this.Type?.getSymbolAtLocation(decl.name);
+        if (!_Symbol) {
+          return true;
+        }
+        const Usage = this.Usage.get(_Symbol);
+        if (!Usage) {
+          return true;
+        }
+        return !(Usage.Inline && Usage.Reference.length === 2);
+      });
+      if (New.length === 0) {
+        return void 0;
+      }
+      if (New.length !== Declaration.length) {
+        return Context.factory.updateVariableStatement(
+          Node,
+          Node.modifiers,
+          Context.factory.createVariableDeclarationList(
+            New,
+            Node.declarationList.flags
+          )
+        );
+      }
+    }
+    if (ts.isExpressionStatement(Node)) {
+      return ts.visitEachChild(
+        Node,
+        (Child) => this.Visit(Child, Depth + 1, Context),
+        Context
+      );
+    }
+    if (ts.isIdentifier(Node)) {
+      const _Symbol = this.Type?.getSymbolAtLocation(Node);
+      if (_Symbol && this.Usage.has(_Symbol)) {
+        const Usage = this.Usage.get(_Symbol);
+        if (Usage.Inline && Usage.Reference.length === 2) {
+          if (ts.isVariableDeclaration(Usage.Declaration) && Usage.Declaration.initializer) {
+            return this.Visit(
+              ts.isBinaryExpression(
+                Usage.Declaration.initializer
+              ) || ts.isConditionalExpression(
+                Usage.Declaration.initializer
+              ) ? Context.factory.createParenthesizedExpression(
+                Usage.Declaration.initializer
+              ) : Usage.Declaration.initializer,
+              Depth + 1,
+              Context
+            );
+          }
+        }
+      }
+    }
+    if (ts.isCallExpression(Node)) {
+      const Expression = Node.expression;
+      if (ts.isIdentifier(Expression)) {
+        const _Symbol = this.Type?.getSymbolAtLocation(Expression);
+        if (_Symbol && this.Usage.has(_Symbol)) {
+          const Usage = this.Usage.get(_Symbol);
+          if (ts.isFunctionDeclaration(Usage.Declaration) && Usage.Declaration.typeParameters && Usage.Declaration.typeParameters.length > 0) {
+            return Node;
+          }
+          if (Usage.Inline && Usage.Reference.length === 2 && ts.isFunctionDeclaration(Usage.Declaration)) {
+            return Context.factory.updateCallExpression(
+              Node,
+              Context.factory.createParenthesizedExpression(
+                Context.factory.createArrowFunction(
+                  Usage.Declaration.modifiers,
+                  Usage.Declaration.typeParameters,
+                  Usage.Declaration.parameters,
+                  Usage.Declaration.type,
+                  void 0,
+                  Usage.Declaration.body
+                )
+              ),
+              Node.typeArguments,
+              Node.arguments
+            );
+          }
+        }
+      }
+    }
+    if (ts.isBinaryExpression(Node)) {
+      const Left = this.Visit(Node.left, Depth + 1, Context);
+      const Right = this.Visit(Node.right, Depth + 1, Context);
+      if (Left !== Node.left || Right !== Node.right) {
+        return Context.factory.createParenthesizedExpression(
+          Context.factory.createBinaryExpression(
+            Left,
+            Node.operatorToken,
+            Right
+          )
+        );
+      }
+    }
+    return ts.visitEachChild(
+      Node,
+      (Node2) => this.Visit(Node2, Depth + 1, Context),
+      Context
+    );
+  }
+  Inline(Node) {
+    if (this.Size(Node) > (this.Option.Max || Infinity)) {
+      return false;
+    }
+    if (this.Option.Async && ts.isAwaitExpression(Node)) {
+      return false;
+    }
+    if (ts.isThisTypeNode(Node)) {
+      return false;
+    }
+    if (ts.isYieldExpression(Node)) {
+      return false;
+    }
+    if (ts.isPropertyAccessExpression(Node)) {
+      const _Symbol = this.Type?.getTypeAtLocation(
+        Node.expression
+      )?.getProperty(Node.name.text);
+      if (_Symbol?.flags) {
+        if (_Symbol?.flags & ts.SymbolFlags.Accessor) {
+          return false;
+        }
+      }
+    }
+    let Valid = true;
+    Node.forEachChild((Node2) => {
+      if (!this.Inline(Node2)) {
+        Valid = false;
+      }
+    });
+    return Valid;
+  }
+}
+export {
+  Output_default as default
+};
+//# sourceMappingURL=Output.js.map

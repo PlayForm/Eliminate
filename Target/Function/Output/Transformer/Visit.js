@@ -1,1 +1,254 @@
-class o{Count=new Map;Variable(t,i){const r=c(t,"Name",this.Count)?.[0];r&&this.Count.get(r)?.Usage.add({Node:i,Position:i.pos})}Initializer(t,i){this.Count.has(i)||this.Count.set(i,{Name:t,Usage:new Set})}Scope(t){if(e.forEachChild(t,i=>this.Scope(i)),!!t)if(e.isIdentifier(t)){if(t.parent&&e.isBinaryExpression(t.parent)&&t.parent.operatorToken.kind===e.SyntaxKind.EqualsToken&&t.parent.left===t){const i=c(t.text,"Name",this.Count)?.[0];i&&this.Count.delete(i)}(!t.parent||!e.isVariableDeclaration(t.parent))&&this.Variable(t.text,t)}else e.isVariableStatement(t)&&t.declarationList.declarations.forEach(i=>{e.isIdentifier(i.name)&&i.initializer&&((t.modifiers?.some(r=>r.kind===e.SyntaxKind.ExportKeyword)??!1)||this.Initializer(i.name.text,i.initializer))})}Inline(t,i){try{const r=c(t,"Name",this.Count)?.[0];if(!r)return!1;const a=this.Count.get(r);return a?(n(a.Name),n(a.Usage),a.Usage.size===1||e.isIdentifier(r)||e.isConditionalExpression(r)||e.isLiteralExpression(r)):!1}catch(r){n(r)}return!1}}class l{Context;Tracker;constructor(t){this.Context=t,this.Tracker=new o}Variable(t){const r=t.declarationList.declarations.map(a=>{if(a.initializer&&e.isIdentifier(a.initializer)){const s=this.Resolve(a.initializer.text,a);if(s)return e.factory.updateVariableDeclaration(a,a.name,a.exclamationToken,a.type,s)}return a}).filter(a=>e.isIdentifier(a.name)?!this.Tracker.Inline(a.name.text,a):!0);if(r.length!==0)return e.factory.createVariableStatement(t.modifiers,e.factory.createVariableDeclarationList(r,t.declarationList.flags))}Identifier(t){const i=t.text;return!t.parent||e.isParameter(t.parent)||e.isMethodDeclaration(t.parent)||e.isConstructorDeclaration(t.parent)||e.isFunctionDeclaration(t.parent)||e.isPropertyDeclaration(t.parent)||e.isPropertyAccessExpression(t.parent)&&t.parent.name===t||e.isPropertyAssignment(t.parent)&&t.parent.name===t||e.isVariableDeclaration(t.parent)||e.isBindingElement(t.parent)||e.isImportSpecifier(t.parent)||e.isExportSpecifier(t.parent)||e.isTypeReferenceNode(t.parent)||e.isTypeLiteralNode(t.parent)||e.isTypeAliasDeclaration(t.parent)||e.isTypeParameterDeclaration(t.parent)||e.isIndexSignatureDeclaration(t.parent)||e.isPropertySignature(t.parent)||e.isTypePredicateNode(t.parent)||e.isPartOfTypeNode(t.parent)||e.isInterfaceDeclaration(t.parent)||e.isMethodSignature(t.parent)||e.isMethodDeclaration(t.parent)||e.isParameter(t.parent)||e.isPropertyDeclaration(t.parent)||e.isClassDeclaration(t.parent)?t:this.Resolve(i,t)||t}Resolve(t,i){if(!this.Tracker.Inline(t,i))return;const r=c(t,"Name",this.Tracker.Count)?.[0];if(r)return e.isShorthandPropertyAssignment(r.parent)?r:e.isIdentifier(r)&&this.Resolve(r.text,i)||r}Look(t){let i;switch(!0){case e.isVariableStatement(t):i=this.Variable(t);break;case e.isIdentifier(t):i=this.Identifier(t);break;case e.isShorthandPropertyAssignment(t):const r=t.name.text,a=this.Resolve(r,t);a?i=e.factory.createPropertyAssignment(e.factory.createIdentifier(r),e.isConditionalExpression(a)?e.factory.createParenthesizedExpression(a):a):i=t;break;case e.isPropertyDeclaration(t):case e.isMethodDeclaration(t):case e.isConstructorDeclaration(t):case e.isGetAccessor(t):case e.isSetAccessor(t):case e.isClassExpression(t):case e.isFunctionDeclaration(t):case e.isFunctionExpression(t):case e.isArrowFunction(t):case e.isCallExpression(t):case e.isNewExpression(t):case e.isAwaitExpression(t):case e.isYieldExpression(t):case e.isSpreadElement(t):case e.isTemplateLiteral(t):case e.isTaggedTemplateExpression(t):case e.isJsxElement(t):case e.isJsxFragment(t):case e.isObjectLiteralExpression(t):case e.isPropertyAccessExpression(t):case e.isElementAccessExpression(t):case e.isIfStatement(t):case e.isSwitchStatement(t):case e.isForStatement(t):case e.isWhileStatement(t):case e.isDoStatement(t):case e.isTryStatement(t):i=t;break;default:i=t}return e.visitEachChild(i,r=>this.Look(r),this.Context)}Visit(t,i=0){if(i>=10)return t;this.Tracker=new o,this.Tracker.Scope(t);let a=t;try{a=this.Look(t)??t}catch(s){n("-------------------------"),n("Could not transform Node:"),n(t.getText()),n("--------------"),n("Errored with:"),n(s)}return a&&a!==t?this.Visit(a,i+1):t}}const{default:e,isIdentifier:f,factory:u}=await import("typescript");var m=p=>t=>new l(p).Visit(t);const{default:c}=await import("../../Output/Transformer/Visit/Get.js"),{default:n}=await import("../../Output/Transformer/Visit/Log.js");export{c as Get,n as Log,m as default,u as factory,f as isIdentifier,e as ts};
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+class Track {
+  static {
+    __name(this, "Track");
+  }
+  Count = /* @__PURE__ */ new Map();
+  Variable(Name, Node) {
+    const Result = Get(Name, "Name", this.Count)?.[0];
+    if (Result) {
+      this.Count.get(Result)?.Usage.add({
+        Node,
+        Position: Node.pos
+      });
+    }
+  }
+  Initializer(Variable, Initializer) {
+    if (!this.Count.has(Initializer)) {
+      this.Count.set(Initializer, {
+        Name: Variable,
+        Usage: /* @__PURE__ */ new Set()
+      });
+    }
+  }
+  Scope(Node) {
+    ts.forEachChild(Node, (Node2) => this.Scope(Node2));
+    if (!Node) {
+      return;
+    }
+    if (ts.isIdentifier(Node)) {
+      if (Node.parent && ts.isBinaryExpression(Node.parent) && Node.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && Node.parent.left === Node) {
+        const Result = Get(Node.text, "Name", this.Count)?.[0];
+        if (Result) {
+          this.Count.delete(Result);
+        }
+      }
+      if (!Node.parent || !ts.isVariableDeclaration(Node.parent)) {
+        this.Variable(Node.text, Node);
+      }
+    } else if (ts.isVariableStatement(Node)) {
+      Node.declarationList.declarations.forEach((decl) => {
+        if (ts.isIdentifier(decl.name) && decl.initializer) {
+          if (!(Node.modifiers?.some(
+            (m) => m.kind === ts.SyntaxKind.ExportKeyword
+          ) ?? false)) {
+            this.Initializer(decl.name.text, decl.initializer);
+          }
+        }
+      });
+    }
+  }
+  Inline(Name, _Node) {
+    try {
+      const Result = Get(Name, "Name", this.Count)?.[0];
+      if (!Result) {
+        return false;
+      }
+      const Initializer = this.Count.get(Result);
+      if (!Initializer) {
+        return false;
+      }
+      Log(Initializer.Name);
+      Log(Initializer.Usage);
+      const Count = Initializer.Usage.size;
+      return Count === 1 || ts.isIdentifier(Result) || ts.isConditionalExpression(Result) || ts.isLiteralExpression(Result);
+    } catch (error) {
+      Log(error);
+    }
+    return false;
+  }
+}
+class Transformer {
+  static {
+    __name(this, "Transformer");
+  }
+  Context;
+  Tracker;
+  constructor(Context) {
+    this.Context = Context;
+    this.Tracker = new Track();
+  }
+  Variable(Node) {
+    const Processed = Node.declarationList.declarations.map((Node2) => {
+      if (Node2.initializer && ts.isIdentifier(Node2.initializer)) {
+        const Resolved = this.Resolve(Node2.initializer.text, Node2);
+        if (Resolved) {
+          return ts.factory.updateVariableDeclaration(
+            Node2,
+            Node2.name,
+            Node2.exclamationToken,
+            Node2.type,
+            Resolved
+          );
+        }
+      }
+      return Node2;
+    });
+    const Remaining = Processed.filter((Variable) => {
+      if (ts.isIdentifier(Variable.name)) {
+        return !this.Tracker.Inline(Variable.name.text, Variable);
+      }
+      return true;
+    });
+    if (Remaining.length === 0) {
+      return void 0;
+    }
+    return ts.factory.createVariableStatement(
+      Node.modifiers,
+      ts.factory.createVariableDeclarationList(
+        Remaining,
+        Node.declarationList.flags
+      )
+    );
+  }
+  Identifier(Node) {
+    const Name = Node.text;
+    if (!Node.parent) {
+      return Node;
+    }
+    if (
+      // Parameter and function-related checks
+      ts.isParameter(Node.parent) || ts.isMethodDeclaration(Node.parent) || ts.isConstructorDeclaration(Node.parent) || ts.isFunctionDeclaration(Node.parent) || // Property and class-related checks
+      ts.isPropertyDeclaration(Node.parent) || ts.isPropertyAccessExpression(Node.parent) && Node.parent.name === Node || ts.isPropertyAssignment(Node.parent) && Node.parent.name === Node || // Variable and binding checks
+      ts.isVariableDeclaration(Node.parent) || ts.isBindingElement(Node.parent) || // Import/Export checks
+      ts.isImportSpecifier(Node.parent) || ts.isExportSpecifier(Node.parent) || // Type-related checks
+      ts.isTypeReferenceNode(Node.parent) || ts.isTypeLiteralNode(Node.parent) || ts.isTypeAliasDeclaration(Node.parent) || ts.isTypeParameterDeclaration(Node.parent) || ts.isIndexSignatureDeclaration(Node.parent) || ts.isPropertySignature(Node.parent) || ts.isTypePredicateNode(Node.parent) || ts.isPartOfTypeNode(Node.parent) || ts.isInterfaceDeclaration(Node.parent) || ts.isMethodSignature(Node.parent) || // Check if part of type annotations
+      ts.isMethodDeclaration(Node.parent) || ts.isParameter(Node.parent) || ts.isPropertyDeclaration(Node.parent) || // Class/Interface declarations
+      ts.isClassDeclaration(Node.parent)
+    ) {
+      return Node;
+    }
+    return this.Resolve(Name, Node) || Node;
+  }
+  Resolve(Name, Node) {
+    if (!this.Tracker.Inline(Name, Node)) {
+      return void 0;
+    }
+    const Result = Get(Name, "Name", this.Tracker.Count)?.[0];
+    if (!Result) {
+      return void 0;
+    }
+    if (ts.isShorthandPropertyAssignment(Result.parent)) {
+      return Result;
+    }
+    if (ts.isIdentifier(Result)) {
+      return this.Resolve(Result.text, Node) || Result;
+    }
+    return Result;
+  }
+  Look(Node) {
+    let Result;
+    switch (true) {
+      case ts.isVariableStatement(Node):
+        Result = this.Variable(Node);
+        break;
+      case ts.isIdentifier(Node):
+        Result = this.Identifier(Node);
+        break;
+      case ts.isShorthandPropertyAssignment(Node):
+        const Name = Node.name.text;
+        const Resolved = this.Resolve(Name, Node);
+        if (Resolved) {
+          Result = ts.factory.createPropertyAssignment(
+            ts.factory.createIdentifier(Name),
+            ts.isConditionalExpression(Resolved) ? ts.factory.createParenthesizedExpression(Resolved) : Resolved
+          );
+        } else {
+          Result = Node;
+        }
+        break;
+      // Class-related nodes
+      case ts.isPropertyDeclaration(Node):
+      case ts.isMethodDeclaration(Node):
+      case ts.isConstructorDeclaration(Node):
+      case ts.isGetAccessor(Node):
+      case ts.isSetAccessor(Node):
+      case ts.isClassExpression(Node):
+      // Function-related nodes
+      case ts.isFunctionDeclaration(Node):
+      case ts.isFunctionExpression(Node):
+      case ts.isArrowFunction(Node):
+      case ts.isCallExpression(Node):
+      case ts.isNewExpression(Node):
+      // Complex expressions
+      case ts.isAwaitExpression(Node):
+      case ts.isYieldExpression(Node):
+      case ts.isSpreadElement(Node):
+      case ts.isTemplateLiteral(Node):
+      case ts.isTaggedTemplateExpression(Node):
+      case ts.isJsxElement(Node):
+      case ts.isJsxFragment(Node):
+      // Object and property nodes
+      case ts.isObjectLiteralExpression(Node):
+      case ts.isPropertyAccessExpression(Node):
+      case ts.isElementAccessExpression(Node):
+      // Control flow nodes
+      case ts.isIfStatement(Node):
+      case ts.isSwitchStatement(Node):
+      case ts.isForStatement(Node):
+      case ts.isWhileStatement(Node):
+      case ts.isDoStatement(Node):
+      case ts.isTryStatement(Node):
+        Result = Node;
+        break;
+      default:
+        Result = Node;
+    }
+    return ts.visitEachChild(
+      Result,
+      (Node2) => this.Look(Node2),
+      this.Context
+    );
+  }
+  Visit(_Node, Collection = 0) {
+    const Failed = 10;
+    if (Collection >= Failed) {
+      return _Node;
+    }
+    this.Tracker = new Track();
+    this.Tracker.Scope(_Node);
+    let Node = _Node;
+    try {
+      Node = this.Look(_Node) ?? _Node;
+    } catch (_Error) {
+      Log("-------------------------");
+      Log("Could not transform Node:");
+      Log(_Node.getText());
+      Log("--------------");
+      Log("Errored with:");
+      Log(_Error);
+    }
+    if (Node && Node !== _Node) {
+      return this.Visit(Node, Collection + 1);
+    }
+    return _Node;
+  }
+}
+const {
+  default: ts,
+  isIdentifier,
+  factory
+} = await import("typescript");
+var Visit_default = /* @__PURE__ */ __name((context) => (rootNode) => new Transformer(context).Visit(rootNode), "default");
+const { default: Get } = await import("../../Output/Transformer/Visit/Get.js");
+const { default: Log } = await import("../../Output/Transformer/Visit/Log.js");
+export {
+  Get,
+  Log,
+  Visit_default as default,
+  factory,
+  isIdentifier,
+  ts
+};
+//# sourceMappingURL=Visit.js.map
