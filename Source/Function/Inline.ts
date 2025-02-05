@@ -1,4 +1,4 @@
-import type { Option } from "@Class/Inline.js";
+import type { Option } from "@Class/Eliminate/Output.js";
 import * as ts from "typescript";
 
 export default async (
@@ -56,7 +56,7 @@ export default async (
 		})
 		.printFile(
 			ts.transform(Program.getSourceFile(File)!, [
-				new (await import("@Class/Inline.js")).default(
+				new (await import("@Class/Eliminate/Output.js")).default(
 					Option,
 				).Transform(Program) as ts.TransformerFactory<ts.Node>,
 			]).transformed[0] as ts.SourceFile,

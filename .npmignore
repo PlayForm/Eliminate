@@ -9,3 +9,5 @@ DEPENDENTS.md
 docs/
 Source/
 Target/Test/
+prettier.config.mjs
+prettier.config.d.mts

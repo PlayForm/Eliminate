@@ -16,7 +16,7 @@ export default (async (...[Source]) =>
 		.printFile(
 			ts.transform(
 				ts.createSourceFile(
-					"temp.ts",
+					"Input.ts",
 					Source,
 					ts.ScriptTarget.Latest,
 					true,
