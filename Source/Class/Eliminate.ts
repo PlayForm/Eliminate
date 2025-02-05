@@ -10,7 +10,7 @@ export default new (await import("commander")).Command()
 	.description("Eliminate ↘️")
 	.argument(
 		"-E, --Eliminate <Eliminate>",
-		"📜 Eliminate configuration file —",
+		"📜 Eliminate configuration file",
 	)
 	.action((await import("../Function/Eliminate.js")).default)
 	.parse();

@@ -1,7 +1,7 @@
 {
   "version": 3,
   "sources": ["../../Source/Class/Eliminate.ts"],
-  "sourcesContent": ["#!/usr/bin/env node\r\n\r\n/**\r\n * @module Eliminate\r\n *\r\n */\r\nexport default new (await import(\"commander\")).Command()\r\n\t.name(\"Eliminate\")\r\n\t.version(process.env[\"VERSION_PACKAGE\"] ?? \"0.0.1\")\r\n\t.description(\"Eliminate\u2001\u2198\uFE0F\")\r\n\t.argument(\r\n\t\t\"-E, --Eliminate <Eliminate>\",\r\n\t\t\"\uD83D\uDCDC\u2001Eliminate configuration file\u2001\u2014\",\r\n\t)\r\n\t.action((await import(\"../Function/Eliminate.js\")).default)\r\n\t.parse();\r\n"],
+  "sourcesContent": ["#!/usr/bin/env node\n\n/**\n * @module Eliminate\n *\n */\nexport default new (await import(\"commander\")).Command()\n\t.name(\"Eliminate\")\n\t.version(process.env[\"VERSION_PACKAGE\"] ?? \"0.0.1\")\n\t.description(\"Eliminate\u2001\u2198\uFE0F\")\n\t.argument(\n\t\t\"-E, --Eliminate <Eliminate>\",\n\t\t\"\uD83D\uDCDC\u2001Eliminate configuration file\",\n\t)\n\t.action((await import(\"../Function/Eliminate.js\")).default)\n\t.parse();\n"],
   "mappings": ";AAMA,IAAO,oBAAQ,KAAK,MAAM,OAAO,WAAW,GAAG,QAAQ,EACrD,KAAK,WAAW,EAChB,QAAQ,OAAyC,EACjD,YAAY,6BAAc,EAC1B;AAAA,EACA;AAAA,EACA;AACD,EACC,QAAQ,MAAM,OAAO,0BAA0B,GAAG,OAAO,EACzD,MAAM;",
   "names": []
 }
