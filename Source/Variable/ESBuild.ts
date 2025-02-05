@@ -18,7 +18,7 @@ export default {
 	tsconfig: "tsconfig.json",
 	write: true,
 	bundle: false,
-	// sourcemap: On,
+	sourcemap: On,
 	drop: On ? [] : ["debugger"],
 	ignoreAnnotations: !On,
 	keepNames: On,

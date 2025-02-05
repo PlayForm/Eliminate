@@ -1,4 +1,4 @@
-import type { Option } from "@Class/Inline.js";
+import type { Option } from "@Class/Eliminate/Inline.js";
 import Inline from "@Function/Inline.js";
 import { expect } from "chai";
 import prettier, { type RequiredOptions } from "prettier";

@@ -38,7 +38,6 @@
 		"@playform/pipe": "0.1.2",
 		"commander": "13.1.0",
 		"deepmerge-ts": "7.1.4",
-		"lodash": "4.17.21",
 		"typescript": "5.7.3"
 	},
 	"devDependencies": {
