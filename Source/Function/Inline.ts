@@ -1,4 +1,4 @@
-import type { Option } from "@Class/Eliminate/Output.js";
+import type { Option } from "@Class/Output.js";
 import * as ts from "typescript";
 
 export default async (
@@ -14,13 +14,8 @@ export default async (
 		Name: string,
 
 		Version: ts.ScriptTarget,
-	) => {
-		if (Name === File) {
-			return ts.createSourceFile(Name, Source, Version);
-		}
-
-		return undefined;
-	};
+	) =>
+		Name === File ? ts.createSourceFile(Name, Source, Version) : undefined;
 
 	Host.writeFile = () => {};
 
@@ -36,7 +31,11 @@ export default async (
 		Host,
 	);
 
-	const Diagnostic = Program.getSyntacticDiagnostics();
+	const Diagnostic = Program.getSyntacticDiagnostics().forEach(
+		(Diagnostic) => {
+			Diagnostic.
+		},
+	);
 
 	if (Diagnostic.length > 0) {
 		throw new Error(
@@ -56,7 +55,7 @@ export default async (
 		})
 		.printFile(
 			ts.transform(Program.getSourceFile(File)!, [
-				new (await import("@Class/Eliminate/Output.js")).default(
+				new (await import("@Class/Output.js")).default(
 					Option,
 				).Transform(Program) as ts.TransformerFactory<ts.Node>,
 			]).transformed[0] as ts.SourceFile,
