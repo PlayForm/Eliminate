@@ -31,21 +31,15 @@ export default async (
 		Host,
 	);
 
-	const Diagnostic = Program.getSyntacticDiagnostics().forEach(
-		(Diagnostic) => {
-			Diagnostic.
-		},
-	);
-
-	if (Diagnostic.length > 0) {
+	Program.getSyntacticDiagnostics().forEach((Diagnostic) => {
 		throw new Error(
-			ts.formatDiagnosticsWithColorAndContext(Diagnostic, {
+			ts.formatDiagnosticsWithColorAndContext([Diagnostic], {
 				getCanonicalFileName: (Name) => Name,
 				getCurrentDirectory: process.cwd,
 				getNewLine: () => "\n",
 			}),
 		);
-	}
+	});
 
 	return ts
 		.createPrinter({
