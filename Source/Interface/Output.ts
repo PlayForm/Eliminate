@@ -1,7 +1,9 @@
+import type Option from "@Interface/Output/Option.js";
+
 /**
  * @module Output
  *
  */
 export default interface Interface {
-	(Source: string): Promise<string>;
+	(Source: string, Option: Option): Promise<string>;
 }

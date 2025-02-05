@@ -1,31 +1,39 @@
-import type { Option } from "@Class/Output.js";
-import * as ts from "typescript";
+import type Interface from "@Interface/Output.js";
+import type {
+	Node,
+	ScriptTarget,
+	SourceFile,
+	TransformerFactory,
+} from "typescript";
 
-export default async (
-	Source: string,
+/**
+ * @module Inline
+ *
+ */
+export default (async (
+	Source,
 
-	Option: Option = {},
-): Promise<string> => {
-	const Host = ts.createCompilerHost({});
+	Option = {},
+) => {
+	const Host = createCompilerHost({});
 
 	const File = "Input.ts";
 
 	Host.getSourceFile = (
 		Name: string,
 
-		Version: ts.ScriptTarget,
-	) =>
-		Name === File ? ts.createSourceFile(Name, Source, Version) : undefined;
+		Version: ScriptTarget,
+	) => (Name === File ? createSourceFile(Name, Source, Version) : undefined);
 
 	Host.writeFile = () => {};
 
-	const Program = ts.createProgram(
+	const Program = createProgram(
 		[File],
 
 		{
-			target: ts.ScriptTarget.ES2020,
+			target: ESNextScriptTarget,
 
-			module: ts.ModuleKind.CommonJS,
+			module: ESNextModuleKind,
 		},
 
 		Host,
@@ -33,7 +41,7 @@ export default async (
 
 	Program.getSyntacticDiagnostics().forEach((Diagnostic) => {
 		throw new Error(
-			ts.formatDiagnosticsWithColorAndContext([Diagnostic], {
+			formatDiagnosticsWithColorAndContext([Diagnostic], {
 				getCanonicalFileName: (Name) => Name,
 				getCurrentDirectory: process.cwd,
 				getNewLine: () => "\n",
@@ -41,17 +49,27 @@ export default async (
 		);
 	});
 
-	return ts
-		.createPrinter({
-			newLine: ts.NewLineKind.LineFeed,
+	return createPrinter({
+		newLine: LineFeed,
 
-			removeComments: !Option.Comment,
-		})
-		.printFile(
-			ts.transform(Program.getSourceFile(File)!, [
-				new (await import("@Class/Output.js")).default(
-					Option,
-				).Transform(Program) as ts.TransformerFactory<ts.Node>,
-			]).transformed[0] as ts.SourceFile,
-		);
-};
+		removeComments: !Option.Comment,
+	}).printFile(
+		transform(Program.getSourceFile(File)!, [
+			new (await import("@Class/Output.js")).default(Option).Transform(
+				Program,
+			) as TransformerFactory<Node>,
+		]).transformed[0] as SourceFile,
+	);
+}) satisfies Interface as Interface;
+
+export const {
+	createCompilerHost,
+	createPrinter,
+	createProgram,
+	createSourceFile,
+	ModuleKind: { ESNext: ESNextModuleKind },
+	NewLineKind: { LineFeed },
+	ScriptTarget: { ESNext: ESNextScriptTarget },
+	transform,
+	formatDiagnosticsWithColorAndContext,
+} = await import("typescript");
