@@ -1,8 +1,65 @@
 ## 0.0.5
 
+### Change
+
+- Updated dependencies:
+    - `@playform/pipe` updated to version 0.1.2
+    - `commander` updated to version 13.1.0
+    - `deepmerge-ts` updated to version 7.1.4
+    - `typescript` updated to version 5.7.3
+- Added new dependencies:
+    - `@ianvs/prettier-plugin-sort-imports`
+    - `@playform/build` updated to version 0.2.1
+    - `@tailwindcss/aspect-ratio`
+    - `@tailwindcss/forms`
+    - `@tailwindcss/typography`
+    - `@types/chai`
+    - `@types/jest`
+    - `@types/mocha`
+    - `chai`
+    - `fast-glob`
+    - `mocha`
+    - `prettier`
+    - `prettier-plugin-astro`
+    - `prettier-plugin-organize-attributes`
+    - `prettier-plugin-packagejson`
+    - `prettier-plugin-sh`
+    - `prettier-plugin-tailwindcss`
+    - `prettier-plugin-toml`
+    - `tailwindcss`
+- Updated build scripts:
+    - Using `Source/Variable/ESBuild.ts` for ESBuild configuration.
+- Updated description to "Eliminate ↘️".
+- Updated author information:
+    - Name changed to "Source 🖋️ Open 👐🏻".
+    - Email changed to "Source/Open@PlayForm.LTD".
+    - URL changed to "HTTPS://PlayForm.LTD".
+- Added `.npmignore` file to exclude unnecessary files from the published
+  package.
+- Added `prettier.config.d.mts` and `prettier.config.mjs` for Prettier
+  configuration.
+- Added `tailwind.config.js` for Tailwind CSS configuration.
+- Updated `tsconfig.json` with additional options:
+    - Added `rootDir` option.
+    - Added `types` option.
+    - Added `lib` option.
+    - Added `exclude` option.
+- Refactored code and file structure:
+    - Moved ESBuild configuration to `Source/Variable/ESBuild.ts`.
+    - Created `Source/Class/Output.ts` for code elimination logic.
+    - Updated `Source/Function/Output.ts` to use the new `Output` class.
+    - Removed unused files and types related to code elimination.
+- Added tests for code elimination functionality.
+
+### Bug Fixes
+
+- Fixed an issue where the output was not correctly formatted.
+- Fixed an issue where comments were not preserved in the output.
+- Fixed an issue where async expressions were not inlined correctly.
+
 ## 0.0.4
 
-### Changed
+### Change
 
 - Improved code formatting and structure in Configuration.js
 - Changed const enums to regular enums for better compatibility
@@ -20,7 +77,7 @@
 - Streamlined import statements and function calls
 - Simplified conditional checks in node traversal logic
 
-### Dependencies
+### Dependency
 
 - Added command-line interface support with commander
 - Upgraded build system with latest esbuild version
@@ -28,7 +85,7 @@
 
 ## 0.0.3
 
-### Changed
+### Change
 
 - Enhanced transformer with comprehensive validation, error handling, and
   performance optimizations
@@ -41,7 +98,7 @@
 - Enhanced variable declaration handling with better export checks
 - Added comprehensive error and warning tracking system
 
-### Added
+### Add
 
 - Introduced TransformerState interface for better state management
 - Added ValidationResult interface for node validation
@@ -62,7 +119,7 @@
 
 ## 0.0.2
 
-### Changed
+### Change
 
 - Updated path mapping from "./Source/Example/Input" to "./Example/Input" in
   Configuration files
@@ -72,7 +129,7 @@
   parentNode to NodeParent)
 - Updated documentation and configuration file references in README.md
 
-### Added
+### Add
 
 - Implemented depth tracking and limits with MAX_RECURSIVE_DEPTH (100 levels)
 - Added node visit tracking with MAX_NODE_VISITS (100 visits)
@@ -91,6 +148,6 @@
 
 ## 0.0.1
 
-### Added
+### Add
 
 - Initial release
