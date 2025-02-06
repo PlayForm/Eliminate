@@ -19,10 +19,10 @@ export default (await import("./Target/Function/Merge.js")).default(
 					return On.Buffer;
 				}
 			},
-			Failed: async (Input, _Error) => {
+			Failed: async ({ Input }, _Error) => {
 				console.log(_Error);
 
-				return "";
+				return `Error: Cannot process file ${Input}`;
 			},
 		},
 		Path: new Map([["./Example/Input", "./Example/Output"]]),
