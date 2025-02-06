@@ -6,7 +6,8 @@ Configuration.ts
 CONTRIBUTING.md
 DEPENDENTS.md
 docs/
+Example/
+prettier.config.d.mts
+prettier.config.mjs
 Source/
 Target/Test/
-prettier.config.mjs
-prettier.config.d.mts
