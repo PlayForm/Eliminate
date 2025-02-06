@@ -71,6 +71,20 @@ export default class {
 							Inline = false;
 						}
 
+						const Statement = Node.parent.parent;
+
+						if (
+							ts.isVariableStatement(Statement) &&
+							Statement.modifiers &&
+							Statement.modifiers.some(
+								(mod) =>
+									mod.kind === ts.SyntaxKind.ExportKeyword ||
+									mod.kind === ts.SyntaxKind.DefaultKeyword,
+							)
+						) {
+							Inline = false;
+						}
+
 						if (Node.initializer) {
 							Inline = this.Inline(Node.initializer);
 
@@ -78,6 +92,17 @@ export default class {
 						}
 					} else if (ts.isFunctionDeclaration(Node)) {
 						if (this.Option.Function) {
+							Inline = false;
+						}
+
+						if (
+							Node.modifiers &&
+							Node.modifiers.some(
+								(mod) =>
+									mod.kind === ts.SyntaxKind.ExportKeyword ||
+									mod.kind === ts.SyntaxKind.DefaultKeyword,
+							)
+						) {
 							Inline = false;
 						}
 
