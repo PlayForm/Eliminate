@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../../../../../Source/Function/Output/Transformer/Visit/Log.ts"],
-  "sourcesContent": ["/**\n * @module Output\n *\n */\nexport default (...Log: any) => console.log(...Log);\n"],
-  "mappings": ";;AAIA,IAAO,cAAQ,2BAAI,QAAa,QAAQ,IAAI,GAAG,GAAG,GAAnC;",
-  "names": []
-}

@@ -1,6 +1,5 @@
+import type Option from "@Interface/Output/Option.js";
 import * as ts from "typescript";
-
-
 
 export default class {
 	private Usage = new Map<

@@ -44,34 +44,37 @@ export default {
 						},
 					} as Plugin)
 				: null,
-			{
-				name: "Test",
-				setup({ onEnd, onLoad }) {
-					onLoad({ filter: /.*/ }, async ({ path }) => {
-						path = path.split(sep).join(posix.sep);
-						if (
-							path.includes("Source/Test/Input") ||
-							path.includes("Source/Test/Output")
-						) {
-							return {
-								loader: "copy",
-								contents: await (
-									await import("fs/promises")
-								).readFile(path),
-							};
-						}
+			!On
+				? ({
+						name: "Test",
+						setup({ onEnd, onLoad }) {
+							onLoad({ filter: /.*/ }, async ({ path }) => {
+								path = path.split(sep).join(posix.sep);
 
-						return null;
-					});
+								if (
+									path.includes("Source/Test/Input/") ||
+									path.includes("Source/Test/Output/")
+								) {
+									return {
+										loader: "copy",
+										contents: await (
+											await import("fs/promises")
+										).readFile(path),
+									};
+								}
 
-					onEnd(
-						async () =>
-							await Exec(
-								"mocha --timeout 60000 --colors --file Target/Test/Inline.js",
-							),
-					);
-				},
-			} as Plugin,
+								return null;
+							});
+
+							onEnd(
+								async () =>
+									await Exec(
+										"mocha --timeout 60000 --colors --file Target/Test/Output.js",
+									),
+							);
+						},
+					} as Plugin)
+				: null,
 			!On
 				? ({
 						name: "Example",

@@ -1,5 +1,5 @@
-import type { Option } from "@Class/Output.js";
-import Inline from "@Function/Inline.js";
+import Output from "@Function/Output.js";
+import type Option from "@Interface/Output/Option.js";
 import { expect } from "chai";
 import prettier, { type RequiredOptions } from "prettier";
 
@@ -23,7 +23,7 @@ export const Normalize = async (Input: string): Promise<string> => {
 export const Equal = async (Input: string, Should: string, Option?: Option) =>
 	expect(
 		await Normalize(
-			await Inline(Input, {
+			await Output(Input, {
 				Debug: false,
 
 				Const: false,
@@ -555,12 +555,12 @@ describe("TypeScript Variable Inliner:", async () => {
 		});
 
 		it("Should Handle Syntax Errors Gracefully", () =>
-			Inline(`const x = ;`).catch((error) =>
+			Output(`const x = ;`).catch((error) =>
 				expect(error).instanceOf(Error),
 			));
 
 		it("Should Handle Incomplete Code Gracefully:", async () =>
-			Inline(`const x =`).catch((error) =>
+			Output(`const x =`).catch((error) =>
 				expect(error).instanceOf(Error),
 			));
 	});
@@ -825,7 +825,7 @@ describe("TypeScript Variable Inliner:", async () => {
 		});
 
 		it("Should Report Syntax Errors For Incomplete Expressions:", () =>
-			Inline(`const y = (1 +`).catch((error) =>
+			Output(`const y = (1 +`).catch((error) =>
 				expect(error).to.be.instanceOf(Error),
 			));
 	});
@@ -836,23 +836,22 @@ const File = await (
 ).default("./Target/Test/Input/**/*.{js,ts}");
 
 describe("File Checking:", async () =>
-	File.forEach(
-		(File) =>
-			it(`Should Inline Properly: ${File}`, async () => {
-				await Equal(
-					await (
-						await import("fs/promises")
-					).readFile(File, {
+	File.forEach((File) =>
+		it(`Should Inline Properly: ${File}`, async () => {
+			await Equal(
+				await (
+					await import("fs/promises")
+				).readFile(File, {
+					encoding: "utf-8",
+				}),
+				await (
+					await import("fs/promises")
+				).readFile(
+					File.replace("Target/Test/Input", "Target/Test/Output"),
+					{
 						encoding: "utf-8",
-					}),
-					await (
-						await import("fs/promises")
-					).readFile(
-						File.replace("Target/Test/Input", "Target/Test/Output"),
-						{
-							encoding: "utf-8",
-						},
-					),
-				);
-			}),
+					},
+				),
+			);
+		}),
 	));

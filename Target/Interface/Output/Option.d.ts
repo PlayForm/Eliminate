@@ -1,5 +1,8 @@
-import * as ts from "typescript";
-export interface Option {
+/**
+ * @module Output
+ *
+ */
+export default interface Interface {
     /** Preserve comments near declarations */
     Comment?: boolean;
     /** Maximum AST node count to inline */
@@ -12,16 +15,4 @@ export interface Option {
     Function?: boolean;
     /** Debug mode with detailed logging */
     Debug?: boolean;
-}
-export default class {
-    private Usage;
-    private Type;
-    private Option;
-    constructor(Option?: Option);
-    Transform(Program: ts.Program): (Context: ts.TransformationContext) => (Source: ts.SourceFile) => ts.Node;
-    private Collect;
-    private Size;
-    private Comment;
-    private Visit;
-    private Inline;
 }

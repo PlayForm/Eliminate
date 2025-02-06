@@ -40,23 +40,35 @@ export default {
                     },
                 }
                 : null,
-            {
-                name: "Test",
-                setup({ onEnd, onLoad }) {
-                    onLoad({ filter: /.*/ }, async ({ path }) => {
-                        path = path.split(sep).join(posix.sep);
-                        if (path.includes("Source/Test/Input") ||
-                            path.includes("Source/Test/Output")) {
-                            return {
-                                loader: "copy",
-                                contents: await (await import("fs/promises")).readFile(path),
-                            };
-                        }
-                        return null;
-                    });
-                    onEnd(async () => await Exec("mocha --timeout 60000 --colors --file Target/Test/Inline.js"));
-                },
-            },
+            !On
+                ? {
+                    name: "Test",
+                    setup({ onEnd, onLoad }) {
+                        onLoad({ filter: /.*/ }, async ({ path }) => {
+                            path = path.split(sep).join(posix.sep);
+                            if (path.includes("Source/Test/Input/") ||
+                                path.includes("Source/Test/Output/")) {
+                                return {
+                                    loader: "copy",
+                                    contents: await (await import("fs/promises")).readFile(path),
+                                };
+                            }
+                            return null;
+                        });
+                        onEnd(async () => await Exec("mocha --timeout 60000 --colors --file Target/Test/Output.js"));
+                    },
+                }
+                : null,
+            !On
+                ? {
+                    name: "Example",
+                    setup({ onEnd }) {
+                        onEnd(async () => {
+                            await Exec("node ./Target/Class/Eliminate.js Configuration.ts");
+                        });
+                    },
+                }
+                : null,
         ].filter(Boolean),
     ],
     define: {

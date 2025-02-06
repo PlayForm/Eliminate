@@ -1,10 +1,8 @@
 type ComplexType<T> = {
-	Value: T;
-
-	Timestamp: Date;
+    Value: T;
+    Timestamp: Date;
 };
-
 const Usage = {
-	Value: "Test",
-	Timestamp: new Date(),
+    Value: "Test",
+    Timestamp: new Date(),
 };

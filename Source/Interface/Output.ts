@@ -5,5 +5,5 @@ import type Option from "@Interface/Output/Option.js";
  *
  */
 export default interface Interface {
-	(Source: string, Option: Option): Promise<string>;
+	(Source: string, Option?: Option): Promise<string>;
 }

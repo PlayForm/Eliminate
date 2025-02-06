@@ -1,1 +1,2 @@
-const Usage = true ? 1 : 2;
+const Usage = (true
+    ? 1 : 2);

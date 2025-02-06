@@ -1,24 +1,2 @@
-var __defProp = Object.defineProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
-var Output_default = /* @__PURE__ */ __name(async (...[Source]) => ts.createPrinter({
-  newLine: ts.NewLineKind.LineFeed,
-  removeComments: false,
-  omitTrailingSemicolon: false,
-  noEmitHelpers: false
-}).printFile(
-  ts.transform(
-    ts.createSourceFile(
-      "Input.ts",
-      Source,
-      ts.ScriptTarget.Latest,
-      true
-    ),
-    [(await import("./Output/Transformer.js")).default]
-  ).transformed[0]
-), "default");
-const ts = await import("typescript");
-export {
-  Output_default as default,
-  ts
-};
-//# sourceMappingURL=Output.js.map
+var S=async(...[a,n={}])=>{const t=c({}),r="Input.ts";t.getSourceFile=(e,i)=>e===r?p(e,a,i):void 0,t.writeFile=()=>{};const o=m([r],{target:d,module:f},t);return o.getSyntacticDiagnostics().forEach(e=>{throw new Error(u([e],{getCanonicalFileName:i=>i,getCurrentDirectory:process.cwd,getNewLine:()=>`
+`}))}),s({newLine:l,removeComments:!n.Comment}).printFile(g(o.getSourceFile(r),[new(await import("../Class/Output.js")).default(n).Transform(o)]).transformed[0])};const{createCompilerHost:c,createPrinter:s,createProgram:m,createSourceFile:p,ModuleKind:{ESNext:f},NewLineKind:{LineFeed:l},ScriptTarget:{ESNext:d},transform:g,formatDiagnosticsWithColorAndContext:u}=await import("typescript");export{f as ESNextModuleKind,d as ESNextScriptTarget,l as LineFeed,c as createCompilerHost,s as createPrinter,m as createProgram,p as createSourceFile,S as default,u as formatDiagnosticsWithColorAndContext,g as transform};

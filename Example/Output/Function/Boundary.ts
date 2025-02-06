@@ -1,9 +1,7 @@
 const Global = 123;
-
 function First() {
-	return Global;
+    return Global;
 }
-
 function Second() {
-	return Global;
+    return Global;
 }
