@@ -1,2 +1,3 @@
-const obj = { a: 1, b: 2 };
-const { a } = obj;
+const { A } = { A: 1, B: 2 };
+
+const Usage = A;

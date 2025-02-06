@@ -1,9 +1,9 @@
-function outer() {
+function Outer() {
 	console.log(42);
 
-	function inner(x: 5) {
-		console.log(42);
+	function Inner(X: 5) {
+		console.log(X);
 
-		console.log(42);
+		console.log(X);
 	}
 }

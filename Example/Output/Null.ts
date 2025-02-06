@@ -1,1 +1,1 @@
-const nullVal = null;
+const Usage = null;

@@ -1,3 +1,3 @@
-function process() {
+function Process() {
 	return 42;
 }

@@ -1,7 +1,9 @@
-function outer() {
-	function inner() {
-		console.log(42);
+function Outer() {
+	const Sample = 42;
 
-		console.log(42);
+	function Inner() {
+		console.log(Sample);
+
+		console.log(Sample);
 	}
 }

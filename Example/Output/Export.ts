@@ -1,1 +1,1 @@
-export const exported = 42;
+export const Export = 42;

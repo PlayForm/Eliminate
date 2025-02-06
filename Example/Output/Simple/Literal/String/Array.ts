@@ -1,1 +1,1 @@
-const arr: Array<string> = ["hello"];
+const Copy: Array<string> = ["Hello"];

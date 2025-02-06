@@ -3,9 +3,9 @@ function Outer() {
 
 	console.log(Sample);
 
-	function Inner(x: 5) {
-		console.log(x);
+	function Inner(X: 5) {
+		console.log(X);
 
-		console.log(x);
+		console.log(X);
 	}
 }

@@ -1,9 +1,10 @@
 type ComplexType<T> = {
-	value: T;
+	Value: T;
 
-	timestamp: Date;
+	Timestamp: Date;
 };
-const complex: ComplexType<string> = {
-	value: "test",
-	timestamp: new Date(),
+
+const Usage = {
+	Value: "Test",
+	Timestamp: new Date(),
 };

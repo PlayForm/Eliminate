@@ -1,5 +1,5 @@
 interface Test {
-	prop: string;
+	Prop: string;
 }
 
-const obj: Test = { prop: "test" };
+const Usage: Test = { Prop: "Test" };
