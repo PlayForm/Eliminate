@@ -1,19 +1,18 @@
 import type Option from "@Interface/Output/Option.js";
 import * as ts from "typescript";
 
+export type UsageType = {
+	Declaration: ts.VariableDeclaration | ts.FunctionDeclaration;
+
+	Reference: ts.Identifier[];
+
+	Inline: boolean;
+
+	Size: number;
+};
+
 export default class {
-	private Usage = new Map<
-		ts.Symbol,
-		{
-			Declaration: ts.VariableDeclaration | ts.FunctionDeclaration;
-
-			Reference: ts.Identifier[];
-
-			Inline: boolean;
-
-			Size: number;
-		}
-	>();
+	private Usage = new Map<ts.Symbol, UsageType>();
 
 	private Type: ts.TypeChecker | undefined;
 
@@ -35,6 +34,73 @@ export default class {
 
 			...Option,
 		};
+	}
+
+	private Compare(Previous?: ts.Node, Next?: ts.Node): boolean {
+		if (!Previous || !Next) {
+			return false;
+		}
+
+		if (Previous.kind !== Next.kind) {
+			return false;
+		}
+
+		if (Previous.getText() !== Next.getText()) {
+			return false;
+		}
+
+		const PreviousChildren = Previous.getChildren();
+		const NextChildren = Next.getChildren();
+
+		if (PreviousChildren.length !== NextChildren.length) {
+			return false;
+		}
+
+		for (let Current = 0; Current < PreviousChildren.length; Current++) {
+			if (
+				!this.Compare(PreviousChildren[Current], NextChildren[Current])
+			) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	private Iterative(
+		sourceFile: ts.SourceFile,
+		context: ts.TransformationContext,
+		usageMap: Map<ts.Symbol, UsageType>,
+	): ts.SourceFile {
+		let Transform = sourceFile;
+		let Change = true;
+		let Iteration = 0;
+
+		while (Change && Iteration < 100) {
+			Iteration++;
+
+			const Previous = Transform;
+
+			// Pass 1: Inline functions
+			Transform = inlineFunctions(Transform, context, usageMap);
+
+			// Pass 2: Inline variables
+			Transform = inlineVariables(Transform, context, usageMap);
+
+			// Pass 3: Inline expressions
+			Transform = inlineExpressions(Transform, context, usageMap);
+
+			// Implement a mechanism to compare 'before' and 'transformedSource'
+			Change = !this.Compare(Previous, Transform);
+		}
+
+		if (Iteration >= 100) {
+			console.warn(
+				"Potential infinite loop detected in AST transformations!",
+			);
+		}
+
+		return Transform;
 	}
 
 	public Transform(Program: ts.Program) {

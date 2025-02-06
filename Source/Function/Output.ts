@@ -35,15 +35,15 @@ export default (async (...[Source, Option = {}]) => {
 		Host,
 	);
 
-	Program.getSyntacticDiagnostics().forEach((Diagnostic) => {
-		throw new Error(
-			formatDiagnosticsWithColorAndContext([Diagnostic], {
-				getCanonicalFileName: (Name) => Name,
-				getCurrentDirectory: process.cwd,
-				getNewLine: () => "\n",
-			}),
-		);
-	});
+	// Program.getSyntacticDiagnostics().forEach((Diagnostic) => {
+	// 	throw new Error(
+	// 		formatDiagnosticsWithColorAndContext([Diagnostic], {
+	// 			getCanonicalFileName: (Name) => Name,
+	// 			getCurrentDirectory: process.cwd,
+	// 			getNewLine: () => "\n",
+	// 		}),
+	// 	);
+	// });
 
 	return createPrinter({
 		newLine: LineFeed,
