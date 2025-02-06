@@ -25,14 +25,14 @@ console.log(c);</pre>
 
 ## Features 📦
 
--   `TypeScript` support with type-checking
--   **Variable Usage Analysis**: Analyzes the code to count how many times each
-    variable is used.
--   **Export Detection**: Ensures exported variables are not removed.
--   **Code Transformation**: Removes unnecessary variable declarations and
-    replaces their usage with initializers.
--   **Complex Scenarios Handling**: Handles destructuring, default parameters,
-    nested scopes, and type annotations.
+- `TypeScript` support with type-checking
+- **Variable Usage Analysis**: Analyzes the code to count how many times each
+  variable is used.
+- **Export Detection**: Ensures exported variables are not removed.
+- **Code Transformation**: Removes unnecessary variable declarations and
+  replaces their usage with initializers.
+- **Complex Scenarios Handling**: Handles destructuring, default parameters,
+  nested scopes, and type annotations.
 
 ## Installation 🚀
 
