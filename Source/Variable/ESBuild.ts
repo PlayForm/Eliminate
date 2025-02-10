@@ -75,18 +75,18 @@ export default {
 						},
 					} as Plugin)
 				: null,
-			!On
-				? ({
-						name: "Example",
-						setup({ onEnd }) {
-							onEnd(async () => {
-								await Exec(
-									"node ./Target/Class/Eliminate.js Configuration.ts",
-								);
-							});
-						},
-					} as Plugin)
-				: null,
+			// !On
+			// 	? ({
+			// 			name: "Example",
+			// 			setup({ onEnd }) {
+			// 				onEnd(async () => {
+			// 					await Exec(
+			// 						"node ./Target/Class/Eliminate.js Configuration.ts",
+			// 					);
+			// 				});
+			// 			},
+			// 		} as Plugin)
+			// 	: null,
 		].filter(Boolean) as Plugin[]),
 	],
 	define: {

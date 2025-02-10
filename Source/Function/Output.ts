@@ -1,10 +1,5 @@
 import type Interface from "@Interface/Output.js";
-import type {
-	Node,
-	ScriptTarget,
-	SourceFile,
-	TransformerFactory,
-} from "typescript";
+import type { ScriptTarget, SourceFile } from "typescript";
 
 /**
  * @module Output
@@ -53,7 +48,7 @@ export default (async (...[Source, Option = {}]) => {
 		transform(Program.getSourceFile(File)!, [
 			new (await import("@Class/Output.js")).default(Option).Transform(
 				Program,
-			) as TransformerFactory<Node>,
+			),
 		]).transformed[0] as SourceFile,
 	);
 }) satisfies Interface as Interface;

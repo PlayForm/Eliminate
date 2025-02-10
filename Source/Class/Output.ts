@@ -45,21 +45,24 @@ export default class {
 			return false;
 		}
 
-		if (Previous.getText() !== Next.getText()) {
-			return false;
-		}
+		const PreviousChildren: ts.Node[] = [];
 
-		const PreviousChildren = Previous.getChildren();
-		const NextChildren = Next.getChildren();
+		ts.forEachChild(Previous, (child) => PreviousChildren.push(child));
+
+		const NextChildren: ts.Node[] = [];
+
+		ts.forEachChild(Next, (child) => NextChildren.push(child));
+
+		if (PreviousChildren.length === 0 && NextChildren.length === 0) {
+			return Previous.getText() === Next.getText();
+		}
 
 		if (PreviousChildren.length !== NextChildren.length) {
 			return false;
 		}
 
-		for (let Current = 0; Current < PreviousChildren.length; Current++) {
-			if (
-				!this.Compare(PreviousChildren[Current], NextChildren[Current])
-			) {
+		for (let Index = 0; Index < PreviousChildren.length; Index++) {
+			if (!this.Compare(PreviousChildren[Index], NextChildren[Index])) {
 				return false;
 			}
 		}
@@ -67,13 +70,231 @@ export default class {
 		return true;
 	}
 
-	private Iterative(
-		sourceFile: ts.SourceFile,
-		context: ts.TransformationContext,
-		usageMap: Map<ts.Symbol, UsageType>,
+	private _FunctionInline(
+		Source: ts.SourceFile,
+		Context: ts.TransformationContext,
+		Usage: Map<ts.Symbol, UsageType>,
 	): ts.SourceFile {
-		let Transform = sourceFile;
+		const TypeChecker = this.Type;
+
+		return ts.visitNode(Source, function Visit(Node: ts.Node): ts.Node {
+			if (ts.isFunctionDeclaration(Node)) {
+				if (Node.typeParameters && Node.typeParameters.length > 0) {
+					return Node;
+				}
+
+				const _Symbol = TypeChecker?.getSymbolAtLocation(Node.name!);
+
+				if (_Symbol) {
+					const _Usage = Usage.get(_Symbol);
+
+					if (
+						_Usage &&
+						_Usage.Inline &&
+						_Usage.Reference.length === 2
+					) {
+						return undefined as unknown as ts.Statement;
+					}
+				}
+			}
+
+			return ts.visitEachChild(Node, Visit, Context);
+		}) as ts.SourceFile;
+	}
+
+	private _VariableInline(
+		Source: ts.SourceFile,
+		Context: ts.TransformationContext,
+		Usage: Map<ts.Symbol, UsageType>,
+	): ts.SourceFile {
+		const TypeChecker = this.Type;
+
+		return ts.visitNode(Source, function Visit(Node: ts.Node): ts.Node {
+			if (ts.isVariableStatement(Node)) {
+				const Declaration = Node.declarationList.declarations;
+
+				const New = Declaration.filter((decl) => {
+					const _Symbol = TypeChecker?.getSymbolAtLocation(decl.name);
+
+					if (!_Symbol) {
+						return true;
+					}
+
+					const _Usage = Usage.get(_Symbol);
+
+					if (!_Usage) {
+						return true;
+					}
+
+					return !(_Usage.Inline && _Usage.Reference.length === 2);
+				});
+
+				if (New.length === 0) {
+					return undefined as unknown as ts.Statement;
+				}
+
+				if (New.length !== Declaration.length) {
+					return Context.factory.updateVariableStatement(
+						Node,
+
+						Node.modifiers,
+
+						Context.factory.createVariableDeclarationList(
+							New,
+
+							Node.declarationList.flags,
+						),
+					);
+				}
+			}
+
+			return ts.visitEachChild(Node, Visit, Context);
+		}) as ts.SourceFile;
+	}
+
+	private _CallExpressionInline(
+		Source: ts.SourceFile,
+		Context: ts.TransformationContext,
+		Usage: Map<ts.Symbol, UsageType>,
+	) {
+		const TypeChecker = this.Type;
+
+		return ts.visitNode(Source, function Visit(Node: ts.Node): ts.Node {
+			if (ts.isCallExpression(Node)) {
+				const Expression = Node.expression;
+
+				if (ts.isIdentifier(Expression)) {
+					const _Symbol =
+						TypeChecker?.getSymbolAtLocation(Expression);
+
+					if (_Symbol && Usage.has(_Symbol)) {
+						const _Usage = Usage.get(_Symbol)!;
+
+						if (
+							ts.isFunctionDeclaration(_Usage.Declaration) &&
+							_Usage.Declaration.typeParameters &&
+							_Usage.Declaration.typeParameters.length > 0
+						) {
+							return Node;
+						}
+
+						if (
+							_Usage.Inline &&
+							_Usage.Reference.length === 2 &&
+							ts.isFunctionDeclaration(_Usage.Declaration)
+						) {
+							return Context.factory.updateCallExpression(
+								Node,
+								Context.factory.createParenthesizedExpression(
+									Context.factory.createArrowFunction(
+										_Usage.Declaration
+											.modifiers as readonly ts.Modifier[],
+										_Usage.Declaration.typeParameters,
+										_Usage.Declaration.parameters,
+										_Usage.Declaration.type,
+										undefined,
+										_Usage.Declaration.body!,
+									),
+								),
+								Node.typeArguments,
+								Node.arguments,
+							);
+						}
+					}
+				}
+			}
+
+			return ts.visitEachChild(Node, Visit, Context);
+		}) as ts.SourceFile;
+	}
+
+	private _BinaryExpressionInline(
+		Source: ts.SourceFile,
+		Context: ts.TransformationContext,
+	): ts.SourceFile {
+		return ts.visitNode(Source, function Visit(Node: ts.Node): ts.Node {
+			if (ts.isBinaryExpression(Node)) {
+				const Left = ts.visitNode(Node.left, Visit);
+
+				const Right = ts.visitNode(Node.right, Visit);
+
+				if (Left !== Node.left || Right !== Node.right) {
+					return Context.factory.createParenthesizedExpression(
+						Context.factory.createBinaryExpression(
+							Left as ts.Expression,
+							Node.operatorToken,
+							Right as ts.Expression,
+						),
+					);
+				}
+			}
+
+			return ts.visitEachChild(Node, Visit, Context);
+		}) as ts.SourceFile;
+	}
+
+	private _ExpressionInline(
+		Source: ts.SourceFile,
+		Context: ts.TransformationContext,
+		Usage: Map<ts.Symbol, UsageType>,
+	): ts.SourceFile {
+		const TypeChecker = this.Type;
+
+		return ts.visitNode(Source, function Visit(Node: ts.Node): ts.Node {
+			if (ts.isIdentifier(Node)) {
+				const _Symbol = TypeChecker?.getSymbolAtLocation(Node);
+
+				const _Usage = _Symbol && Usage.get(_Symbol);
+
+				if (_Usage && _Usage.Inline && _Usage.Reference.length === 2) {
+					if (
+						ts.isVariableDeclaration(_Usage.Declaration) &&
+						_Usage.Declaration.initializer
+					) {
+						return ts.isBinaryExpression(
+							_Usage.Declaration.initializer,
+						) ||
+							ts.isConditionalExpression(
+								_Usage.Declaration.initializer,
+							)
+							? Context.factory.createParenthesizedExpression(
+									_Usage.Declaration.initializer,
+								)
+							: _Usage.Declaration.initializer;
+					}
+				}
+			}
+
+			return ts.visitEachChild(Node, Visit, Context);
+		}) as ts.SourceFile;
+	}
+
+	private Iterative(
+		Source: ts.SourceFile,
+		Context: ts.TransformationContext,
+		Usage: Map<ts.Symbol, UsageType>,
+	): ts.SourceFile {
+		/**
+		 * DEBUG
+		 */
+		if (this.Option.Debug) {
+			for (const [_Symbol, Usage] of this.Usage) {
+				console.log(`Variable: ${_Symbol.name}`);
+
+				console.log(`- Reference: ${Usage.Reference.length}`);
+
+				console.log(`- Inline: ${Usage.Inline}`);
+
+				console.log(`- Size: ${Usage.Size}`);
+
+				console.log(`- Text: ${Usage.Declaration.getText()}`);
+			}
+		}
+
+		let Transform = Source;
+
 		let Change = true;
+
 		let Iteration = 0;
 
 		while (Change && Iteration < 100) {
@@ -82,13 +303,19 @@ export default class {
 			const Previous = Transform;
 
 			// Pass 1: Inline functions
-			Transform = inlineFunctions(Transform, context, usageMap);
+			Transform = this._FunctionInline(Transform, Context, Usage);
 
 			// Pass 2: Inline variables
-			Transform = inlineVariables(Transform, context, usageMap);
+			Transform = this._VariableInline(Transform, Context, Usage);
 
-			// Pass 3: Inline expressions
-			Transform = inlineExpressions(Transform, context, usageMap);
+			// Pass 3: Inline call expressions
+			Transform = this._CallExpressionInline(Transform, Context, Usage);
+
+			// Pass 4: Inline binary expressions
+			Transform = this._BinaryExpressionInline(Transform, Context);
+
+			// Pass 5: Inline expressions
+			Transform = this._ExpressionInline(Transform, Context, Usage);
 
 			// Implement a mechanism to compare 'before' and 'transformedSource'
 			Change = !this.Compare(Previous, Transform);
@@ -110,9 +337,11 @@ export default class {
 			(Source: ts.SourceFile) => {
 				this.Collect(Source);
 
-				return ts.visitNode(Source, (Source) =>
-					this.Visit(Source, 1, Context),
-				);
+				// return ts.visitNode(Source, (Source) =>
+				// 	this.Visit(Source, 1, Context),
+				// );
+
+				return this.Iterative(Source, Context, this.Usage);
 			};
 	}
 
@@ -143,9 +372,11 @@ export default class {
 							ts.isVariableStatement(Statement) &&
 							Statement.modifiers &&
 							Statement.modifiers.some(
-								(mod) =>
-									mod.kind === ts.SyntaxKind.ExportKeyword ||
-									mod.kind === ts.SyntaxKind.DefaultKeyword,
+								(Modifier) =>
+									Modifier.kind ===
+										ts.SyntaxKind.ExportKeyword ||
+									Modifier.kind ===
+										ts.SyntaxKind.DefaultKeyword,
 							)
 						) {
 							Inline = false;
@@ -164,9 +395,11 @@ export default class {
 						if (
 							Node.modifiers &&
 							Node.modifiers.some(
-								(mod) =>
-									mod.kind === ts.SyntaxKind.ExportKeyword ||
-									mod.kind === ts.SyntaxKind.DefaultKeyword,
+								(Modifier) =>
+									Modifier.kind ===
+										ts.SyntaxKind.ExportKeyword ||
+									Modifier.kind ===
+										ts.SyntaxKind.DefaultKeyword,
 							)
 						) {
 							Inline = false;
@@ -232,213 +465,67 @@ export default class {
 		);
 	}
 
-	private Visit(
-		Node: ts.Node,
-		Depth = 0,
-		Context: ts.TransformationContext,
-	): ts.Node {
-		/**
-		 * DEBUG
-		 */
-		if (this.Option.Debug) {
-			for (const [_Symbol, Usage] of this.Usage) {
-				console.log(`Variable: ${_Symbol.name} at Depth: ${Depth}`);
+	// private Visit(
+	// 	Node: ts.Node,
+	// 	Depth = 0,
+	// 	Context: ts.TransformationContext,
+	// ): ts.Node {
 
-				console.log(`- Reference: ${Usage.Reference.length}`);
+	// 	/**
+	// 	 * 3. EXPRESSION STATEMENTS
+	// 	 */
+	// 	if (ts.isExpressionStatement(Node)) {
+	// 		return ts.visitEachChild(
+	// 			Node,
+	// 			(Child) => this.Visit(Child, Depth + 1, Context),
+	// 			Context,
+	// 		);
+	// 	}
 
-				console.log(`- Inline: ${Usage.Inline}`);
+	// 	/**
+	// 	 * 1. Check identifiers
+	// 	 */
+	// 	if (ts.isIdentifier(Node)) {
+	// 		const _Symbol = this.Type?.getSymbolAtLocation(Node);
 
-				console.log(`- Size: ${Usage.Size}`);
+	// 		if (_Symbol && this.Usage.has(_Symbol)) {
+	// 			const Usage = this.Usage.get(_Symbol)!;
 
-				console.log(`- Text: ${Usage.Declaration.getText()}`);
-			}
-		}
+	// 			if (Usage.Inline && Usage.Reference.length === 2) {
+	// 				if (
+	// 					ts.isVariableDeclaration(Usage.Declaration) &&
+	// 					Usage.Declaration.initializer
+	// 				) {
+	// 					return this.Visit(
+	// 						ts.isBinaryExpression(
+	// 							Usage.Declaration.initializer,
+	// 						) ||
+	// 							ts.isConditionalExpression(
+	// 								Usage.Declaration.initializer,
+	// 							)
+	// 							? Context.factory.createParenthesizedExpression(
+	// 									Usage.Declaration.initializer,
+	// 								)
+	// 							: Usage.Declaration.initializer,
+	// 						Depth + 1,
+	// 						Context,
+	// 					);
+	// 				}
+	// 			}
+	// 		}
+	// 	}
 
-		/**
-		 * 1. FUNCTION DECLARATIONS
-		 */
-		if (ts.isFunctionDeclaration(Node)) {
-			// Skip inlining if the function is generic.
-			if (Node.typeParameters && Node.typeParameters.length > 0) {
-				return Node;
-			}
-
-			const _Symbol = this.Type?.getSymbolAtLocation(Node.name!);
-
-			if (_Symbol) {
-				const Usage = this.Usage.get(_Symbol);
-
-				if (Usage && Usage.Inline && Usage.Reference.length === 2) {
-					return undefined as unknown as ts.Statement;
-				}
-			}
-		}
-
-		/**
-		 * 2. VARIABLE STATEMENTS
-		 */
-		if (ts.isVariableStatement(Node)) {
-			const Declaration = Node.declarationList.declarations;
-
-			const New = Declaration.filter((decl) => {
-				const _Symbol = this.Type?.getSymbolAtLocation(decl.name);
-
-				if (!_Symbol) {
-					return true;
-				}
-
-				const Usage = this.Usage.get(_Symbol);
-
-				if (!Usage) {
-					return true;
-				}
-
-				return !(Usage.Inline && Usage.Reference.length === 2);
-			});
-
-			if (New.length === 0) {
-				return undefined as unknown as ts.Statement;
-			}
-
-			if (New.length !== Declaration.length) {
-				return Context.factory.updateVariableStatement(
-					Node,
-
-					Node.modifiers,
-
-					Context.factory.createVariableDeclarationList(
-						New,
-
-						Node.declarationList.flags,
-					),
-				);
-			}
-		}
-
-		/**
-		 * 3. EXPRESSION STATEMENTS
-		 */
-		if (ts.isExpressionStatement(Node)) {
-			return ts.visitEachChild(
-				Node,
-				(Child) => this.Visit(Child, Depth + 1, Context),
-				Context,
-			);
-		}
-
-		/**
-		 * 1. Check identifiers
-		 */
-		if (ts.isIdentifier(Node)) {
-			const _Symbol = this.Type?.getSymbolAtLocation(Node);
-
-			if (_Symbol && this.Usage.has(_Symbol)) {
-				const Usage = this.Usage.get(_Symbol)!;
-
-				if (Usage.Inline && Usage.Reference.length === 2) {
-					if (
-						ts.isVariableDeclaration(Usage.Declaration) &&
-						Usage.Declaration.initializer
-					) {
-						return this.Visit(
-							ts.isBinaryExpression(
-								Usage.Declaration.initializer,
-							) ||
-								ts.isConditionalExpression(
-									Usage.Declaration.initializer,
-								)
-								? Context.factory.createParenthesizedExpression(
-										Usage.Declaration.initializer,
-									)
-								: Usage.Declaration.initializer,
-							Depth + 1,
-							Context,
-						);
-					}
-				}
-			}
-		}
-
-		/**
-		 * 2. Call expressions
-		 */
-		if (ts.isCallExpression(Node)) {
-			const Expression = Node.expression;
-
-			if (ts.isIdentifier(Expression)) {
-				const _Symbol = this.Type?.getSymbolAtLocation(Expression);
-
-				if (_Symbol && this.Usage.has(_Symbol)) {
-					const Usage = this.Usage.get(_Symbol)!;
-
-					if (
-						ts.isFunctionDeclaration(Usage.Declaration) &&
-						Usage.Declaration.typeParameters &&
-						Usage.Declaration.typeParameters.length > 0
-					) {
-						return Node;
-					}
-
-					if (
-						Usage.Inline &&
-						Usage.Reference.length === 2 &&
-						ts.isFunctionDeclaration(Usage.Declaration)
-					) {
-						return Context.factory.updateCallExpression(
-							Node,
-							Context.factory.createParenthesizedExpression(
-								Context.factory.createArrowFunction(
-									Usage.Declaration
-										.modifiers as readonly ts.Modifier[],
-									Usage.Declaration.typeParameters,
-									Usage.Declaration.parameters,
-									Usage.Declaration.type,
-									undefined,
-									Usage.Declaration.body!,
-								),
-							),
-							Node.typeArguments,
-							Node.arguments,
-						);
-					}
-				}
-			}
-		}
-
-		/**
-		 * 3. Binary expressions
-		 */
-		if (ts.isBinaryExpression(Node)) {
-			const Left = this.Visit(Node.left, Depth + 1, Context);
-
-			const Right = this.Visit(Node.right, Depth + 1, Context);
-
-			if (Left !== Node.left || Right !== Node.right) {
-				return Context.factory.createParenthesizedExpression(
-					Context.factory.createBinaryExpression(
-						Left as ts.Expression,
-						Node.operatorToken,
-						Right as ts.Expression,
-					),
-				);
-			}
-		}
-
-		return ts.visitEachChild(
-			Node,
-			(Node) => this.Visit(Node, Depth + 1, Context),
-			Context,
-		);
-	}
+	// 	return ts.visitEachChild(
+	// 		Node,
+	// 		(Node) => this.Visit(Node, Depth + 1, Context),
+	// 		Context,
+	// 	);
+	// }
 
 	private Inline(Node: ts.Node): boolean {
 		if (this.Size(Node) > (this.Option.Max || Infinity)) {
 			return false;
 		}
-
-		// if (ts.isCallExpression(Node) || ts.isNewExpression(Node)) {
-		// 	return false;
-		// }
 
 		if (this.Option.Async && ts.isAwaitExpression(Node)) {
 			return false;

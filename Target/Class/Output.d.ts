@@ -1,14 +1,26 @@
 import type Option from "@Interface/Output/Option.js";
 import * as ts from "typescript";
+export type UsageType = {
+    Declaration: ts.VariableDeclaration | ts.FunctionDeclaration;
+    Reference: ts.Identifier[];
+    Inline: boolean;
+    Size: number;
+};
 export default class {
     private Usage;
     private Type;
     private Option;
     constructor(Option?: Option);
-    Transform(Program: ts.Program): (Context: ts.TransformationContext) => (Source: ts.SourceFile) => ts.Node;
+    private Compare;
+    private _FunctionInline;
+    private _VariableInline;
+    private _CallExpressionInline;
+    private _BinaryExpressionInline;
+    private _ExpressionInline;
+    private Iterative;
+    Transform(Program: ts.Program): (Context: ts.TransformationContext) => (Source: ts.SourceFile) => ts.SourceFile;
     private Collect;
     private Size;
     private Comment;
-    private Visit;
     private Inline;
 }
