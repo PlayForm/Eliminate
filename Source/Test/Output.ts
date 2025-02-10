@@ -20,22 +20,23 @@ export const Normalize = async (Input: string): Promise<string> => {
 	return Input;
 };
 
-export const Equal = async (Input: string, Should: string, Option?: Option) =>
-	expect(
-		await Normalize(
-			await Output(Input, {
-				Debug: false,
+export const Equal = async (Input: string, Should: string, Option?: Option) => {
+	const _Output = await Output(Input, {
+		Debug: false,
 
-				Const: false,
+		Const: false,
 
-				Function: false,
+		Function: false,
 
-				Comment: false,
+		Comment: false,
 
-				...Option,
-			}),
-		),
-	).to.equal(await Normalize(Should));
+		...Option,
+	});
+
+	// console.log(_Output);
+
+	return expect(await Normalize(_Output)).to.equal(await Normalize(Should));
+};
 
 describe("TypeScript Variable Inliner:", async () => {
 	describe("Variable Inlining:", async () => {
@@ -100,7 +101,7 @@ describe("TypeScript Variable Inliner:", async () => {
 			await Equal(
 				`const x = 5 * 2;
 
-			console.log(x);`,
+				console.log(x);`,
 
 				`console.log((5 * 2));`,
 			));
@@ -109,7 +110,7 @@ describe("TypeScript Variable Inliner:", async () => {
 			await Equal(
 				`const x = "Hello" + " World";
 
-			console.log(x);`,
+				console.log(x);`,
 
 				`console.log(("Hello" + " World"));`,
 			));
@@ -117,18 +118,18 @@ describe("TypeScript Variable Inliner:", async () => {
 		it("Should Inline Object Literals:", async () =>
 			await Equal(
 				`const x = {
-				a: 1,
+					a: 1,
 
-				b: 2
-			};
+					b: 2
+				};
 
-			console.log(x);`,
+				console.log(x);`,
 
 				`console.log({
-				a: 1,
+					a: 1,
 
-				b: 2
-			});`,
+					b: 2
+				});`,
 			));
 
 		it("Should Inline Array Literals:", async () =>
@@ -148,7 +149,7 @@ describe("TypeScript Variable Inliner:", async () => {
 
 				console.log(y);`,
 
-				`console.log(((5 * 2)));`,
+				`console.log(5 * 2);`,
 			));
 	});
 
@@ -169,33 +170,33 @@ describe("TypeScript Variable Inliner:", async () => {
 		it("Should Inline Functions With Parameters:", async () =>
 			await Equal(
 				`function greet(name: string) {
-				return "Hello " + name;
-			}
+					return "Hello " + name;
+				}
 
-			console.log(greet("World"));`,
+				console.log(greet("World"));`,
 
 				`console.log(((name: string) => {
-				return "Hello " + name;
-			})("World"));`,
+					return "Hello " + name;
+				})("World"));`,
 			));
 
 		it("Should Not Inline Functions Used Multiple Times:", async () =>
 			await Equal(
 				`function greet(name: string) {
-				return "Hello " + name;
-			}
+					return "Hello " + name;
+				}
 
-			console.log(greet("World"));
+				console.log(greet("World"));
 
-			 console.log(greet("TypeScript"));`,
+				console.log(greet("TypeScript"));`,
 
 				`function greet(name: string) {
-				return "Hello " + name;
-			}
+					return "Hello " + name;
+				}
 
-			 console.log(greet("World"));
+				console.log(greet("World"));
 
-			 console.log(greet("TypeScript"));`,
+				console.log(greet("TypeScript"));`,
 			));
 	});
 
@@ -216,80 +217,76 @@ describe("TypeScript Variable Inliner:", async () => {
 
 				console.log(x);
 
-				console.log((x + 1));`,
+				console.log(x + 1);`,
 			));
 
-		// it("Should Handle Chain Of Single Use Variables:", async () =>
-		// 	await Equal(
-		// 		`const a = 1;
+		it("Should Handle Chain Of Single Use Variables:", async () =>
+			await Equal(
+				`const a = 1;
 
-		// 		const b = a + 1;
+				const b = a + 1;
 
-		// 		const c = b + 1;
+				const c = b + 1;
 
-		// 		const d = c + 1;
+				const d = c + 1;
 
-		// 		console.log(d);`,
+				console.log(d);`,
 
-		// 		`console.log(((((((1 + 1)) + 1)) + 1)));`,
-		// 	));
+				`console.log(1 + 1 + 1 + 1);`,
+			));
 	});
 
-	// describe("Complex Cases:", async () => {
-	// 	it("Should Handle Nested Expressions:", async () => {
-	// 		await Equal(
-	// 			`const x = 5;
+	describe("Complex Cases:", async () => {
+		it("Should Handle Nested Expressions:", async () =>
+			await Equal(
+				`const x = 5;
 
-	// 			const y = x * 2;
+				const y = x * 2;
 
-	// 			const z = y + 3;
+				const z = y + 3;
 
-	// 			console.log(z);`,
+				console.log(z);`,
 
-	// 			`console.log(((((5 * 2)) + 3)));`,
-	// 		);
-	// 	});
+				`console.log((5 * 2) + 3);`,
+			));
 
-	// 	it("Should Handle Multiple Declarations In One Statement:", async () => {
-	// 		await Equal(
-	// 			`const x = 1, y = 2;
+		it("Should Handle Multiple Declarations In One Statement:", async () =>
+			await Equal(
+				`const x = 1, y = 2;
 
-	// 			console.log(x);`,
+			console.log(x);`,
 
-	// 			`const y = 2;
+				`const y = 2;
 
-	// 			console.log(1);`,
-	// 		);
-	// 	});
+			console.log(1);`,
+			));
 
-	// 	it("Should Preserve Type Annotations:", async () => {
-	// 		await Equal(
-	// 			`const x: number = 5;
+		it("Should Preserve Type Annotations:", async () =>
+			await Equal(
+				`const x: number = 5;
 
-	// 			console.log(x);`,
+			console.log(x);`,
 
-	// 			`console.log(5);`,
-	// 		);
-	// 	});
+				`console.log(5);`,
+			));
 
-	// 	it("Should Handle Even More Complex Cases:", async () => {
-	// 		await Equal(
-	// 			`const x = 5;
+		it("Should Handle Even More Complex Cases:", async () =>
+			await Equal(
+				`const x = 5;
 
-	// 			const y = x * 2;
+			const y = x * 2;
 
-	// 			const z = y + 3;
+			const z = y + 3;
 
-	// 			const a = z * 4;
+			const a = z * 4;
 
-	// 			const b = a + y;
+			const b = a + y;
 
-	// 			console.log(b);`,
+			console.log(b);`,
 
-	// 			`const y = (5 * 2); console.log((((((y + 3) * 4)) + y)));`,
-	// 		);
-	// 	});
-	// });
+				`const y = (5 * 2); console.log((((((y + 3) * 4)) + y)));`,
+			));
+	});
 
 	// describe("Function and Object Scenarios:", async () => {
 	// 	it("Should Handle Function Calls In Expressions:", async () => {
