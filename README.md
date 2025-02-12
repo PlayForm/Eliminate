@@ -12,7 +12,7 @@ their initializers, optimizing your code for better readability and performance.
     </tr>
     <tr>
     	<td>
-    		<pre>let a = 5;
+    		<pre lang="typescript">let a = 5;
 let b = 10;
 let c = a + b;
 console.log(c);</pre>
