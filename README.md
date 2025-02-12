@@ -60,7 +60,7 @@ Install the package as a development dependency:
 npm install -D -E @playform/eliminate
 ```
 
-## 🛠️ Usage
+## Usage 🛠️
 
 ### Command Line
 
