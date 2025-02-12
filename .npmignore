@@ -10,4 +10,5 @@ Example/
 prettier.config.d.mts
 prettier.config.mjs
 Source/
+tailwind.config.js
 Target/Test/
