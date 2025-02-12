@@ -21,44 +21,46 @@ export default {
     keepNames: On,
     plugins: [
         ...[
-            !On
-                ? {
+            On
+                ? null
+                : {
                     name: "Target",
                     setup({ onStart, initialOptions: { outdir } }) {
                         onStart(async () => {
                             try {
                                 outdir
-                                    ? await (await import("fs/promises")).rm(outdir, {
+                                    ? await (await import("node:fs/promises")).rm(outdir, {
                                         recursive: true,
                                     })
                                     : {};
                             }
                             catch (_Error) {
+                                // biome-ignore lint/suspicious/noConsole:
                                 console.log(_Error);
                             }
                         });
                     },
-                }
-                : null,
-            !On
-                ? {
+                },
+            On
+                ? null
+                : {
                     name: "Test",
                     setup({ onEnd, onLoad }) {
+                        // biome-ignore lint/performance/useTopLevelRegex:
                         onLoad({ filter: /.*/ }, async ({ path }) => {
                             path = path.split(sep).join(posix.sep);
                             if (path.includes("Source/Test/Input/") ||
                                 path.includes("Source/Test/Output/")) {
                                 return {
                                     loader: "copy",
-                                    contents: await (await import("fs/promises")).readFile(path),
+                                    contents: await (await import("node:fs/promises")).readFile(path),
                                 };
                             }
                             return null;
                         });
-                        onEnd(async () => await Exec("mocha --timeout 60000 --colors --file Target/Test/Output.js"));
+                        onEnd(async () => await Exec("mocha --parallel --timeout 60000 --colors Target/Test/*.js"));
                     },
-                }
-                : null,
+                },
             // !On
             // 	? ({
             // 			name: "Example",
@@ -78,4 +80,4 @@ export default {
     },
 };
 export const { default: Exec } = await import("@playform/build/Target/Function/Exec.js");
-export const { sep, posix } = await import("path");
+export const { sep, posix } = await import("node:path");

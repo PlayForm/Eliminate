@@ -5,7 +5,7 @@ import type { ScriptTarget, SourceFile } from "typescript";
  * @module Output
  *
  */
-export default (async (...[Source, Option = {}]) => {
+export default (async (...[Source, Option = {}]): Promise<string> => {
 	const Host = createCompilerHost({});
 
 	const File = "Input.ts";
@@ -14,9 +14,10 @@ export default (async (...[Source, Option = {}]) => {
 		Name: string,
 
 		Version: ScriptTarget,
-	) => (Name === File ? createSourceFile(Name, Source, Version) : undefined);
+	): SourceFile | undefined =>
+		Name === File ? createSourceFile(Name, Source, Version) : undefined;
 
-	Host.writeFile = () => {};
+	Host.writeFile = (): void => {};
 
 	const Program = createProgram(
 		[File],
@@ -45,6 +46,7 @@ export default (async (...[Source, Option = {}]) => {
 
 		removeComments: !Option.Comment,
 	}).printFile(
+		// biome-ignore lint/style/noNonNullAssertion:
 		transform(Program.getSourceFile(File)!, [
 			new (await import("@Class/Output.js")).default(Option).Transform(
 				Program,

@@ -8,8 +8,6 @@ import vfs from "vinyl-fs";
 
 const azure = require("gulp-azure-storage");
 
-const commit = process.env["BUILD_SOURCEVERSION"];
-
 const credential = new ClientAssertionCredential(
 	process.env["AZURE_TENANT_ID"]!,
 	process.env["AZURE_CLIENT_ID"]!,
@@ -82,7 +80,7 @@ function wait(stream: es.ThroughStream): Promise<void> {
 		account: process.env.AZURE_STORAGE_ACCOUNT,
 		credential,
 		container: process.env.VSCODE_QUALITY,
-		prefix: commit + "/",
+		prefix: process.env["BUILD_SOURCEVERSION"] + "/",
 		contentSettings: {
 			contentEncoding: compressed ? "gzip" : undefined,
 			cacheControl: "max-age=31536000, public",
@@ -116,20 +114,20 @@ function wait(stream: es.ThroughStream): Promise<void> {
 
 	await wait(out);
 
-	const listing = new Vinyl({
-		path: "files.txt",
-		contents: Buffer.from(files.join("\n")),
-		stat: { mode: 0o666 } as any,
-	});
-
-	const filesOut = es
-		.readArray([listing])
-		.pipe(gzip({ append: false }))
-		.pipe(azure.upload(options(true)));
-
 	console.log(`Uploading: files.txt (${files.length} files)`);
 
-	await wait(filesOut);
+	await wait(
+		es
+			.readArray([
+				new Vinyl({
+					path: "files.txt",
+					contents: Buffer.from(files.join("\n")),
+					stat: { mode: 0o666 } as any,
+				}),
+			])
+			.pipe(gzip({ append: false }))
+			.pipe(azure.upload(options(true))),
+	);
 })().catch((err) => {
 	console.error(err);
 
