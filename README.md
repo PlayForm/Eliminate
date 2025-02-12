@@ -78,7 +78,7 @@ See an example configuration file in: [`Configuration.ts`](./Configuration.ts)
 Usage: Eliminate Eliminate
 
 Arguments:
-  Eliminate                 ↘️ Eliminate configuration file
+  Eliminate                 Eliminate configuration file 📜
 
 Options:
   -V, --version             Output the version number
