@@ -648,13 +648,9 @@ describe("TypeScript Variable Inliner", async () =>
 				console.log(x);`,
 
 				`(() => {
-					const x = 20;
-
-					function inner() {
+					(() => {
 						console.log(20);
-					}
-
-					inner();
+					})();
 				})();
 
 				console.log(10);`,

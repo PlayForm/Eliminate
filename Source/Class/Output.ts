@@ -244,13 +244,13 @@ export default class {
 					ts.isVariableDeclaration(_Usage.Declaration) &&
 					_Usage.Declaration.initializer
 				) {
-					Self.Change = true;
-
 					const Initializer = Self.Iterative(
 						_Usage.Declaration.initializer,
 						Context,
 						Usage,
 					);
+
+					Self.Change = true;
 
 					return ts.isBinaryExpression(Initializer) ||
 						ts.isConditionalExpression(Initializer)
@@ -317,7 +317,7 @@ export default class {
 			Iteration++;
 		} while (this.Change && Iteration < 100);
 
-		if (Iteration >= 50) {
+		if (Iteration >= 100) {
 			// biome-ignore lint/suspicious/noConsole:
 			console.warn(
 				"Potential infinite loop detected in AST transformations!",

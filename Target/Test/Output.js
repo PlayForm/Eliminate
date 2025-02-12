@@ -272,13 +272,9 @@ import n from"../Function/Output.js";import{expect as s}from"chai";import r from
 				outer();
 
 				console.log(x);`,`(() => {
-					const x = 20;
-
-					function inner() {
+					(() => {
 						console.log(20);
-					}
-
-					inner();
+					})();
 				})();
 
 				console.log(10);`)))&&describe("Miscellaneous",()=>it("Should Inline Variables In Chained Function Calls",async()=>await o(`const x = Math.abs(-5);

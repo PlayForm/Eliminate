@@ -91,28 +91,38 @@ function wait(stream: es.ThroughStream): Promise<void> {
 		.src("**", { cwd: "../vscode-web", base: "../vscode-web", dot: true })
 		.pipe(filter((f) => !f.isDirectory()));
 
-	const compressed = all
-		.pipe(filter((f) => MimeTypesToCompress.has(mime.lookup(f.path))))
-		.pipe(gzip({ append: false }))
-		.pipe(azure.upload(options(true)));
-
-	const uncompressed = all
-		.pipe(filter((f) => !MimeTypesToCompress.has(mime.lookup(f.path))))
-		.pipe(azure.upload(options(false)));
-
-	const out = es.merge(compressed, uncompressed).pipe(
-		es.through(function (f) {
-			console.log("Uploaded:", f.relative);
-
-			files.push(f.relative);
-
-			this.emit("data", f);
-		}),
-	);
-
 	console.log(`Uploading files to CDN...`);
 
-	await wait(out);
+	await wait(
+		es
+			.merge(
+				all
+					.pipe(
+						filter((f) =>
+							MimeTypesToCompress.has(mime.lookup(f.path)),
+						),
+					)
+					.pipe(gzip({ append: false }))
+					.pipe(azure.upload(options(true))),
+				all
+					.pipe(
+						filter(
+							(f) =>
+								!MimeTypesToCompress.has(mime.lookup(f.path)),
+						),
+					)
+					.pipe(azure.upload(options(false))),
+			)
+			.pipe(
+				es.through(function (f) {
+					console.log("Uploaded:", f.relative);
+
+					files.push(f.relative);
+
+					this.emit("data", f);
+				}),
+			),
+	);
 
 	console.log(`Uploading: files.txt (${files.length} files)`);
 

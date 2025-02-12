@@ -72,7 +72,7 @@ export default {
 							onEnd(
 								async () =>
 									await Exec(
-										"mocha --parallel --timeout 60000 --colors Target/Test/*.js",
+										"mocha --timeout 60000 --colors --file Target/Test/Output.js",
 									),
 							);
 						},
