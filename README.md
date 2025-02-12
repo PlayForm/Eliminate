@@ -24,7 +24,10 @@ console.log(c);
 </pre>
 		</td>
 		<td>
-			<pre lang="typescript">console.log(5 + 10);</pre>
+			<pre lang="typescript">
+console.log(5 + 10);
+
+</pre>
 		</td>
 	</tr>
 </table>
