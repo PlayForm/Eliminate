@@ -1,9 +1,9 @@
 # [Eliminate] ↘️
 
 `Eliminate` is a utility that analyzes your `TypeScript` code to identify
-variables that are defined but only used once and are not exported. It then
-eliminates these variable definitions and replaces their usage with their
-initializers, optimizing your code for better readability and performance.
+variables and functions that are defined but only used once and are not
+exported. It then eliminates these definitions and replaces their usage with
+their initializers, optimizing your code for better readability and performance.
 
 <table>
 	<tr>
@@ -23,16 +23,24 @@ console.log(c);</pre>
 	</tr>
 </table>
 
-## Features 📦
+## Feature 📦
 
-- `TypeScript` support with type-checking
-- **Variable Usage Analysis**: Analyzes the code to count how many times each
-  variable is used.
-- **Export Detection**: Ensures exported variables are not removed.
-- **Code Transformation**: Removes unnecessary variable declarations and
-  replaces their usage with initializers.
+- TypeScript support with type-checking
+- **Variable & Function Usage Analysis**: Analyzes the code to count how many
+  times each variable and function is used.
+- **Export Detection**: Ensures exported variables and functions are not
+  removed.
+- **Code Transformation**: Removes unnecessary variable and function
+  declarations and replaces their usage with initializers.
 - **Complex Scenarios Handling**: Handles destructuring, default parameters,
   nested scopes, and type annotations.
+- **Configuration Options**:
+    - `Comment`: Whether to inline symbols with comments (defaults to `true`).
+    - `Max`: Maximum size of expressions to inline (defaults to `100` nodes).
+    - `Async`: Whether to inline async/await expressions (defaults to `false`).
+    - `Const`: Whether to inline const variables (defaults to `false`).
+    - `Function`: Whether to inline functions (defaults to `false`).
+    - `Debug`: Enables debug mode for verbose logging (defaults to `false`).
 
 ## Installation 🚀
 
