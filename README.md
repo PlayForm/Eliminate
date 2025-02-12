@@ -13,13 +13,13 @@ their initializers, optimizing your code for better readability and performance.
     <tr>
     	<td>
     		<pre lang="typescript">
-      let a = 5;
+let a = 5;
 
-      let b = 10;
+let b = 10;
 
-      let c = a + b;
+let c = a + b;
 
-      console.log(c);
+console.log(c);
 
 </pre>
 		</td>
