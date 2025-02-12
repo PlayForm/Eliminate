@@ -51,7 +51,7 @@
     - Removed unused files and types related to code elimination.
 - Added tests for code elimination functionality.
 
-### Bug Fixes
+### Fix
 
 - Fixed an issue where the output was not correctly formatted.
 - Fixed an issue where comments were not preserved in the output.

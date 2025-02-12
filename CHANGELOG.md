@@ -1,5 +1,33 @@
 ## 0.0.6
 
+### Change
+
+- Upgraded dependencies:
+    - esbuild: `0.24.2` → `0.25.0`
+    - prettier: `3.4.2` → `3.5.0`
+    - tailwindcss: `4.0.3` → `3.4.17`
+- Added new file: `Source/Class/Missing.ts`
+- Refactored code in `Source/Class/Output.ts` to improve inlining logic. The
+  update includes:
+    - Implementing an iterative approach for more robust transformations.
+    - Adding several new inlining passes for functions, variables, call
+      expressions, binary expressions, and general expressions.
+    - Improved handling of generic functions and edge cases.
+- Updated error handling and logging in `Source/Function/Output.ts`.
+- Clarified descriptions in `Source/Interface/Output/Option.ts`.
+- Migrated `Source/Variable/ESBuild.js` and `Source/Variable/ESBuild.ts` to use
+  `node:fs/promises` for file system operations.
+
+### Fix
+
+- Fixed potential infinite loop in AST transformations (see
+  `Source/Class/Output.ts`).
+
+### Other
+
+- Improved code style and readability in multiple files.
+- Updated comments and documentation.
+
 ## 0.0.5
 
 ### Change
@@ -53,7 +81,7 @@
     - Removed unused files and types related to code elimination.
 - Added tests for code elimination functionality.
 
-### Bug Fixes
+### Fix
 
 - Fixed an issue where the output was not correctly formatted.
 - Fixed an issue where comments were not preserved in the output.
