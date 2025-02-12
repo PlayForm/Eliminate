@@ -34,7 +34,7 @@ console.log(5 + 10);
 
 ## Feature 📦
 
-- TypeScript support with type-checking
+- `TypeScript` support with type-checking
 - **Variable & Function Usage Analysis**: Analyzes the code to count how many
   times each variable and function is used.
 - **Export Detection**: Ensures exported variables and functions are not
@@ -44,11 +44,12 @@ console.log(5 + 10);
 - **Complex Scenarios Handling**: Handles destructuring, default parameters,
   nested scopes, and type annotations.
 - **Configuration Options**:
-    - `Comment`: Whether to inline symbols with comments (defaults to `true`).
+    - `Comment`: Whether to preserve symbols with comments (defaults to `true`).
     - `Max`: Maximum size of expressions to inline (defaults to `100` nodes).
-    - `Async`: Whether to inline async/await expressions (defaults to `false`).
-    - `Const`: Whether to inline const variables (defaults to `false`).
-    - `Function`: Whether to inline functions (defaults to `false`).
+    - `Async`: Whether to preserve `async`/`await` expressions (defaults to
+      `false`).
+    - `Const`: Whether to preserve `const` variables (defaults to `false`).
+    - `Function`: Whether to preserve functions (defaults to `false`).
     - `Debug`: Enables debug mode for verbose logging (defaults to `false`).
 
 ## Installation 🚀
