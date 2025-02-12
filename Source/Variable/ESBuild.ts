@@ -77,18 +77,18 @@ export default {
 							);
 						},
 					} as Plugin),
-			// !On
-			// 	? ({
-			// 			name: "Example",
-			// 			setup({ onEnd }) {
-			// 				onEnd(async () => {
-			// 					await Exec(
-			// 						"node ./Target/Class/Eliminate.js Configuration.ts",
-			// 					);
-			// 				});
-			// 			},
-			// 		} as Plugin)
-			// 	: null,
+			On
+				? null
+				: ({
+						name: "Example",
+						setup({ onEnd }): void {
+							onEnd(async () => {
+								await Exec(
+									"node ./Target/Class/Eliminate.js Configuration.ts",
+								);
+							});
+						},
+					} as Plugin),
 		].filter(Boolean) as Plugin[]),
 	],
 	define: {

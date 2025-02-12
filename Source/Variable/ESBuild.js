@@ -61,18 +61,16 @@ export default {
                         onEnd(async () => await Exec("mocha --timeout 60000 --colors --file Target/Test/Output.js"));
                     },
                 },
-            // !On
-            // 	? ({
-            // 			name: "Example",
-            // 			setup({ onEnd }) {
-            // 				onEnd(async () => {
-            // 					await Exec(
-            // 						"node ./Target/Class/Eliminate.js Configuration.ts",
-            // 					);
-            // 				});
-            // 			},
-            // 		} as Plugin)
-            // 	: null,
+            On
+                ? null
+                : {
+                    name: "Example",
+                    setup({ onEnd }) {
+                        onEnd(async () => {
+                            await Exec("node ./Target/Class/Eliminate.js Configuration.ts");
+                        });
+                    },
+                },
         ].filter(Boolean),
     ],
     define: {
