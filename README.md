@@ -12,13 +12,19 @@ their initializers, optimizing your code for better readability and performance.
     </tr>
     <tr>
     	<td>
-    		<pre lang="typescript">let a = 5;
-let b = 10;
-let c = a + b;
-console.log(c);</pre>
+    		<pre lang="typescript">
+      let a = 5;
+
+      let b = 10;
+
+      let c = a + b;
+
+      console.log(c);
+
+</pre>
 		</td>
 		<td>
-			<pre>console.log(5 + 10);</pre>
+			<pre lang="typescript">console.log(5 + 10);</pre>
 		</td>
 	</tr>
 </table>
