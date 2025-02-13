@@ -41,11 +41,8 @@ export default class {
 	private _FunctionInline(
 		Node: ts.Node,
 		Context: ts.TransformationContext,
-		Usage: Map<ts.Symbol, UsageType>,
 	): ts.Node {
-		const Self = this;
-
-		return ts.visitNode(Node, function Visit(Node: ts.Node): ts.Node {
+		const Visit = (Node: ts.Node): ts.Node => {
 			if (ts.isFunctionDeclaration(Node)) {
 				if (Node.typeParameters && Node.typeParameters.length > 0) {
 					return Node;
@@ -55,13 +52,13 @@ export default class {
 					return Node;
 				}
 
-				const _Symbol = Self.Type?.getSymbolAtLocation(Node.name);
+				const _Symbol = this.Type?.getSymbolAtLocation(Node.name);
 
 				if (_Symbol) {
-					const _Usage = Usage.get(_Symbol);
+					const _Usage = this.Usage.get(_Symbol);
 
 					if (_Usage?.Inline && _Usage.Reference.length === 2) {
-						Self.Change = true;
+						this.Change = true;
 
 						return undefined as unknown as ts.Statement;
 					}
@@ -69,22 +66,21 @@ export default class {
 			}
 
 			return ts.visitEachChild(Node, Visit, Context);
-		});
+		};
+
+		return ts.visitNode(Node, Visit);
 	}
 
 	private _VariableInline(
 		Node: ts.Node,
 		Context: ts.TransformationContext,
-		Usage: Map<ts.Symbol, UsageType>,
 	): ts.Node {
-		const Self = this;
-
-		return ts.visitNode(Node, function Visit(Node: ts.Node): ts.Node {
+		const Visit = (Node: ts.Node): ts.Node => {
 			if (ts.isVariableStatement(Node)) {
 				const Declaration = Node.declarationList.declarations;
 
 				const New = Declaration.filter((Declaration) => {
-					const _Symbol = Self.Type?.getSymbolAtLocation(
+					const _Symbol = this.Type?.getSymbolAtLocation(
 						Declaration.name,
 					);
 
@@ -92,7 +88,7 @@ export default class {
 						return true;
 					}
 
-					const _Usage = Usage.get(_Symbol);
+					const _Usage = this.Usage.get(_Symbol);
 
 					if (!_Usage) {
 						return true;
@@ -102,13 +98,13 @@ export default class {
 				});
 
 				if (New.length === 0) {
-					Self.Change = true;
+					this.Change = true;
 
 					return undefined as unknown as ts.Statement;
 				}
 
 				if (New.length !== Declaration.length) {
-					Self.Change = true;
+					this.Change = true;
 
 					return Context.factory.updateVariableStatement(
 						Node,
@@ -125,26 +121,25 @@ export default class {
 			}
 
 			return ts.visitEachChild(Node, Visit, Context);
-		});
+		};
+
+		return ts.visitNode(Node, Visit);
 	}
 
 	private _CallExpressionInline(
 		Node: ts.Node,
 		Context: ts.TransformationContext,
-		Usage: Map<ts.Symbol, UsageType>,
 	): ts.Node {
-		const Self = this;
-
-		return ts.visitNode(Node, function Visit(Node: ts.Node): ts.Node {
+		const Visit = (Node: ts.Node): ts.Node => {
 			if (ts.isCallExpression(Node)) {
 				const Expression = Node.expression;
 
 				if (ts.isIdentifier(Expression)) {
-					const _Symbol = Self.Type?.getSymbolAtLocation(Expression);
+					const _Symbol = this.Type?.getSymbolAtLocation(Expression);
 
-					if (_Symbol && Usage.has(_Symbol)) {
+					if (_Symbol && this.Usage.has(_Symbol)) {
 						// biome-ignore lint/style/noNonNullAssertion:
-						const _Usage = Usage.get(_Symbol)!;
+						const _Usage = this.Usage.get(_Symbol)!;
 
 						if (
 							ts.isFunctionDeclaration(_Usage.Declaration) &&
@@ -159,7 +154,7 @@ export default class {
 							_Usage.Reference.length === 2 &&
 							ts.isFunctionDeclaration(_Usage.Declaration)
 						) {
-							Self.Change = true;
+							this.Change = true;
 
 							return Context.factory.updateCallExpression(
 								Node,
@@ -184,23 +179,23 @@ export default class {
 			}
 
 			return ts.visitEachChild(Node, Visit, Context);
-		});
+		};
+
+		return ts.visitNode(Node, Visit);
 	}
 
 	private _BinaryExpressionInline(
 		Node: ts.Node,
 		Context: ts.TransformationContext,
 	): ts.Node {
-		const Self = this;
-
-		return ts.visitNode(Node, function Visit(Node: ts.Node): ts.Node {
+		const Visit = (Node: ts.Node): ts.Node => {
 			if (ts.isBinaryExpression(Node)) {
 				const Left = ts.visitNode(Node.left, Visit);
 
 				const Right = ts.visitNode(Node.right, Visit);
 
 				if (Left !== Node.left || Right !== Node.right) {
-					Self.Change = true;
+					this.Change = true;
 
 					return Context.factory.createParenthesizedExpression(
 						Context.factory.createBinaryExpression(
@@ -213,17 +208,16 @@ export default class {
 			}
 
 			return ts.visitEachChild(Node, Visit, Context);
-		});
+		};
+
+		return ts.visitNode(Node, Visit);
 	}
 
 	private _ExpressionInline(
 		Node: ts.Node,
 		Context: ts.TransformationContext,
-		Usage: Map<ts.Symbol, UsageType>,
 	): ts.Node {
-		const Self = this;
-
-		return ts.visitNode(Node, function Visit(Node: ts.Node): ts.Node {
+		const Visit = (Node: ts.Node): ts.Node => {
 			if (ts.isIdentifier(Node)) {
 				if (
 					(ts.isVariableDeclaration(Node.parent) &&
@@ -234,9 +228,9 @@ export default class {
 					return Node;
 				}
 
-				const _Symbol = Self.Type?.getSymbolAtLocation(Node);
+				const _Symbol = this.Type?.getSymbolAtLocation(Node);
 
-				const _Usage = _Symbol && Usage.get(_Symbol);
+				const _Usage = _Symbol && this.Usage.get(_Symbol);
 
 				if (
 					_Usage?.Inline &&
@@ -244,13 +238,12 @@ export default class {
 					ts.isVariableDeclaration(_Usage.Declaration) &&
 					_Usage.Declaration.initializer
 				) {
-					const Initializer = Self.Iterative(
+					const Initializer = this.Iterative(
 						_Usage.Declaration.initializer,
 						Context,
-						Usage,
 					);
 
-					Self.Change = true;
+					this.Change = true;
 
 					return ts.isBinaryExpression(Initializer) ||
 						ts.isConditionalExpression(Initializer)
@@ -262,13 +255,14 @@ export default class {
 			}
 
 			return ts.visitEachChild(Node, Visit, Context);
-		});
+		};
+
+		return ts.visitNode(Node, Visit);
 	}
 
 	private Iterative(
 		Node: ts.Node,
 		Context: ts.TransformationContext,
-		Usage: Map<ts.Symbol, UsageType>,
 	): ts.Node {
 		/**
 		 * DEBUG
@@ -300,19 +294,19 @@ export default class {
 			this.Change = false;
 
 			// Pass 1: Inline functions
-			Transform = this._FunctionInline(Transform, Context, Usage);
+			Transform = this._FunctionInline(Transform, Context);
 
 			// Pass 2: Inline variables
-			Transform = this._VariableInline(Transform, Context, Usage);
+			Transform = this._VariableInline(Transform, Context);
 
 			// Pass 3: Inline call expressions
-			Transform = this._CallExpressionInline(Transform, Context, Usage);
+			Transform = this._CallExpressionInline(Transform, Context);
 
 			// Pass 4: Inline binary expressions
 			Transform = this._BinaryExpressionInline(Transform, Context);
 
 			// Pass 5: Inline expressions
-			Transform = this._ExpressionInline(Transform, Context, Usage);
+			Transform = this._ExpressionInline(Transform, Context);
 
 			Iteration++;
 		} while (this.Change && Iteration < 100);
@@ -337,7 +331,7 @@ export default class {
 			(Node: ts.Node): ts.Node => {
 				this.Collect(Node);
 
-				return this.Iterative(Node, Context, this.Usage);
+				return this.Iterative(Node, Context);
 			};
 	}
 

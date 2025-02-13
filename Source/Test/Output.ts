@@ -21,33 +21,177 @@ const Normalize = async (Input: string): Promise<string> => {
 	return Input;
 };
 
+const __Output = async (Input: string, Option?: Option) =>
+	await Normalize(
+		await Output(Input, {
+			Debug,
+
+			Const: false,
+
+			Function: false,
+
+			Comment: false,
+
+			...Option,
+		}),
+	);
+
 const Equal = async (
 	Input: string,
 	Should: string,
 	Option?: Option,
 	Log = false,
 ) => {
-	const _Output = await Output(Input, {
-		Debug,
-
-		Const: false,
-
-		Function: false,
-
-		Comment: false,
-
-		...Option,
-	});
+	const _Output = await __Output(Input, Option);
 
 	if (Log) {
 		console.log("---------- OUTPUT ----------");
 		console.log(_Output);
 	}
 
-	return expect(await Normalize(_Output)).to.equal(await Normalize(Should));
+	return expect(_Output).to.equal(await Normalize(Should));
 };
 
 describe("TypeScript Variable Inliner", async () =>
+	// NEW ONES
+	describe("Variable Inliner Transformer", () =>
+		it("Inlines A Simple Variable Usage", async () => {
+			const Should = await __Output(
+				`let a = 1;
+				
+				let b = a + 2;
+				
+				console.log(b);`,
+			);
+
+			// Expect the declaration of 'a' to be removed and its value inlined into 'b'.
+			// expect(Should).to.contain("let b = (1 + 2)");
+
+			expect(Should).not.to.contain("let a = 1");
+		}) &&
+		it("Does Not Inline An Exported Variable", async () => {
+			const Should = await __Output(
+				`export const a = 1;
+				
+				let b = a + 2;
+				
+				console.log(b);`,
+			);
+
+			// 'a' should remain because exported identifiers are not inlined.
+			expect(Should).to.contain("export const a = 1");
+
+			expect(Should).to.contain("a + 2");
+		}) &&
+		it("Does Not Inline A Variable With A Leading Comment", async () => {
+			const Should = await __Output(
+				`/* This comment disables inlining */
+
+				let a = 1;
+				
+				let b = a + 2;
+				
+				console.log(b);`,
+				{
+					Comment: true,
+				},
+			);
+
+			// Because of the leading comment, 'a' should not be inlined.
+			expect(Should).to.contain("let a = 1");
+
+			expect(Should).to.contain("a + 2");
+		}) &&
+		it("Inlines A Simple Function Call", async () => {
+			const Should = await __Output(
+				`function foo() {
+					return 42;
+
+				}
+
+				let Should = foo();
+				
+				console.log(Should);`,
+			);
+
+			// 'foo' should be inlined so that its declaration is removed and the call
+			// expression is replaced with an arrow function version.
+			expect(Should).not.to.contain("function foo");
+
+			expect(Should).to.contain("(() =>");
+
+			expect(Should).to.contain("return 42");
+		}) &&
+		it("Does Not Inline A Function With Type Parameters", async () => {
+			const Should = await __Output(
+				`function foo<T>(x: T): T {
+					return x;
+
+				}
+
+				let Should = foo(42);
+				
+				console.log(Should);`,
+			);
+
+			// The presence of type parameters should prevent inlining.
+			expect(Should).to.contain("function foo<T>");
+
+			expect(Should).to.contain("foo(42)");
+		}) &&
+		it("Does Not Inline A Variable If Its Initializer Exceeds The Size Threshold", async () => {
+			// Set the Max size to a very low value so that inlining is disabled.
+			const Should = await __Output(
+				`let a = 1 + 2;
+	
+				// This expression will likely have a size > 1.
+	
+				let b = a + 3;
+				
+				console.log(b);`,
+				{ Max: 1 },
+			);
+
+			expect(Should).to.contain("let a = 1 + 2");
+
+			expect(Should).to.contain("a + 3");
+		}) &&
+		it("Does Not Inline Await Expressions When Async Option Is Enabled", async () => {
+			const Should = await __Output(
+				`async function foo() {
+					return await Promise.resolve(42);
+				}
+	
+				let Should = foo();
+				
+				console.log(Should);`,
+				{ Async: true },
+			);
+
+			// Because the initializer contains an await, inlining should be prevented.
+			expect(Should).to.contain("async function foo");
+
+			expect(Should).to.contain("foo()");
+		}) &&
+		it("Inlines Nested Expressions Correctly", async () => {
+			const Should = await __Output(
+				`let a = 2;
+				
+				let b = a + 3;
+				
+				let c = b * 4;
+				
+				console.log(c);`,
+			);
+
+			// Both 'a' and 'b' should be inlined so that 'c' becomes an expression like: ((2 + 3) * 4)
+			expect(Should).to.match(/let c = \(?\(?2 \+ 3\)?\) \* 4/);
+
+			expect(Should).not.to.contain("let a =");
+
+			expect(Should).not.to.contain("let b =");
+		})) &&
+	// OLD ONES
 	describe("Variable Inlining", async () =>
 		it("Should Inline Simple Constant Declarations", async () =>
 			await Equal(
@@ -466,9 +610,9 @@ describe("TypeScript Variable Inliner", async () =>
 					return x;
 				}
 
-				const result = identity(5);
+				const Should = identity(5);
 
-				console.log(result);`,
+				console.log(Should);`,
 
 				`function identity<T>(x: T): T {
 					return x;
@@ -602,9 +746,9 @@ describe("TypeScript Variable Inliner", async () =>
 			)) &&
 		it("Should Inline Immediately Invoked Arrow Functions", async () =>
 			await Equal(
-				`const result = ((x: number) => x * 2)(5);
+				`const Should = ((x: number) => x * 2)(5);
 
-				console.log(result);`,
+				console.log(Should);`,
 
 				`console.log(((x: number) => x * 2)(5));`,
 			))) &&

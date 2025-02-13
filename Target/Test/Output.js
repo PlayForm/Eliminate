@@ -1,4 +1,50 @@
-import n from"../Function/Output.js";import{expect as s}from"chai";import r from"prettier";const d=!1,a=async e=>{try{return await r.format(e.replace(/\s+/g," "),{parser:"typescript",...(await import("../../prettier.config.mjs")).default})}catch(l){console.log("Prettier: "),console.log(l)}return e},o=async(e,l,c,i=!1)=>{const t=await n(e,{Debug:d,Const:!1,Function:!1,Comment:!1,...c});return i&&(console.log("---------- OUTPUT ----------"),console.log(t)),s(await a(t)).to.equal(await a(l))};describe("TypeScript Variable Inliner",async()=>describe("Variable Inlining",async()=>it("Should Inline Simple Constant Declarations",async()=>await o(`const x = 5;
+import s from"../Function/Output.js";import{expect as e}from"chai";import d from"prettier";const u=!1,i=async n=>{try{return await d.format(n.replace(/\s+/g," "),{parser:"typescript",...(await import("../../prettier.config.mjs")).default})}catch(l){console.log("Prettier: "),console.log(l)}return n},t=async(n,l)=>await i(await s(n,{Debug:u,Const:!1,Function:!1,Comment:!1,...l})),o=async(n,l,c,r=!1)=>{const a=await t(n,c);return r&&(console.log("---------- OUTPUT ----------"),console.log(a)),e(a).to.equal(await i(l))};describe("TypeScript Variable Inliner",async()=>describe("Variable Inliner Transformer",()=>it("Inlines A Simple Variable Usage",async()=>{const n=await t(`let a = 1;
+				
+				let b = a + 2;
+				
+				console.log(b);`);e(n).not.to.contain("let a = 1")})&&it("Does Not Inline An Exported Variable",async()=>{const n=await t(`export const a = 1;
+				
+				let b = a + 2;
+				
+				console.log(b);`);e(n).to.contain("export const a = 1"),e(n).to.contain("a + 2")})&&it("Does Not Inline A Variable With A Leading Comment",async()=>{const n=await t(`/* This comment disables inlining */
+
+				let a = 1;
+				
+				let b = a + 2;
+				
+				console.log(b);`,{Comment:!0});e(n).to.contain("let a = 1"),e(n).to.contain("a + 2")})&&it("Inlines A Simple Function Call",async()=>{const n=await t(`function foo() {
+					return 42;
+
+				}
+
+				let Should = foo();
+				
+				console.log(Should);`);e(n).not.to.contain("function foo"),e(n).to.contain("(() =>"),e(n).to.contain("return 42")})&&it("Does Not Inline A Function With Type Parameters",async()=>{const n=await t(`function foo<T>(x: T): T {
+					return x;
+
+				}
+
+				let Should = foo(42);
+				
+				console.log(Should);`);e(n).to.contain("function foo<T>"),e(n).to.contain("foo(42)")})&&it("Does Not Inline A Variable If Its Initializer Exceeds The Size Threshold",async()=>{const n=await t(`let a = 1 + 2;
+	
+				// This expression will likely have a size > 1.
+	
+				let b = a + 3;
+				
+				console.log(b);`,{Max:1});e(n).to.contain("let a = 1 + 2"),e(n).to.contain("a + 3")})&&it("Does Not Inline Await Expressions When Async Option Is Enabled",async()=>{const n=await t(`async function foo() {
+					return await Promise.resolve(42);
+				}
+	
+				let Should = foo();
+				
+				console.log(Should);`,{Async:!0});e(n).to.contain("async function foo"),e(n).to.contain("foo()")})&&it("Inlines Nested Expressions Correctly",async()=>{const n=await t(`let a = 2;
+				
+				let b = a + 3;
+				
+				let c = b * 4;
+				
+				console.log(c);`);e(n).to.match(/let c = \(?\(?2 \+ 3\)?\) \* 4/),e(n).not.to.contain("let a ="),e(n).not.to.contain("let b =")}))&&describe("Variable Inlining",async()=>it("Should Inline Simple Constant Declarations",async()=>await o(`const x = 5;
 
 				console.log(x);`,"console.log(5);"))&&it("Should Inline Let Declarations",async()=>await o(`let x = 5;
 
@@ -199,13 +245,13 @@ import n from"../Function/Output.js";import{expect as s}from"chai";import r from
 					return x;
 				}
 
-				const result = identity(5);
+				const Should = identity(5);
 
-				console.log(result);`,`function identity<T>(x: T): T {
+				console.log(Should);`,`function identity<T>(x: T): T {
 					return x;
 				}
 
-				console.log(identity(5));`)}))&&describe("Error Cases",async()=>it("Should Handle Undefined Variables Gracefully",async()=>{await o("console.log(undefinedVar);","console.log(undefinedVar);")})&&it("Should Handle Syntax Errors Gracefully",()=>n("const x = ;").catch(e=>s(e).instanceOf(Error)))&&it("Should Handle Incomplete Code Gracefully",async()=>n("const x =").catch(e=>s(e).instanceOf(Error))))&&describe("Advanced Cases",()=>it("Should Inline Variables With Template Literals",async()=>await o("const greeting = `Hello, World`;\n\n				console.log(greeting);","console.log(`Hello, World`);"))&&it("Should Inline Variables In Conditional (ternary) Expressions",async()=>await o(`const x = true ? 1 : 2;
+				console.log(identity(5));`)}))&&describe("Error Cases",async()=>it("Should Handle Undefined Variables Gracefully",async()=>{await o("console.log(undefinedVar);","console.log(undefinedVar);")})&&it("Should Handle Syntax Errors Gracefully",()=>s("const x = ;").catch(n=>e(n).instanceOf(Error)))&&it("Should Handle Incomplete Code Gracefully",async()=>s("const x =").catch(n=>e(n).instanceOf(Error))))&&describe("Advanced Cases",()=>it("Should Inline Variables With Template Literals",async()=>await o("const greeting = `Hello, World`;\n\n				console.log(greeting);","console.log(`Hello, World`);"))&&it("Should Inline Variables In Conditional (ternary) Expressions",async()=>await o(`const x = true ? 1 : 2;
 
 				console.log(x);`,"console.log((true ? 1 : 2));"))&&it("Should Inline Variables With Logical Operators",async()=>await o(`const x = true && false;
 
@@ -241,9 +287,9 @@ import n from"../Function/Output.js";import{expect as s}from"chai";import r from
 
 				console.log(moreNums);`,"console.log([...[1, 2], 3]);")))&&describe("Arrow Functions and IIFE",()=>it("Should Inline Arrow Functions Assigned To Variables",async()=>await o(`const add = (a: number, b: number) => a + b;
 
-				console.log(add(1, 2));`,"console.log(((a: number, b: number) => a + b)(1, 2));"))&&it("Should Inline Immediately Invoked Arrow Functions",async()=>await o(`const result = ((x: number) => x * 2)(5);
+				console.log(add(1, 2));`,"console.log(((a: number, b: number) => a + b)(1, 2));"))&&it("Should Inline Immediately Invoked Arrow Functions",async()=>await o(`const Should = ((x: number) => x * 2)(5);
 
-				console.log(result);`,"console.log(((x: number) => x * 2)(5));")))&&describe("Loop and Scope Advanced",()=>it("Should Inline Variables Inside While Loops",async()=>await o(`let i = 0;
+				console.log(Should);`,"console.log(((x: number) => x * 2)(5));")))&&describe("Loop and Scope Advanced",()=>it("Should Inline Variables Inside While Loops",async()=>await o(`let i = 0;
 
 				while (i < 3) {
 					const x = i + 1;
@@ -295,4 +341,4 @@ import n from"../Function/Output.js";import{expect as s}from"chai";import r from
 
 				const sentence = \`This is \${adj}!\`;
 
-				console.log(sentence);`,'console.log(`This is ${"awesome"}!`);')))&&describe("Error Cases Extended",()=>it("Should Pass Through Runtime Errors For Undefined Variables",async()=>{await o("console.log(nonExistentVar);","console.log(nonExistentVar);")})&&it("Should Report Syntax Errors For Incomplete Expressions:",()=>n("const y = (1 +").catch(e=>s(e).to.be.instanceOf(Error)))));const g=await(await import("fast-glob")).default("./Target/Test/Input/**/*.{js,ts}");describe("File Checking",async()=>g.forEach(e=>it(`Should Inline Properly: ${e}`,async()=>await o(await(await import("fs/promises")).readFile(e,{encoding:"utf-8"}),await(await import("fs/promises")).readFile(e.replace("Target/Test/Input","Target/Test/Output"),{encoding:"utf-8"})))));
+				console.log(sentence);`,'console.log(`This is ${"awesome"}!`);')))&&describe("Error Cases Extended",()=>it("Should Pass Through Runtime Errors For Undefined Variables",async()=>{await o("console.log(nonExistentVar);","console.log(nonExistentVar);")})&&it("Should Report Syntax Errors For Incomplete Expressions:",()=>s("const y = (1 +").catch(n=>e(n).to.be.instanceOf(Error)))));const g=await(await import("fast-glob")).default("./Target/Test/Input/**/*.{js,ts}");describe("File Checking",async()=>g.forEach(n=>it(`Should Inline Properly: ${n}`,async()=>await o(await(await import("fs/promises")).readFile(n,{encoding:"utf-8"}),await(await import("fs/promises")).readFile(n.replace("Target/Test/Input","Target/Test/Output"),{encoding:"utf-8"})))));
