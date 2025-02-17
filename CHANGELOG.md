@@ -61,7 +61,7 @@
     - Using `Source/Variable/ESBuild.ts` for ESBuild configuration.
 - Updated description to "Eliminate ↘️".
 - Updated author information:
-    - Name changed to "Source 🖋️ Open 👐🏻".
+    - Name changed to "Source ✍🏻 Open 👐🏻".
     - Email changed to "Source/Open@PlayForm.LTD".
     - URL changed to "HTTPS://PlayForm.LTD".
 - Added `.npmignore` file to exclude unnecessary files from the published
