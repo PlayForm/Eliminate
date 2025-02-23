@@ -1,10 +1,44 @@
 import type Option from "@Interface/Output/Option.js";
-import ts from "typescript";
+import type {
+	Expression,
+	FunctionDeclaration,
+	Identifier,
+	Modifier,
+	Node,
+	Program,
+	Statement,
+	Symbol,
+	TransformationContext,
+	TypeChecker,
+	VariableDeclaration,
+} from "typescript";
+
+export const {
+	forEachChild,
+	getLeadingCommentRanges,
+	isAwaitExpression,
+	isBinaryExpression,
+	isCallExpression,
+	isConditionalExpression,
+	isFunctionDeclaration,
+	isIdentifier,
+	isPropertyAccessExpression,
+	isThisTypeNode,
+	isVariableDeclaration,
+	isVariableStatement,
+	isYieldExpression,
+	NodeFlags,
+	SymbolFlags,
+	SyntaxKind,
+	SyntaxKind: { AsyncKeyword, DefaultKeyword, ExportKeyword },
+	visitEachChild,
+	visitNode,
+} = await import("typescript");
 
 export type UsageType = {
-	Declaration: ts.VariableDeclaration | ts.FunctionDeclaration;
+	Declaration: VariableDeclaration | FunctionDeclaration;
 
-	Reference: ts.Identifier[];
+	Reference: Identifier[];
 
 	Inline: boolean;
 
@@ -12,9 +46,9 @@ export type UsageType = {
 };
 
 export default class {
-	private Usage = new Map<ts.Symbol, UsageType>();
+	private Usage = new Map<Symbol, UsageType>();
 
-	private Type: ts.TypeChecker | undefined;
+	private Type: TypeChecker | undefined;
 
 	private Option: Required<Option>;
 
@@ -38,12 +72,9 @@ export default class {
 		};
 	}
 
-	private _FunctionInline(
-		Node: ts.Node,
-		Context: ts.TransformationContext,
-	): ts.Node {
-		const Visit = (Node: ts.Node): ts.Node => {
-			if (ts.isFunctionDeclaration(Node)) {
+	private _FunctionInline(Node: Node, Context: TransformationContext): Node {
+		const Visit = (Node: Node): Node => {
+			if (isFunctionDeclaration(Node)) {
 				if (Node.typeParameters && Node.typeParameters.length > 0) {
 					return Node;
 				}
@@ -60,23 +91,20 @@ export default class {
 					if (_Usage?.Inline && _Usage.Reference.length === 2) {
 						this.Change = true;
 
-						return undefined as unknown as ts.Statement;
+						return undefined as unknown as Statement;
 					}
 				}
 			}
 
-			return ts.visitEachChild(Node, Visit, Context);
+			return visitEachChild(Node, Visit, Context);
 		};
 
-		return ts.visitNode(Node, Visit);
+		return visitNode(Node, Visit);
 	}
 
-	private _VariableInline(
-		Node: ts.Node,
-		Context: ts.TransformationContext,
-	): ts.Node {
-		const Visit = (Node: ts.Node): ts.Node => {
-			if (ts.isVariableStatement(Node)) {
+	private _VariableInline(Node: Node, Context: TransformationContext): Node {
+		const Visit = (Node: Node): Node => {
+			if (isVariableStatement(Node)) {
 				const Declaration = Node.declarationList.declarations;
 
 				const New = Declaration.filter((Declaration) => {
@@ -100,7 +128,7 @@ export default class {
 				if (New.length === 0) {
 					this.Change = true;
 
-					return undefined as unknown as ts.Statement;
+					return undefined as unknown as Statement;
 				}
 
 				if (New.length !== Declaration.length) {
@@ -120,21 +148,21 @@ export default class {
 				}
 			}
 
-			return ts.visitEachChild(Node, Visit, Context);
+			return visitEachChild(Node, Visit, Context);
 		};
 
-		return ts.visitNode(Node, Visit);
+		return visitNode(Node, Visit);
 	}
 
 	private _CallExpressionInline(
-		Node: ts.Node,
-		Context: ts.TransformationContext,
-	): ts.Node {
-		const Visit = (Node: ts.Node): ts.Node => {
-			if (ts.isCallExpression(Node)) {
+		Node: Node,
+		Context: TransformationContext,
+	): Node {
+		const Visit = (Node: Node): Node => {
+			if (isCallExpression(Node)) {
 				const Expression = Node.expression;
 
-				if (ts.isIdentifier(Expression)) {
+				if (isIdentifier(Expression)) {
 					const _Symbol = this.Type?.getSymbolAtLocation(Expression);
 
 					if (_Symbol && this.Usage.has(_Symbol)) {
@@ -142,7 +170,7 @@ export default class {
 						const _Usage = this.Usage.get(_Symbol)!;
 
 						if (
-							ts.isFunctionDeclaration(_Usage.Declaration) &&
+							isFunctionDeclaration(_Usage.Declaration) &&
 							_Usage.Declaration.typeParameters &&
 							_Usage.Declaration.typeParameters.length > 0
 						) {
@@ -152,7 +180,7 @@ export default class {
 						if (
 							_Usage.Inline &&
 							_Usage.Reference.length === 2 &&
-							ts.isFunctionDeclaration(_Usage.Declaration)
+							isFunctionDeclaration(_Usage.Declaration)
 						) {
 							this.Change = true;
 
@@ -161,7 +189,7 @@ export default class {
 								Context.factory.createParenthesizedExpression(
 									Context.factory.createArrowFunction(
 										_Usage.Declaration
-											.modifiers as readonly ts.Modifier[],
+											.modifiers as readonly Modifier[],
 										_Usage.Declaration.typeParameters,
 										_Usage.Declaration.parameters,
 										_Usage.Declaration.type,
@@ -178,51 +206,51 @@ export default class {
 				}
 			}
 
-			return ts.visitEachChild(Node, Visit, Context);
+			return visitEachChild(Node, Visit, Context);
 		};
 
-		return ts.visitNode(Node, Visit);
+		return visitNode(Node, Visit);
 	}
 
 	private _BinaryExpressionInline(
-		Node: ts.Node,
-		Context: ts.TransformationContext,
-	): ts.Node {
-		const Visit = (Node: ts.Node): ts.Node => {
-			if (ts.isBinaryExpression(Node)) {
-				const Left = ts.visitNode(Node.left, Visit);
+		Node: Node,
+		Context: TransformationContext,
+	): Node {
+		const Visit = (Node: Node): Node => {
+			if (isBinaryExpression(Node)) {
+				const Left = visitNode(Node.left, Visit);
 
-				const Right = ts.visitNode(Node.right, Visit);
+				const Right = visitNode(Node.right, Visit);
 
 				if (Left !== Node.left || Right !== Node.right) {
 					this.Change = true;
 
 					return Context.factory.createParenthesizedExpression(
 						Context.factory.createBinaryExpression(
-							Left as ts.Expression,
+							Left as Expression,
 							Node.operatorToken,
-							Right as ts.Expression,
+							Right as Expression,
 						),
 					);
 				}
 			}
 
-			return ts.visitEachChild(Node, Visit, Context);
+			return visitEachChild(Node, Visit, Context);
 		};
 
-		return ts.visitNode(Node, Visit);
+		return visitNode(Node, Visit);
 	}
 
 	private _ExpressionInline(
-		Node: ts.Node,
-		Context: ts.TransformationContext,
-	): ts.Node {
-		const Visit = (Node: ts.Node): ts.Node => {
-			if (ts.isIdentifier(Node)) {
+		Node: Node,
+		Context: TransformationContext,
+	): Node {
+		const Visit = (Node: Node): Node => {
+			if (isIdentifier(Node)) {
 				if (
-					(ts.isVariableDeclaration(Node.parent) &&
+					(isVariableDeclaration(Node.parent) &&
 						Node.parent.name === Node) ||
-					(ts.isFunctionDeclaration(Node.parent) &&
+					(isFunctionDeclaration(Node.parent) &&
 						Node.parent.name === Node)
 				) {
 					return Node;
@@ -235,7 +263,7 @@ export default class {
 				if (
 					_Usage?.Inline &&
 					_Usage.Reference.length === 2 &&
-					ts.isVariableDeclaration(_Usage.Declaration) &&
+					isVariableDeclaration(_Usage.Declaration) &&
 					_Usage.Declaration.initializer
 				) {
 					const Initializer = this.Iterative(
@@ -245,8 +273,8 @@ export default class {
 
 					this.Change = true;
 
-					return ts.isBinaryExpression(Initializer) ||
-						ts.isConditionalExpression(Initializer)
+					return isBinaryExpression(Initializer) ||
+						isConditionalExpression(Initializer)
 						? Context.factory.createParenthesizedExpression(
 								Initializer,
 							)
@@ -254,16 +282,13 @@ export default class {
 				}
 			}
 
-			return ts.visitEachChild(Node, Visit, Context);
+			return visitEachChild(Node, Visit, Context);
 		};
 
-		return ts.visitNode(Node, Visit);
+		return visitNode(Node, Visit);
 	}
 
-	private Iterative(
-		Node: ts.Node,
-		Context: ts.TransformationContext,
-	): ts.Node {
+	private Iterative(Node: Node, Context: TransformationContext): Node {
 		/**
 		 * DEBUG
 		 */
@@ -323,24 +348,21 @@ export default class {
 
 	// biome-ignore lint/nursery/useConsistentMemberAccessibility:
 	public Transform(
-		Program: ts.Program,
-	): (Context: ts.TransformationContext) => (Node: ts.Node) => ts.Node {
+		Program: Program,
+	): (Context: TransformationContext) => (Node: Node) => Node {
 		this.Type = Program.getTypeChecker();
 
-		return (Context: ts.TransformationContext) =>
-			(Node: ts.Node): ts.Node => {
+		return (Context: TransformationContext) =>
+			(Node: Node): Node => {
 				this.Collect(Node);
 
 				return this.Iterative(Node, Context);
 			};
 	}
 
-	private Collect(Source: ts.Node): void {
-		const Collect = (Node: ts.Node): void => {
-			if (
-				ts.isVariableDeclaration(Node) ||
-				ts.isFunctionDeclaration(Node)
-			) {
+	private Collect(Source: Node): void {
+		const Collect = (Node: Node): void => {
+			if (isVariableDeclaration(Node) || isFunctionDeclaration(Node)) {
 				if (!Node.name) {
 					return;
 				}
@@ -352,10 +374,10 @@ export default class {
 
 					let Size = 0;
 
-					if (ts.isVariableDeclaration(Node)) {
+					if (isVariableDeclaration(Node)) {
 						if (
 							this.Option.Const &&
-							Node.parent?.parent?.flags & ts.NodeFlags.Const
+							Node.parent?.parent?.flags & NodeFlags.Const
 						) {
 							Inline = false;
 						}
@@ -363,36 +385,34 @@ export default class {
 						const Statement = Node.parent.parent;
 
 						if (
-							ts.isVariableStatement(Statement) &&
+							isVariableStatement(Statement) &&
 							Statement.modifiers &&
 							Statement.modifiers.some(
-								(Modifier) =>
-									Modifier.kind ===
-										ts.SyntaxKind.ExportKeyword ||
-									Modifier.kind ===
-										ts.SyntaxKind.DefaultKeyword,
+								({ kind }) =>
+									kind === SyntaxKind.ExportKeyword ||
+									kind === SyntaxKind.DefaultKeyword,
 							)
 						) {
 							Inline = false;
 						}
 
 						if (Node.initializer) {
-							Inline = this.Inline(Node.initializer);
+							Inline = Inline && this.Inline(Node.initializer);
 
 							Size = this.Size(Node.initializer);
 						}
-					} else if (ts.isFunctionDeclaration(Node)) {
+					} else if (isFunctionDeclaration(Node)) {
 						if (this.Option.Function) {
 							Inline = false;
 						}
 
 						if (
 							Node.modifiers?.some(
-								(Modifier) =>
-									Modifier.kind ===
-										ts.SyntaxKind.ExportKeyword ||
-									Modifier.kind ===
-										ts.SyntaxKind.DefaultKeyword,
+								({ kind }) =>
+									kind === SyntaxKind.ExportKeyword ||
+									kind === SyntaxKind.DefaultKeyword ||
+									(this.Option.Async &&
+										kind === AsyncKeyword),
 							)
 						) {
 							Inline = false;
@@ -415,7 +435,7 @@ export default class {
 						Size,
 					});
 				}
-			} else if (ts.isIdentifier(Node)) {
+			} else if (isIdentifier(Node)) {
 				const _Symbol = this.Type?.getSymbolAtLocation(Node);
 
 				if (_Symbol && this.Usage.has(_Symbol)) {
@@ -423,19 +443,19 @@ export default class {
 				}
 			}
 
-			ts.forEachChild(Node, Collect);
+			forEachChild(Node, Collect);
 		};
 
 		Collect(Source);
 	}
 
-	private Size(Node: ts.Node): number {
+	private Size(Node: Node): number {
 		let Size = 0;
 
-		const Visit = (Node: ts.Node): void => {
+		const Visit = (Node: Node): void => {
 			Size++;
 
-			ts.forEachChild(Node, Visit);
+			forEachChild(Node, Visit);
 		};
 
 		Visit(Node);
@@ -443,44 +463,40 @@ export default class {
 		return Size;
 	}
 
-	private Comment(Node: ts.Node): boolean {
+	private Comment(Node: Node): boolean {
 		if (!this.Option.Comment) {
 			return false;
 		}
 
 		return (
-			(
-				ts.getLeadingCommentRanges(
-					Node.getSourceFile().text,
-					Node.pos,
-				) || []
-			).length > 0
+			(getLeadingCommentRanges(Node.getSourceFile().text, Node.pos) || [])
+				.length > 0
 		);
 	}
 
-	private Inline(Node: ts.Node): boolean {
+	private Inline(Node: Node): boolean {
 		if (this.Size(Node) > (this.Option.Max || Number.POSITIVE_INFINITY)) {
 			return false;
 		}
 
-		if (this.Option.Async && ts.isAwaitExpression(Node)) {
+		if (this.Option.Async && isAwaitExpression(Node)) {
 			return false;
 		}
 
-		if (ts.isThisTypeNode(Node)) {
+		if (isThisTypeNode(Node)) {
 			return false;
 		}
 
-		if (ts.isYieldExpression(Node)) {
+		if (isYieldExpression(Node)) {
 			return false;
 		}
 
-		if (ts.isPropertyAccessExpression(Node)) {
+		if (isPropertyAccessExpression(Node)) {
 			const _Symbol = this.Type?.getTypeAtLocation(
 				Node.expression,
 			)?.getProperty(Node.name.text);
 
-			if (_Symbol?.flags && _Symbol?.flags & ts.SymbolFlags.Accessor) {
+			if (_Symbol?.flags && _Symbol?.flags & SymbolFlags.Accessor) {
 				return false;
 			}
 		}
