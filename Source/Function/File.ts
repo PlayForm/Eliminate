@@ -6,24 +6,24 @@ import type Interface from "../Interface/File.js";
  */
 export default (async (...[Path]) => {
 	if (Path.split(".").pop() === "ts") {
-		const projectRoot = (await import("path")).resolve(
-			(await import("path")).dirname(
+		const projectRoot = (await import("node:path")).resolve(
+			(await import("node:path")).dirname(
 				(await import("url")).fileURLToPath(import.meta.url),
 			),
 			"../..",
 		);
 
 		await (
-			await import("fs/promises")
+			await import("node:fs/promises")
 		).writeFile(
 			Path.replace(".ts", ".js"),
 			(await import("typescript")).transpile(
 				(
-					await (await import("fs/promises")).readFile(Path, "utf-8")
+					await (await import("node:fs/promises")).readFile(Path, "utf-8")
 				).toString(),
 				(await import("typescript")).parseJsonConfigFileContent(
 					(await import("typescript")).readConfigFile(
-						(await import("path")).join(
+						(await import("node:path")).join(
 							projectRoot,
 							"tsconfig.json",
 						),

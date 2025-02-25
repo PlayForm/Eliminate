@@ -2175,12 +2175,12 @@ describe("TypeScript Variable Inliner", async () =>
 			it(`6363 Should Inline Properly: ${File}`, async () =>
 				await Equal(
 					await (
-						await import("fs/promises")
+						await import("node:fs/promises")
 					).readFile(File, {
 						encoding: "utf-8",
 					}),
 					await (
-						await import("fs/promises")
+						await import("node:fs/promises")
 					).readFile(
 						File.replace("Target/Test/Input", "Target/Test/Output"),
 						{

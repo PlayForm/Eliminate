@@ -7,7 +7,16 @@
 		"lib": ["ESNext", "DOM"]
 	},
 	"extends": "@playform/build/tsconfig",
-	"include": ["Source", "Source/Test/Output3.ts", "Source/Test/Output4.ts", "Source/Test/Output5.ts", "Source/Test/Output6.ts", "Source/Test/Output7.ts", "Source/Test/Output8.ts", "Source/Test/Output9.ts"],
+	"include": [
+		"Source",
+		"Source/Test/Output3.ts",
+		"Source/Test/Output4.ts",
+		"Source/Test/Output5.ts",
+		"Source/Test/Output6.ts",
+		"Source/Test/Output7.ts",
+		"Source/Test/Output8.ts",
+		"Source/Test/Output9.ts"
+	],
 	"exclude": [
 		"Source/Test/Input/**/*",
 		"Source/Test/Output/**/*",
