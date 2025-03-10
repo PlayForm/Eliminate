@@ -18,38 +18,83 @@ import type {
 
 export const {
 	forEachChild,
+
 	getLeadingCommentRanges,
+
 	isAwaitExpression,
+
 	isBinaryExpression,
+
 	isCallExpression,
+
 	isConditionalExpression,
+
 	isFunctionDeclaration,
+
 	isIdentifier,
+
 	isPropertyAccessExpression,
+
 	isThisTypeNode,
+
 	isVariableDeclaration,
+
 	isVariableStatement,
+
 	isYieldExpression,
+
 	NodeFlags,
+
 	SymbolFlags,
+
 	SyntaxKind: {
+		AmpersandAmpersandEqualsToken,
+
+		AmpersandEqualsToken,
+
+		AsteriskEqualsToken,
+
 		AsyncKeyword,
+
+		BarBarEqualsToken,
+
+		BarEqualsToken,
+
+		CaretEqualsToken,
+
 		DefaultKeyword,
+
+		EqualsToken,
+
 		ExportKeyword,
 
-		PlusPlusToken,
-		MinusMinusToken,
-		EqualsToken,
-		PlusEqualsToken,
+		GreaterThanGreaterThanEqualsToken,
+
+		GreaterThanGreaterThanGreaterThanEqualsToken,
+
+		LessThanLessThanEqualsToken,
+
 		MinusEqualsToken,
-		AsteriskEqualsToken,
-		SlashEqualsToken,
+
+		MinusMinusToken,
+
+		PercentEqualsToken,
+
+		PlusEqualsToken,
+
+		PlusPlusToken,
+
+		PostfixUnaryExpression,
 
 		PrefixUnaryExpression,
 
-		PostfixUnaryExpression,
+		QuestionQuestionEqualsToken,
+
+		SlashEqualsToken,
 	},
+
 	visitEachChild,
+
 	visitNode,
 } = await import("typescript");
 
@@ -63,6 +108,8 @@ export type UsageType = {
 	Size: number;
 
 	Modified: boolean;
+
+	Call: Set<SymbolInterface>;
 };
 
 export default class {
@@ -94,10 +141,8 @@ export default class {
 
 	private _FunctionInline(Node: Node, Context: TransformationContext): Node {
 		const Visit = (Node: Node, Depth = 0): Node => {
-			if (Depth > 5000) {
-				console.warn(
-					"Recursion depth limit reached in _FunctionInline",
-				);
+			if (Depth > 100) {
+				console.log("Recursion depth limit reached in _FunctionInline");
 
 				return Node;
 			}
@@ -126,7 +171,9 @@ export default class {
 
 			return visitEachChild(
 				Node,
+
 				(Child) => Visit(Child, Depth + 1),
+
 				Context,
 			);
 		};
@@ -136,10 +183,8 @@ export default class {
 
 	private _VariableInline(Node: Node, Context: TransformationContext): Node {
 		const Visit = (Node: Node, Depth = 0): Node => {
-			if (Depth > 5000) {
-				console.warn(
-					"Recursion depth limit reached in _VariableInline",
-				);
+			if (Depth > 100) {
+				console.log("Recursion depth limit reached in _VariableInline");
 
 				return Node;
 			}
@@ -190,7 +235,9 @@ export default class {
 
 			return visitEachChild(
 				Node,
+
 				(Child) => Visit(Child, Depth + 1),
+
 				Context,
 			);
 		};
@@ -200,11 +247,12 @@ export default class {
 
 	private _CallExpressionInline(
 		Node: Node,
+
 		Context: TransformationContext,
 	): Node {
 		const Visit = (Node: Node, Depth = 0): Node => {
-			if (Depth > 5000) {
-				console.warn(
+			if (Depth > 100) {
+				console.log(
 					"Recursion depth limit reached in _CallExpressionInline",
 				);
 
@@ -238,19 +286,27 @@ export default class {
 
 							return Context.factory.updateCallExpression(
 								Node,
+
 								Context.factory.createParenthesizedExpression(
 									Context.factory.createArrowFunction(
 										_Usage.Declaration
 											.modifiers as readonly Modifier[],
+
 										_Usage.Declaration.typeParameters,
+
 										_Usage.Declaration.parameters,
+
 										_Usage.Declaration.type,
+
 										undefined,
+
 										// biome-ignore lint/style/noNonNullAssertion:
 										_Usage.Declaration.body!,
 									),
 								),
+
 								Node.typeArguments,
+
 								Node.arguments,
 							);
 						}
@@ -260,7 +316,9 @@ export default class {
 
 			return visitEachChild(
 				Node,
+
 				(Child) => Visit(Child, Depth + 1),
+
 				Context,
 			);
 		};
@@ -270,11 +328,12 @@ export default class {
 
 	private _BinaryExpressionInline(
 		Node: Node,
+
 		Context: TransformationContext,
 	): Node {
 		const Visit = (Node: Node, Depth = 0): Node => {
-			if (Depth > 5000) {
-				console.warn(
+			if (Depth > 100) {
+				console.log(
 					"Recursion depth limit reached in _BinaryExpressionInline",
 				);
 
@@ -292,7 +351,9 @@ export default class {
 					return Context.factory.createParenthesizedExpression(
 						Context.factory.createBinaryExpression(
 							Left as Expression,
+
 							Node.operatorToken,
+
 							Right as Expression,
 						),
 					);
@@ -301,7 +362,9 @@ export default class {
 
 			return visitEachChild(
 				Node,
+
 				(Child) => Visit(Child, Depth + 1),
+
 				Context,
 			);
 		};
@@ -311,11 +374,12 @@ export default class {
 
 	private _ExpressionInline(
 		Node: Node,
+
 		Context: TransformationContext,
 	): Node {
 		const Visit = (Node: Node, Depth = 0): Node => {
-			if (Depth > 5000) {
-				console.warn(
+			if (Depth > 100) {
+				console.log(
 					"Recursion depth limit reached in _ExpressionInline",
 				);
 
@@ -345,6 +409,7 @@ export default class {
 				) {
 					const Initializer = this.Iterative(
 						_Usage.Declaration.initializer,
+
 						Context,
 					);
 
@@ -361,7 +426,9 @@ export default class {
 
 			return visitEachChild(
 				Node,
+
 				(Child) => Visit(Child, Depth + 1),
+
 				Context,
 			);
 		};
@@ -370,21 +437,25 @@ export default class {
 	}
 
 	private Iterative(Node: Node, Context: TransformationContext): Node {
-		/**
-		 * DEBUG
-		 */
-		if (this.Option.Debug) {
-			for (const [_Symbol, Usage] of this.Usage) {
-				console.log(`Variable: ${_Symbol.name}`);
+		try {
+			/**
+			 * DEBUG
+			 */
+			if (this.Option.Debug) {
+				for (const [_Symbol, Usage] of this.Usage) {
+					console.log(`Variable: ${_Symbol.name}`);
 
-				console.log(`- Reference: ${Usage.Reference.length}`);
+					console.log(`- Reference: ${Usage.Reference.length}`);
 
-				console.log(`- Inline: ${Usage.Inline}`);
+					console.log(`- Inline: ${Usage.Inline}`);
 
-				console.log(`- Size: ${Usage.Size}`);
+					console.log(`- Size: ${Usage.Size}`);
 
-				console.log(`- Text: ${Usage.Declaration.getText()}`);
+					console.log(`- Text: ${Usage.Declaration.getText()}`);
+				}
 			}
+		} catch (_Error) {
+			console.log(_Error);
 		}
 
 		let Transform = Node;
@@ -410,10 +481,23 @@ export default class {
 			Transform = this._ExpressionInline(Transform, Context);
 
 			Iteration++;
+
+			try {
+				/**
+				 * DEBUG
+				 */
+				if (this.Option.Debug) {
+					console.log(`Iteration: ${Iteration}`);
+
+					console.log(`Node: ${Transform.getText()}`);
+				}
+			} catch (_Error) {
+				console.log(_Error);
+			}
 		} while (this.Change && Iteration < 100);
 
 		if (Iteration >= 100) {
-			console.warn(
+			console.log(
 				"Potential infinite loop detected in AST transformations!",
 			);
 		}
@@ -435,8 +519,6 @@ export default class {
 	}
 
 	private Collect(Source: Node): void {
-		const CallGraph = new Map<SymbolInterface, Set<SymbolInterface>>();
-
 		const Collect = (Node: Node): void => {
 			if (isVariableDeclaration(Node) || isFunctionDeclaration(Node)) {
 				if (!Node.name) {
@@ -501,6 +583,10 @@ export default class {
 						Inline = false;
 					}
 
+					const Call = new Set<SymbolInterface>();
+
+					this.Call(Node, Call);
+
 					this.Usage.set(_Symbol, {
 						Declaration: Node,
 
@@ -511,6 +597,8 @@ export default class {
 						Size,
 
 						Modified: false,
+
+						Call,
 					});
 				}
 			} else if (isIdentifier(Node)) {
@@ -531,6 +619,82 @@ export default class {
 		};
 
 		Collect(Source);
+
+		const Graph = new Map<SymbolInterface, Set<SymbolInterface>>();
+
+		for (const [_Symbol, Usage] of this.Usage) {
+			if (isFunctionDeclaration(Usage.Declaration)) {
+				Graph.set(_Symbol, Usage.Call);
+			}
+		}
+
+		const Cycle = this.Cycle(Graph);
+
+		for (const _Cycle of Cycle) {
+			for (const _Symbol of _Cycle) {
+				const Usage = this.Usage.get(_Symbol);
+
+				if (Usage) {
+					Usage.Inline = false;
+				}
+			}
+		}
+	}
+
+	private Cycle(
+		Graph: Map<SymbolInterface, Set<SymbolInterface>>,
+	): Set<SymbolInterface>[] {
+		const Visited = new Set<SymbolInterface>();
+
+		const Stack = new Set<SymbolInterface>();
+
+		const Cycle: Set<SymbolInterface>[] = [];
+
+		const Search = (
+			Node: SymbolInterface,
+
+			Path: SymbolInterface[],
+		): void => {
+			if (Stack.has(Node)) {
+				Cycle.push(new Set(Path.slice(Path.indexOf(Node))));
+
+				return;
+			}
+
+			if (Visited.has(Node)) {
+				return;
+			}
+
+			Visited.add(Node);
+
+			Stack.add(Node);
+
+			for (const Neighbor of Graph.get(Node) || new Set()) {
+				Search(Neighbor, [...Path, Neighbor]);
+			}
+
+			Stack.delete(Node);
+		};
+
+		for (const Node of Graph.keys()) {
+			if (!Visited.has(Node)) {
+				Search(Node, [Node]);
+			}
+		}
+
+		return Cycle;
+	}
+
+	private Call(Node: Node, Call: Set<SymbolInterface>): void {
+		if (isCallExpression(Node) && isIdentifier(Node.expression)) {
+			const Called = this.Type?.getSymbolAtLocation(Node.expression);
+
+			if (Called) {
+				Call.add(Called);
+			}
+		}
+
+		Node.forEachChild((child) => this.Call(child, Call));
 	}
 
 	private Modification(Node: Identifier): boolean {
@@ -547,7 +711,6 @@ export default class {
 				Expression.operator === PlusPlusToken ||
 				Expression.operator === MinusMinusToken
 			) {
-				// e.g., i++ or i--
 				return true;
 			}
 		}
@@ -563,7 +726,6 @@ export default class {
 				Expression.operator === PlusPlusToken ||
 				Expression.operator === MinusMinusToken
 			) {
-				// e.g., ++i or --i
 				return true;
 			}
 		}
@@ -573,7 +735,6 @@ export default class {
 			Parent.left === Node &&
 			this.Operator(Parent.operatorToken.kind)
 		) {
-			// e.g., i = ..., i += ..., etc.
 			return true;
 		}
 
@@ -582,6 +743,7 @@ export default class {
 
 	private isPostfixUnaryExpression({
 		kind,
+
 		operator,
 	}: Node & PostfixUnaryExpressionInterface): boolean {
 		if (kind === PostfixUnaryExpression) {
@@ -593,6 +755,7 @@ export default class {
 
 	private isPrefixUnaryExpression({
 		kind,
+
 		operator,
 	}: Node & PrefixUnaryExpressionInterface): boolean {
 		if (kind === PrefixUnaryExpression) {
@@ -604,12 +767,35 @@ export default class {
 
 	private Operator(kind: SyntaxKind): boolean {
 		return [
-			EqualsToken,
-			PlusEqualsToken,
-			MinusEqualsToken,
+			AmpersandAmpersandEqualsToken,
+
+			AmpersandEqualsToken,
+
 			AsteriskEqualsToken,
+
+			BarBarEqualsToken,
+
+			BarEqualsToken,
+
+			CaretEqualsToken,
+
+			EqualsToken,
+
+			GreaterThanGreaterThanEqualsToken,
+
+			GreaterThanGreaterThanGreaterThanEqualsToken,
+
+			LessThanLessThanEqualsToken,
+
+			MinusEqualsToken,
+
+			PercentEqualsToken,
+
+			PlusEqualsToken,
+
+			QuestionQuestionEqualsToken,
+
 			SlashEqualsToken,
-			// ... other assignment operators ...
 		].includes(kind);
 	}
 

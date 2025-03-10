@@ -60,7 +60,7 @@ const Equal = async (
 describe("TypeScript Variable Inliner", async () =>
 	// NEW ONES
 	describe("Variable Inliner Transformer", () =>
-		it(" Inlines A Simple Variable Usage", async () => {
+		it("Inlines A Simple Variable Usage", async () => {
 			const Should = await Transform(
 				`let a = 1;
 				
@@ -71,7 +71,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).not.to.contain("let a = 1");
 		}) &&
-		it(" Does Not Inline An Exported Variable", async () => {
+		it("Does Not Inline An Exported Variable", async () => {
 			const Should = await Transform(
 				`export const a = 1;
 				
@@ -84,7 +84,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.contain("a + 2");
 		}) &&
-		it(" Does Not Keep A Comment", async () => {
+		it("Does Not Keep A Comment", async () => {
 			const Should = await Transform(
 				`// This comment disables inlining
 				let a = 1;
@@ -99,7 +99,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).not.to.contain("This comment disables inlining");
 		}) &&
-		it(" Inlines A Simple Function Call", async () => {
+		it("Inlines A Simple Function Call", async () => {
 			const Should = await Transform(
 				`function foo() {
 				
@@ -118,7 +118,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.contain("return 42");
 		}) &&
-		it(" Does Not Inline A Function With Type Parameters", async () => {
+		it("Does Not Inline A Function With Type Parameters", async () => {
 			const Should = await Transform(
 				`function foo<T>(x: T): T {
 				
@@ -135,7 +135,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.contain("foo(42)");
 		}) &&
-		it(" Does Not Inline A Variable If Its Initializer Exceeds The Size Threshold", async () => {
+		it("Does Not Inline A Variable If Its Initializer Exceeds The Size Threshold", async () => {
 			const Should = await Transform(
 				`let a = 1 + 2;
 				
@@ -152,7 +152,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.contain("a + 3");
 		}) &&
-		it(" Does Not Inline Await Expressions When Async Option Is Enabled", async () => {
+		it("Does Not Inline Await Expressions When Async Option Is Enabled", async () => {
 			const Should = await Transform(
 				`async function foo() {
 				
@@ -170,7 +170,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.contain("foo()");
 		}) &&
-		it(" Inlines Nested Expressions Correctly", async () => {
+		it("Inlines Nested Expressions Correctly", async () => {
 			const Should = await Transform(
 				`let a = 2;
 				
@@ -188,7 +188,7 @@ describe("TypeScript Variable Inliner", async () =>
 			expect(Should).not.to.contain("let b =");
 		})) &&
 	describe("Extensive Variable Inliner Tests", () =>
-		it(" Should Inline Multi Pass Variables Across Multiple Passes", async () => {
+		it("Should Inline Multi Pass Variables Across Multiple Passes", async () => {
 			const Should = await Transform(
 				`let a = 1;
 				
@@ -207,7 +207,7 @@ describe("TypeScript Variable Inliner", async () =>
 			// The final expression for 'c' should be inlined (e.g. ((1 + 2) * 3)).
 			expect(Should).to.match(/\(1\s*\+\s*2\).*3/);
 		}) &&
-		it(" Should Handle Variables In Nested Block Scopes", async () => {
+		it("Should Handle Variables In Nested Block Scopes", async () => {
 			const Should = await Transform(
 				`let a = 10;
 				
@@ -242,7 +242,7 @@ describe("TypeScript Variable Inliner", async () =>
 			// Ensure that the final console.log contains some computed arithmetic.
 			expect(Should).to.match(/console\.log\(.+\)/);
 		}) &&
-		it(" Should Not Inline A Variable That Is Redefined In The Same Scope", async () => {
+		it("Should Not Inline A Variable That Is Redefined In The Same Scope", async () => {
 			const Should = await Transform(
 				`let a = 1;
 				
@@ -258,7 +258,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.contain("console.log(a)");
 		}) &&
-		it(" Should Not Inline Variables When Shadowed In Nested Scopes", async () => {
+		it("Should Not Inline Variables When Shadowed In Nested Scopes", async () => {
 			const Should = await Transform(
 				`let a = 1;
 				
@@ -280,7 +280,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.match(/let a = 2/);
 		}) &&
-		it(" Should Inline A Variable Inside A Nested Function When Safe", async () => {
+		it("Should Inline A Variable Inside A Nested Function When Safe", async () => {
 			const Should = await Transform(
 				`function outer() {
 				
@@ -308,7 +308,7 @@ describe("TypeScript Variable Inliner", async () =>
 			// Check that the return expression in 'inner' contains the literal arithmetic.
 			expect(Should).to.match(/return\s+5\s*\+\s*1/);
 		}) &&
-		it(" Should Not Inline Variables That Are Used In Multiple Locations", async () => {
+		it("Should Not Inline Variables That Are Used In Multiple Locations", async () => {
 			const Should = await Transform(
 				`let a = 1;
 				
@@ -326,7 +326,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.contain("a + 3");
 		}) &&
-		it(" Should Perform Multi Pass Inlining With Interdependent Variables", async () => {
+		it("Should Perform Multi Pass Inlining With Interdependent Variables", async () => {
 			const Should = await Transform(
 				`let x = 1;
 				
@@ -347,7 +347,7 @@ describe("TypeScript Variable Inliner", async () =>
 				/console\.log\(\s*\(?1\s*\+\s*2\)?\s*\+\s*1\s*\)/,
 			);
 		}) &&
-		it(" Should Inline Variables Through Multiple Levels Of Nested Functions", async () => {
+		it("Should Inline Variables Through Multiple Levels Of Nested Functions", async () => {
 			const Should = await Transform(
 				`function level1() {
 				
@@ -394,7 +394,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.match(/console\.log\(.+\)/);
 		}) &&
-		it(" Should Preserve Variables Or Functions Marked By Comments From Inlining", async () => {
+		it("Should Preserve Variables Or Functions Marked By Comments From Inlining", async () => {
 			const Should = await Transform(
 				`// Do not inline this variable.
 				let a = 5;
@@ -416,7 +416,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.contain("function foo");
 		}) &&
-		it(" Should Not Inline A Function That Is Redefined", async () => {
+		it("Should Not Inline A Function That Is Redefined", async () => {
 			const Should = await Transform(
 				`function foo() { return 1; }
 
@@ -432,7 +432,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.contain("console.log(foo())");
 		}) &&
-		it(" Should Not Inline A Variable That Is Reassigned Within A Nested Block", async () => {
+		it("Should Not Inline A Variable That Is Reassigned Within A Nested Block", async () => {
 			const Should = await Transform(
 				`let a = 1;
 				
@@ -461,7 +461,7 @@ describe("TypeScript Variable Inliner", async () =>
 			// Depending on safety checks, 'a' might be inlined if used only once, but could also be preserved.
 			expect(Should).to.contain("let a =");
 		}) &&
-		it(" Should Handle Variables With Similar Names In Different Scopes", async () => {
+		it("Should Handle Variables With Similar Names In Different Scopes", async () => {
 			const Should = await Transform(
 				`let a = 100;
 				
@@ -483,7 +483,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.match(/let a = 200/);
 		}) &&
-		it(" Should Correctly Inline Across Multiple Passes With Nested Redefinitions And Cross Scope Usage", async () => {
+		it("Should Correctly Inline Across Multiple Passes With Nested Redefinitions And Cross Scope Usage", async () => {
 			const Should = await Transform(
 				`let x = 1;
 				
@@ -514,7 +514,7 @@ describe("TypeScript Variable Inliner", async () =>
 			// The printed output should reference the inlined expression for y where appropriate.
 			expect(Should).to.match(/console\.log\(.+,\s*y\s*\)/);
 		}) &&
-		it(" Should Not Inline A Variable If It Is Captured In A Closure And Later Modified", async () => {
+		it("Should Not Inline A Variable If It Is Captured In A Closure And Later Modified", async () => {
 			const Should = await Transform(
 				`let a = 1;
 				
@@ -537,7 +537,7 @@ describe("TypeScript Variable Inliner", async () =>
 			// expect(Should).to.contain("function f()");
 		})) &&
 	describe("Additional Extensive Variable Inliner Tests", () =>
-		it(" Should Inline Variables In Inner Functions With Parameters", async () => {
+		it("Should Inline Variables In Inner Functions With Parameters", async () => {
 			const Should = await Transform(
 				`function outer(a) {
 				
@@ -565,7 +565,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.match(/10 \+ 5/);
 		}) &&
-		it(" Should Not Inline Variables When They Are Used In Conditionals", async () => {
+		it("Should Not Inline Variables When They Are Used In Conditionals", async () => {
 			const Should = await Transform(
 				`let a = 10;
 				
@@ -581,7 +581,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.contain("console.log(a)");
 		}) &&
-		it(" Should Inline A Function Used Only Once In A Single Expression", async () => {
+		it("Should Inline A Function Used Only Once In A Single Expression", async () => {
 			const Should = await Transform(
 				`function foo() {
 				
@@ -600,7 +600,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.match(/let Should = 5 \* 2/);
 		}) &&
-		it(" Should Handle Multiple Variables Defined At Once And Used Individually", async () => {
+		it("Should Handle Multiple Variables Defined At Once And Used Individually", async () => {
 			const Should = await Transform(
 				`let x = 10, y = 20, z = 30;
 				
@@ -626,7 +626,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.match(/let b = 20 \+ 30/);
 		}) &&
-		it(" Should Handle Destructuring Correctly When Inlining", async () => {
+		it("Should Handle Destructuring Correctly When Inlining", async () => {
 			const Should = await Transform(
 				`const obj = { a: 1, b: 2 };
 				
@@ -644,7 +644,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.match(/let b = 2/);
 		}) &&
-		it(" Should Not Inline Object Properties Used More Than Once", async () => {
+		it("Should Not Inline Object Properties Used More Than Once", async () => {
 			const Should = await Transform(
 				`const obj = { a: 1, b: 2 };
 				
@@ -666,7 +666,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.contain("obj.b + 2");
 		}) &&
-		it(" Should Inline Variables Used In Non Assignment Computations", async () => {
+		it("Should Inline Variables Used In Non Assignment Computations", async () => {
 			const Should = await Transform(
 				`let a = 5;
 				
@@ -682,7 +682,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.match(/let b = 5 \* 3 \+ 2/);
 		}) &&
-		it(" Should Handle Variables Within Template Literals", async () => {
+		it("Should Handle Variables Within Template Literals", async () => {
 			const Should = await Transform(
 				`let name = "John";
 				
@@ -694,7 +694,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.match(/console\.log\("Hello, John!"/);
 		}) &&
-		it(" Should Correctly Handle Reassigned Variables Inside Loops", async () => {
+		it("Should Correctly Handle Reassigned Variables Inside Loops", async () => {
 			const Should = await Transform(
 				`let i = 0;
 				
@@ -708,7 +708,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.contain("console.log(i)");
 		}) &&
-		it(" Should Preserve Variable Values That Are Used In Delayed Execution Contexts (e.g. Set Timeout)", async () => {
+		it("Should Preserve Variable Values That Are Used In Delayed Execution Contexts (e.g. Set Timeout)", async () => {
 			const Should = await Transform(
 				`let x = 5;
 				
@@ -726,7 +726,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.contain("setTimeout");
 		}) &&
-		it(" Should Warn And Stop Infinite Inlining When Dependent Variables Have Circular Dependencies", async () => {
+		it("Should Warn And Stop Infinite Inlining When Dependent Variables Have Circular Dependencies", async () => {
 			const Should = await Transform(
 				`let x = y + 1;
 				
@@ -742,7 +742,7 @@ describe("TypeScript Variable Inliner", async () =>
 				"Potential infinite loop detected in AST transformations!",
 			);
 		}) &&
-		it(" Should Correctly Inline Variables When Their Values Are Directly Involved In Complex Computations", async () => {
+		it("Should Correctly Inline Variables When Their Values Are Directly Involved In Complex Computations", async () => {
 			const Should = await Transform(
 				`let a = 3;
 				
@@ -764,7 +764,7 @@ describe("TypeScript Variable Inliner", async () =>
 
 			expect(Should).to.match(/let Should = \(3 \+ 4\) \* 3/);
 		}) &&
-		it(" Should Handle Variables Used In Multiple Callbacks Correctly", async () => {
+		it("Should Handle Variables Used In Multiple Callbacks Correctly", async () => {
 			const Should = await Transform(
 				`let a = 1;
 				
@@ -1662,7 +1662,7 @@ console.log(a, b);`);
 	describe("Even More Extra Inlining Tests - Round 4", async () => {
 		// Assumes the existence of a helper function `await Transform(source: string, optionOverrides?: Partial<Option>): string>`		// that creates a TS Program, applies the inliner transformation, and returns the printed output.
 
-		it(" Should Inline A Variable Used In An Array Literal Element", async () => {
+		it("Should Inline A Variable Used In An Array Literal Element", async () => {
 			const Should = await Transform(`let a = 5;
 		
 				const arr = [a, a + 2];
@@ -1674,7 +1674,7 @@ console.log(a, b);`);
 
 			expect(Should).to.match(/\[ ?5, ?\(5 \+ 2\) ?\]/);
 		}) &&
-			it(" Should Inline A Variable Used As An Argument In A Function Call", async () => {
+			it("Should Inline A Variable Used As An Argument In A Function Call", async () => {
 				const Should = await Transform(`let a = 3;
 				
 					function foo(x: number) { return x * 2; }
@@ -1685,7 +1685,7 @@ console.log(a, b);`);
 
 				expect(Should).to.match(/foo\(\s*3\s*\)/);
 			}) &&
-			it(" Should Inline A Variable Used Inside A Class Static Method", async () => {
+			it("Should Inline A Variable Used Inside A Class Static Method", async () => {
 				const Should = await Transform(`let a = 7;
 				
 					class MyClass {
@@ -1703,7 +1703,7 @@ console.log(a, b);`);
 
 				expect(Should).to.match(/return\s+7\s*\+\s*1/);
 			}) &&
-			it(" Should Inline A Variable Used In A Template Literal With Embedded Expression", async () => {
+			it("Should Inline A Variable Used In A Template Literal With Embedded Expression", async () => {
 				const Should = await Transform(`let a = "world";
 				
 					const greeting = \`Hello, \${a}!\`;
@@ -1714,7 +1714,7 @@ console.log(a, b);`);
 
 				expect(Should).to.match(/`Hello,\s*world!`/);
 			}) &&
-			it(" Should Inline A Variable Used In A Chained Binary Expression Across Multiple Passes", async () => {
+			it("Should Inline A Variable Used In A Chained Binary Expression Across Multiple Passes", async () => {
 				const Should = await Transform(`let a = 2;
 				
 					let b = a + 3;
@@ -1737,7 +1737,7 @@ console.log(a, b);`);
 					/console\.log\(\s*\(?\(?2\s*\+\s*3\)?\s*\*\s*4\s*-\s*2\)?\s*\)/,
 				);
 			}) &&
-			it(" Should Inline A Variable Used In An Arrow Function That Is Immediately Invoked", async () => {
+			it("Should Inline A Variable Used In An Arrow Function That Is Immediately Invoked", async () => {
 				const Should = await Transform(`let a = 10;
 				
 					(() => console.log(a - 4))();`);
@@ -1746,7 +1746,7 @@ console.log(a, b);`);
 
 				expect(Should).to.match(/console\.log\(\s*10\s*-\s*4\s*\)/);
 			}) &&
-			it(" Should Inline A Variable Used In A Nested Conditional (ternary) Expression", async () => {
+			it("Should Inline A Variable Used In A Nested Conditional (ternary) Expression", async () => {
 				const Should = await Transform(`let a = 5;
 				
 					let Should = a > 3 ? (a < 8 ? a * 2 : a * 3) : a - 1;
@@ -1759,7 +1759,7 @@ console.log(a, b);`);
 					/console\.log\(\s*\(?5\s*>\s*3\s*\?\s*\(?5\s*<\s*8\s*\?\s*5\s*\*\s*2\s*:\s*5\s*\*\s*3\)?\s*:\s*5\s*-\s*1\)?\s*\)/,
 				);
 			}) &&
-			it(" Should Inline A Variable Used In A For Of Loop Body When Safe", async () => {
+			it("Should Inline A Variable Used In A For Of Loop Body When Safe", async () => {
 				const Should = await Transform(`let a = 4;
 				
 					const arr = [1, 2, 3];
@@ -1775,7 +1775,7 @@ console.log(a, b);`);
 
 				expect(Should).to.match(/console\.log\(\s*item\s*\+\s*4\s*\)/);
 			}) &&
-			it(" Should Inline A Variable In A Complex Nested Function With Multiple Scopes", async () => {
+			it("Should Inline A Variable In A Complex Nested Function With Multiple Scopes", async () => {
 				const Should = await Transform(`let a = 2;
 				
 					function outer() {
@@ -1803,7 +1803,7 @@ console.log(a, b);`);
 					/return\s+\(?\(2\s*\+\s*3\)\s*\*\s*4\s*-\s*2\)?/,
 				);
 			}) &&
-			it(" Should Inline A Chain Of Variables When One Variable's Value Is Used Only Once", async () => {
+			it("Should Inline A Chain Of Variables When One Variable's Value Is Used Only Once", async () => {
 				const Should = await Transform(`let a = 1;
 				
 					let b = a;
@@ -1821,7 +1821,7 @@ console.log(a, b);`);
 					/console\.log\(\s*\(?1\s*\+\s*10\)?\s*\)/,
 				);
 			}) &&
-			it(" Should Not Inline A Variable If It Is Used In A Side Effectful Function Call", async () => {
+			it("Should Not Inline A Variable If It Is Used In A Side Effectful Function Call", async () => {
 				const Should = await Transform(`let a = Math.random();
 				
 					function log(x: number) { console.log(x); }
@@ -1833,7 +1833,7 @@ console.log(a, b);`);
 
 				expect(Should).to.match(/log\(\s*a\s*\)/);
 			}) &&
-			it(" Should Not Inline A Variable If It Is Declared With Var And Might Be Hoisted", async () => {
+			it("Should Not Inline A Variable If It Is Declared With Var And Might Be Hoisted", async () => {
 				const Should = await Transform(`var a = 20;
 				
 					function foo() { return a; }
@@ -1843,7 +1843,7 @@ console.log(a, b);`);
 				// 'var' declarations may be preserved due to hoisting concerns.
 				expect(Should).to.contain("var a = 20");
 			}) &&
-			it(" Should Inline A Variable Used In A Logical OR Expression With Correct Parenthesis", async () => {
+			it("Should Inline A Variable Used In A Logical OR Expression With Correct Parenthesis", async () => {
 				const Should = await Transform(`let a = 0;
 				
 					let b = a || 5;
@@ -1854,7 +1854,7 @@ console.log(a, b);`);
 
 				expect(Should).to.match(/let b =\s*\(?0\s*\|\|\s*5\)?/);
 			}) &&
-			it(" Should Inline A Variable Used In A Logical AND Expression With Correct Parenthesis", async () => {
+			it("Should Inline A Variable Used In A Logical AND Expression With Correct Parenthesis", async () => {
 				const Should = await Transform(`let a = true;
 				
 					let b = a && 10;
@@ -1865,7 +1865,7 @@ console.log(a, b);`);
 
 				expect(Should).to.match(/let b =\s*\(?true\s*&&\s*10\)?/);
 			}) &&
-			it(" Should Inline A Variable Used In A Compound Assignment Expression", async () => {
+			it("Should Inline A Variable Used In A Compound Assignment Expression", async () => {
 				const Should = await Transform(`let a = 3;
 				
 					let b = a;
@@ -1882,7 +1882,7 @@ console.log(a, b);`);
 
 				expect(Should).to.match(/b \+= 7/);
 			}) &&
-			it(" Should Inline A Variable Used In A Nested Object Literal With Method Shorthand", async () => {
+			it("Should Inline A Variable Used In A Nested Object Literal With Method Shorthand", async () => {
 				const Should = await Transform(`let a = 8;
 				
 					const obj = {
@@ -1903,7 +1903,7 @@ console.log(a, b);`);
 
 				expect(Should).to.match(/return\s+8\s*\*\s*2/);
 			}) &&
-			it(" Should Inline A Variable Used In An Immediately Invoked Function Expression Inside A Class Constructor", async () => {
+			it("Should Inline A Variable Used In An Immediately Invoked Function Expression Inside A Class Constructor", async () => {
 				const Should = await Transform(`let a = 9;
 				
 					class MyClass {
@@ -1925,7 +1925,7 @@ console.log(a, b);`);
 			});
 	}) &&
 	describe("Highly Advanced Inlining Tests - Round 5", async () =>
-		it(" Should Handle Inlining In An Async Arrow Function With Nested Await", async () => {
+		it("Should Handle Inlining In An Async Arrow Function With Nested Await", async () => {
 			const Should = await Transform(
 				`let delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 		
@@ -1946,7 +1946,7 @@ console.log(a, b);`);
 			// 'a' is assigned an awaited value; inlining should be prevented.
 			expect(Should).to.contain("let a =");
 		}) &&
-		it(" Should Inline A Generic Function's Variable When Type Parameters Do Not Affect The Initializer", async () => {
+		it("Should Inline A Generic Function's Variable When Type Parameters Do Not Affect The Initializer", async () => {
 			const Should =
 				await Transform(`function identity<T>(x: T): T { return x; }
 		
@@ -1959,7 +1959,7 @@ console.log(a, b);`);
 
 			expect(Should).to.match(/console\.log\(\s*42\s*\)/);
 		}) &&
-		it(" Should Not Inline A Variable When Its Initializer Has A Type Cast", async () => {
+		it("Should Not Inline A Variable When Its Initializer Has A Type Cast", async () => {
 			const Should = await Transform(`let a = (5 as number) + 2;
 		
 				let b = a * 3;
@@ -1971,7 +1971,7 @@ console.log(a, b);`);
 
 			expect(Should).to.match(/a \* 3/);
 		}) &&
-		it(" Should Inline Variables Defined With Const In Nested Functions If They Are Not Reassigned", async () => {
+		it("Should Inline Variables Defined With Const In Nested Functions If They Are Not Reassigned", async () => {
 			const Should = await Transform(`const a = 10;
 		
 				function outer() {
@@ -1992,7 +1992,7 @@ console.log(a, b);`);
 
 			expect(Should).to.match(/return\s+10\s*\+\s*5/);
 		}) &&
-		it(" Should Not Inline A Variable If It Is Used With A Non Null Assertion Operator", async () => {
+		it("Should Not Inline A Variable If It Is Used With A Non Null Assertion Operator", async () => {
 			const Should = await Transform(`let a = { value: 3 };
 		
 				let b = a!.value + 2;
@@ -2004,7 +2004,7 @@ console.log(a, b);`);
 
 			expect(Should).to.match(/a!\.value/);
 		}) &&
-		it(" Should Not Inline A Variable Declared In A For Loop Header When It Is Mutated", async () => {
+		it("Should Not Inline A Variable Declared In A For Loop Header When It Is Mutated", async () => {
 			const Should = await Transform(`for (let i = 0; i < 5; i++) {
 			
 			console.log(i * 2);
@@ -2015,7 +2015,7 @@ console.log(a, b);`);
 			// 'i' is modified by the loop; inlining must not occur.
 			expect(Should).to.contain("let i = 0");
 		}) &&
-		it(" Should Inline A Variable In A Complex Expression Mixing Ternaries, Logical Operators, And Arithmetic", async () => {
+		it("Should Inline A Variable In A Complex Expression Mixing Ternaries, Logical Operators, And Arithmetic", async () => {
 			const Should = await Transform(`let a = 3;
 		
 				let b = a > 2 ? (a < 5 ? a + 1 : a - 1) : (a && 0);
@@ -2031,7 +2031,7 @@ console.log(a, b);`);
 				/console\.log\(\s*\(?\(3\s*>\s*2\s*\?.*\)\s*\*\s*2\)?\s*\)/,
 			);
 		}) &&
-		it(" Should Preserve Destructured Variables And Not Attempt To Inline Them", async () => {
+		it("Should Preserve Destructured Variables And Not Attempt To Inline Them", async () => {
 			const Should = await Transform(`let data = { a: 1, b: 2, c: 3 };
 		
 				let { a, b } = data;
@@ -2045,7 +2045,7 @@ console.log(a, b);`);
 
 			expect(Should).to.match(/a \+ b/);
 		}) &&
-		it(" Should Inline A Variable Defined Using Computed Property Access If Safe", async () => {
+		it("Should Inline A Variable Defined Using Computed Property Access If Safe", async () => {
 			const Should = await Transform(`let obj = { x: 5 };
 		
 				let a = obj.x;
@@ -2059,7 +2059,7 @@ console.log(a, b);`);
 
 			expect(Should).to.match(/obj\.x\s*\*\s*2/);
 		}) &&
-		it(" Should Inline A Variable That Is Used In A Chained Method Call", async () => {
+		it("Should Inline A Variable That Is Used In A Chained Method Call", async () => {
 			const Should = await Transform(`let prefix = "Mr. ";
 		
 				let name = "Smith";
@@ -2075,7 +2075,7 @@ console.log(a, b);`);
 
 			expect(Should).to.match(/\[\s*"Mr\.\s*"\s*,\s*"Smith"\s*\]/);
 		}) &&
-		it(" Should Inline A Variable Used Within A Class Static Block", async () => {
+		it("Should Inline A Variable Used Within A Class Static Block", async () => {
 			const Should = await Transform(`let a = 42;
 		
 				class MyClass {
@@ -2093,7 +2093,7 @@ console.log(a, b);`);
 
 			expect(Should).to.match(/console\.log\(\s*42\s*\+\s*1\s*\)/);
 		}) &&
-		it(" Should Inline A Variable In A Complex Nested Arrow Function With Multiple Closures", async () => {
+		it("Should Inline A Variable In A Complex Nested Arrow Function With Multiple Closures", async () => {
 			const Should = await Transform(`let a = 5;
 		
 				const f = () => {
@@ -2120,7 +2120,7 @@ console.log(a, b);`);
 
 			expect(Should).to.match(/return\s+5\s*\+\s*2/);
 		}) &&
-		it(" Should Inline A Variable Used In A Nested IIFE That Returns A Function", async () => {
+		it("Should Inline A Variable Used In A Nested IIFE That Returns A Function", async () => {
 			const Should = await Transform(`let a = 3;
 		
 				const f = (function() {
@@ -2135,7 +2135,7 @@ console.log(a, b);`);
 
 			expect(Should).to.match(/return\s+3\s*\*\s*3/);
 		}) &&
-		it(" Should Inline A Variable Used In A Tagged Template Literal If Safe", async () => {
+		it("Should Inline A Variable Used In A Tagged Template Literal If Safe", async () => {
 			const Should =
 				await Transform(`let tag = (strings: TemplateStringsArray, ...values: any[]) => strings[0] + values[0];
 		
@@ -2150,7 +2150,7 @@ console.log(a, b);`);
 
 			expect(Should).to.match(/`Value is:\s*100`/);
 		}) &&
-		it(" Should Not Inline A Variable If It Is Used In A Compound Assignment", async () => {
+		it("Should Not Inline A Variable If It Is Used In A Compound Assignment", async () => {
 			const Should = await Transform(`let a = 3;
 		
 				let b = a;
@@ -2168,7 +2168,7 @@ console.log(a, b);`);
 		})) &&
 	// OLD ONES
 	describe("Variable Inlining", async () =>
-		it(" Should Inline Simple Constant Declarations", async () =>
+		it("Should Inline Simple Constant Declarations", async () =>
 			await Equal(
 				`const x = 5;
 				
@@ -2176,7 +2176,7 @@ console.log(a, b);`);
 
 				"console.log(5);",
 			)) &&
-		it(" Should Inline Let Declarations", async () =>
+		it("Should Inline Let Declarations", async () =>
 			await Equal(
 				`let x = 5;
 				
@@ -2184,7 +2184,7 @@ console.log(a, b);`);
 
 				"console.log(5);",
 			)) &&
-		it(" Should Inline Var Declarations", async () =>
+		it("Should Inline Var Declarations", async () =>
 			await Equal(
 				`var x = 5;
 				
@@ -2192,7 +2192,7 @@ console.log(a, b);`);
 
 				"console.log(5);",
 			)) &&
-		it(" Should Not Inline Variables Used Multiple Times", async () =>
+		it("Should Not Inline Variables Used Multiple Times", async () =>
 			await Equal(
 				`const x = 5;
 				
@@ -2206,7 +2206,7 @@ console.log(a, b);`);
 				
 				console.log(x);`,
 			)) &&
-		it(" Should Handle Unused Variables", async () =>
+		it("Should Handle Unused Variables", async () =>
 			await Equal(
 				`const x = 5;
 				
@@ -2219,7 +2219,7 @@ console.log(a, b);`);
 				console.log(5);`,
 			))) &&
 	describe("Expression Inlining", async () =>
-		it(" Should Inline Arithmetic Expressions", async () =>
+		it("Should Inline Arithmetic Expressions", async () =>
 			await Equal(
 				`const x = 5 * 2;
 				
@@ -2227,7 +2227,7 @@ console.log(a, b);`);
 
 				"console.log(5 * 2);",
 			)) &&
-		it(" Should Inline String Concatenations", async () =>
+		it("Should Inline String Concatenations", async () =>
 			await Equal(
 				`const x = "Hello" + " World";
 				
@@ -2235,7 +2235,7 @@ console.log(a, b);`);
 
 				`console.log("Hello" + " World");`,
 			)) &&
-		it(" Should Inline Object Literals", async () =>
+		it("Should Inline Object Literals", async () =>
 			await Equal(
 				`const x = {
 				
@@ -2253,7 +2253,7 @@ console.log(a, b);`);
 					b: 2
 				});`,
 			)) &&
-		it(" Should Inline Array Literals", async () =>
+		it("Should Inline Array Literals", async () =>
 			await Equal(
 				`const x = [ 1, 2, 3 ];
 				
@@ -2261,7 +2261,7 @@ console.log(a, b);`);
 
 				"console.log([ 1, 2, 3 ]);",
 			)) &&
-		it(" Should Maintain Operator Precedence", async () =>
+		it("Should Maintain Operator Precedence", async () =>
 			await Equal(
 				`const x = 5;
 				
@@ -2272,7 +2272,7 @@ console.log(a, b);`);
 				"console.log(5 * 2);",
 			))) &&
 	describe("Function Inlining", async () =>
-		it(" Should Inline Simple Function Declarations", async () =>
+		it("Should Inline Simple Function Declarations", async () =>
 			await Equal(
 				`function greet() {
 				
@@ -2288,7 +2288,7 @@ console.log(a, b);`);
 				
 					})());`,
 			)) &&
-		it(" Should Inline Functions With Parameters", async () =>
+		it("Should Inline Functions With Parameters", async () =>
 			await Equal(
 				`function greet(name: string) {
 				
@@ -2304,7 +2304,7 @@ console.log(a, b);`);
 				
 					})("World"));`,
 			)) &&
-		it(" Should Not Inline Functions Used Multiple Times", async () =>
+		it("Should Not Inline Functions Used Multiple Times", async () =>
 			await Equal(
 				`function greet(name: string) {
 				
@@ -2327,7 +2327,7 @@ console.log(a, b);`);
 				console.log(greet("TypeScript"));`,
 			))) &&
 	describe("Multiple Reference Scenarios", async () =>
-		it(" Should Handle Mixed Single And Multiple References", async () =>
+		it("Should Handle Mixed Single And Multiple References", async () =>
 			await Equal(
 				`const x = 5;
 				
@@ -2345,7 +2345,7 @@ console.log(a, b);`);
 				
 				console.log(x + 1);`,
 			)) &&
-		it(" Should Handle Chain Of Single Use Variables", async () =>
+		it("Should Handle Chain Of Single Use Variables", async () =>
 			await Equal(
 				`const a = 1;
 				
@@ -2360,7 +2360,7 @@ console.log(a, b);`);
 				"console.log(1 + 1 + 1 + 1);",
 			))) &&
 	describe("Complex Cases", async () =>
-		it(" Should Handle Nested Expressions", async () =>
+		it("Should Handle Nested Expressions", async () =>
 			await Equal(
 				`const x = 5;
 				
@@ -2372,7 +2372,7 @@ console.log(a, b);`);
 
 				"console.log((5 * 2) + 3);",
 			)) &&
-		it(" Should Handle Multiple Declarations In One Statement", async () =>
+		it("Should Handle Multiple Declarations In One Statement", async () =>
 			await Equal(
 				`const x = 1, y = 2;
 				
@@ -2382,7 +2382,7 @@ console.log(a, b);`);
 				
 				console.log(1);`,
 			)) &&
-		it(" Should Preserve Type Annotations", async () =>
+		it("Should Preserve Type Annotations", async () =>
 			await Equal(
 				`const x: number = 5;
 				
@@ -2390,7 +2390,7 @@ console.log(a, b);`);
 
 				"console.log(5);",
 			)) &&
-		it(" Should Handle Even More Complex Cases", async () =>
+		it("Should Handle Even More Complex Cases", async () =>
 			await Equal(
 				`const x = 5;
 				
@@ -2411,7 +2411,7 @@ console.log(a, b);`);
 				console.log(((y + 3) * 4) + y);`,
 			))) &&
 	describe("Function and Object Scenarios", async () =>
-		it(" Should Handle Function Calls In Expressions", async () => {
+		it("Should Handle Function Calls In Expressions", async () => {
 			await Equal(
 				`const x = Math.random();
 				
@@ -2422,7 +2422,7 @@ console.log(a, b);`);
 				"console.log(((Math.random() * 2)));",
 			);
 		}) &&
-		it(" Should Handle Object Properties", async () => {
+		it("Should Handle Object Properties", async () => {
 			await Equal(
 				`const obj = { value: 5 };
 				
@@ -2434,7 +2434,7 @@ console.log(a, b);`);
 			);
 		})) &&
 	describe("Edge Cases", async () =>
-		it(" Should Handle Empty Declarations", async () =>
+		it("Should Handle Empty Declarations", async () =>
 			await Equal(
 				`let x;
 				
@@ -2448,7 +2448,7 @@ console.log(a, b);`);
 				
 				console.log(x);`,
 			)) &&
-		it(" Should Respect Comments When Option Enabled", async () => {
+		it("Should Respect Comments When Option Enabled", async () => {
 			await Equal(
 				`// Keep this comment
 
@@ -2479,7 +2479,7 @@ console.log(a, b);`);
 				},
 			);
 		}) &&
-		it(" Should Handle Complex Nested Expressions With Mixed Usage", async () =>
+		it("Should Handle Complex Nested Expressions With Mixed Usage", async () =>
 			await Equal(
 				`const a = 1;
 				
@@ -2500,7 +2500,7 @@ console.log(a, b);`);
 				console.log(b + 3 + a + b);`,
 			))) &&
 	describe("Safety Checks", async () =>
-		it(" Should Inline Function Calls", async () =>
+		it("Should Inline Function Calls", async () =>
 			await Equal(
 				`const x = Math.random();
 				
@@ -2508,7 +2508,7 @@ console.log(a, b);`);
 
 				"console.log(Math.random());",
 			)) &&
-		it(" Should Inline Async/await Expressions", async () =>
+		it("Should Inline Async/await Expressions", async () =>
 			await Equal(
 				`const x = await Promise.resolve(5);
 				
@@ -2516,7 +2516,7 @@ console.log(a, b);`);
 
 				"console.log(await Promise.resolve(5));",
 			)) &&
-		it(" Should Inline New Expressions", async () =>
+		it("Should Inline New Expressions", async () =>
 			await Equal(
 				`const x = new Date();
 				
@@ -2525,7 +2525,7 @@ console.log(a, b);`);
 				"console.log(new Date());",
 			))) &&
 	describe("Scope Handling", async () =>
-		it(" Should Respect Block Scope", async () =>
+		it("Should Respect Block Scope", async () =>
 			await Equal(
 				`const x = 1;
 				
@@ -2547,7 +2547,7 @@ console.log(a, b);`);
 
 				console.log(1);`,
 			)) &&
-		it(" Should Handle Variables In Loops Correctly", async () =>
+		it("Should Handle Variables In Loops Correctly", async () =>
 			await Equal(
 				`for (let i = 0; i < 3; i++) {
 				
@@ -2566,7 +2566,7 @@ console.log(a, b);`);
 					}`,
 			))) &&
 	describe("TypeScript-specific Features", async () =>
-		it(" Should Handle Interface Declarations", async () => {
+		it("Should Handle Interface Declarations", async () => {
 			await Equal(
 				`interface Person {
 				
@@ -2593,7 +2593,7 @@ console.log(a, b);`);
 				});`,
 			);
 		}) &&
-		it(" Should Handle Enum Usage", async () => {
+		it("Should Handle Enum Usage", async () => {
 			await Equal(
 				`enum Direction {
 				
@@ -2614,7 +2614,7 @@ console.log(a, b);`);
 				console.log(Direction.Up);`,
 			);
 		}) &&
-		it(" Should Handle Generic Functions", async () => {
+		it("Should Handle Generic Functions", async () => {
 			await Equal(
 				`function identity<T>(x: T): T {
 				
@@ -2636,23 +2636,23 @@ console.log(a, b);`);
 			);
 		})) &&
 	describe("Error Cases", async () =>
-		it(" Should Handle Undefined Variables Gracefully", async () => {
+		it("Should Handle Undefined Variables Gracefully", async () => {
 			await Equal(
 				"console.log(undefinedVar);",
 
 				"console.log(undefinedVar);",
 			);
 		}) &&
-		it(" Should Handle Syntax Errors Gracefully", () =>
+		it("Should Handle Syntax Errors Gracefully", () =>
 			Output("const x = ;").catch((error) =>
 				expect(error).instanceOf(Error),
 			)) &&
-		it(" Should Handle Incomplete Code Gracefully", async () =>
+		it("Should Handle Incomplete Code Gracefully", async () =>
 			Output("const x =").catch((error) =>
 				expect(error).instanceOf(Error),
 			))) &&
 	describe("Advanced Cases", () =>
-		it(" Should Inline Variables With Template Literals", async () =>
+		it("Should Inline Variables With Template Literals", async () =>
 			await Equal(
 				`const greeting = \`Hello, World\`;
 				
@@ -2660,7 +2660,7 @@ console.log(a, b);`);
 
 				"console.log(\`Hello, World\`);",
 			)) &&
-		it(" Should Inline Variables In Conditional (ternary) Expressions", async () =>
+		it("Should Inline Variables In Conditional (ternary) Expressions", async () =>
 			await Equal(
 				`const x = true ? 1 : 2;
 				
@@ -2668,7 +2668,7 @@ console.log(a, b);`);
 
 				"console.log((true ? 1 : 2));",
 			)) &&
-		it(" Should Inline Variables With Logical Operators", async () =>
+		it("Should Inline Variables With Logical Operators", async () =>
 			await Equal(
 				`const x = true && false;
 				
@@ -2676,7 +2676,7 @@ console.log(a, b);`);
 
 				"console.log((true && false));",
 			)) &&
-		it(" Should Not Inline Variables That Are Reassigned", async () =>
+		it("Should Not Inline Variables That Are Reassigned", async () =>
 			await Equal(
 				`let x = 5;
 				
@@ -2690,7 +2690,7 @@ console.log(a, b);`);
 				
 				console.log(x);`,
 			)) &&
-		it(" Should Handle Computed Property Names", async () =>
+		it("Should Handle Computed Property Names", async () =>
 			await Equal(
 				`const key = "value";
 				
@@ -2700,7 +2700,7 @@ console.log(a, b);`);
 
 				`console.log({ ["value"]: 123 });`,
 			)) &&
-		it(" Should Inline Variables With Type Assertions", async () =>
+		it("Should Inline Variables With Type Assertions", async () =>
 			await Equal(
 				`const x = 5 as number;
 				
@@ -2709,7 +2709,7 @@ console.log(a, b);`);
 				"console.log(5 as number);",
 			))) &&
 	describe("Destructuring and Spread", () =>
-		it(" Should Leave Destructured Object Variables Untouched", async () =>
+		it("Should Leave Destructured Object Variables Untouched", async () =>
 			await Equal(
 				`const { a, b } = { a: 1, b: 2 };
 				
@@ -2719,7 +2719,7 @@ console.log(a, b);`);
 				
 				console.log(a);`,
 			)) &&
-		it(" Should Leave Array Destructuring Unchanged", async () =>
+		it("Should Leave Array Destructuring Unchanged", async () =>
 			await Equal(
 				`const [x, y] = [10, 20];
 				
@@ -2729,7 +2729,7 @@ console.log(a, b);`);
 				
 				console.log(y);`,
 			)) &&
-		it(" Should Handle Rest Elements In Destructuring", async () =>
+		it("Should Handle Rest Elements In Destructuring", async () =>
 			await Equal(
 				`const [head, ...tail] = [1, 2, 3, 4];
 				
@@ -2739,7 +2739,7 @@ console.log(a, b);`);
 				
 				console.log(tail);`,
 			)) &&
-		it(" Should Inline Variables In Spread Expressions In Arrays", async () =>
+		it("Should Inline Variables In Spread Expressions In Arrays", async () =>
 			await Equal(
 				`const nums = [1, 2];
 				
@@ -2750,7 +2750,7 @@ console.log(a, b);`);
 				"console.log([...[1, 2], 3]);",
 			))) &&
 	describe("Arrow Functions and IIFE", () =>
-		it(" Should Inline Arrow Functions Assigned To Variables", async () =>
+		it("Should Inline Arrow Functions Assigned To Variables", async () =>
 			await Equal(
 				`const add = (a: number, b: number) => a + b;
 				
@@ -2758,7 +2758,7 @@ console.log(a, b);`);
 
 				"console.log(((a: number, b: number) => a + b)(1, 2));",
 			)) &&
-		it(" Should Inline Immediately Invoked Arrow Functions", async () =>
+		it("Should Inline Immediately Invoked Arrow Functions", async () =>
 			await Equal(
 				`const Should = ((x: number) => x * 2)(5);
 				
@@ -2767,7 +2767,7 @@ console.log(a, b);`);
 				"console.log(((x: number) => x * 2)(5));",
 			))) &&
 	describe("Loop and Scope Advanced", () =>
-		it(" Should Inline Variables Inside While Loops", async () =>
+		it("Should Inline Variables Inside While Loops", async () =>
 			await Equal(
 				`let i = 0;
 				
@@ -2797,7 +2797,7 @@ console.log(a, b);`);
 				
 					}`,
 			)) &&
-		it(" Should Inline Variables When Shadowed In Nested Functions", async () =>
+		it("Should Inline Variables When Shadowed In Nested Functions", async () =>
 			await Equal(
 				`const x = 10;
 				
@@ -2836,7 +2836,7 @@ console.log(a, b);`);
 					console.log(10);`,
 			))) &&
 	describe("Miscellaneous", () =>
-		it(" Should Inline Variables In Chained Function Calls", async () =>
+		it("Should Inline Variables In Chained Function Calls", async () =>
 			await Equal(
 				`const x = Math.abs(-5);
 				
@@ -2844,7 +2844,7 @@ console.log(a, b);`);
 
 				`console.log(String(Math.abs(-5)).padStart(3, "0"));`,
 			)) &&
-		it(" Should Inline Variables With Complex Nested Ternary Operators", async () =>
+		it("Should Inline Variables With Complex Nested Ternary Operators", async () =>
 			await Equal(
 				`const x = true ? (false ? 1 : 2) : 3;
 				
@@ -2852,7 +2852,7 @@ console.log(a, b);`);
 
 				"console.log((true ? (false ? 1 : 2) : 3));",
 			)) &&
-		it(" Should Inline Variables In Try Catch Blocks", async () =>
+		it("Should Inline Variables In Try Catch Blocks", async () =>
 			await Equal(
 				`try {
 				
@@ -2878,7 +2878,7 @@ console.log(a, b);`);
 				
 					}`,
 			)) &&
-		it(" Should Inline Variables In Template Literal Expressions With Embedded Variables", async () =>
+		it("Should Inline Variables In Template Literal Expressions With Embedded Variables", async () =>
 			await Equal(
 				`const adj = "awesome";
 				
@@ -2889,20 +2889,20 @@ console.log(a, b);`);
 				`console.log(\`This is \${"awesome"}!\`);`,
 			))) &&
 	describe("Error Cases Extended", () =>
-		it(" Should Pass Through Runtime Errors For Undefined Variables", async () => {
+		it("Should Pass Through Runtime Errors For Undefined Variables", async () => {
 			await Equal(
 				"console.log(nonExistentVar);",
 
 				"console.log(nonExistentVar);",
 			);
 		}) &&
-		it(" Should Report Syntax Errors For Incomplete Expressions:", () =>
+		it("Should Report Syntax Errors For Incomplete Expressions:", () =>
 			Output("const y = (1 +").catch((error) =>
 				expect(error).to.be.instanceOf(Error),
 			))) &&
 	describe("File Checking", async () =>
 		File.forEach((File) =>
-			it(`6363 Should Inline Properly: ${File}`, async () =>
+			it(`Should Inline Properly: ${File}`, async () =>
 				await Equal(
 					await (
 						await import("node:fs/promises")
