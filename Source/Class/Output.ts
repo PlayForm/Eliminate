@@ -489,7 +489,7 @@ export default class {
 				if (this.Option.Debug) {
 					console.log(`Iteration: ${Iteration}`);
 
-					console.log(`Node: ${Transform.getText()}`);
+					console.log(`Node: ${Transform?.getText()}`);
 				}
 			} catch (_Error) {
 				console.log(_Error);
