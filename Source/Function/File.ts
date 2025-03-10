@@ -8,7 +8,7 @@ export default (async (...[Path]) => {
 	if (Path.split(".").pop() === "ts") {
 		const projectRoot = (await import("node:path")).resolve(
 			(await import("node:path")).dirname(
-				(await import("url")).fileURLToPath(import.meta.url),
+				(await import("node:url")).fileURLToPath(import.meta.url),
 			),
 			"../..",
 		);
@@ -38,7 +38,7 @@ export default (async (...[Path]) => {
 
 	return (
 		await import(
-			(await import("url"))
+			(await import("node:url"))
 				.pathToFileURL(Path)
 				.toString()
 				.replace(".ts", ".js")

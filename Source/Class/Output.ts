@@ -5,9 +5,12 @@ import type {
 	Identifier,
 	Modifier,
 	Node,
+	PostfixUnaryExpression as PostfixUnaryExpressionInterface,
+	PrefixUnaryExpression as PrefixUnaryExpressionInterface,
 	Program,
 	Statement,
-	Symbol,
+	Symbol as SymbolInterface,
+	SyntaxKind,
 	TransformationContext,
 	TypeChecker,
 	VariableDeclaration,
@@ -29,8 +32,23 @@ export const {
 	isYieldExpression,
 	NodeFlags,
 	SymbolFlags,
-	SyntaxKind,
-	SyntaxKind: { AsyncKeyword, DefaultKeyword, ExportKeyword },
+	SyntaxKind: {
+		AsyncKeyword,
+		DefaultKeyword,
+		ExportKeyword,
+
+		PlusPlusToken,
+		MinusMinusToken,
+		EqualsToken,
+		PlusEqualsToken,
+		MinusEqualsToken,
+		AsteriskEqualsToken,
+		SlashEqualsToken,
+
+		PrefixUnaryExpression,
+
+		PostfixUnaryExpression,
+	},
 	visitEachChild,
 	visitNode,
 } = await import("typescript");
@@ -43,10 +61,12 @@ export type UsageType = {
 	Inline: boolean;
 
 	Size: number;
+
+	Modified: boolean;
 };
 
 export default class {
-	private Usage = new Map<Symbol, UsageType>();
+	private Usage = new Map<SymbolInterface, UsageType>();
 
 	private Type: TypeChecker | undefined;
 
@@ -73,7 +93,15 @@ export default class {
 	}
 
 	private _FunctionInline(Node: Node, Context: TransformationContext): Node {
-		const Visit = (Node: Node): Node => {
+		const Visit = (Node: Node, Depth = 0): Node => {
+			if (Depth > 5000) {
+				console.warn(
+					"Recursion depth limit reached in _FunctionInline",
+				);
+
+				return Node;
+			}
+
 			if (isFunctionDeclaration(Node)) {
 				if (Node.typeParameters && Node.typeParameters.length > 0) {
 					return Node;
@@ -96,14 +124,26 @@ export default class {
 				}
 			}
 
-			return visitEachChild(Node, Visit, Context);
+			return visitEachChild(
+				Node,
+				(Child) => Visit(Child, Depth + 1),
+				Context,
+			);
 		};
 
 		return visitNode(Node, Visit);
 	}
 
 	private _VariableInline(Node: Node, Context: TransformationContext): Node {
-		const Visit = (Node: Node): Node => {
+		const Visit = (Node: Node, Depth = 0): Node => {
+			if (Depth > 5000) {
+				console.warn(
+					"Recursion depth limit reached in _VariableInline",
+				);
+
+				return Node;
+			}
+
 			if (isVariableStatement(Node)) {
 				const Declaration = Node.declarationList.declarations;
 
@@ -148,7 +188,11 @@ export default class {
 				}
 			}
 
-			return visitEachChild(Node, Visit, Context);
+			return visitEachChild(
+				Node,
+				(Child) => Visit(Child, Depth + 1),
+				Context,
+			);
 		};
 
 		return visitNode(Node, Visit);
@@ -158,7 +202,15 @@ export default class {
 		Node: Node,
 		Context: TransformationContext,
 	): Node {
-		const Visit = (Node: Node): Node => {
+		const Visit = (Node: Node, Depth = 0): Node => {
+			if (Depth > 5000) {
+				console.warn(
+					"Recursion depth limit reached in _CallExpressionInline",
+				);
+
+				return Node;
+			}
+
 			if (isCallExpression(Node)) {
 				const Expression = Node.expression;
 
@@ -206,7 +258,11 @@ export default class {
 				}
 			}
 
-			return visitEachChild(Node, Visit, Context);
+			return visitEachChild(
+				Node,
+				(Child) => Visit(Child, Depth + 1),
+				Context,
+			);
 		};
 
 		return visitNode(Node, Visit);
@@ -216,7 +272,15 @@ export default class {
 		Node: Node,
 		Context: TransformationContext,
 	): Node {
-		const Visit = (Node: Node): Node => {
+		const Visit = (Node: Node, Depth = 0): Node => {
+			if (Depth > 5000) {
+				console.warn(
+					"Recursion depth limit reached in _BinaryExpressionInline",
+				);
+
+				return Node;
+			}
+
 			if (isBinaryExpression(Node)) {
 				const Left = visitNode(Node.left, Visit);
 
@@ -235,7 +299,11 @@ export default class {
 				}
 			}
 
-			return visitEachChild(Node, Visit, Context);
+			return visitEachChild(
+				Node,
+				(Child) => Visit(Child, Depth + 1),
+				Context,
+			);
 		};
 
 		return visitNode(Node, Visit);
@@ -245,7 +313,15 @@ export default class {
 		Node: Node,
 		Context: TransformationContext,
 	): Node {
-		const Visit = (Node: Node): Node => {
+		const Visit = (Node: Node, Depth = 0): Node => {
+			if (Depth > 5000) {
+				console.warn(
+					"Recursion depth limit reached in _ExpressionInline",
+				);
+
+				return Node;
+			}
+
 			if (isIdentifier(Node)) {
 				if (
 					(isVariableDeclaration(Node.parent) &&
@@ -262,6 +338,7 @@ export default class {
 
 				if (
 					_Usage?.Inline &&
+					!_Usage.Modified &&
 					_Usage.Reference.length === 2 &&
 					isVariableDeclaration(_Usage.Declaration) &&
 					_Usage.Declaration.initializer
@@ -282,7 +359,11 @@ export default class {
 				}
 			}
 
-			return visitEachChild(Node, Visit, Context);
+			return visitEachChild(
+				Node,
+				(Child) => Visit(Child, Depth + 1),
+				Context,
+			);
 		};
 
 		return visitNode(Node, Visit);
@@ -294,19 +375,14 @@ export default class {
 		 */
 		if (this.Option.Debug) {
 			for (const [_Symbol, Usage] of this.Usage) {
-				// biome-ignore lint/suspicious/noConsole:
 				console.log(`Variable: ${_Symbol.name}`);
 
-				// biome-ignore lint/suspicious/noConsole:
 				console.log(`- Reference: ${Usage.Reference.length}`);
 
-				// biome-ignore lint/suspicious/noConsole:
 				console.log(`- Inline: ${Usage.Inline}`);
 
-				// biome-ignore lint/suspicious/noConsole:
 				console.log(`- Size: ${Usage.Size}`);
 
-				// biome-ignore lint/suspicious/noConsole:
 				console.log(`- Text: ${Usage.Declaration.getText()}`);
 			}
 		}
@@ -337,7 +413,6 @@ export default class {
 		} while (this.Change && Iteration < 100);
 
 		if (Iteration >= 100) {
-			// biome-ignore lint/suspicious/noConsole:
 			console.warn(
 				"Potential infinite loop detected in AST transformations!",
 			);
@@ -346,7 +421,6 @@ export default class {
 		return Transform;
 	}
 
-	// biome-ignore lint/nursery/useConsistentMemberAccessibility:
 	public Transform(
 		Program: Program,
 	): (Context: TransformationContext) => (Node: Node) => Node {
@@ -361,6 +435,8 @@ export default class {
 	}
 
 	private Collect(Source: Node): void {
+		const CallGraph = new Map<SymbolInterface, Set<SymbolInterface>>();
+
 		const Collect = (Node: Node): void => {
 			if (isVariableDeclaration(Node) || isFunctionDeclaration(Node)) {
 				if (!Node.name) {
@@ -389,8 +465,8 @@ export default class {
 							Statement.modifiers &&
 							Statement.modifiers.some(
 								({ kind }) =>
-									kind === SyntaxKind.ExportKeyword ||
-									kind === SyntaxKind.DefaultKeyword,
+									kind === ExportKeyword ||
+									kind === DefaultKeyword,
 							)
 						) {
 							Inline = false;
@@ -409,8 +485,8 @@ export default class {
 						if (
 							Node.modifiers?.some(
 								({ kind }) =>
-									kind === SyntaxKind.ExportKeyword ||
-									kind === SyntaxKind.DefaultKeyword ||
+									kind === ExportKeyword ||
+									kind === DefaultKeyword ||
 									(this.Option.Async &&
 										kind === AsyncKeyword),
 							)
@@ -433,13 +509,21 @@ export default class {
 						Inline,
 
 						Size,
+
+						Modified: false,
 					});
 				}
 			} else if (isIdentifier(Node)) {
 				const _Symbol = this.Type?.getSymbolAtLocation(Node);
 
 				if (_Symbol && this.Usage.has(_Symbol)) {
-					this.Usage.get(_Symbol)?.Reference.push(Node);
+					const Usage = this.Usage.get(_Symbol);
+
+					Usage?.Reference.push(Node);
+
+					if (Usage && this.Modification(Node)) {
+						Usage.Modified = true;
+					}
 				}
 			}
 
@@ -447,6 +531,86 @@ export default class {
 		};
 
 		Collect(Source);
+	}
+
+	private Modification(Node: Identifier): boolean {
+		const Parent = Node.parent;
+
+		if (
+			this.isPostfixUnaryExpression(
+				Parent as PostfixUnaryExpressionInterface,
+			)
+		) {
+			const Expression = Parent as PostfixUnaryExpressionInterface;
+
+			if (
+				Expression.operator === PlusPlusToken ||
+				Expression.operator === MinusMinusToken
+			) {
+				// e.g., i++ or i--
+				return true;
+			}
+		}
+
+		if (
+			this.isPrefixUnaryExpression(
+				Parent as PrefixUnaryExpressionInterface,
+			)
+		) {
+			const Expression = Parent as PrefixUnaryExpressionInterface;
+
+			if (
+				Expression.operator === PlusPlusToken ||
+				Expression.operator === MinusMinusToken
+			) {
+				// e.g., ++i or --i
+				return true;
+			}
+		}
+
+		if (
+			isBinaryExpression(Parent) &&
+			Parent.left === Node &&
+			this.Operator(Parent.operatorToken.kind)
+		) {
+			// e.g., i = ..., i += ..., etc.
+			return true;
+		}
+
+		return false;
+	}
+
+	private isPostfixUnaryExpression({
+		kind,
+		operator,
+	}: Node & PostfixUnaryExpressionInterface): boolean {
+		if (kind === PostfixUnaryExpression) {
+			return operator === PlusPlusToken || operator === MinusMinusToken;
+		}
+
+		return false;
+	}
+
+	private isPrefixUnaryExpression({
+		kind,
+		operator,
+	}: Node & PrefixUnaryExpressionInterface): boolean {
+		if (kind === PrefixUnaryExpression) {
+			return operator === PlusPlusToken || operator === MinusMinusToken;
+		}
+
+		return false;
+	}
+
+	private Operator(kind: SyntaxKind): boolean {
+		return [
+			EqualsToken,
+			PlusEqualsToken,
+			MinusEqualsToken,
+			AsteriskEqualsToken,
+			SlashEqualsToken,
+			// ... other assignment operators ...
+		].includes(kind);
 	}
 
 	private Size(Node: Node): number {

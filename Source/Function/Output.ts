@@ -41,18 +41,24 @@ export default (async (...[Source, Option = {}]): Promise<string> => {
 	// 	);
 	// });
 
-	return createPrinter({
-		newLine: LineFeed,
+	try {
+		return createPrinter({
+			newLine: LineFeed,
 
-		removeComments: !Option.Comment,
-	}).printFile(
-		// biome-ignore lint/style/noNonNullAssertion:
-		transform(Program.getSourceFile(File)!, [
-			new (await import("@Class/Output.js")).default(Option).Transform(
-				Program,
-			),
-		]).transformed[0] as SourceFile,
-	);
+			removeComments: !Option.Comment,
+		}).printFile(
+			// biome-ignore lint/style/noNonNullAssertion:
+			transform(Program.getSourceFile(File)!, [
+				new (await import("@Class/Output.js")).default(
+					Option,
+				).Transform(Program),
+			]).transformed[0] as SourceFile,
+		);
+	} catch (_Error) {
+		console.log(_Error);
+
+		return Source;
+	}
 }) satisfies Interface as Interface;
 
 export const {

@@ -7,16 +7,18 @@ import type Option from "../Interface/Option.js";
  * @module Eliminate
  *
  */
-export default (async (...[Eliminate]) => {
+export default (async (...[Option]) => {
 	let Configuration: Option = Merge(
 		(await import("../Variable/Eliminate.js")).default,
 		{},
 	);
 
-	Configuration = Eliminate
+	Configuration = Option?.Eliminate
 		? Merge(
 				Configuration,
-				await (await import("../Function/File.js")).default(Eliminate),
+				await (
+					await import("../Function/File.js")
+				).default(Option.Eliminate),
 			)
 		: Configuration;
 

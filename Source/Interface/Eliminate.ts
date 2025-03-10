@@ -9,5 +9,5 @@ export default interface Interface {
 	 * @param Eliminate - A string representing the Eliminate option.
 	 *
 	 */
-	(Eliminate?: string): Promise<void>;
+	(Option?: { Eliminate?: string }): Promise<void>;
 }

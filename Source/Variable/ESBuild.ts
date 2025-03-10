@@ -39,7 +39,6 @@ export default {
 											})
 										: {};
 								} catch (_Error) {
-									// biome-ignore lint/suspicious/noConsole:
 									console.log(_Error);
 								}
 							});
@@ -50,7 +49,6 @@ export default {
 				: ({
 						name: "Test",
 						setup({ onEnd, onLoad }): void {
-							// biome-ignore lint/performance/useTopLevelRegex:
 							onLoad({ filter: /.*/ }, async ({ path }) => {
 								path = path.split(sep).join(posix.sep);
 
