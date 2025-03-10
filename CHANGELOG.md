@@ -1,185 +1,232 @@
-## 0.0.7
-
-## 0.0.6
+## v0.0.7
 
 ### Change
 
-- Upgraded dependencies:
-    - esbuild: `0.24.2` → `0.25.0`
-    - prettier: `3.4.2` → `3.5.0`
-    - tailwindcss: `4.0.3` → `3.4.17`
-- Added new file: `Source/Class/Missing.ts`
-- Refactored code in `Source/Class/Output.ts` to improve inlining logic. The
-  update includes:
-    - Implementing an iterative approach for more robust transformations.
-    - Adding several new inlining passes for functions, variables, call
-      expressions, binary expressions, and general expressions.
-    - Improved handling of generic functions and edge cases.
-- Updated error handling and logging in `Source/Function/Output.ts`.
-- Clarified descriptions in `Source/Interface/Output/Option.ts`.
-- Migrated `Source/Variable/ESBuild.js` and `Source/Variable/ESBuild.ts` to use
-  `node:fs/promises` for file system operations.
+- **Core**:
+    - Updated dependencies in
+      [package.json](file:///Users/username/Documents/Eliminate/package.json)
+      (including `deepmerge-ts`, `typescript`, `@types/chai`, `chai`,
+      `prettier`, `prettier-plugin-*`, and `tailwindcss`).
+    - Refactored
+      [Source/Class/Output.ts](file:///Users/username/Documents/Eliminate/Source/Class/Output.ts)
+      for improved code inlining:
+        - Refactored imports from `typescript` to individual imports and type
+          imports.
+        - Added `Modified` property to `UsageType`.
+        - Implemented recursion depth limits in `_FunctionInline`,
+          `_VariableInline`, and `_CallExpressionInline`.
+        - Removed `Usage` parameter from `_BinaryExpressionInline`,
+          `_CallExpressionInline`, `_ExpressionInline`, and `Iterative` methods.
+        - Added try/catch block in `Iterative` to catch errors.
+        - Added debug logging in `Iterative`.
+        - Improved cycle detection in `Collect`.
+        - Added `Call` method to collect function calls.
+        - Added `Modification` method to determine if a node is modified.
+        - Added `isPostfixUnaryExpression` and `isPrefixUnaryExpression`
+          methods.
+        - Added `Operator` method to check operator kind.
+- **Configuration**:
+    - In
+      [Source/Class/Eliminate.ts](file:///Users/username/Documents/Eliminate/Source/Class/Eliminate.ts),
+      changed `.argument` to `.option` for the `Eliminate` configuration.
+    - Renamed `Eliminate` parameter to `Option` in
+      [Source/Function/Eliminate.ts](file:///Users/username/Documents/Eliminate/Source/Function/Eliminate.ts).
+    - Updated configuration assignment to use `Option?.Eliminate` and updated
+      file import to use `Option.Eliminate` in
+      [Source/Function/Eliminate.ts](file:///Users/username/Documents/Eliminate/Source/Function/Eliminate.ts).
+    - Updated the `Eliminate` interface in
+      [Source/Interface/Eliminate.ts](file:///Users/username/Documents/Eliminate/Source/Interface/Eliminate.ts)
+      to accept an optional object with an `Eliminate` property.
+- **Dependencies**: Updated imports to use `node:` protocol for built-in modules
+  in:
+    - [Source/Function/File.ts](file:///Users/username/Documents/Eliminate/Source/Function/File.ts)
+    - [Source/Variable/ESBuild.js](file:///Users/username/Documents/Eliminate/Source/Variable/ESBuild.js)
+    - [Source/Variable/ESBuild.ts](file:///Users/username/Documents/Eliminate/Source/Variable/ESBuild.ts)
+- **UI**: Updated descriptions in
+  [Source/Interface/Output/Option.ts](file:///Users/username/Documents/Eliminate/Source/Interface/Output/Option.ts)
+  to "Preserve" instead of "Allow inlining".
+- **Other**: _ Converted
+  [tailwind.config.js](file:///Users/username/Documents/Eliminate/tailwind.config.js)
+  to ES Module syntax (`export default`). _ Updated name in
+  [package.json](file:///Users/username/Documents/Eliminate/package.json) from
+  `"Source 🖋️ Open 👐🏻"` to `"Source ✍🏻 Open 👐🏻"`.
 
-### Fix
+### Removed
 
-- Fixed potential infinite loop in AST transformations (see
-  `Source/Class/Output.ts`).
+- **Core**: Removed
+  [Source/Class/Missing.ts](file:///Users/username/Documents/Eliminate/Source/Class/Missing.ts).
 
-### Other
+## v0.0.6
 
-- Improved code style and readability in multiple files.
-- Updated comments and documentation.
+### Add
 
-## 0.0.5
+- **Build**: Added [`.npmignore`](file:///.npmignore) to exclude
+  `tailwind.config.js` from published package.
+- **Core**: Added
+  [Source/Class/Missing.ts](file:///Users/username/Documents/Eliminate/Source/Class/Missing.ts).
 
 ### Change
 
-- Updated dependencies:
-    - `@playform/pipe` updated to version 0.1.2
-    - `commander` updated to version 13.1.0
-    - `deepmerge-ts` updated to version 7.1.4
-    - `typescript` updated to version 5.7.3
-- Added new dependencies:
-    - `@ianvs/prettier-plugin-sort-imports`
-    - `@playform/build` updated to version 0.2.1
-    - `@tailwindcss/aspect-ratio`
-    - `@tailwindcss/forms`
-    - `@tailwindcss/typography`
-    - `@types/chai`
-    - `@types/jest`
-    - `@types/mocha`
-    - `chai`
-    - `fast-glob`
-    - `mocha`
-    - `prettier`
-    - `prettier-plugin-astro`
-    - `prettier-plugin-organize-attributes`
-    - `prettier-plugin-packagejson`
-    - `prettier-plugin-sh`
-    - `prettier-plugin-tailwindcss`
-    - `prettier-plugin-toml`
-    - `tailwindcss`
-- Updated build scripts:
-    - Using `Source/Variable/ESBuild.ts` for ESBuild configuration.
-- Updated description to "Eliminate ↘️".
-- Updated author information:
-    - Name changed to "Source ✍🏻 Open 👐🏻".
-    - Email changed to "Source/Open@PlayForm.LTD".
-    - URL changed to "HTTPS://PlayForm.LTD".
-- Added `.npmignore` file to exclude unnecessary files from the published
-  package.
-- Added `prettier.config.d.mts` and `prettier.config.mjs` for Prettier
-  configuration.
-- Added `tailwind.config.js` for Tailwind CSS configuration.
-- Updated `tsconfig.json` with additional options:
-    - Added `rootDir` option.
-    - Added `types` option.
-    - Added `lib` option.
-    - Added `exclude` option.
-- Refactored code and file structure:
-    - Moved ESBuild configuration to `Source/Variable/ESBuild.ts`.
-    - Created `Source/Class/Output.ts` for code elimination logic.
-    - Updated `Source/Function/Output.ts` to use the new `Output` class.
+- **Dependencies**: Updated dependencies in
+  [package.json](file:///Users/username/Documents/Eliminate/package.json)
+  (including `esbuild`, `prettier`, and `tailwindcss`).
+- **Core**:
+    - Substantial refactoring of
+      [Source/Class/Output.ts](file:///Users/username/Documents/Eliminate/Source/Class/Output.ts),
+      including converting to a default export class, refactoring `Usage` to a
+      `Map`, adding a Change property, and implementing `Transform`, `Collect`,
+      `Size`, `Comment`, and `Visit` methods for AST manipulation and analysis.
+    - Significant changes to
+      [Source/Function/Output.ts](file:///Users/username/Documents/Eliminate/Source/Function/Output.ts),
+      including transforming the source using TypeScript's transformation API.
+- **UI**: Modified descriptions for `async` and `function` inlining options in
+  [Source/Interface/Output/Option.ts](file:///Users/username/Documents/Eliminate/Source/Interface/Output/Option.ts).
+- **Dependencies**: Updated imports to use `node:` prefix for built-in modules
+  in
+  [Source/Variable/ESBuild.js](file:///Users/username/Documents/Eliminate/Source/Variable/ESBuild.js)
+  and
+  [Source/Variable/ESBuild.ts](file:///Users/username/Documents/Eliminate/Source/Variable/ESBuild.ts).
+
+## v0.0.5
+
+### Add
+
+- **Dependencies**: Added numerous development and core dependencies (including
+  `@ianvs/prettier-plugin-sort-imports`, `@playform/build`, `@tailwindcss/*`,
+  `@types/*`, `chai`, `fast-glob`, `mocha`, `prettier`, `prettier-plugin-*`, and
+  `tailwindcss`).
+- **Configuration**: Added Prettier and Tailwind CSS configuration files.
+
+### Change
+
+- **Build**:
+    - Migrated ESBuild configuration to
+      [Source/Variable/ESBuild.ts](file:///Users/username/Documents/Eliminate/Source/Variable/ESBuild.ts).
+    - Updated build scripts.
+- **Core**:
+    - Refactored code and file structure (moved code elimination logic to
+      [Source/Class/Output.ts](file:///Users/username/Documents/Eliminate/Source/Class/Output.ts)
+      and updated
+      [Source/Function/Output.ts](file:///Users/username/Documents/Eliminate/Source/Function/Output.ts)
+      to use the new `Output` class).
     - Removed unused files and types related to code elimination.
-- Added tests for code elimination functionality.
+- **Metadata**:
+    - Updated description to "Eliminate ↘️".
+    - Updated author information in
+      [package.json](file:///Users/username/Documents/Eliminate/package.json).
+- **Other**:
+    - Added [`.npmignore`](file:///.npmignore) to exclude unnecessary files from
+      the published package.
+    - Added tests for code elimination functionality.
+- **Typescript**: Updated
+  [tsconfig.json](file:///Users/username/Documents/Eliminate/tsconfig.json) with
+  additional options (added `rootDir`, `types`, `lib`, and `exclude` options).
 
 ### Fix
 
-- Fixed an issue where the output was not correctly formatted.
-- Fixed an issue where comments were not preserved in the output.
-- Fixed an issue where async expressions were not inlined correctly.
+- **Core**:
+    - Add try/catch block around the `Output` class instantiation in
+      [Source/Function/Output.ts](file:///Users/username/Documents/Eliminate/Source/Function/Output.ts).
+    - Fixed an issue where the output was not correctly formatted.
+    - Fixed an issue where comments were not preserved in the output.
+    - Fixed an issue where async expressions were not inlined correctly.
 
-## 0.0.4
+## v0.0.4
 
 ### Change
 
-- Improved code formatting and structure in Configuration.js
-- Changed const enums to regular enums for better compatibility
-- Renamed visitedNodes to Output for consistency
-- Simplified conditional logic in identifier checks
-- Updated dependency versions:
-    - Added commander v12.1.0
-    - Updated esbuild to v0.24.0
-    - Removed @types/chai and chai dependencies
+- **Configuration**: Changed const enums to regular enums for better
+  compatibility.
+- **Code Style**: Improved code formatting and structure in Configuration.js and
+  enhanced code readability.
+- **Core**:
+    - Renamed visitedNodes to Output for consistency.
+    - Simplified conditional logic in identifier checks.
+- **Dependencies**:
+    - Added commander v12.1.0.
+    - Updated esbuild to v0.24.0.
+    - Removed `@types/chai` and `chai` dependencies.
 
 ### Code Quality
 
-- Enhanced code readability with better formatting and indentation
-- Improved error handling structure in try-catch blocks
-- Streamlined import statements and function calls
-- Simplified conditional checks in node traversal logic
+- Improved error handling structure in try-catch blocks.
+- Streamlined import statements and function calls.
+- Simplified conditional checks in node traversal logic.
 
 ### Dependency
 
-- Added command-line interface support with commander
-- Upgraded build system with latest esbuild version
-- Streamlined test dependencies
+- Added command-line interface support with commander.
+- Upgraded build system with latest esbuild version.
+- Streamlined test dependencies.
 
-## 0.0.3
+## v0.0.3
 
 ### Change
 
-- Enhanced transformer with comprehensive validation, error handling, and
-  performance optimizations
-- Improved printer configuration with explicit newline handling and comment
-  preservation
-- Updated ESBuild configuration to use explicit node path for Eliminate
-  execution
-- Added sophisticated caching mechanism with size limits
-- Implemented circular reference detection system
-- Enhanced variable declaration handling with better export checks
-- Added comprehensive error and warning tracking system
+- **Core**:
+    - Enhanced transformer with comprehensive validation, error handling, and
+      performance optimizations.
+    - Improved printer configuration with explicit newline handling and comment
+      preservation.
+    - Updated ESBuild configuration to use explicit node path for Eliminate
+      execution.
+    - Added sophisticated caching mechanism with size limits.
+    - Implemented circular reference detection system.
+    - Enhanced variable declaration handling with better export checks.
+    - Added comprehensive error and warning tracking system.
 
 ### Add
 
-- Introduced TransformerState interface for better state management
-- Added ValidationResult interface for node validation
-- Implemented ErrorCode and WarningCode enums for better error handling
-- Added CircularReferenceDetector class
-- Implemented TransformerCache class with LRU capabilities
-- Added sophisticated dependency tracking system
-- Introduced batch processing with configurable sizes
-- Added comprehensive logging for errors and warnings
+- **Core**:
+    - Introduced TransformerState interface for better state management.
+    - Added ValidationResult interface for node validation.
+    - Implemented ErrorCode and WarningCode enums for better error handling.
+    - Added CircularReferenceDetector class.
+    - Implemented TransformerCache class with LRU capabilities.
+    - Added sophisticated dependency tracking system.
+    - Introduced batch processing with configurable sizes.
+    - Added comprehensive logging for errors and warnings.
 
 ### Technical
 
-- Improved type safety with strict TypeScript interfaces
-- Added protection against infinite loops and recursion
-- Enhanced memory management with cache size limits
-- Added sophisticated node transformation pipeline
-- Implemented better handling of property assignments and array literals
+- Improved type safety with strict TypeScript interfaces.
+- Added protection against infinite loops and recursion.
+- Enhanced memory management with cache size limits.
+- Added sophisticated node transformation pipeline.
+- Implemented better handling of property assignments and array literals.
 
-## 0.0.2
+## v0.0.2
 
 ### Change
 
-- Updated path mapping from "./Source/Example/Input" to "./Example/Input" in
-  Configuration files
-- Simplified project structure by removing Example directory exclusions
-- Enhanced code organization with streamlined import statements
-- Renamed internal variables for better code clarity (e.g., child to NodeChild,
-  parentNode to NodeParent)
-- Updated documentation and configuration file references in README.md
+- **Configuration**: Updated path mapping from "./Source/Example/Input" to
+  "./Example/Input" in Configuration files.
+- **Project Structure**: Simplified project structure by removing Example
+  directory exclusions.
+- **Code Style**: Enhanced code organization with streamlined import statements
+  and Renamed internal variables for better code clarity.
+- **Documentation**: Updated documentation and configuration file references in
+  README.md.
 
 ### Add
 
-- Implemented depth tracking and limits with MAX_RECURSIVE_DEPTH (100 levels)
-- Added node visit tracking with MAX_NODE_VISITS (100 visits)
-- Introduced iteration limits with MAX_ITERATIONS (100 iterations)
-- Added safety checks for map sizes with MAX_USAGE_COUNT and
-  MAX_INITIALIZER_SIZE (1000 entries)
-- Implemented circular reference detection using unique node IDs
-- Added self-referential initializer detection and handling
-- Enhanced logging with detailed warning and info messages
+- **Limits**: Implemented depth tracking and limits with MAX_RECURSIVE_DEPTH
+  (100 levels) and iteration limits with MAX_ITERATIONS (100 iterations).
+- **Safety Checks**: Added node visit tracking with MAX_NODE_VISITS (100 visits)
+  and safety checks for map sizes with MAX_USAGE_COUNT and MAX_INITIALIZER_SIZE
+  (1000 entries).
+- **Circular Dependency**: Implemented circular reference detection using unique
+  node IDs and Added self-referential initializer detection and handling.
+- **Logging**: Enhanced logging with detailed warning and info messages.
 
 ### Security
 
-- Added protection against infinite loops and recursive calls
-- Implemented safeguards against memory exhaustion with map size limits
-- Added detection and handling of circular dependencies
+- Added protection against infinite loops and recursive calls.
+- Implemented safeguards against memory exhaustion with map size limits.
+- Added detection and handling of circular dependencies.
 
-## 0.0.1
+## v0.0.1
 
 ### Add
 
-- Initial release
+- Initial release.
