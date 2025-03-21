@@ -3,7 +3,13 @@
 	"version": "0.0.7",
 	"private": false,
 	"description": "Eliminate ↘️",
-	
+	"keywords": [
+		"eliminate",
+		"single-use-variables",
+		"performance",
+		"typescript",
+		"playform"
+	],
 	"homepage": "HTTPS://GitHub.Com/PlayForm/Eliminate#readme",
 	"bugs": {
 		"url": "HTTPS://GitHub.Com/PlayForm/Eliminate/issues"
