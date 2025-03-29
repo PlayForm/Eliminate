@@ -446,8 +446,8 @@ export default class {
 									!Parent.modifiers?.some(
 										({ kind }) => kind === AsyncKeyword,
 									) &&
-									Parent.parameters.every((param) =>
-										isIdentifier(param.name),
+									Parent.parameters.every((Declaration) =>
+										isIdentifier(Declaration.name),
 									)
 								) {
 									return Context.factory.createCallExpression(
@@ -774,7 +774,7 @@ export default class {
 			}
 		}
 
-		Node.forEachChild((child) => this.Call(child, Call));
+		Node.forEachChild((Child) => this.Call(Child, Call));
 	}
 
 	private Modification(Node: Identifier): boolean {
