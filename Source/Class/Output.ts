@@ -96,6 +96,10 @@ export const {
 	visitEachChild,
 
 	visitNode,
+
+	isArrowFunction,
+
+	isBlock,
 } = await import("typescript");
 
 export type UsageType = {
@@ -137,6 +141,24 @@ export default class {
 
 			...Option,
 		};
+	}
+
+	private Await(Node: Node): boolean {
+		let True = false;
+
+		const Visit = (Node: Node): void => {
+			if (isAwaitExpression(Node)) {
+				True = true;
+
+				return;
+			}
+
+			Node.forEachChild(Visit);
+		};
+
+		Visit(Node);
+
+		return True;
 	}
 
 	private _FunctionInline(Node: Node, Context: TransformationContext): Node {
@@ -414,6 +436,64 @@ export default class {
 					);
 
 					this.Change = true;
+
+					if (this.Await(Initializer)) {
+						let Parent = Node.parent;
+
+						while (Parent) {
+							if (isArrowFunction(Parent)) {
+								if (
+									!Parent.modifiers?.some(
+										({ kind }) => kind === AsyncKeyword,
+									) &&
+									Parent.parameters.every((param) =>
+										isIdentifier(param.name),
+									)
+								) {
+									return Context.factory.createCallExpression(
+										Context.factory.createParenthesizedExpression(
+											Context.factory.createArrowFunction(
+												[
+													Context.factory.createModifier(
+														AsyncKeyword,
+													),
+												],
+
+												Parent.typeParameters,
+
+												Parent.parameters,
+
+												Parent.type,
+
+												Parent.equalsGreaterThanToken,
+
+												isBlock(Initializer)
+													? Initializer
+													: Context.factory.createBlock(
+															[
+																Context.factory.createReturnStatement(
+																	Initializer as Expression,
+																),
+															],
+														),
+											),
+										),
+
+										undefined,
+
+										Parent.parameters.map(
+											(Declaration) =>
+												Declaration.name as Identifier,
+										),
+									);
+								}
+
+								break;
+							}
+
+							Parent = Parent.parent;
+						}
+					}
 
 					return isBinaryExpression(Initializer) ||
 						isConditionalExpression(Initializer)
