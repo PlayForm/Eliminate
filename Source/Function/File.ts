@@ -19,7 +19,9 @@ export default (async (...[Path]) => {
 			Path.replace(".ts", ".js"),
 			(await import("typescript")).transpile(
 				(
-					await (await import("node:fs/promises")).readFile(Path, "utf-8")
+					await (
+						await import("node:fs/promises")
+					).readFile(Path, "utf-8")
 				).toString(),
 				(await import("typescript")).parseJsonConfigFileContent(
 					(await import("typescript")).readConfigFile(

@@ -1,4 +1,4 @@
 interface Test {
-    Prop: string;
+	Prop: string;
 }
 const Usage: Test = { Prop: "Test" };
