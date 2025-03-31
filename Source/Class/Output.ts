@@ -192,7 +192,7 @@ export default class {
 			};
 	}
 
-	private Declaration(Node: Node): void {
+	private Declaration(Source: Node): void {
 		const Visit = (Node: Node) => {
 			if (
 				(isVariableDeclaration(Node) || isFunctionDeclaration(Node)) &&
@@ -294,28 +294,28 @@ export default class {
 		Visit(Source);
 	}
 
-	private Reference(source: Node): void {
-		const visit = (node: Node): void => {
-			if (isIdentifier(node)) {
-				const symbol = this.typeChecker?.getSymbolAtLocation(node);
+	private Reference(Source: Node): void {
+		const Visit = (Node: Node): void => {
+			if (isIdentifier(Node)) {
+				const _Symbol = this.Type?.getSymbolAtLocation(Node);
 
-				if (symbol && this.usage.has(symbol)) {
-					const usage = this.usage.get(symbol);
+				if (_Symbol && this.Usage.has(_Symbol)) {
+					const Usage = this.Usage.get(_Symbol);
 
-					if (usage) {
-						usage.Reference.push(node);
+					if (Usage) {
+						Usage.Reference.push(Node);
 
-						if (this.isNodeModified(node)) {
-							usage.Modified = true;
+						if (this.Modified(Node)) {
+							Usage.Modified = true;
 						}
 					}
 				}
 			}
 
-			forEachChild(node, visit);
+			forEachChild(Node, Visit);
 		};
 
-		visit(source);
+		Visit(Source);
 	}
 
 	private Collect(Source: Node): void {
@@ -324,7 +324,9 @@ export default class {
 		this.Declaration(Source);
 
 		this.Reference(Source);
-
+		
+		this.Graph();
+		
 		const Graph = new Map<SymbolInterface, Set<SymbolInterface>>();
 
 		for (const [_Symbol, Usage] of this.Usage) {
