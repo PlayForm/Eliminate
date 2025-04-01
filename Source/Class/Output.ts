@@ -125,42 +125,6 @@ export default class {
 
 	private Change = false;
 
-	private iterationCount = 0;
-
-	private readonly MAX_ITERATIONS = 100;
-
-	private readonly MODIFICATION_OPERATORS: SyntaxKind[] = [
-		AmpersandAmpersandEqualsToken,
-
-		AmpersandEqualsToken,
-
-		AsteriskEqualsToken,
-
-		BarBarEqualsToken,
-
-		BarEqualsToken,
-
-		CaretEqualsToken,
-
-		EqualsToken,
-
-		GreaterThanGreaterThanEqualsToken,
-
-		GreaterThanGreaterThanGreaterThanEqualsToken,
-
-		LessThanLessThanEqualsToken,
-
-		MinusEqualsToken,
-
-		PercentEqualsToken,
-
-		PlusEqualsToken,
-
-		QuestionQuestionEqualsToken,
-
-		SlashEqualsToken,
-	];
-
 	constructor(Option: Option = {}) {
 		this.Option = {
 			Comment: true,
@@ -177,175 +141,6 @@ export default class {
 
 			...Option,
 		};
-	}
-
-	public Transform(
-		Program: Program,
-	): (Context: TransformationContext) => (Node: Node) => Node {
-		this.Type = Program.getTypeChecker();
-
-		return (Context: TransformationContext) =>
-			(Node: Node): Node => {
-				this.Collect(Node);
-
-				return this.Iterative(Node, Context);
-			};
-	}
-
-	private Declaration(Source: Node): void {
-		const Visit = (Node: Node) => {
-			if (
-				(isVariableDeclaration(Node) || isFunctionDeclaration(Node)) &&
-				Node.name
-			) {
-				const _Symbol = this.Type?.getSymbolAtLocation(Node.name);
-
-				if (_Symbol) {
-					let Inline = true;
-
-					let Size = 0;
-
-					if (isVariableDeclaration(Node)) {
-						if (
-							this.Option.Const &&
-							Node.parent?.parent?.flags & NodeFlags.Const
-						) {
-							Inline = false;
-						}
-
-						const Statement = Node.parent.parent;
-
-						if (
-							isVariableStatement(Statement) &&
-							Statement.modifiers &&
-							Statement.modifiers.some(
-								({ kind }) =>
-									kind === ExportKeyword ||
-									kind === DefaultKeyword,
-							)
-						) {
-							Inline = false;
-						}
-
-						if (Node.initializer) {
-							Inline = Inline && this.Inline(Node.initializer);
-
-							Size = this.Size(Node.initializer);
-						}
-					} else if (isFunctionDeclaration(Node)) {
-						if (this.Option.Function) {
-							Inline = false;
-						}
-
-						if (
-							Node.modifiers?.some(
-								({ kind }) =>
-									kind === ExportKeyword ||
-									kind === DefaultKeyword ||
-									(this.Option.Async &&
-										kind === AsyncKeyword),
-							)
-						) {
-							Inline = false;
-						}
-
-						Size = this.Size(Node);
-					}
-
-					if (this.Comment(Node)) {
-						Inline = false;
-					}
-
-					const Call = new Set<SymbolInterface>();
-
-					this.Call(Node, Call);
-
-					this.Usage.set(_Symbol, {
-						Declaration: Node,
-
-						Reference: [],
-
-						Inline,
-
-						Size,
-
-						Modified: false,
-
-						Call,
-					});
-				}
-			} else if (isIdentifier(Node)) {
-				const _Symbol = this.Type?.getSymbolAtLocation(Node);
-
-				if (_Symbol && this.Usage.has(_Symbol)) {
-					const Usage = this.Usage.get(_Symbol);
-
-					Usage?.Reference.push(Node);
-
-					if (Usage && this.Modification(Node)) {
-						Usage.Modified = true;
-					}
-				}
-			}
-
-			forEachChild(Node, Visit);
-		};
-
-		Visit(Source);
-	}
-
-	private Reference(Source: Node): void {
-		const Visit = (Node: Node): void => {
-			if (isIdentifier(Node)) {
-				const _Symbol = this.Type?.getSymbolAtLocation(Node);
-
-				if (_Symbol && this.Usage.has(_Symbol)) {
-					const Usage = this.Usage.get(_Symbol);
-
-					if (Usage) {
-						Usage.Reference.push(Node);
-
-						if (this.Modified(Node)) {
-							Usage.Modified = true;
-						}
-					}
-				}
-			}
-
-			forEachChild(Node, Visit);
-		};
-
-		Visit(Source);
-	}
-
-	private Collect(Source: Node): void {
-		this.Usage.clear();
-
-		this.Declaration(Source);
-
-		this.Reference(Source);
-		
-		this.Graph();
-		
-		const Graph = new Map<SymbolInterface, Set<SymbolInterface>>();
-
-		for (const [_Symbol, Usage] of this.Usage) {
-			if (isFunctionDeclaration(Usage.Declaration)) {
-				Graph.set(_Symbol, Usage.Call);
-			}
-		}
-
-		const Cycle = this.Cycle(Graph);
-
-		for (const _Cycle of Cycle) {
-			for (const _Symbol of _Cycle) {
-				const Usage = this.Usage.get(_Symbol);
-
-				if (Usage) {
-					Usage.Inline = false;
-				}
-			}
-		}
 	}
 
 	private Await(Node: Node): boolean {
@@ -790,6 +585,142 @@ export default class {
 		return Transform;
 	}
 
+	public Transform(
+		Program: Program,
+	): (Context: TransformationContext) => (Node: Node) => Node {
+		this.Type = Program.getTypeChecker();
+
+		return (Context: TransformationContext) =>
+			(Node: Node): Node => {
+				this.Collect(Node);
+
+				return this.Iterative(Node, Context);
+			};
+	}
+
+	private Collect(Source: Node): void {
+		const Collect = (Node: Node): void => {
+			if (isVariableDeclaration(Node) || isFunctionDeclaration(Node)) {
+				if (!Node.name) {
+					return;
+				}
+
+				const _Symbol = this.Type?.getSymbolAtLocation(Node.name);
+
+				if (_Symbol) {
+					let Inline = true;
+
+					let Size = 0;
+
+					if (isVariableDeclaration(Node)) {
+						if (
+							this.Option.Const &&
+							Node.parent?.parent?.flags & NodeFlags.Const
+						) {
+							Inline = false;
+						}
+
+						const Statement = Node.parent.parent;
+
+						if (
+							isVariableStatement(Statement) &&
+							Statement.modifiers &&
+							Statement.modifiers.some(
+								({ kind }) =>
+									kind === ExportKeyword ||
+									kind === DefaultKeyword,
+							)
+						) {
+							Inline = false;
+						}
+
+						if (Node.initializer) {
+							Inline = Inline && this.Inline(Node.initializer);
+
+							Size = this.Size(Node.initializer);
+						}
+					} else if (isFunctionDeclaration(Node)) {
+						if (this.Option.Function) {
+							Inline = false;
+						}
+
+						if (
+							Node.modifiers?.some(
+								({ kind }) =>
+									kind === ExportKeyword ||
+									kind === DefaultKeyword ||
+									(this.Option.Async &&
+										kind === AsyncKeyword),
+							)
+						) {
+							Inline = false;
+						}
+
+						Size = this.Size(Node);
+					}
+
+					if (this.Comment(Node)) {
+						Inline = false;
+					}
+
+					const Call = new Set<SymbolInterface>();
+
+					this.Call(Node, Call);
+
+					this.Usage.set(_Symbol, {
+						Declaration: Node,
+
+						Reference: [],
+
+						Inline,
+
+						Size,
+
+						Modified: false,
+
+						Call,
+					});
+				}
+			} else if (isIdentifier(Node)) {
+				const _Symbol = this.Type?.getSymbolAtLocation(Node);
+
+				if (_Symbol && this.Usage.has(_Symbol)) {
+					const Usage = this.Usage.get(_Symbol);
+
+					Usage?.Reference.push(Node);
+
+					if (Usage && this.Modification(Node)) {
+						Usage.Modified = true;
+					}
+				}
+			}
+
+			forEachChild(Node, Collect);
+		};
+
+		Collect(Source);
+
+		const Graph = new Map<SymbolInterface, Set<SymbolInterface>>();
+
+		for (const [_Symbol, Usage] of this.Usage) {
+			if (isFunctionDeclaration(Usage.Declaration)) {
+				Graph.set(_Symbol, Usage.Call);
+			}
+		}
+
+		const Cycle = this.Cycle(Graph);
+
+		for (const _Cycle of Cycle) {
+			for (const _Symbol of _Cycle) {
+				const Usage = this.Usage.get(_Symbol);
+
+				if (Usage) {
+					Usage.Inline = false;
+				}
+			}
+		}
+	}
+
 	private Cycle(
 		Graph: Map<SymbolInterface, Set<SymbolInterface>>,
 	): Set<SymbolInterface>[] {
@@ -850,7 +781,7 @@ export default class {
 		const Parent = Node.parent;
 
 		if (
-			this.isPostfixUnaryExpression(
+			this.Postfix(
 				Parent as PostfixUnaryExpressionInterface,
 			)
 		) {
@@ -865,7 +796,7 @@ export default class {
 		}
 
 		if (
-			this.isPrefixUnaryExpression(
+			this.Prefix(
 				Parent as PrefixUnaryExpressionInterface,
 			)
 		) {
@@ -890,7 +821,7 @@ export default class {
 		return false;
 	}
 
-	private isPostfixUnaryExpression({
+	private Postfix({
 		kind,
 
 		operator,
@@ -902,7 +833,7 @@ export default class {
 		return false;
 	}
 
-	private isPrefixUnaryExpression({
+	private Prefix({
 		kind,
 
 		operator,

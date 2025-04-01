@@ -27,8 +27,8 @@ export default class {
     private Cycle;
     private Call;
     private Modification;
-    private isPostfixUnaryExpression;
-    private isPrefixUnaryExpression;
+    private Postfix;
+    private Prefix;
     private Operator;
     private Size;
     private Comment;
