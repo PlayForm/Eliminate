@@ -9,7 +9,7 @@ export const On = process.env["NODE_ENV"] === "development";
 export default {
 	color: true,
 	format: "esm",
-	logLevel: "error",
+	logLevel: "debug",
 	metafile: true,
 	minify: !On,
 	outdir: "Target",
