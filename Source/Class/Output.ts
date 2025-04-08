@@ -161,6 +161,219 @@ export default class {
 		return True;
 	}
 
+	private Cycle(
+		Graph: Map<SymbolInterface, Set<SymbolInterface>>,
+	): Set<SymbolInterface>[] {
+		const Visited = new Set<SymbolInterface>();
+
+		const Stack = new Set<SymbolInterface>();
+
+		const Cycle: Set<SymbolInterface>[] = [];
+
+		const Search = (
+			Node: SymbolInterface,
+
+			Path: SymbolInterface[],
+		): void => {
+			if (Stack.has(Node)) {
+				Cycle.push(new Set(Path.slice(Path.indexOf(Node))));
+
+				return;
+			}
+
+			if (Visited.has(Node)) {
+				return;
+			}
+
+			Visited.add(Node);
+
+			Stack.add(Node);
+
+			for (const Neighbor of Graph.get(Node) || new Set()) {
+				Search(Neighbor, [...Path, Neighbor]);
+			}
+
+			Stack.delete(Node);
+		};
+
+		for (const Node of Graph.keys()) {
+			if (!Visited.has(Node)) {
+				Search(Node, [Node]);
+			}
+		}
+
+		return Cycle;
+	}
+
+	private Call(Node: Node, Call: Set<SymbolInterface>): void {
+		if (isCallExpression(Node) && isIdentifier(Node.expression)) {
+			const Called = this.Type?.getSymbolAtLocation(Node.expression);
+
+			if (Called) {
+				Call.add(Called);
+			}
+		}
+
+		Node.forEachChild((Child) => this.Call(Child, Call));
+	}
+
+	private Modification(Node: Identifier): boolean {
+		const Parent = Node.parent;
+
+		if (this.Postfix(Parent as PostfixUnaryExpressionInterface)) {
+			const Expression = Parent as PostfixUnaryExpressionInterface;
+
+			if (
+				Expression.operator === PlusPlusToken ||
+				Expression.operator === MinusMinusToken
+			) {
+				return true;
+			}
+		}
+
+		if (this.Prefix(Parent as PrefixUnaryExpressionInterface)) {
+			const Expression = Parent as PrefixUnaryExpressionInterface;
+
+			if (
+				Expression.operator === PlusPlusToken ||
+				Expression.operator === MinusMinusToken
+			) {
+				return true;
+			}
+		}
+
+		if (
+			isBinaryExpression(Parent) &&
+			Parent.left === Node &&
+			this.Operator(Parent.operatorToken.kind)
+		) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private Postfix({
+		kind,
+
+		operator,
+	}: Node & PostfixUnaryExpressionInterface): boolean {
+		if (kind === PostfixUnaryExpression) {
+			return operator === PlusPlusToken || operator === MinusMinusToken;
+		}
+
+		return false;
+	}
+
+	private Prefix({
+		kind,
+
+		operator,
+	}: Node & PrefixUnaryExpressionInterface): boolean {
+		if (kind === PrefixUnaryExpression) {
+			return operator === PlusPlusToken || operator === MinusMinusToken;
+		}
+
+		return false;
+	}
+
+	private Operator(kind: SyntaxKind): boolean {
+		return [
+			AmpersandAmpersandEqualsToken,
+
+			AmpersandEqualsToken,
+
+			AsteriskEqualsToken,
+
+			BarBarEqualsToken,
+
+			BarEqualsToken,
+
+			CaretEqualsToken,
+
+			EqualsToken,
+
+			GreaterThanGreaterThanEqualsToken,
+
+			GreaterThanGreaterThanGreaterThanEqualsToken,
+
+			LessThanLessThanEqualsToken,
+
+			MinusEqualsToken,
+
+			PercentEqualsToken,
+
+			PlusEqualsToken,
+
+			QuestionQuestionEqualsToken,
+
+			SlashEqualsToken,
+		].includes(kind);
+	}
+
+	private Size(Node: Node): number {
+		let Size = 0;
+
+		const Visit = (Node: Node): void => {
+			Size++;
+
+			forEachChild(Node, Visit);
+		};
+
+		Visit(Node);
+
+		return Size;
+	}
+
+	private Comment(Node: Node): boolean {
+		if (!this.Option.Comment) {
+			return false;
+		}
+
+		return (
+			(getLeadingCommentRanges(Node.getSourceFile().text, Node.pos) || [])
+				.length > 0
+		);
+	}
+
+	private Inline(Node: Node): boolean {
+		if (this.Size(Node) > (this.Option.Max || Number.POSITIVE_INFINITY)) {
+			return false;
+		}
+
+		if (this.Option.Async && isAwaitExpression(Node)) {
+			return false;
+		}
+
+		if (isThisTypeNode(Node)) {
+			return false;
+		}
+
+		if (isYieldExpression(Node)) {
+			return false;
+		}
+
+		if (isPropertyAccessExpression(Node)) {
+			const _Symbol = this.Type?.getTypeAtLocation(
+				Node.expression,
+			)?.getProperty(Node.name.text);
+
+			if (_Symbol?.flags && _Symbol?.flags & SymbolFlags.Accessor) {
+				return false;
+			}
+		}
+
+		let Valid = true;
+
+		Node.forEachChild((Node) => {
+			if (!this.Inline(Node)) {
+				Valid = false;
+			}
+		});
+
+		return Valid;
+	}
+
 	private _FunctionInline(Node: Node, Context: TransformationContext): Node {
 		const Visit = (Node: Node, Depth = 0): Node => {
 			if (Depth > 100) {
@@ -517,25 +730,21 @@ export default class {
 	}
 
 	private Iterative(Node: Node, Context: TransformationContext): Node {
-		try {
-			/**
-			 * DEBUG
-			 */
-			if (this.Option.Debug) {
-				for (const [_Symbol, Usage] of this.Usage) {
-					console.log(`Variable: ${_Symbol.name}`);
+		/**
+		 * DEBUG
+		 */
+		if (this.Option.Debug) {
+			for (const [_Symbol, Usage] of this.Usage) {
+				console.log(`Variable: ${_Symbol.name}`);
 
-					console.log(`- Reference: ${Usage.Reference.length}`);
+				console.log(`- Reference: ${Usage.Reference.length}`);
 
-					console.log(`- Inline: ${Usage.Inline}`);
+				console.log(`- Inline: ${Usage.Inline}`);
 
-					console.log(`- Size: ${Usage.Size}`);
+				console.log(`- Size: ${Usage.Size}`);
 
-					console.log(`- Text: ${Usage.Declaration.getText()}`);
-				}
+				console.log(`- Text: ${Usage.Declaration.getText()}`);
 			}
-		} catch (_Error) {
-			console.log(_Error);
 		}
 
 		let Transform = Node;
@@ -562,17 +771,13 @@ export default class {
 
 			Iteration++;
 
-			try {
-				/**
-				 * DEBUG
-				 */
-				if (this.Option.Debug) {
-					console.log(`Iteration: ${Iteration}`);
+			/**
+			 * DEBUG
+			 */
+			if (this.Option.Debug) {
+				console.log(`Iteration: ${Iteration}`);
 
-					console.log(`Node: ${Transform?.getText()}`);
-				}
-			} catch (_Error) {
-				console.log(_Error);
+				console.log(`Node: ${Transform?.getText()}`);
 			}
 		} while (this.Change && Iteration < 100);
 
@@ -719,226 +924,5 @@ export default class {
 				}
 			}
 		}
-	}
-
-	private Cycle(
-		Graph: Map<SymbolInterface, Set<SymbolInterface>>,
-	): Set<SymbolInterface>[] {
-		const Visited = new Set<SymbolInterface>();
-
-		const Stack = new Set<SymbolInterface>();
-
-		const Cycle: Set<SymbolInterface>[] = [];
-
-		const Search = (
-			Node: SymbolInterface,
-
-			Path: SymbolInterface[],
-		): void => {
-			if (Stack.has(Node)) {
-				Cycle.push(new Set(Path.slice(Path.indexOf(Node))));
-
-				return;
-			}
-
-			if (Visited.has(Node)) {
-				return;
-			}
-
-			Visited.add(Node);
-
-			Stack.add(Node);
-
-			for (const Neighbor of Graph.get(Node) || new Set()) {
-				Search(Neighbor, [...Path, Neighbor]);
-			}
-
-			Stack.delete(Node);
-		};
-
-		for (const Node of Graph.keys()) {
-			if (!Visited.has(Node)) {
-				Search(Node, [Node]);
-			}
-		}
-
-		return Cycle;
-	}
-
-	private Call(Node: Node, Call: Set<SymbolInterface>): void {
-		if (isCallExpression(Node) && isIdentifier(Node.expression)) {
-			const Called = this.Type?.getSymbolAtLocation(Node.expression);
-
-			if (Called) {
-				Call.add(Called);
-			}
-		}
-
-		Node.forEachChild((Child) => this.Call(Child, Call));
-	}
-
-	private Modification(Node: Identifier): boolean {
-		const Parent = Node.parent;
-
-		if (
-			this.Postfix(
-				Parent as PostfixUnaryExpressionInterface,
-			)
-		) {
-			const Expression = Parent as PostfixUnaryExpressionInterface;
-
-			if (
-				Expression.operator === PlusPlusToken ||
-				Expression.operator === MinusMinusToken
-			) {
-				return true;
-			}
-		}
-
-		if (
-			this.Prefix(
-				Parent as PrefixUnaryExpressionInterface,
-			)
-		) {
-			const Expression = Parent as PrefixUnaryExpressionInterface;
-
-			if (
-				Expression.operator === PlusPlusToken ||
-				Expression.operator === MinusMinusToken
-			) {
-				return true;
-			}
-		}
-
-		if (
-			isBinaryExpression(Parent) &&
-			Parent.left === Node &&
-			this.Operator(Parent.operatorToken.kind)
-		) {
-			return true;
-		}
-
-		return false;
-	}
-
-	private Postfix({
-		kind,
-
-		operator,
-	}: Node & PostfixUnaryExpressionInterface): boolean {
-		if (kind === PostfixUnaryExpression) {
-			return operator === PlusPlusToken || operator === MinusMinusToken;
-		}
-
-		return false;
-	}
-
-	private Prefix({
-		kind,
-
-		operator,
-	}: Node & PrefixUnaryExpressionInterface): boolean {
-		if (kind === PrefixUnaryExpression) {
-			return operator === PlusPlusToken || operator === MinusMinusToken;
-		}
-
-		return false;
-	}
-
-	private Operator(kind: SyntaxKind): boolean {
-		return [
-			AmpersandAmpersandEqualsToken,
-
-			AmpersandEqualsToken,
-
-			AsteriskEqualsToken,
-
-			BarBarEqualsToken,
-
-			BarEqualsToken,
-
-			CaretEqualsToken,
-
-			EqualsToken,
-
-			GreaterThanGreaterThanEqualsToken,
-
-			GreaterThanGreaterThanGreaterThanEqualsToken,
-
-			LessThanLessThanEqualsToken,
-
-			MinusEqualsToken,
-
-			PercentEqualsToken,
-
-			PlusEqualsToken,
-
-			QuestionQuestionEqualsToken,
-
-			SlashEqualsToken,
-		].includes(kind);
-	}
-
-	private Size(Node: Node): number {
-		let Size = 0;
-
-		const Visit = (Node: Node): void => {
-			Size++;
-
-			forEachChild(Node, Visit);
-		};
-
-		Visit(Node);
-
-		return Size;
-	}
-
-	private Comment(Node: Node): boolean {
-		if (!this.Option.Comment) {
-			return false;
-		}
-
-		return (
-			(getLeadingCommentRanges(Node.getSourceFile().text, Node.pos) || [])
-				.length > 0
-		);
-	}
-
-	private Inline(Node: Node): boolean {
-		if (this.Size(Node) > (this.Option.Max || Number.POSITIVE_INFINITY)) {
-			return false;
-		}
-
-		if (this.Option.Async && isAwaitExpression(Node)) {
-			return false;
-		}
-
-		if (isThisTypeNode(Node)) {
-			return false;
-		}
-
-		if (isYieldExpression(Node)) {
-			return false;
-		}
-
-		if (isPropertyAccessExpression(Node)) {
-			const _Symbol = this.Type?.getTypeAtLocation(
-				Node.expression,
-			)?.getProperty(Node.name.text);
-
-			if (_Symbol?.flags && _Symbol?.flags & SymbolFlags.Accessor) {
-				return false;
-			}
-		}
-
-		let Valid = true;
-
-		Node.forEachChild((Node) => {
-			if (!this.Inline(Node)) {
-				Valid = false;
-			}
-		});
-
-		return Valid;
 	}
 }
