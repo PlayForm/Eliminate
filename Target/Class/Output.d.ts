@@ -16,14 +16,6 @@ export default class {
     private Change;
     constructor(Option?: Option);
     private Await;
-    private _FunctionInline;
-    private _VariableInline;
-    private _CallExpressionInline;
-    private _BinaryExpressionInline;
-    private _ExpressionInline;
-    private Iterative;
-    Transform(Program: Program): (Context: TransformationContext) => (Node: Node) => Node;
-    private Collect;
     private Cycle;
     private Call;
     private Modification;
@@ -33,4 +25,12 @@ export default class {
     private Size;
     private Comment;
     private Inline;
+    private _FunctionInline;
+    private _VariableInline;
+    private _CallExpressionInline;
+    private _BinaryExpressionInline;
+    private _ExpressionInline;
+    private Iterative;
+    Transform(Program: Program): (Context: TransformationContext) => (Node: Node) => Node;
+    private Collect;
 }
