@@ -5,12 +5,13 @@ import type {
 	Identifier,
 	Modifier,
 	Node,
+	ParenthesizedExpression,
 	PostfixUnaryExpression as PostfixUnaryExpressionInterface,
 	PrefixUnaryExpression as PrefixUnaryExpressionInterface,
 	Program,
 	Statement,
 	Symbol as SymbolInterface,
-	SyntaxKind,
+	SyntaxKind as SyntaxKindType,
 	TransformationContext,
 	TypeChecker,
 	VariableDeclaration,
@@ -52,6 +53,10 @@ export const {
 
 		AmpersandEqualsToken,
 
+		ArrayLiteralExpression,
+
+		ArrowFunction,
+
 		AsteriskEqualsToken,
 
 		AsyncKeyword,
@@ -60,7 +65,17 @@ export const {
 
 		BarEqualsToken,
 
+		BinaryExpression,
+
+		CallExpression,
+
 		CaretEqualsToken,
+
+		ConditionalExpression,
+
+		AwaitExpression,
+
+		TemplateExpression,
 
 		DefaultKeyword,
 
@@ -68,15 +83,29 @@ export const {
 
 		ExportKeyword,
 
+		FalseKeyword,
+
+		FunctionExpression,
+
 		GreaterThanGreaterThanEqualsToken,
 
 		GreaterThanGreaterThanGreaterThanEqualsToken,
+
+		Identifier: IdentifierKind,
 
 		LessThanLessThanEqualsToken,
 
 		MinusEqualsToken,
 
 		MinusMinusToken,
+
+		NewExpression,
+
+		NullKeyword,
+
+		NumericLiteral,
+
+		ObjectLiteralExpression,
 
 		PercentEqualsToken,
 
@@ -88,9 +117,20 @@ export const {
 
 		PrefixUnaryExpression,
 
+		PropertyAccessExpression,
+
 		QuestionQuestionEqualsToken,
 
+		RegularExpressionLiteral,
+
 		SlashEqualsToken,
+
+		StringLiteral,
+
+		TrueKeyword,
+
+		UndefinedKeyword,
+		BigIntLiteral,
 	},
 
 	visitEachChild,
@@ -101,6 +141,8 @@ export const {
 
 	isBlock,
 } = await import("typescript");
+
+export const { SyntaxKind } = await import("typescript");
 
 export type UsageType = {
 	Declaration: VariableDeclaration | FunctionDeclaration;
@@ -277,7 +319,7 @@ export default class {
 		return false;
 	}
 
-	private Operator(kind: SyntaxKind): boolean {
+	private Operator(kind: SyntaxKindType): boolean {
 		return [
 			AmpersandAmpersandEqualsToken,
 
@@ -374,6 +416,67 @@ export default class {
 		return Valid;
 	}
 
+	private Safe(Node: Expression | undefined): boolean {
+		if (
+			// No initializer is not safe to substitute
+			!Node
+		) {
+			return false;
+		}
+
+		switch (Node.kind) {
+			case StringLiteral:
+
+			case NumericLiteral:
+
+			case TrueKeyword:
+
+			case FalseKeyword:
+
+			case NullKeyword:
+
+			case UndefinedKeyword:
+
+			case BigIntLiteral:
+
+			case RegularExpressionLiteral:
+
+			case ArrayLiteralExpression:
+
+			case ObjectLiteralExpression:
+
+			case FunctionExpression:
+
+			case ArrowFunction:
+
+			case CallExpression:
+
+			case NewExpression:
+
+			case IdentifierKind:
+
+			case PropertyAccessExpression:
+
+			case BinaryExpression:
+
+			case ConditionalExpression:
+
+			case AwaitExpression:
+
+			case TemplateExpression:
+				return true;
+
+			default:
+				if (this.Option.Debug) {
+					console.log(
+						`[Safe] Unhandled kind: ${SyntaxKind[Node.kind]} - Assuming unsafe`,
+					);
+				}
+
+				return false;
+		}
+	}
+
 	private _FunctionInline(Node: Node, Context: TransformationContext): Node {
 		const Visit = (Node: Node, Depth = 0): Node => {
 			if (Depth > 100) {
@@ -383,11 +486,10 @@ export default class {
 			}
 
 			if (isFunctionDeclaration(Node)) {
-				if (Node.typeParameters && Node.typeParameters.length > 0) {
-					return Node;
-				}
-
-				if (!Node.name) {
+				if (
+					!Node.name ||
+					(Node.typeParameters && Node.typeParameters.length > 0)
+				) {
 					return Node;
 				}
 
@@ -396,7 +498,13 @@ export default class {
 				if (_Symbol) {
 					const _Usage = this.Usage.get(_Symbol);
 
-					if (_Usage?.Inline && _Usage.Reference.length === 2) {
+					if (_Usage?.Inline && _Usage.Reference.length === 1) {
+						if (this.Option.Debug) {
+							console.log(
+								`[FuncInline] Removing declaration: ${_Symbol.name}`,
+							);
+						}
+
 						this.Change = true;
 
 						return undefined as unknown as Statement;
@@ -428,6 +536,10 @@ export default class {
 				const Declaration = Node.declarationList.declarations;
 
 				const New = Declaration.filter((Declaration) => {
+					if (!isIdentifier(Declaration.name)) {
+						return true;
+					}
+
 					const _Symbol = this.Type?.getSymbolAtLocation(
 						Declaration.name,
 					);
@@ -442,30 +554,56 @@ export default class {
 						return true;
 					}
 
-					return !(_Usage.Inline && _Usage.Reference.length === 2);
+					const Safe =
+						isVariableDeclaration(_Usage.Declaration) &&
+						this.Safe(_Usage.Declaration.initializer);
+
+					const Remove =
+						_Usage.Inline && _Usage.Reference.length === 1 && Safe;
+
+					if (Remove && this.Option.Debug) {
+						console.log(
+							`[VarInline] Removing declaration: ${_Symbol.name}`,
+						);
+					} else if (
+						_Usage.Inline &&
+						_Usage.Reference.length === 1 &&
+						!Safe &&
+						this.Option.Debug
+					) {
+						console.log(
+							`[VarInline] Keeping declaration ${
+								_Symbol.name
+							} because initializer kind ${
+								SyntaxKind[_Usage.Declaration.kind]
+							} is unsafe.`,
+						);
+					}
+
+					return !Remove;
 				});
 
-				if (New.length === 0) {
+				if (New.length < Declaration.length) {
 					this.Change = true;
 
-					return undefined as unknown as Statement;
+					if (New.length === 0) {
+						return undefined as unknown as Statement;
+					} else {
+						return Context.factory.updateVariableStatement(
+							Node,
+
+							Node.modifiers,
+
+							Context.factory.createVariableDeclarationList(
+								New,
+
+								Node.declarationList.flags,
+							),
+						);
+					}
 				}
 
-				if (New.length !== Declaration.length) {
-					this.Change = true;
-
-					return Context.factory.updateVariableStatement(
-						Node,
-
-						Node.modifiers,
-
-						Context.factory.createVariableDeclarationList(
-							New,
-
-							Node.declarationList.flags,
-						),
-					);
-				}
+				return Node;
 			}
 
 			return visitEachChild(
@@ -501,22 +639,33 @@ export default class {
 					const _Symbol = this.Type?.getSymbolAtLocation(Expression);
 
 					if (_Symbol && this.Usage.has(_Symbol)) {
-						// biome-ignore lint/style/noNonNullAssertion:
 						const _Usage = this.Usage.get(_Symbol)!;
 
 						if (
-							isFunctionDeclaration(_Usage.Declaration) &&
-							_Usage.Declaration.typeParameters &&
-							_Usage.Declaration.typeParameters.length > 0
+							!isFunctionDeclaration(_Usage.Declaration) ||
+							(_Usage.Declaration.typeParameters &&
+								_Usage.Declaration.typeParameters.length > 0)
 						) {
 							return Node;
 						}
 
-						if (
-							_Usage.Inline &&
-							_Usage.Reference.length === 2 &&
-							isFunctionDeclaration(_Usage.Declaration)
-						) {
+						if (_Usage.Inline && _Usage.Reference.length === 1) {
+							if (this.Option.Debug) {
+								console.log(
+									`[CallInline] Inlining call to: ${_Symbol.name}`,
+								);
+							}
+
+							if (!_Usage.Declaration.body) {
+								if (this.Option.Debug) {
+									console.log(
+										`[CallInline] Warning: Inlineable function ${_Symbol.name} has no body.`,
+									);
+								}
+
+								return Node;
+							}
+
 							this.Change = true;
 
 							return Context.factory.updateCallExpression(
@@ -524,8 +673,9 @@ export default class {
 
 								Context.factory.createParenthesizedExpression(
 									Context.factory.createArrowFunction(
-										_Usage.Declaration
-											.modifiers as readonly Modifier[],
+										_Usage.Declaration.modifiers as
+											| readonly Modifier[]
+											| undefined,
 
 										_Usage.Declaration.typeParameters,
 
@@ -535,8 +685,7 @@ export default class {
 
 										undefined,
 
-										// biome-ignore lint/style/noNonNullAssertion:
-										_Usage.Declaration.body!,
+										_Usage.Declaration.body,
 									),
 								),
 
@@ -575,36 +724,59 @@ export default class {
 				return Node;
 			}
 
-			if (isBinaryExpression(Node)) {
-				const Left = visitNode(Node.left, Visit);
+			if (Node.kind === SyntaxKind.ParenthesizedExpression) {
+				const Inner = (Node as ParenthesizedExpression).expression;
 
-				const Right = visitNode(Node.right, Visit);
+				const InnerVisited = Visit(Inner, Depth + 1);
 
-				if (Left !== Node.left || Right !== Node.right) {
+				if (InnerVisited !== Inner) {
 					this.Change = true;
 
-					return Context.factory.createParenthesizedExpression(
-						Context.factory.createBinaryExpression(
-							Left as Expression,
-
-							Node.operatorToken,
-
-							Right as Expression,
-						),
+					return Context.factory.updateParenthesizedExpression(
+						Node as ParenthesizedExpression,
+						InnerVisited as Expression,
 					);
 				}
+
+				return Node;
 			}
 
-			return visitEachChild(
+			const Visited = visitEachChild(
 				Node,
 
 				(Child) => Visit(Child, Depth + 1),
 
 				Context,
 			);
+
+			if (isBinaryExpression(Visited)) {
+				const LeftNeed =
+					isBinaryExpression(Visited.left) ||
+					isConditionalExpression(Visited.left);
+
+				const RightNeed =
+					isBinaryExpression(Visited.right) ||
+					isConditionalExpression(Visited.right);
+
+				if (LeftNeed || RightNeed) {
+					if (this.Option.Debug) {
+						console.log(
+							`[BinaryInline] Adding parens around: ${Visited.getText()}`,
+						);
+					}
+
+					this.Change = true;
+
+					return Context.factory.createParenthesizedExpression(
+						Visited,
+					);
+				}
+			}
+
+			return Visited;
 		};
 
-		return visitNode(Node, Visit);
+		return Visit(Node, 0);
 	}
 
 	private _ExpressionInline(
@@ -638,10 +810,17 @@ export default class {
 				if (
 					_Usage?.Inline &&
 					!_Usage.Modified &&
-					_Usage.Reference.length === 2 &&
+					_Usage.Reference.length === 1 &&
 					isVariableDeclaration(_Usage.Declaration) &&
-					_Usage.Declaration.initializer
+					_Usage.Declaration.initializer &&
+					this.Safe(_Usage.Declaration.initializer)
 				) {
+					if (this.Option.Debug) {
+						console.log(
+							`[ExprInline] Inlining identifier: ${_Symbol?.name}`,
+						);
+					}
+
 					const Initializer = this.Iterative(
 						_Usage.Declaration.initializer,
 
@@ -714,6 +893,21 @@ export default class {
 								Initializer,
 							)
 						: Initializer;
+				} else if (
+					_Usage?.Inline &&
+					!_Usage.Modified &&
+					_Usage.Reference.length === 1 &&
+					isVariableDeclaration(_Usage.Declaration) &&
+					_Usage.Declaration.initializer &&
+					this.Option.Debug
+				) {
+					if (!this.Safe(_Usage.Declaration.initializer)) {
+						console.log(
+							`[ExprInline] Skipping unsafe initializer inline for: ${
+								_Symbol?.name
+							} (Kind: ${SyntaxKind[_Usage.Declaration.initializer.kind]})`,
+						);
+					}
 				}
 			}
 
@@ -730,29 +924,18 @@ export default class {
 	}
 
 	private Iterative(Node: Node, Context: TransformationContext): Node {
-		/**
-		 * DEBUG
-		 */
-		if (this.Option.Debug) {
-			for (const [_Symbol, Usage] of this.Usage) {
-				console.log(`Variable: ${_Symbol.name}`);
-
-				console.log(`- Reference: ${Usage.Reference.length}`);
-
-				console.log(`- Inline: ${Usage.Inline}`);
-
-				console.log(`- Size: ${Usage.Size}`);
-
-				console.log(`- Text: ${Usage.Declaration.getText()}`);
-			}
-		}
-
 		let Transform = Node;
 
 		let Iteration = 0;
 
+		const MaxIterations = 100;
+
 		do {
 			this.Change = false;
+
+			if (this.Option.Debug) {
+				console.log(`[Iterative] --- Iteration ${Iteration + 1} ---`);
+			}
 
 			// Pass 1: Inline functions
 			Transform = this._FunctionInline(Transform, Context);
@@ -763,28 +946,29 @@ export default class {
 			// Pass 3: Inline call expressions
 			Transform = this._CallExpressionInline(Transform, Context);
 
-			// Pass 4: Inline binary expressions
-			Transform = this._BinaryExpressionInline(Transform, Context);
-
-			// Pass 5: Inline expressions
+			// Pass 4: Inline expressions
 			Transform = this._ExpressionInline(Transform, Context);
+
+			// Pass 5: Inline binary expressions
+			Transform = this._BinaryExpressionInline(Transform, Context);
 
 			Iteration++;
 
-			/**
-			 * DEBUG
-			 */
 			if (this.Option.Debug) {
-				console.log(`Iteration: ${Iteration}`);
-
-				console.log(`Node: ${Transform?.getText()}`);
+				console.log(
+					`[Iterative] Changed in iteration ${Iteration}: ${this.Change}`,
+				);
 			}
-		} while (this.Change && Iteration < 100);
+		} while (this.Change && Iteration < MaxIterations);
 
-		if (Iteration >= 100) {
-			console.log(
-				"Potential infinite loop detected in AST transformations!",
+		if (Iteration >= MaxIterations) {
+			console.warn(
+				"[Iterative] Max iterations reached. Possible complex interactions or infinite loop.",
 			);
+		}
+
+		if (this.Option.Debug) {
+			console.log(`[Iterative] Finished in ${Iteration} iterations.`);
 		}
 
 		return Transform;
@@ -796,114 +980,293 @@ export default class {
 		this.Type = Program.getTypeChecker();
 
 		return (Context: TransformationContext) =>
-			(Node: Node): Node => {
-				this.Collect(Node);
+			(SourceFile: Node): Node => {
+				if (this.Option.Debug) {
+					console.log(
+						`[Transform] Starting transformation for: ${SourceFile.getSourceFile()?.fileName}`,
+					);
+				}
 
-				return this.Iterative(Node, Context);
+				this.Collect(SourceFile);
+
+				const Transform = this.Iterative(SourceFile, Context);
+
+				if (this.Option.Debug) {
+					console.log(`[Transform] Finished transformation.`);
+				}
+
+				return Transform;
 			};
 	}
 
 	private Collect(Source: Node): void {
-		const Collect = (Node: Node): void => {
+		if (this.Option.Debug) {
+			console.log("[Collect] Starting collection phase...");
+		}
+
+		this.Usage.clear();
+
+		const Visit = (Node: Node): void => {
 			if (isVariableDeclaration(Node) || isFunctionDeclaration(Node)) {
-				if (!Node.name) {
+				if (!Node.name || !isIdentifier(Node.name)) {
 					return;
 				}
 
 				const _Symbol = this.Type?.getSymbolAtLocation(Node.name);
 
-				if (_Symbol) {
-					let Inline = true;
+				if (!_Symbol) {
+					return;
+				}
 
-					let Size = 0;
+				if (this.Usage.has(_Symbol)) {
+					return;
+				}
 
-					if (isVariableDeclaration(Node)) {
-						if (
-							this.Option.Const &&
-							Node.parent?.parent?.flags & NodeFlags.Const
-						) {
-							Inline = false;
-						}
+				let Inline = true;
 
-						const Statement = Node.parent.parent;
+				let Size = 0;
 
-						if (
-							isVariableStatement(Statement) &&
-							Statement.modifiers &&
-							Statement.modifiers.some(
-								({ kind }) =>
-									kind === ExportKeyword ||
-									kind === DefaultKeyword,
-							)
-						) {
-							Inline = false;
-						}
+				const DeclarationName = Node.name.text;
 
-						if (Node.initializer) {
-							Inline = Inline && this.Inline(Node.initializer);
-
-							Size = this.Size(Node.initializer);
-						}
-					} else if (isFunctionDeclaration(Node)) {
-						if (this.Option.Function) {
-							Inline = false;
-						}
-
-						if (
-							Node.modifiers?.some(
-								({ kind }) =>
-									kind === ExportKeyword ||
-									kind === DefaultKeyword ||
-									(this.Option.Async &&
-										kind === AsyncKeyword),
-							)
-						) {
-							Inline = false;
-						}
-
-						Size = this.Size(Node);
+				if (isVariableDeclaration(Node)) {
+					if (this.Option.Debug) {
+						console.log(
+							`[Collect] Found Variable Declaration: ${DeclarationName}`,
+						);
 					}
 
-					if (this.Comment(Node)) {
+					if (
+						this.Option.Const &&
+						Node.parent?.parent &&
+						isVariableStatement(Node.parent.parent) &&
+						Node.parent.parent.declarationList.flags &
+							NodeFlags.Const
+					) {
+						if (this.Option.Debug) {
+							console.log(
+								`[Collect] > ${DeclarationName} is const and Option.Const=true -> Inline=false`,
+							);
+						}
+
 						Inline = false;
 					}
 
-					const Call = new Set<SymbolInterface>();
+					const Statement = Node.parent.parent;
 
-					this.Call(Node, Call);
+					if (
+						isVariableStatement(Statement) &&
+						Statement.modifiers?.some(
+							({ kind }) =>
+								kind === ExportKeyword ||
+								kind === DefaultKeyword,
+						)
+					) {
+						if (this.Option.Debug) {
+							console.log(
+								`[Collect] > ${DeclarationName} is exported -> Inline=false`,
+							);
+						}
 
-					this.Usage.set(_Symbol, {
-						Declaration: Node,
+						Inline = false;
+					}
 
-						Reference: [],
+					if (Node.initializer) {
+						if (!this.Inline(Node.initializer)) {
+							if (this.Option.Debug) {
+								console.log(
+									`[Collect] > ${DeclarationName} initializer fails Inline() check -> Inline=false`,
+								);
+							}
 
-						Inline,
+							Inline = false;
+						}
 
-						Size,
+						Size = this.Size(Node.initializer);
 
-						Modified: false,
+						if (
+							Size > (this.Option.Max || Number.POSITIVE_INFINITY)
+						) {
+							if (this.Option.Debug) {
+								console.log(
+									`[Collect] > ${DeclarationName} initializer size ${Size} > Max ${this.Option.Max} -> Inline=false`,
+								);
+							}
 
-						Call,
-					});
+							Inline = false;
+						}
+					} else {
+						if (this.Option.Debug) {
+							console.log(
+								`[Collect] > ${DeclarationName} has no initializer -> Inline=false`,
+							);
+						}
+
+						Inline = false;
+					}
+				} else if (isFunctionDeclaration(Node)) {
+					if (this.Option.Debug) {
+						console.log(
+							`[Collect] Found Function Declaration: ${DeclarationName}`,
+						);
+					}
+
+					if (this.Option.Function === false) {
+						if (this.Option.Debug) {
+							console.log(
+								`[Collect] > ${DeclarationName} Option.Function=false -> Inline=false`,
+							);
+						}
+
+						Inline = false;
+					}
+
+					if (
+						Node.modifiers?.some(
+							({ kind }) =>
+								kind === ExportKeyword ||
+								kind === DefaultKeyword ||
+								(this.Option.Async === false &&
+									kind === AsyncKeyword),
+						)
+					) {
+						if (this.Option.Debug) {
+							console.log(
+								`[Collect] > ${DeclarationName} is ${
+									Node.modifiers?.find(
+										({ kind }) =>
+											kind === ExportKeyword ||
+											kind === DefaultKeyword,
+									)
+										? "exported"
+										: "async (Option.Async=false)"
+								} -> Inline=false`,
+							);
+						}
+
+						Inline = false;
+					}
+
+					if (Node.typeParameters && Node.typeParameters.length > 0) {
+						if (this.Option.Debug) {
+							console.log(
+								`[Collect] > ${DeclarationName} has type parameters -> Inline=false`,
+							);
+						}
+
+						Inline = false;
+					}
+
+					let Nested = false;
+
+					if (Node.body) {
+						for (const statement of Node.body.statements) {
+							if (isFunctionDeclaration(statement)) {
+								Nested = true;
+
+								break;
+							}
+						}
+					}
+
+					if (Nested) {
+						if (this.Option.Debug) {
+							console.log(
+								`[Collect] > ${DeclarationName} has nested function -> Inline=false`,
+							);
+						}
+
+						Inline = false;
+					}
+
+					Size = this.Size(Node);
+
+					if (Size > (this.Option.Max || Number.POSITIVE_INFINITY)) {
+						if (this.Option.Debug) {
+							console.log(
+								`[Collect] > ${DeclarationName} size ${Size} > Max ${this.Option.Max} -> Inline=false`,
+							);
+						}
+
+						Inline = false;
+					}
 				}
+
+				if (this.Comment(Node)) {
+					if (this.Option.Debug) {
+						console.log(
+							`[Collect] > ${DeclarationName} has leading comment -> Inline=false`,
+						);
+					}
+
+					Inline = false;
+				}
+
+				const Call = new Set<SymbolInterface>();
+
+				this.Call(Node, Call);
+
+				if (this.Option.Debug) {
+					console.log(
+						`[Collect] => Storing Usage for ${DeclarationName}: Inline=${Inline}, Size=${Size}`,
+					);
+				}
+
+				this.Usage.set(_Symbol, {
+					Declaration: Node,
+
+					Reference: [],
+
+					Inline,
+
+					Size,
+
+					Modified: false,
+
+					Call,
+				});
 			} else if (isIdentifier(Node)) {
-				const _Symbol = this.Type?.getSymbolAtLocation(Node);
+				if (
+					!(
+						(isVariableDeclaration(Node.parent) &&
+							Node.parent.name === Node) ||
+						(isFunctionDeclaration(Node.parent) &&
+							Node.parent.name === Node)
+					)
+				) {
+					const _Symbol = this.Type?.getSymbolAtLocation(Node);
 
-				if (_Symbol && this.Usage.has(_Symbol)) {
-					const Usage = this.Usage.get(_Symbol);
+					if (_Symbol && this.Usage.has(_Symbol)) {
+						const Usage = this.Usage.get(_Symbol)!;
 
-					Usage?.Reference.push(Node);
+						Usage.Reference.push(Node);
 
-					if (Usage && this.Modification(Node)) {
-						Usage.Modified = true;
+						if (this.Modification(Node)) {
+							if (!Usage.Modified && this.Option.Debug) {
+								console.log(
+									`[Collect] > Usage of ${Usage.Declaration.name?.getText()} at line ${Node.getSourceFile().getLineAndCharacterOfPosition(Node.getStart()).line + 1} is a modification -> Modified=true`,
+								);
+							}
+
+							Usage.Modified = true;
+
+							if (Usage.Inline) {
+								if (this.Option.Debug) {
+									console.log(
+										`[Collect] >> Setting Inline=false for ${Usage.Declaration.name?.getText()} due to modification.`,
+									);
+								}
+
+								Usage.Inline = false;
+							}
+						}
 					}
 				}
 			}
 
-			forEachChild(Node, Collect);
+			forEachChild(Node, Visit);
 		};
 
-		Collect(Source);
+		Visit(Source);
 
 		const Graph = new Map<SymbolInterface, Set<SymbolInterface>>();
 
@@ -919,9 +1282,27 @@ export default class {
 			for (const _Symbol of _Cycle) {
 				const Usage = this.Usage.get(_Symbol);
 
-				if (Usage) {
+				if (Usage && Usage.Inline) {
+					if (this.Option.Debug) {
+						console.log(
+							`[Collect] > Function ${_Symbol.name} is part of a call cycle -> Inline=false`,
+						);
+					}
+
 					Usage.Inline = false;
 				}
+			}
+		}
+
+		if (this.Option.Debug) {
+			console.log(
+				"[Collect] Collection phase complete. Final Usage Map:",
+			);
+
+			for (const [symbol, usage] of this.Usage.entries()) {
+				console.log(
+					` - ${symbol.name}: Inline=${usage.Inline}, Refs=${usage.Reference.length}, Modified=${usage.Modified}, Size=${usage.Size}`,
+				);
 			}
 		}
 	}
