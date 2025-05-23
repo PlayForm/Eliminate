@@ -13,9 +13,7 @@ export default (async (...[Path]) => {
 			"../..",
 		);
 
-		await (
-			await import("node:fs/promises")
-		).writeFile(
+		await (await import("node:fs/promises")).writeFile(
 			Path.replace(".ts", ".js"),
 			(await import("typescript")).transpile(
 				(
@@ -40,7 +38,9 @@ export default (async (...[Path]) => {
 
 	return (
 		await import(
-			(await import("node:url"))
+			(
+				await import("node:url")
+			)
 				.pathToFileURL(Path)
 				.toString()
 				.replace(".ts", ".js")

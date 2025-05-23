@@ -16,9 +16,9 @@ export default (async (...[Option]) => {
 	Configuration = Option?.Eliminate
 		? Merge(
 				Configuration,
-				await (
-					await import("../Function/File.js")
-				).default(Option.Eliminate),
+				await (await import("../Function/File.js")).default(
+					Option.Eliminate,
+				),
 			)
 		: Configuration;
 
@@ -45,10 +45,11 @@ export default (async (...[Option]) => {
 			await (
 				await (
 					await (
-						await new (await import("@playform/pipe")).default(
-							Configuration.Cache,
-							Configuration.Logger,
-						).In(Path)
+						await new (
+							await import("@playform/pipe")
+						).default(Configuration.Cache, Configuration.Logger).In(
+							Path,
+						)
 					).By(File)
 				).Not(Configuration.Exclude)
 			).Pipe(Action);

@@ -180,4 +180,4 @@ guidelines and feel free to submit a Pull Request.
 
 See [`CHANGELOG.md`](CHANGELOG.md) for a history of changes to this component.
 
-[Eliminate]: HTTPS://NPMJS.Org/@playform/eliminate
+[Eliminate]: https://NPMJS.Org/@playform/eliminate

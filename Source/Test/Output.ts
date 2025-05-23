@@ -5,9 +5,9 @@ import prettier, { type RequiredOptions } from "prettier";
 
 const Debug = false;
 
-const File = await (
-	await import("fast-glob")
-).default("./Target/Test/Input/**/*.{js,ts}");
+const File = await (await import("fast-glob")).default(
+	"./Target/Test/Input/**/*.{js,ts}",
+);
 
 const Normalize = async (Input: string): Promise<string> => {
 	try {
@@ -2658,7 +2658,7 @@ console.log(a, b);`);
 				
 				console.log(greeting);`,
 
-				"console.log(\`Hello, World\`);",
+				"console.log(`Hello, World`);",
 			)) &&
 		it("Should Inline Variables In Conditional (ternary) Expressions", async () =>
 			await Equal(
@@ -2904,14 +2904,10 @@ console.log(a, b);`);
 		File.forEach((File) =>
 			it(`Should Inline Properly: ${File}`, async () =>
 				await Equal(
-					await (
-						await import("node:fs/promises")
-					).readFile(File, {
+					await (await import("node:fs/promises")).readFile(File, {
 						encoding: "utf-8",
 					}),
-					await (
-						await import("node:fs/promises")
-					).readFile(
+					await (await import("node:fs/promises")).readFile(
 						File.replace("Target/Test/Input", "Target/Test/Output"),
 						{
 							encoding: "utf-8",
