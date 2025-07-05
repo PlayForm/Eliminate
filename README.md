@@ -51,20 +51,17 @@ console.log(5 + 10);
     - Detects and retains exported symbols to maintain your module’s public
       interface.
 - **Code Optimization:**
-
     - Eliminates variable and function declarations used only once and not
       exported.
     - Substitutes their references with initializers or inlined function bodies
       where applicable.
 
 - **Advanced Scenario Support:**
-
     - Handles complex cases like destructuring, default parameters, nested
       scopes, type annotations, and mutual recursion.
     - Prevents infinite inlining loops in recursive scenarios.
 
 - **Customizable Configuration:**
-
     - `Comment`: Preserve symbols with comments (**default:** `true`).
     - `Max`: Maximum expression size (in AST nodes) for inlining (**default:**
       `100`).
@@ -129,14 +126,12 @@ Add `Eliminate` to your `package.json` scripts:
 your code through these steps:
 
 1.  **Analysis Phase:**
-
     - Builds an Abstract Syntax Tree (`AST`) of your code.
     - Identifies variable and function declarations.
     - Tracks reference counts and export status.
     - Detects recursion via call graph analysis.
 
 2.  **Transformation Phase:**
-
     - Iteratively removes eligible declarations (used once, not exported) and
       inlines their values or bodies.
     - Manages edge cases like destructuring, nested scopes, and recursive
@@ -145,7 +140,6 @@ your code through these steps:
       transformations.
 
 3.  **Output Phase:**
-
     - Produces optimized code with redundant declarations eliminated and their
       usage simplified.
 

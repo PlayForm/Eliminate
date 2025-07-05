@@ -3,13 +3,11 @@
 ### Change
 
 - **Core**:
-    - Updated dependencies in
-      [package.json](./package.json)
-      (including `deepmerge-ts`, `typescript`, `@types/chai`, `chai`,
-      `prettier`, `prettier-plugin-*`, and `tailwindcss`).
-    - Refactored
-      [Source/Class/Output.ts](./Source/Class/Output.ts)
-      for improved code inlining:
+    - Updated dependencies in [package.json](./package.json) (including
+      `deepmerge-ts`, `typescript`, `@types/chai`, `chai`, `prettier`,
+      `prettier-plugin-*`, and `tailwindcss`).
+    - Refactored [Source/Class/Output.ts](./Source/Class/Output.ts) for improved
+      code inlining:
         - Refactored imports from `typescript` to individual imports and type
           imports.
         - Added `Modified` property to `UsageType`.
@@ -26,35 +24,31 @@
           methods.
         - Added `Operator` method to check operator kind.
 - **Configuration**:
-    - In
-      [Source/Class/Eliminate.ts](./Source/Class/Eliminate.ts),
-      changed `.argument` to `.option` for the `Eliminate` configuration.
+    - In [Source/Class/Eliminate.ts](./Source/Class/Eliminate.ts), changed
+      `.argument` to `.option` for the `Eliminate` configuration.
     - Renamed `Eliminate` parameter to `Option` in
       [Source/Function/Eliminate.ts](./Source/Function/Eliminate.ts).
     - Updated configuration assignment to use `Option?.Eliminate` and updated
       file import to use `Option.Eliminate` in
       [Source/Function/Eliminate.ts](./Source/Function/Eliminate.ts).
     - Updated the `Eliminate` interface in
-      [Source/Interface/Eliminate.ts](./Source/Interface/Eliminate.ts)
-      to accept an optional object with an `Eliminate` property.
+      [Source/Interface/Eliminate.ts](./Source/Interface/Eliminate.ts) to accept
+      an optional object with an `Eliminate` property.
 - **Dependencies**: Updated imports to use `node:` protocol for built-in modules
   in:
     - [Source/Function/File.ts](./Source/Function/File.ts)
     - [Source/Variable/ESBuild.js](./Source/Variable/ESBuild.js)
     - [Source/Variable/ESBuild.ts](./Source/Variable/ESBuild.ts)
 - **UI**: Updated descriptions in
-  [Source/Interface/Output/Option.ts](./Source/Interface/Output/Option.ts)
-  to "Preserve" instead of "Allow inlining".
-- **Other**: _ Converted
-  [tailwind.config.js](./tailwind.config.js)
-  to ES Module syntax (`export default`). _ Updated name in
-  [package.json](./package.json) from
-  `"Source 🖋️ Open 👐🏻"` to `"Source ✍🏻 Open 👐🏻"`.
+  [Source/Interface/Output/Option.ts](./Source/Interface/Output/Option.ts) to
+  "Preserve" instead of "Allow inlining".
+- **Other**: _ Converted [tailwind.config.js](./tailwind.config.js) to ES Module
+  syntax (`export default`). _ Updated name in [package.json](./package.json)
+  from `"Source 🖋️ Open 👐🏻"` to `"Source ✍🏻 Open 👐🏻"`.
 
 ### Removed
 
-- **Core**: Removed
-  [Source/Class/Missing.ts](./Source/Class/Missing.ts).
+- **Core**: Removed [Source/Class/Missing.ts](./Source/Class/Missing.ts).
 
 ## v0.0.6
 
@@ -62,29 +56,25 @@
 
 - **Build**: Added [`.npmignore`](file:///.npmignore) to exclude
   `tailwind.config.js` from published package.
-- **Core**: Added
-  [Source/Class/Missing.ts](./Source/Class/Missing.ts).
+- **Core**: Added [Source/Class/Missing.ts](./Source/Class/Missing.ts).
 
 ### Change
 
-- **Dependencies**: Updated dependencies in
-  [package.json](./package.json)
+- **Dependencies**: Updated dependencies in [package.json](./package.json)
   (including `esbuild`, `prettier`, and `tailwindcss`).
 - **Core**:
     - Substantial refactoring of
-      [Source/Class/Output.ts](./Source/Class/Output.ts),
-      including converting to a default export class, refactoring `Usage` to a
-      `Map`, adding a Change property, and implementing `Transform`, `Collect`,
-      `Size`, `Comment`, and `Visit` methods for AST manipulation and analysis.
+      [Source/Class/Output.ts](./Source/Class/Output.ts), including converting
+      to a default export class, refactoring `Usage` to a `Map`, adding a Change
+      property, and implementing `Transform`, `Collect`, `Size`, `Comment`, and
+      `Visit` methods for AST manipulation and analysis.
     - Significant changes to
-      [Source/Function/Output.ts](./Source/Function/Output.ts),
-      including transforming the source using TypeScript's transformation API.
+      [Source/Function/Output.ts](./Source/Function/Output.ts), including
+      transforming the source using TypeScript's transformation API.
 - **UI**: Modified descriptions for `async` and `function` inlining options in
   [Source/Interface/Output/Option.ts](./Source/Interface/Output/Option.ts).
 - **Dependencies**: Updated imports to use `node:` prefix for built-in modules
-  in
-  [Source/Variable/ESBuild.js](./Source/Variable/ESBuild.js)
-  and
+  in [Source/Variable/ESBuild.js](./Source/Variable/ESBuild.js) and
   [Source/Variable/ESBuild.ts](./Source/Variable/ESBuild.ts).
 
 ## v0.0.5
@@ -105,22 +95,19 @@
     - Updated build scripts.
 - **Core**:
     - Refactored code and file structure (moved code elimination logic to
-      [Source/Class/Output.ts](./Source/Class/Output.ts)
-      and updated
-      [Source/Function/Output.ts](./Source/Function/Output.ts)
-      to use the new `Output` class).
+      [Source/Class/Output.ts](./Source/Class/Output.ts) and updated
+      [Source/Function/Output.ts](./Source/Function/Output.ts) to use the new
+      `Output` class).
     - Removed unused files and types related to code elimination.
 - **Metadata**:
     - Updated description to "Eliminate ↘️".
-    - Updated author information in
-      [package.json](./package.json).
+    - Updated author information in [package.json](./package.json).
 - **Other**:
     - Added [`.npmignore`](file:///.npmignore) to exclude unnecessary files from
       the published package.
     - Added tests for code elimination functionality.
-- **Typescript**: Updated
-  [tsconfig.json](./tsconfig.json) with
-  additional options (added `rootDir`, `types`, `lib`, and `exclude` options).
+- **Typescript**: Updated [tsconfig.json](./tsconfig.json) with additional
+  options (added `rootDir`, `types`, `lib`, and `exclude` options).
 
 ### Fix
 
