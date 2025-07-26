@@ -50,11 +50,7 @@
 		"@types/jest": "30.0.0",
 		"@types/mocha": "10.0.10",
 		"chai": "5.2.1",
-<<<<<<< HEAD
-		"esbuild": "0.25.6",
-=======
 		"esbuild": "0.25.8",
->>>>>>> a62674aea220536986bba49bdaf00c682ed2dff8
 		"fast-glob": "3.3.3",
 		"mocha": "11.7.1",
 		"prettier": "3.6.2",
