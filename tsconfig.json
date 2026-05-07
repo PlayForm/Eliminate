@@ -2,7 +2,7 @@
 	"compilerOptions": {
 		"baseUrl": "./",
 		"outDir": "Target",
-		"rootDir": "Source",
+		"rootDir": "./Source",
 		"types": ["@types/mocha", "@types/node"],
 		"lib": ["ESNext", "DOM"]
 	},
