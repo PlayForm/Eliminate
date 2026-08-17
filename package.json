@@ -35,7 +35,7 @@
 		"prepublishOnly": "Build 'Source/**/*.ts' --ESBuild Source/Variable/ESBuild.ts"
 	},
 	"dependencies": {
-		"@playform/pipe": "0.1.5",
+		"@playform/pipe": "0.1.6",
 		"commander": "15.0.0",
 		"deepmerge-ts": "8.0.0",
 		"typescript": "7.0.2"
