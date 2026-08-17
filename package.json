@@ -37,7 +37,7 @@
 	"dependencies": {
 		"@playform/pipe": "0.1.5",
 		"commander": "15.0.0",
-		"deepmerge-ts": "7.1.5",
+		"deepmerge-ts": "8.0.0",
 		"typescript": "7.0.2"
 	},
 	"devDependencies": {
