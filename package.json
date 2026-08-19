@@ -52,7 +52,7 @@
 		"chai": "6.2.2",
 		"esbuild": "0.28.2",
 		"fast-glob": "3.3.3",
-		"mocha": "11.7.6",
+		"mocha": "11.8.0",
 		"prettier": "3.9.6",
 		"prettier-plugin-astro": "0.14.1",
 		"prettier-plugin-organize-attributes": "1.0.0",
