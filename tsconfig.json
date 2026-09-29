@@ -1,6 +1,5 @@
 {
 	"compilerOptions": {
-		"baseUrl": "./",
 		"outDir": "Target",
 		"rootDir": "./Source",
 		"types": ["@types/mocha", "@types/node"],
